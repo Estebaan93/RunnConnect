@@ -1,3 +1,4 @@
+//data/request/RegistroRequest
 package com.example.runnconnect.data.request;
 
 public class RegistroRequest { //para crear cuente

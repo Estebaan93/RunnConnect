@@ -1,25 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--mobile_navigation -->
 <navigation xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/mobile_navigation"
-    app:startDestination="@+id/nav_home">
+    app:startDestination="@+id/nav_inicio">
 
   <fragment
-      android:id="@+id/nav_home"
-      android:name="com.example.runnconnect.ui.home.EventosPublicosFragment"
-      android:label="@string/menu_home"
-      tools:layout="@layout/fragment_home" />
+      android:id="@+id/nav_inicio"
+      android:name="com.example.runnconnect.ui.runner.inicio.InicioFragment"
+      android:label="Inicio Feed"
+      tools:layout="@layout/fragment_inicio" />
 
-  <fragment
-      android:id="@+id/nav_gallery"
-      android:name="com.example.runnconnect.ui.gallery.LoginActivity"
-      android:label="@string/menu_gallery"
-      tools:layout="@layout/activity_login" />
 
-  <fragment
-      android:id="@+id/nav_slideshow"
-      android:name="com.example.runnconnect.ui.slideshow.SlideshowFragment"
-      android:label="@string/menu_slideshow"
-      tools:layout="@layout/fragment_slideshow" />
+
+
+
+
 </navigation>

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!--menu_runner -->
+<!--menu_organizador -->
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     tools:showIn="navigation_view">
@@ -11,15 +11,13 @@
         android:title="Inicio Feed" />
 
     <item
-        android:id="@+id/nav_buscar"
-        android:icon="@drawable/loupe"
-        android:title="Buscar Eventos" />
-
+        android:id="@+id/nav_mis_eventos"
+        android:icon="@drawable/calendar"
+        android:title="Mis Eventos Creados" />
     <item
-        android:id="@+id/nav_inscripciones"
+        android:id="@+id/nav_crear_evento"
         android:icon="@drawable/writing"
-        android:title="Mis Inscripciones" />
-
+        android:title="Crear Nuevo Evento" />
     <item
         android:id="@+id/nav_perfil"
         android:icon="@drawable/user"
