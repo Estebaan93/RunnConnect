@@ -29,7 +29,7 @@
   <item android:title="Cuenta">
     <menu>
       <item
-          android:id="@+id/nav_logout"
+          android:id="@+id/nav_cerrar_sesion"
           android:icon="@drawable/logout"
           android:title="Cerrar Sesión" />
     </menu>
