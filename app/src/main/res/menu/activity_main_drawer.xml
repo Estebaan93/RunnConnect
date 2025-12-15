@@ -21,6 +21,11 @@
         android:title="Mis Inscripciones" />
 
     <item
+        android:id="@+id/nav_resultados"
+        android:icon="@drawable/medal"
+        android:title="Mis Resultados"/>
+
+    <item
         android:id="@+id/nav_perfil"
         android:icon="@drawable/user"
         android:title="Mi Perfil" />

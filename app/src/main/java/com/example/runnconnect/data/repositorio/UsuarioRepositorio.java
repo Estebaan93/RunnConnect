@@ -1,14 +1,17 @@
 //data/repositorio/UsuarioRepositorio
 package com.example.runnconnect.data.repositorio;
 
-import android.app.Application;
+
 import android.content.Context;
 
 import com.example.runnconnect.data.conexion.ApiClient;
 import com.example.runnconnect.data.conexion.ApiService;
 import com.example.runnconnect.data.preferencias.SessionManager;
+import com.example.runnconnect.data.request.ActualizarPerfilOrganizadorRequest;
+import com.example.runnconnect.data.request.ActualizarPerfilRunnerRequest;
 import com.example.runnconnect.data.request.LoginRequest;
 import com.example.runnconnect.data.response.LoginResponse;
+import com.example.runnconnect.data.response.PerfilUsuarioResponse;
 
 
 import retrofit2.Call;
@@ -42,13 +45,30 @@ public class UsuarioRepositorio {
   }
 
   //cerrar sesion - destruye token
-  public  void cerrarSesion(){
+  public void cerrarSesion(){
     sessionManager.cerrarSesion();
   }
 
   public String obtenerTipoUsuario(){
     return sessionManager.getTipoUsuario();
   }
+
+  public void obtenerPerfil(Callback<PerfilUsuarioResponse> callback) {
+    String token= sessionManager.leerToken();
+    apiService.obtenerPerfil("Bearer "+token).enqueue(callback);
+  }
+
+  public void actualizarRunner(ActualizarPerfilRunnerRequest request, Callback<PerfilUsuarioResponse> callback) {
+    String token= sessionManager.leerToken();
+    apiService.actualizarPerfilRunner("Bearer "+token, request).enqueue(callback);
+  }
+
+  public void actualizarOrganizador(ActualizarPerfilOrganizadorRequest request, Callback<PerfilUsuarioResponse> callback) {
+    String token= sessionManager.leerToken();
+    apiService.actualizarPerfilOrganizador("Bearer "+token , request).enqueue(callback);
+  }
+
+
 
 
 }

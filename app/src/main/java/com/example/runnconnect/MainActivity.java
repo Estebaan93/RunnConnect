@@ -58,14 +58,15 @@ public class MainActivity extends AppCompatActivity {
       //activity_main_drawer pertence al runner
       navigationView.inflateMenu(R.menu.activity_main_drawer);
     }
-
+    //navegacion
     mAppBarConfiguration = new AppBarConfiguration.Builder(
-            R.id.nav_inicio, //runner
-            R.id.nav_buscar, //runnee
+            R.id.nav_inicio, //runner/orga
+            R.id.nav_buscar, //runner
             R.id.nav_inscripciones, //runner
             R.id.nav_mis_eventos, //organizador
             R.id.nav_crear_evento, //organizador
-            R.id.nav_perfil) //ambos
+            R.id.nav_perfil, //runner/orga
+            R.id.nav_cerrar_sesion) //runner/orga
             .setOpenableLayout(drawer)
             .build();
     NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment_content_main);

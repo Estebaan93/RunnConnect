@@ -8,7 +8,7 @@
 
   <fragment
       android:id="@+id/nav_inicio"
-      android:name="com.example.runnconnect.ui.runner.inicio.InicioFragment"
+      android:name="com.example.runnconnect.ui.inicio.InicioFragment"
       android:label="Inicio Feed"
       tools:layout="@layout/fragment_inicio" />
 
@@ -18,7 +18,11 @@
       android:label="Cerrar Sesión"
       tools:layout="@layout/fragment_logout" />
 
-
+  <fragment
+      android:id="@+id/nav_perfil"
+      android:name="com.example.runnconnect.ui.runner.perfil.PerfilRunnerFragment"
+      android:label="Mi Perfil"
+      tools:layout="@layout/fragment_perfil_runner"/>
 
 
 
