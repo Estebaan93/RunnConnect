@@ -9,12 +9,16 @@ import com.example.runnconnect.data.request.LoginRequest;
 import com.example.runnconnect.data.response.LoginResponse;
 import com.example.runnconnect.data.response.PerfilUsuarioResponse;
 
+import okhttp3.MultipartBody;
 import retrofit2.Call;
 import retrofit2.http.Body;
+import retrofit2.http.DELETE;
 import retrofit2.http.GET;
 import retrofit2.http.Header;
+import retrofit2.http.Multipart;
 import retrofit2.http.POST;
 import retrofit2.http.PUT;
+import retrofit2.http.Part;
 
 public interface ApiService {
   //Login orga/runner
@@ -34,9 +38,14 @@ public interface ApiService {
   @PUT("Usuario/ActualizarPerfilOrganizador")
   Call<PerfilUsuarioResponse> actualizarPerfilOrganizador(@Header("Authorization") String token, @Body ActualizarPerfilOrganizadorRequest request);
 
+  //actualizar avatar
+  @Multipart
+  @PUT("Usuario/Avatar")
+  Call<PerfilUsuarioResponse> subirAvatar(@Header("Authorization")String token, @Part MultipartBody.Part imagen);
 
-
-
+  // eliminar avatar
+  @DELETE("Usuario/Avatar")
+  Call<PerfilUsuarioResponse> eliminarAvatar(@Header("Authorization") String token);
 
 
 

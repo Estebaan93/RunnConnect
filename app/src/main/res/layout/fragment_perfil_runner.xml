@@ -44,6 +44,17 @@
           android:background="#E0E0E0" />
     </androidx.cardview.widget.CardView>
 
+    <ImageView
+        android:id="@+id/btnEditAvatar"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:src="@android:drawable/ic_menu_camera"
+        android:background="@drawable/circle_background"
+        android:padding="6dp"
+        android:elevation="6dp"
+        app:layout_constraintBottom_toBottomOf="@id/cardAvatar"
+        app:layout_constraintEnd_toEndOf="@id/cardAvatar" />
+
     <TextView
         android:id="@+id/tvLabelCuenta"
         android:layout_width="wrap_content"
