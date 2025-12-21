@@ -9,7 +9,6 @@ import android.app.AlertDialog;
 import android.app.Dialog;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
-import android.net.Uri;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
@@ -25,10 +24,6 @@ import android.widget.Toast;
 import com.bumptech.glide.Glide;
 import com.example.runnconnect.databinding.FragmentPerfilRunnerBinding;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.InputStream;
-
 public class PerfilRunnerFragment extends Fragment {
 
   private FragmentPerfilRunnerBinding binding;
@@ -41,9 +36,10 @@ public class PerfilRunnerFragment extends Fragment {
 
     // Inicializar selector
     mediaImagen = registerForActivityResult(new ActivityResultContracts.PickVisualMedia(), uri -> {
-        File archivo = uriArchivo(uri);
-        mv.subirNuevaFoto(archivo);
-
+      // CORREGIDO: Ya no procesamos el archivo aquí. Pasamos la Uri al VM.
+      if (uri != null) {
+        mv.onImagenSeleccionada(uri);
+      }
     });
 
     setupObservers();
@@ -182,7 +178,11 @@ public class PerfilRunnerFragment extends Fragment {
     Dialog dialog = new Dialog(getContext());
     dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
     dialog.setContentView(com.example.runnconnect.R.layout.dialog_ver_imagen);
-    dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+    // Asegúrate de que el ID del layout y del ImageView sean correctos según tu proyecto
+    // Si la ventana es nula, evita el crash
+    if (dialog.getWindow() != null) {
+      dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+    }
 
     ImageView ivZoom = dialog.findViewById(com.example.runnconnect.R.id.ivZoom);
     Glide.with(this).load(url).into(ivZoom);
@@ -204,22 +204,5 @@ public class PerfilRunnerFragment extends Fragment {
             binding.etTelContacto.getText().toString()
     );
     mv.onBotonClick(input);
-  }
-
-  // Utils
-  private File uriArchivo(Uri uri) {
-    try {
-      InputStream inputStream = requireContext().getContentResolver().openInputStream(uri);
-      File tempFile = File.createTempFile("avatar_upload", ".jpg", requireContext().getCacheDir());
-      FileOutputStream outputStream = new FileOutputStream(tempFile);
-      byte[] buffer = new byte[1024];
-      int length;
-      while ((length = inputStream.read(buffer)) > 0) outputStream.write(buffer, 0, length);
-      outputStream.close();
-      inputStream.close();
-      return tempFile;
-    } catch (Exception e) {
-      return null;
-    }
   }
 }

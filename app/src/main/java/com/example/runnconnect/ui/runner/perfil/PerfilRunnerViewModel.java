@@ -1,7 +1,7 @@
 package com.example.runnconnect.ui.runner.perfil;
 
 import android.app.Application;
-import android.util.Log;
+import android.net.Uri;
 
 import androidx.annotation.NonNull;
 import androidx.lifecycle.AndroidViewModel;
@@ -13,6 +13,8 @@ import com.example.runnconnect.data.request.ActualizarPerfilRunnerRequest;
 import com.example.runnconnect.data.response.PerfilUsuarioResponse;
 
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.InputStream;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -30,7 +32,6 @@ public class PerfilRunnerViewModel extends AndroidViewModel {
   private final MutableLiveData<String> avatarUrl = new MutableLiveData<>();
 
   // --- EVENTOS DE NAVEGACIÓN/ACCIÓN (Single Shot Events) ---
-  // Usamos estos para decirle al Fragment que muestre dialogos
   private final MutableLiveData<Boolean> eventShowAvatarOptions = new MutableLiveData<>(false);
   private final MutableLiveData<Boolean> eventShowDeleteConfirmation = new MutableLiveData<>(false);
   private final MutableLiveData<Boolean> eventOpenGallery = new MutableLiveData<>(false);
@@ -60,7 +61,6 @@ public class PerfilRunnerViewModel extends AndroidViewModel {
 
   // 1. Usuario hace clic en el icono de cámara (lápiz)
   public void onEditAvatarClicked() {
-    // El VM decide mostrar las opciones
     eventShowAvatarOptions.setValue(true);
   }
 
@@ -87,7 +87,18 @@ public class PerfilRunnerViewModel extends AndroidViewModel {
     }
   }
 
-  // Métodos para "consumir" los eventos y que no se repitan al rotar pantalla
+  // 6. NUEVO: El fragment entrega la Uri seleccionada
+  public void onImagenSeleccionada(Uri uri) {
+    if (uri == null) return;
+    File archivo = convertirUriAFile(uri);
+    if (archivo != null) {
+      subirNuevaFoto(archivo);
+    } else {
+      mensajeToast.setValue("Error al procesar la imagen seleccionada");
+    }
+  }
+
+  // Métodos para "consumir" los eventos
   public void onAvatarOptionsShown() { eventShowAvatarOptions.setValue(false); }
   public void onDeleteConfirmationShown() { eventShowDeleteConfirmation.setValue(false); }
   public void onGalleryOpened() { eventOpenGallery.setValue(false); }
@@ -181,6 +192,24 @@ public class PerfilRunnerViewModel extends AndroidViewModel {
         mensajeToast.setValue("Fallo de red");
       }
     });
+  }
+
+  // Método privado movido desde el Fragment (lógica de I/O)
+  private File convertirUriAFile(Uri uri) {
+    try {
+      InputStream inputStream = getApplication().getContentResolver().openInputStream(uri);
+      File tempFile = File.createTempFile("avatar_upload", ".jpg", getApplication().getCacheDir());
+      FileOutputStream outputStream = new FileOutputStream(tempFile);
+      byte[] buffer = new byte[1024];
+      int length;
+      while ((length = inputStream.read(buffer)) > 0) outputStream.write(buffer, 0, length);
+      outputStream.close();
+      if (inputStream != null) inputStream.close();
+      return tempFile;
+    } catch (Exception e) {
+      e.printStackTrace();
+      return null;
+    }
   }
 
   public void subirNuevaFoto(File archivo) {
