@@ -31,7 +31,7 @@ public class PerfilRunnerViewModel extends AndroidViewModel {
   private final MutableLiveData<String> mensajeToast = new MutableLiveData<>();
   private final MutableLiveData<String> avatarUrl = new MutableLiveData<>();
 
-  // --- EVENTOS DE NAVEGACIÓN/ACCIÓN (Single Shot Events) ---
+  // --- EVENTOS (Single Shot) ---
   private final MutableLiveData<Boolean> eventShowAvatarOptions = new MutableLiveData<>(false);
   private final MutableLiveData<Boolean> eventShowDeleteConfirmation = new MutableLiveData<>(false);
   private final MutableLiveData<Boolean> eventOpenGallery = new MutableLiveData<>(false);
@@ -50,36 +50,31 @@ public class PerfilRunnerViewModel extends AndroidViewModel {
   public LiveData<String> getMensajeToast() { return mensajeToast; }
   public LiveData<String> getAvatarUrl() { return avatarUrl; }
 
-  // Getters de Eventos
   public LiveData<Boolean> getEventShowAvatarOptions() { return eventShowAvatarOptions; }
   public LiveData<Boolean> getEventShowDeleteConfirmation() { return eventShowDeleteConfirmation; }
   public LiveData<Boolean> getEventOpenGallery() { return eventOpenGallery; }
   public LiveData<String> getEventShowZoomImage() { return eventShowZoomImage; }
 
 
-  // --- MÉTODOS DE ENTRADA (User Actions) ---
+  // --- ACCIONES DE LA VISTA (User Actions) ---
 
-  // 1. Usuario hace clic en el icono de cámara (lápiz)
-  public void onEditAvatarClicked() {
-    eventShowAvatarOptions.setValue(true);
+  // El botón principal actúa distinto según el estado (Igual que en tu ejemplo de Inmobiliaria)
+  public void onBotonPrincipalClick(RunnerInput input) {
+    if (Boolean.TRUE.equals(isEditable.getValue())) {
+      // Si estaba editando -> Intenta Guardar
+      intentarGuardarCambios(input);
+    } else {
+      // Si estaba viendo -> Habilita Edición
+      habilitarEdicion();
+    }
   }
 
-  // 2. Usuario selecciona "Cambiar Foto" en el dialogo
-  public void onChangePhotoOptionSelected() {
-    eventOpenGallery.setValue(true);
-  }
+  // Acciones de imágenes
+  public void onEditAvatarClicked() { eventShowAvatarOptions.setValue(true); }
+  public void onChangePhotoOptionSelected() { eventOpenGallery.setValue(true); }
+  public void onDeletePhotoOptionSelected() { eventShowDeleteConfirmation.setValue(true); }
+  public void onDeleteConfirmed() { borrarFoto(); }
 
-  // 3. Usuario selecciona "Eliminar Foto" en el dialogo
-  public void onDeletePhotoOptionSelected() {
-    eventShowDeleteConfirmation.setValue(true);
-  }
-
-  // 4. Usuario confirma "SÍ" en el dialogo de eliminar
-  public void onDeleteConfirmed() {
-    borrarFoto();
-  }
-
-  // 5. Usuario hace clic en la cara del runner
   public void onAvatarImageClicked() {
     String currentUrl = avatarUrl.getValue();
     if (currentUrl != null && !currentUrl.isEmpty()) {
@@ -87,7 +82,6 @@ public class PerfilRunnerViewModel extends AndroidViewModel {
     }
   }
 
-  // 6. NUEVO: El fragment entrega la Uri seleccionada
   public void onImagenSeleccionada(Uri uri) {
     if (uri == null) return;
     File archivo = convertirUriAFile(uri);
@@ -98,23 +92,31 @@ public class PerfilRunnerViewModel extends AndroidViewModel {
     }
   }
 
-  // Métodos para "consumir" los eventos
-  public void onAvatarOptionsShown() { eventShowAvatarOptions.setValue(false); }
-  public void onDeleteConfirmationShown() { eventShowDeleteConfirmation.setValue(false); }
-  public void onGalleryOpened() { eventOpenGallery.setValue(false); }
-  public void onZoomImageShown() { eventShowZoomImage.setValue(null); }
+  // --- CONSUMO DE EVENTOS (Reseteo para evitar rebotes) ---
+  public void onAvatarOptionsConsumed() { eventShowAvatarOptions.setValue(false); }
+  public void onDeleteConfirmationConsumed() { eventShowDeleteConfirmation.setValue(false); }
+  public void onGalleryOpenConsumed() { eventOpenGallery.setValue(false); }
+  public void onZoomImageConsumed() { eventShowZoomImage.setValue(null); }
+
+  // IMPORTANTE: Esto soluciona que el Toast salga dos veces al volver a la pantalla
+  public void onToastConsumed() { mensajeToast.setValue(null); }
 
 
   // --- LÓGICA DE NEGOCIO ---
 
   public void cargarPerfil() {
     isLoading.setValue(true);
+    // Limpiamos mensaje anterior por si acaso
+    mensajeToast.setValue(null);
+
     repo.obtenerPerfil(new Callback<PerfilUsuarioResponse>() {
       @Override
       public void onResponse(Call<PerfilUsuarioResponse> call, Response<PerfilUsuarioResponse> response) {
         isLoading.setValue(false);
         if (response.isSuccessful() && response.body() != null) {
           PerfilUsuarioResponse p = response.body();
+          // Lógica: Formatear fecha antes de enviarla a la vista
+          p.setFechaNacimiento(formatearFechaNacimiento(p.getFechaNacimiento()));
           perfilData.setValue(p);
           procesarAvatar(p.getImgAvatar());
         } else {
@@ -129,38 +131,25 @@ public class PerfilRunnerViewModel extends AndroidViewModel {
     });
   }
 
-  private void procesarAvatar(String url) {
-    if (url == null || url.isEmpty()) {
-      avatarUrl.setValue(null);
-      return;
-    }
-    if (url.contains("localhost")) {
-      url = url.replace("localhost", "10.0.2.2");
-    }
-    avatarUrl.setValue(url);
-  }
-
-  public void onBotonClick(RunnerInput input) {
-    if (Boolean.TRUE.equals(isEditable.getValue())) {
-      intentarGuardarCambios(input);
-    } else {
-      habilitarEdicion();
-    }
-  }
-
   private void habilitarEdicion() {
     isEditable.setValue(true);
     btnText.setValue("Guardar");
   }
 
   private void intentarGuardarCambios(RunnerInput input) {
+    // Validaciones (Lógica de negocio)
+    if (input.nombre.isEmpty() || input.apellido.isEmpty()) {
+      mensajeToast.setValue("Nombre y Apellido son obligatorios");
+      return;
+    }
+
     int dniInt = 0;
     try {
       if (input.dni != null && !input.dni.isEmpty()) {
         dniInt = Integer.parseInt(input.dni);
       }
     } catch (NumberFormatException e) {
-      mensajeToast.setValue("El DNI debe ser un numero valido");
+      mensajeToast.setValue("El DNI debe ser numérico");
       return;
     }
 
@@ -177,8 +166,12 @@ public class PerfilRunnerViewModel extends AndroidViewModel {
         isLoading.setValue(false);
         if (response.isSuccessful() && response.body() != null) {
           PerfilUsuarioResponse p = response.body();
+          p.setFechaNacimiento(formatearFechaNacimiento(p.getFechaNacimiento()));
+
           perfilData.setValue(p);
           procesarAvatar(p.getImgAvatar());
+
+          // Lógica de estado post-guardado
           isEditable.setValue(false);
           btnText.setValue("Editar");
           mensajeToast.setValue("Perfil actualizado correctamente");
@@ -194,7 +187,23 @@ public class PerfilRunnerViewModel extends AndroidViewModel {
     });
   }
 
-  // Método privado movido desde el Fragment (lógica de I/O)
+  // --- UTILS ---
+  private String formatearFechaNacimiento(String fecha) {
+    if (fecha == null || fecha.isEmpty()) return "";
+    return fecha.contains("T") ? fecha.split("T")[0] : fecha;
+  }
+
+  private void procesarAvatar(String url) {
+    if (url == null || url.isEmpty()) {
+      avatarUrl.setValue(null);
+      return;
+    }
+    if (url.contains("localhost")) {
+      url = url.replace("localhost", "10.0.2.2");
+    }
+    avatarUrl.setValue(url);
+  }
+
   private File convertirUriAFile(Uri uri) {
     try {
       InputStream inputStream = getApplication().getContentResolver().openInputStream(uri);
@@ -254,6 +263,7 @@ public class PerfilRunnerViewModel extends AndroidViewModel {
     });
   }
 
+  // DTO para pasar datos desde el Fragment
   public static class RunnerInput {
     public String nombre, apellido, telefono, dni, fechaNac, genero, localidad, agrupacion, nombreContacto, telContacto;
     public RunnerInput(String nombre, String apellido, String telefono, String dni, String fechaNac, String genero, String localidad, String agrupacion, String nombreContacto, String telContacto) {

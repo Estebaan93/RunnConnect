@@ -22,6 +22,7 @@ import android.widget.ImageView;
 import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
+import com.example.runnconnect.R;
 import com.example.runnconnect.databinding.FragmentPerfilRunnerBinding;
 
 public class PerfilRunnerFragment extends Fragment {
@@ -34,9 +35,8 @@ public class PerfilRunnerFragment extends Fragment {
     binding = FragmentPerfilRunnerBinding.inflate(inflater, container, false);
     mv = new ViewModelProvider(this).get(PerfilRunnerViewModel.class);
 
-    // Inicializar selector
+    // Inicializar selector de imagen
     mediaImagen = registerForActivityResult(new ActivityResultContracts.PickVisualMedia(), uri -> {
-      // CORREGIDO: Ya no procesamos el archivo aquí. Pasamos la Uri al VM.
       if (uri != null) {
         mv.onImagenSeleccionada(uri);
       }
@@ -50,29 +50,23 @@ public class PerfilRunnerFragment extends Fragment {
   }
 
   private void setupListeners() {
-    // Los listeners NO tienen logica, solo avisan al VM
+    // La lógica de "si es editar o guardar" la decide el VM, nosotros solo mandamos datos
     binding.btnAccion.setOnClickListener(v -> recolectarYEnviar());
 
-    // Clic en icono camara -> Avisar VM
     binding.btnEditAvatar.setOnClickListener(v -> mv.onEditAvatarClicked());
-
-    // Clic en cara runner -> Avisar VM
     binding.ivAvatar.setOnClickListener(v -> mv.onAvatarImageClicked());
   }
 
   private void setupObservers() {
-    // --- 1. Observadores de DATOS (UI) ---
+    // --- Observadores de DATOS ---
     mv.getPerfilData().observe(getViewLifecycleOwner(), p -> {
+      // El fragment solo asigna, no formatea
       binding.etEmail.setText(p.getEmail());
       binding.etNombre.setText(p.getNombre());
       binding.etApellido.setText(p.getApellido());
       binding.etTelefono.setText(p.getTelefono());
       binding.etDni.setText(p.getDni() != null ? String.valueOf(p.getDni()) : "");
-
-      String fecha = p.getFechaNacimiento();
-      if (fecha != null && fecha.contains("T")) fecha = fecha.split("T")[0];
-      binding.etFechaNac.setText(fecha);
-
+      binding.etFechaNac.setText(p.getFechaNacimiento()); // Fecha ya viene limpia del VM
       binding.etGenero.setText(p.getGenero());
       binding.etLocalidad.setText(p.getLocalidad());
       binding.etAgrupacion.setText(p.getAgrupacion());
@@ -89,6 +83,7 @@ public class PerfilRunnerFragment extends Fragment {
               .into(binding.ivAvatar);
     });
 
+    // Habilitar/Deshabilitar campos
     mv.getIsEditable().observe(getViewLifecycleOwner(), enabled -> {
       binding.etNombre.setEnabled(enabled);
       binding.etApellido.setEnabled(enabled);
@@ -100,7 +95,7 @@ public class PerfilRunnerFragment extends Fragment {
       binding.etAgrupacion.setEnabled(enabled);
       binding.etNombreContacto.setEnabled(enabled);
       binding.etTelContacto.setEnabled(enabled);
-      binding.etEmail.setEnabled(false);
+      binding.etEmail.setEnabled(false); // Email nunca editable
     });
 
     mv.getBtnText().observe(getViewLifecycleOwner(), binding.btnAccion::setText);
@@ -108,59 +103,57 @@ public class PerfilRunnerFragment extends Fragment {
     mv.getIsLoading().observe(getViewLifecycleOwner(), loading ->
             binding.progressBar.setVisibility(loading ? View.VISIBLE : View.GONE));
 
-    mv.getMensajeToast().observe(getViewLifecycleOwner(), msg ->
-            Toast.makeText(getContext(), msg, Toast.LENGTH_SHORT).show());
+    // Toast con consumo de evento (Fix para que no se repita)
+    mv.getMensajeToast().observe(getViewLifecycleOwner(), msg -> {
+      if (msg != null) {
+        Toast.makeText(getContext(), msg, Toast.LENGTH_SHORT).show();
+        mv.onToastConsumed(); // IMPORTANTE: Avisar que ya se mostró
+      }
+    });
 
 
-    // --- 2. Observadores de ACCIONES/EVENTOS (Navegacion y Dialogos) ---
+    // --- Observadores de DIÁLOGOS (Eventos) ---
 
-    // A. Mostrar Menú de Opciones
     mv.getEventShowAvatarOptions().observe(getViewLifecycleOwner(), show -> {
       if (Boolean.TRUE.equals(show)) {
         mostrarDialogoOpciones();
-        mv.onAvatarOptionsShown(); // Resetear evento
+        mv.onAvatarOptionsConsumed();
       }
     });
 
-    // B. Mostrar Confirmación de Borrado
     mv.getEventShowDeleteConfirmation().observe(getViewLifecycleOwner(), show -> {
       if (Boolean.TRUE.equals(show)) {
         mostrarDialogoConfirmacion();
-        mv.onDeleteConfirmationShown(); // Resetear evento
+        mv.onDeleteConfirmationConsumed();
       }
     });
 
-    // C. Abrir Galería
     mv.getEventOpenGallery().observe(getViewLifecycleOwner(), open -> {
       if (Boolean.TRUE.equals(open)) {
         mediaImagen.launch(new PickVisualMediaRequest.Builder()
                 .setMediaType(ActivityResultContracts.PickVisualMedia.ImageOnly.INSTANCE)
                 .build());
-        mv.onGalleryOpened(); // Resetear evento
+        mv.onGalleryOpenConsumed();
       }
     });
 
-    // D. Mostrar Zoom Imagen
     mv.getEventShowZoomImage().observe(getViewLifecycleOwner(), url -> {
       if (url != null) {
         mostrarDialogoZoom(url);
-        mv.onZoomImageShown(); // Resetear evento
+        mv.onZoomImageConsumed();
       }
     });
   }
 
-  // --- MÉTODOS DE DIBUJO DE UI (Invocados solo por los observers) ---
+  // --- MÉTODOS UI ---
 
   private void mostrarDialogoOpciones() {
     String[] opciones = {"Cambiar Foto", "Eliminar Foto", "Cancelar"};
     new AlertDialog.Builder(getContext())
             .setTitle("Foto de Perfil")
             .setItems(opciones, (dialog, which) -> {
-              if (which == 0) {
-                mv.onChangePhotoOptionSelected(); // Avisar VM seleccionó cambio
-              } else if (which == 1) {
-                mv.onDeletePhotoOptionSelected(); // Avisar VM seleccionó borrar
-              }
+              if (which == 0) mv.onChangePhotoOptionSelected();
+              else if (which == 1) mv.onDeletePhotoOptionSelected();
             })
             .show();
   }
@@ -169,7 +162,7 @@ public class PerfilRunnerFragment extends Fragment {
     new AlertDialog.Builder(getContext())
             .setTitle("Eliminar foto")
             .setMessage("¿Estás seguro de que quieres volver a la imagen por defecto?")
-            .setPositiveButton("Sí", (d, w) -> mv.onDeleteConfirmed()) // Avisar VM confirmó
+            .setPositiveButton("Sí", (d, w) -> mv.onDeleteConfirmed())
             .setNegativeButton("No", null)
             .show();
   }
@@ -177,9 +170,8 @@ public class PerfilRunnerFragment extends Fragment {
   private void mostrarDialogoZoom(String url) {
     Dialog dialog = new Dialog(getContext());
     dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
-    dialog.setContentView(com.example.runnconnect.R.layout.dialog_ver_imagen);
-    // Asegúrate de que el ID del layout y del ImageView sean correctos según tu proyecto
-    // Si la ventana es nula, evita el crash
+    dialog.setContentView(R.layout.dialog_ver_imagen);
+
     if (dialog.getWindow() != null) {
       dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
     }
@@ -191,6 +183,7 @@ public class PerfilRunnerFragment extends Fragment {
   }
 
   private void recolectarYEnviar() {
+    // Solo extraemos datos (UI Logic) y los empaquetamos
     PerfilRunnerViewModel.RunnerInput input = new PerfilRunnerViewModel.RunnerInput(
             binding.etNombre.getText().toString(),
             binding.etApellido.getText().toString(),
@@ -203,6 +196,7 @@ public class PerfilRunnerFragment extends Fragment {
             binding.etNombreContacto.getText().toString(),
             binding.etTelContacto.getText().toString()
     );
-    mv.onBotonClick(input);
+    // Enviamos al VM
+    mv.onBotonPrincipalClick(input);
   }
 }

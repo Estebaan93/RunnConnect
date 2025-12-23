@@ -1,328 +1,343 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView
+<androidx.constraintlayout.widget.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:fillViewport="true"
     android:background="#FAFAFA">
 
-  <androidx.constraintlayout.widget.ConstraintLayout
-      android:layout_width="match_parent"
-      android:layout_height="wrap_content"
-      android:padding="16dp">
+  <ScrollView
+      android:id="@+id/scrollViewForm"
+      android:layout_width="0dp"
+      android:layout_height="0dp"
+      android:fillViewport="true"
+      app:layout_constraintBottom_toTopOf="@+id/btnAccion"
+      app:layout_constraintEnd_toEndOf="parent"
+      app:layout_constraintStart_toStartOf="parent"
+      app:layout_constraintTop_toTopOf="parent">
 
-    <TextView
-        android:id="@+id/tvTitulo"
-        android:layout_width="wrap_content"
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Mi Perfil"
-        android:textSize="24sp"
-        android:textStyle="bold"
-        android:textColor="@android:color/black"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        android:padding="16dp">
 
-    <androidx.cardview.widget.CardView
-        android:id="@+id/cardAvatar"
-        android:layout_width="100dp"
-        android:layout_height="100dp"
-        android:layout_marginTop="16dp"
-        app:cardCornerRadius="50dp"
-        app:cardElevation="4dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/tvTitulo">
+      <TextView
+          android:id="@+id/tvTitulo"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:text="Mi Perfil"
+          android:textColor="@android:color/black"
+          android:textSize="24sp"
+          android:textStyle="bold"
+          app:layout_constraintStart_toStartOf="parent"
+          app:layout_constraintTop_toTopOf="parent" />
+
+      <androidx.cardview.widget.CardView
+          android:id="@+id/cardAvatar"
+          android:layout_width="100dp"
+          android:layout_height="100dp"
+          android:layout_marginTop="16dp"
+          app:cardCornerRadius="50dp"
+          app:cardElevation="4dp"
+          app:layout_constraintEnd_toEndOf="parent"
+          app:layout_constraintStart_toStartOf="parent"
+          app:layout_constraintTop_toBottomOf="@id/tvTitulo">
+
+        <ImageView
+            android:id="@+id/ivAvatar"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="#E0E0E0"
+            android:scaleType="centerCrop"
+            android:src="@android:drawable/ic_menu_camera" />
+      </androidx.cardview.widget.CardView>
 
       <ImageView
-          android:id="@+id/ivAvatar"
-          android:layout_width="match_parent"
-          android:layout_height="match_parent"
-          android:scaleType="centerCrop"
+          android:id="@+id/btnEditAvatar"
+          android:layout_width="32dp"
+          android:layout_height="32dp"
+          android:background="@drawable/circle_background"
+          android:elevation="6dp"
+          android:padding="6dp"
           android:src="@android:drawable/ic_menu_camera"
-          android:background="#E0E0E0" />
-    </androidx.cardview.widget.CardView>
+          app:layout_constraintBottom_toBottomOf="@id/cardAvatar"
+          app:layout_constraintEnd_toEndOf="@id/cardAvatar" />
 
-    <ImageView
-        android:id="@+id/btnEditAvatar"
-        android:layout_width="32dp"
-        android:layout_height="32dp"
-        android:src="@android:drawable/ic_menu_camera"
-        android:background="@drawable/circle_background"
-        android:padding="6dp"
-        android:elevation="6dp"
-        app:layout_constraintBottom_toBottomOf="@id/cardAvatar"
-        app:layout_constraintEnd_toEndOf="@id/cardAvatar" />
+      <TextView
+          android:id="@+id/tvLabelCuenta"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:layout_marginTop="24dp"
+          android:text="Datos de Cuenta"
+          android:textSize="16sp"
+          android:textStyle="bold"
+          app:layout_constraintStart_toStartOf="parent"
+          app:layout_constraintTop_toBottomOf="@id/cardAvatar" />
 
-    <TextView
-        android:id="@+id/tvLabelCuenta"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Datos de Cuenta"
-        android:textStyle="bold"
-        android:textSize="16sp"
-        android:layout_marginTop="24dp"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/cardAvatar"/>
+      <TextView
+          android:id="@+id/lblEmail"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:layout_marginTop="8dp"
+          android:text="Email"
+          android:textSize="12sp"
+          app:layout_constraintStart_toStartOf="parent"
+          app:layout_constraintTop_toBottomOf="@id/tvLabelCuenta" />
 
-    <TextView
-        android:id="@+id/lblEmail"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Email"
-        android:textSize="12sp"
-        android:layout_marginTop="8dp"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/tvLabelCuenta"/>
+      <EditText
+          android:id="@+id/etEmail"
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:background="@android:drawable/edit_text"
+          android:enabled="false"
+          android:padding="10dp"
+          app:layout_constraintTop_toBottomOf="@id/lblEmail" />
 
-    <EditText
-        android:id="@+id/etEmail"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@android:drawable/edit_text"
-        android:enabled="false"
-        android:padding="10dp"
-        app:layout_constraintTop_toBottomOf="@id/lblEmail"/>
+      <TextView
+          android:id="@+id/tvLabelPersonal"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:layout_marginTop="24dp"
+          android:text="Datos Personales"
+          android:textSize="16sp"
+          android:textStyle="bold"
+          app:layout_constraintStart_toStartOf="parent"
+          app:layout_constraintTop_toBottomOf="@id/etEmail" />
 
-    <TextView
-        android:id="@+id/tvLabelPersonal"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Datos Personales"
-        android:textStyle="bold"
-        android:textSize="16sp"
-        android:layout_marginTop="24dp"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/etEmail"/>
+      <TextView
+          android:id="@+id/lblNombre"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:layout_marginTop="8dp"
+          android:text="Nombre"
+          android:textSize="12sp"
+          app:layout_constraintStart_toStartOf="parent"
+          app:layout_constraintTop_toBottomOf="@id/tvLabelPersonal" />
 
-    <TextView
-        android:id="@+id/lblNombre"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Nombre"
-        android:textSize="12sp"
-        android:layout_marginTop="8dp"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/tvLabelPersonal"/>
+      <EditText
+          android:id="@+id/etNombre"
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:background="@android:drawable/edit_text"
+          android:padding="10dp"
+          app:layout_constraintTop_toBottomOf="@id/lblNombre" />
 
-    <EditText
-        android:id="@+id/etNombre"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@android:drawable/edit_text"
-        android:padding="10dp"
-        app:layout_constraintTop_toBottomOf="@id/lblNombre"/>
+      <TextView
+          android:id="@+id/lblApellido"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:layout_marginTop="8dp"
+          android:text="Apellido"
+          android:textSize="12sp"
+          app:layout_constraintStart_toStartOf="parent"
+          app:layout_constraintTop_toBottomOf="@id/etNombre" />
 
-    <TextView
-        android:id="@+id/lblApellido"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Apellido"
-        android:textSize="12sp"
-        android:layout_marginTop="8dp"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/etNombre"/>
+      <EditText
+          android:id="@+id/etApellido"
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:background="@android:drawable/edit_text"
+          android:padding="10dp"
+          app:layout_constraintTop_toBottomOf="@id/lblApellido" />
 
-    <EditText
-        android:id="@+id/etApellido"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@android:drawable/edit_text"
-        android:padding="10dp"
-        app:layout_constraintTop_toBottomOf="@id/lblApellido"/>
+      <TextView
+          android:id="@+id/lblDni"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:layout_marginTop="8dp"
+          android:text="DNI"
+          android:textSize="12sp"
+          app:layout_constraintStart_toStartOf="parent"
+          app:layout_constraintTop_toBottomOf="@id/etApellido" />
 
-    <TextView
-        android:id="@+id/lblDni"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="DNI"
-        android:textSize="12sp"
-        android:layout_marginTop="8dp"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/etApellido"/>
-
-    <EditText
-        android:id="@+id/etDni"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@android:drawable/edit_text"
-        android:inputType="number"
-        android:padding="10dp"
-        app:layout_constraintTop_toBottomOf="@id/lblDni"
-        tools:layout_editor_absoluteX="36dp" />
-
-    <LinearLayout
-        android:id="@+id/linearFechaGenero"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:layout_marginTop="8dp"
-        app:layout_constraintTop_toBottomOf="@id/etDni">
+      <EditText
+          android:id="@+id/etDni"
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:background="@android:drawable/edit_text"
+          android:inputType="number"
+          android:padding="10dp"
+          app:layout_constraintTop_toBottomOf="@id/lblDni" />
 
       <LinearLayout
-          android:layout_width="0dp"
+          android:id="@+id/linearFechaGenero"
+          android:layout_width="match_parent"
           android:layout_height="wrap_content"
-          android:layout_weight="1"
-          android:orientation="vertical"
-          android:layout_marginEnd="4dp">
-        <TextView
-            android:layout_width="wrap_content"
+          android:layout_marginTop="8dp"
+          android:orientation="horizontal"
+          app:layout_constraintTop_toBottomOf="@id/etDni">
+
+        <LinearLayout
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:text="Fecha Nac."
-            android:textSize="12sp"/>
-        <EditText
-            android:id="@+id/etFechaNac"
-            android:layout_width="match_parent"
+            android:layout_marginEnd="4dp"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+          <TextView
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content"
+              android:text="Fecha Nac."
+              android:textSize="12sp" />
+
+          <EditText
+              android:id="@+id/etFechaNac"
+              android:layout_width="match_parent"
+              android:layout_height="wrap_content"
+              android:background="@android:drawable/edit_text"
+              android:inputType="date"
+              android:padding="10dp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:background="@android:drawable/edit_text"
-            android:padding="10dp"
-            android:inputType="date"/>
+            android:layout_marginStart="4dp"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+          <TextView
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content"
+              android:text="Género (M/F)"
+              android:textSize="12sp" />
+
+          <EditText
+              android:id="@+id/etGenero"
+              android:layout_width="match_parent"
+              android:layout_height="wrap_content"
+              android:background="@android:drawable/edit_text"
+              android:maxLength="1"
+              android:padding="10dp" />
+        </LinearLayout>
       </LinearLayout>
 
-      <LinearLayout
-          android:layout_width="0dp"
+      <TextView
+          android:id="@+id/lblTel"
+          android:layout_width="wrap_content"
           android:layout_height="wrap_content"
-          android:layout_weight="1"
-          android:orientation="vertical"
-          android:layout_marginStart="4dp">
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Género (M/F)"
-            android:textSize="12sp"/>
-        <EditText
-            android:id="@+id/etGenero"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="@android:drawable/edit_text"
-            android:padding="10dp"
-            android:maxLength="1"/>
-      </LinearLayout>
-    </LinearLayout>
+          android:layout_marginTop="8dp"
+          android:text="Teléfono"
+          android:textSize="12sp"
+          app:layout_constraintStart_toStartOf="parent"
+          app:layout_constraintTop_toBottomOf="@id/linearFechaGenero" />
 
-    <TextView
-        android:id="@+id/lblTel"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Teléfono"
-        android:textSize="12sp"
-        android:layout_marginTop="8dp"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/linearFechaGenero"/>
+      <EditText
+          android:id="@+id/etTelefono"
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:background="@android:drawable/edit_text"
+          android:inputType="phone"
+          android:padding="10dp"
+          app:layout_constraintTop_toBottomOf="@id/lblTel" />
 
-    <EditText
-        android:id="@+id/etTelefono"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@android:drawable/edit_text"
-        android:padding="10dp"
-        android:inputType="phone"
-        app:layout_constraintTop_toBottomOf="@id/lblTel"/>
+      <TextView
+          android:id="@+id/lblLoc"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:layout_marginTop="8dp"
+          android:text="Localidad"
+          android:textSize="12sp"
+          app:layout_constraintStart_toStartOf="parent"
+          app:layout_constraintTop_toBottomOf="@id/etTelefono" />
 
-    <TextView
-        android:id="@+id/lblLoc"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Localidad"
-        android:textSize="12sp"
-        android:layout_marginTop="8dp"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/etTelefono"/>
+      <EditText
+          android:id="@+id/etLocalidad"
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:background="@android:drawable/edit_text"
+          android:padding="10dp"
+          app:layout_constraintTop_toBottomOf="@id/lblLoc" />
 
-    <EditText
-        android:id="@+id/etLocalidad"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@android:drawable/edit_text"
-        android:padding="10dp"
-        app:layout_constraintTop_toBottomOf="@id/lblLoc"/>
+      <TextView
+          android:id="@+id/lblTeam"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:layout_marginTop="8dp"
+          android:text="Agrupación / Team"
+          android:textSize="12sp"
+          app:layout_constraintStart_toStartOf="parent"
+          app:layout_constraintTop_toBottomOf="@id/etLocalidad" />
 
-    <TextView
-        android:id="@+id/lblTeam"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Agrupación / Team"
-        android:textSize="12sp"
-        android:layout_marginTop="8dp"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/etLocalidad"/>
+      <EditText
+          android:id="@+id/etAgrupacion"
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:background="@android:drawable/edit_text"
+          android:padding="10dp"
+          app:layout_constraintTop_toBottomOf="@id/lblTeam" />
 
-    <EditText
-        android:id="@+id/etAgrupacion"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@android:drawable/edit_text"
-        android:padding="10dp"
-        app:layout_constraintTop_toBottomOf="@id/lblTeam"/>
+      <TextView
+          android:id="@+id/tvLabelEmergencia"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:layout_marginTop="24dp"
+          android:text="Contacto de Emergencia"
+          android:textSize="16sp"
+          android:textStyle="bold"
+          app:layout_constraintStart_toStartOf="parent"
+          app:layout_constraintTop_toBottomOf="@id/etAgrupacion" />
 
-    <TextView
-        android:id="@+id/tvLabelEmergencia"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Contacto de Emergencia"
-        android:textStyle="bold"
-        android:textSize="16sp"
-        android:layout_marginTop="24dp"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/etAgrupacion"/>
+      <TextView
+          android:id="@+id/lblCont"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:layout_marginTop="8dp"
+          android:text="Nombre Contacto"
+          android:textSize="12sp"
+          app:layout_constraintStart_toStartOf="parent"
+          app:layout_constraintTop_toBottomOf="@id/tvLabelEmergencia" />
 
-    <TextView
-        android:id="@+id/lblCont"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Nombre Contacto"
-        android:textSize="12sp"
-        android:layout_marginTop="8dp"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/tvLabelEmergencia"/>
+      <EditText
+          android:id="@+id/etNombreContacto"
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:background="@android:drawable/edit_text"
+          android:padding="10dp"
+          app:layout_constraintTop_toBottomOf="@id/lblCont" />
 
-    <EditText
-        android:id="@+id/etNombreContacto"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@android:drawable/edit_text"
-        android:padding="10dp"
-        app:layout_constraintTop_toBottomOf="@id/lblCont"/>
+      <TextView
+          android:id="@+id/lblTelCont"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:layout_marginTop="8dp"
+          android:text="Teléfono Contacto"
+          android:textSize="12sp"
+          app:layout_constraintStart_toStartOf="parent"
+          app:layout_constraintTop_toBottomOf="@id/etNombreContacto" />
 
-    <TextView
-        android:id="@+id/lblTelCont"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Teléfono Contacto"
-        android:textSize="12sp"
-        android:layout_marginTop="8dp"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/etNombreContacto"/>
+      <EditText
+          android:id="@+id/etTelContacto"
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:background="@android:drawable/edit_text"
+          android:inputType="phone"
+          android:padding="10dp"
+          app:layout_constraintTop_toBottomOf="@id/lblTelCont" />
 
-    <EditText
-        android:id="@+id/etTelContacto"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@android:drawable/edit_text"
-        android:padding="10dp"
-        android:inputType="phone"
-        app:layout_constraintTop_toBottomOf="@id/lblTelCont"/>
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
-    <Button
-        android:id="@+id/btnAccion"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Editar"
-        android:layout_marginTop="24dp"
-        app:layout_constraintTop_toBottomOf="@id/etTelContacto"
-        app:layout_constraintBottom_toBottomOf="parent"/>
+  </ScrollView>
 
-    <ProgressBar
-        android:id="@+id/progressBar"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:visibility="gone"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"/>
+  <Button
+      android:id="@+id/btnAccion"
+      android:layout_width="0dp"
+      android:layout_height="wrap_content"
+      android:layout_margin="16dp"
+      android:text="Editar"
+      app:layout_constraintBottom_toBottomOf="parent"
+      app:layout_constraintEnd_toEndOf="parent"
+      app:layout_constraintStart_toStartOf="parent" />
 
-  </androidx.constraintlayout.widget.ConstraintLayout>
+  <ProgressBar
+      android:id="@+id/progressBar"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:visibility="gone"
+      app:layout_constraintBottom_toBottomOf="parent"
+      app:layout_constraintEnd_toEndOf="parent"
+      app:layout_constraintStart_toStartOf="parent"
+      app:layout_constraintTop_toTopOf="parent" />
 
-</ScrollView>
+</androidx.constraintlayout.widget.ConstraintLayout>
