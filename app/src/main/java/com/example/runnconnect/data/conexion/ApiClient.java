@@ -11,6 +11,7 @@ import retrofit2.converter.gson.GsonConverterFactory;
 public class ApiClient {
   private static final String BASE_URL="http://10.0.2.2:5213/api/"; //para el emulador y no localhost genera conficto con el mismo emulador
   private static final String BASE_URLlocal="http://192.168.1.176:5213/api/";
+  private static final String BASE_URLTrabajoD="http://192.168.5.54:5213/api/";
   private static ApiService service;
 
   public static ApiService getApiService() {
@@ -22,7 +23,7 @@ public class ApiClient {
 
       // 3. Construir Retrofit
       Retrofit retrofit = new Retrofit.Builder()
-              .baseUrl(BASE_URL)
+              .baseUrl(BASE_URLTrabajoD)
               .addConverterFactory(GsonConverterFactory.create(gson)) // Para convertir JSON a Objetos
               // .addConverterFactory(ScalarsConverterFactory.create()) // Descomentar si alguna vez necesitas recibir Strings puros
               .build();

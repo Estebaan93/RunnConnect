@@ -18,8 +18,13 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
+import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.Toast;
+
+import android.app.DatePickerDialog;
+import java.util.Calendar;
+import java.util.Locale;
 
 import com.bumptech.glide.Glide;
 import com.example.runnconnect.R;
@@ -30,10 +35,18 @@ public class PerfilRunnerFragment extends Fragment {
   private FragmentPerfilRunnerBinding binding;
   private PerfilRunnerViewModel mv;
   private ActivityResultLauncher<PickVisualMediaRequest> mediaImagen;
+  private final String [] opcGenero={"F", "M", "X"};
 
   public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
     binding = FragmentPerfilRunnerBinding.inflate(inflater, container, false);
     mv = new ViewModelProvider(this).get(PerfilRunnerViewModel.class);
+
+    //spinner de genero
+    ArrayAdapter<String> adapter=new ArrayAdapter<>(requireContext(),android.R.layout.simple_spinner_dropdown_item, opcGenero);
+    binding.spGenero.setAdapter(adapter);
+    //deshabilitado por defecto
+    binding.spGenero.setEnabled(false);
+
 
     // Inicializar selector de imagen
     mediaImagen = registerForActivityResult(new ActivityResultContracts.PickVisualMedia(), uri -> {
@@ -44,17 +57,49 @@ public class PerfilRunnerFragment extends Fragment {
 
     setupObservers();
     setupListeners();
-    mv.cargarPerfil();
+    mv.cargarPerfil(); //cargar datos iniciales
 
     return binding.getRoot();
   }
 
   private void setupListeners() {
-    // La lógica de "si es editar o guardar" la decide el VM, nosotros solo mandamos datos
+    // La logica de "si es editar o guardar" la decide el VM, nosotros solo mandamos datos
     binding.btnAccion.setOnClickListener(v -> recolectarYEnviar());
 
     binding.btnEditAvatar.setOnClickListener(v -> mv.onEditAvatarClicked());
     binding.ivAvatar.setOnClickListener(v -> mv.onAvatarImageClicked());
+
+    binding.etFechaNac.setOnClickListener(v->{
+      //solo abrimos el calendario si esta habilitado para editar el perfil
+      if(binding.etFechaNac.isEnabled()){
+        mostrarCalendario();
+      }
+    });
+  }
+
+  private void mostrarCalendario() {
+    // 1. Pedimos al VM los datos listos para el calendario
+    // El Fragment no parsea nada.
+    Calendar cal = mv.obtenerFechaCalendario(binding.etFechaNac.getText().toString());
+
+    int anio = cal.get(Calendar.YEAR);
+    int mes = cal.get(Calendar.MONTH);
+    int dia = cal.get(Calendar.DAY_OF_MONTH);
+
+    // 2. Mostramos UI (DatePicker es un componente de UI)
+    DatePickerDialog datePicker = new DatePickerDialog(
+      requireContext(),
+      (view, year, month, dayOfMonth) -> {
+        // 3. Pedimos al VM que formatee el resultado
+        // El Fragment no formatea Strings.
+        String fechaTexto = mv.procesarFechaSeleccionada(year, month, dayOfMonth);
+        binding.etFechaNac.setText(fechaTexto);
+      },
+      anio, mes, dia
+    );
+
+    datePicker.getDatePicker().setMaxDate(System.currentTimeMillis());
+    datePicker.show();
   }
 
   private void setupObservers() {
@@ -67,7 +112,11 @@ public class PerfilRunnerFragment extends Fragment {
       binding.etTelefono.setText(p.getTelefono());
       binding.etDni.setText(p.getDni() != null ? String.valueOf(p.getDni()) : "");
       binding.etFechaNac.setText(p.getFechaNacimiento()); // Fecha ya viene limpia del VM
-      binding.etGenero.setText(p.getGenero());
+
+      // CAMBIO: Delegamos el calculo del índice al VM
+      int indice = mv.obtenerIndiceGenero(p.getGenero(), opcGenero);
+      binding.spGenero.setSelection(indice);
+
       binding.etLocalidad.setText(p.getLocalidad());
       binding.etAgrupacion.setText(p.getAgrupacion());
       binding.etNombreContacto.setText(p.getNombreContactoEmergencia());
@@ -90,7 +139,10 @@ public class PerfilRunnerFragment extends Fragment {
       binding.etTelefono.setEnabled(enabled);
       binding.etDni.setEnabled(enabled);
       binding.etFechaNac.setEnabled(enabled);
-      binding.etGenero.setEnabled(enabled);
+
+      binding.spGenero.setEnabled(enabled);
+      binding.spGenero.setAlpha(enabled ? 1.0f : 0.7f);
+
       binding.etLocalidad.setEnabled(enabled);
       binding.etAgrupacion.setEnabled(enabled);
       binding.etNombreContacto.setEnabled(enabled);
@@ -112,7 +164,7 @@ public class PerfilRunnerFragment extends Fragment {
     });
 
 
-    // --- Observadores de DIÁLOGOS (Eventos) ---
+    // --- Observadores de DIALOGOS (Eventos) ---
 
     mv.getEventShowAvatarOptions().observe(getViewLifecycleOwner(), show -> {
       if (Boolean.TRUE.equals(show)) {
@@ -145,7 +197,7 @@ public class PerfilRunnerFragment extends Fragment {
     });
   }
 
-  // --- MÉTODOS UI ---
+  // --- METODOS UI ---
 
   private void mostrarDialogoOpciones() {
     String[] opciones = {"Cambiar Foto", "Eliminar Foto", "Cancelar"};
@@ -184,13 +236,14 @@ public class PerfilRunnerFragment extends Fragment {
 
   private void recolectarYEnviar() {
     // Solo extraemos datos (UI Logic) y los empaquetamos
+    String generoSeleccionado= binding.spGenero.getSelectedItem().toString();
     PerfilRunnerViewModel.RunnerInput input = new PerfilRunnerViewModel.RunnerInput(
             binding.etNombre.getText().toString(),
             binding.etApellido.getText().toString(),
             binding.etTelefono.getText().toString(),
             binding.etDni.getText().toString(),
             binding.etFechaNac.getText().toString(),
-            binding.etGenero.getText().toString(),
+            generoSeleccionado,
             binding.etLocalidad.getText().toString(),
             binding.etAgrupacion.getText().toString(),
             binding.etNombreContacto.getText().toString(),

@@ -186,7 +186,10 @@
               android:layout_width="match_parent"
               android:layout_height="wrap_content"
               android:background="@android:drawable/edit_text"
-              android:inputType="date"
+              android:inputType="none"
+              android:focusable="false"
+              android:clickable="true"
+              android:hint="YYYY-MM-DD"
               android:padding="10dp" />
         </LinearLayout>
 
@@ -200,16 +203,15 @@
           <TextView
               android:layout_width="wrap_content"
               android:layout_height="wrap_content"
-              android:text="Género (M/F)"
+              android:text="Género"
               android:textSize="12sp" />
 
-          <EditText
-              android:id="@+id/etGenero"
-              android:layout_width="match_parent"
-              android:layout_height="wrap_content"
-              android:background="@android:drawable/edit_text"
-              android:maxLength="1"
-              android:padding="10dp" />
+            <Spinner
+                android:id="@+id/spGenero"
+                android:layout_width="match_parent"
+                android:layout_height="47dp"
+                android:background="@android:drawable/edit_text"
+                android:padding="10dp" />
         </LinearLayout>
       </LinearLayout>
 

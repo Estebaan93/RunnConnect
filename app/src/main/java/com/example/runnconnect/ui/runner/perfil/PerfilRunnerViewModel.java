@@ -16,6 +16,9 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 
+import java.util.Calendar;
+import java.util.Locale;
+
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -62,7 +65,7 @@ public class PerfilRunnerViewModel extends AndroidViewModel {
   public void onBotonPrincipalClick(RunnerInput input) {
     if (Boolean.TRUE.equals(isEditable.getValue())) {
       // Si estaba editando -> Intenta Guardar
-      intentarGuardarCambios(input);
+      guardarCambios(input);
     } else {
       // Si estaba viendo -> Habilita Edición
       habilitarEdicion();
@@ -136,7 +139,7 @@ public class PerfilRunnerViewModel extends AndroidViewModel {
     btnText.setValue("Guardar");
   }
 
-  private void intentarGuardarCambios(RunnerInput input) {
+  private void guardarCambios(RunnerInput input) {
     // Validaciones (Lógica de negocio)
     if (input.nombre.isEmpty() || input.apellido.isEmpty()) {
       mensajeToast.setValue("Nombre y Apellido son obligatorios");
@@ -163,19 +166,15 @@ public class PerfilRunnerViewModel extends AndroidViewModel {
     repo.actualizarRunner(request, new Callback<PerfilUsuarioResponse>() {
       @Override
       public void onResponse(Call<PerfilUsuarioResponse> call, Response<PerfilUsuarioResponse> response) {
-        isLoading.setValue(false);
-        if (response.isSuccessful() && response.body() != null) {
-          PerfilUsuarioResponse p = response.body();
-          p.setFechaNacimiento(formatearFechaNacimiento(p.getFechaNacimiento()));
 
-          perfilData.setValue(p);
-          procesarAvatar(p.getImgAvatar());
-
-          // Lógica de estado post-guardado
+        if (response.isSuccessful()) {
+          cargarPerfil(); // recargamos los datos frescos
+          // Logica de estado post-guardado
           isEditable.setValue(false);
           btnText.setValue("Editar");
           mensajeToast.setValue("Perfil actualizado correctamente");
         } else {
+          isLoading.setValue(false);
           mensajeToast.setValue("Error al actualizar");
         }
       }
@@ -270,4 +269,36 @@ public class PerfilRunnerViewModel extends AndroidViewModel {
       this.nombre = nombre; this.apellido = apellido; this.telefono = telefono; this.dni = dni; this.fechaNac = fechaNac; this.genero = genero; this.localidad = localidad; this.agrupacion = agrupacion; this.nombreContacto = nombreContacto; this.telContacto = telContacto;
     }
   }
+
+  public Calendar obtenerFechaCalendario(String fechaActual){
+    Calendar calendario= Calendar.getInstance();
+    if(fechaActual != null && fechaActual.isEmpty()){
+      try{
+        String[] partes = fechaActual.split("-");
+        int year = Integer.parseInt(partes[0]);
+        int month = Integer.parseInt(partes[1]) - 1; // 0-11
+        int day = Integer.parseInt(partes[2]);
+        calendario.set(year, month, day);
+      }catch(Exception e){
+        e.printStackTrace();
+      }
+    }
+    return calendario;
+  }
+  public String procesarFechaSeleccionada(int year, int month, int dayOfMonth) {
+    // month + 1 porque el DatePicker devuelve 0-11
+    return String.format(Locale.getDefault(), "%04d-%02d-%02d", year, month + 1, dayOfMonth);
+  }
+  public int obtenerIndiceGenero(String genero, String[] opciones) {
+    if (genero == null || opciones == null) return 0;
+    for (int i = 0; i < opciones.length; i++) {
+      if (opciones[i].equalsIgnoreCase(genero)) {
+        return i;
+      }
+    }
+    return 0; // Default
+  }
+
+
+
 }
