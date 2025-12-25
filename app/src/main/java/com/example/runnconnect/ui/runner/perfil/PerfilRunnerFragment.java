@@ -198,7 +198,6 @@ public class PerfilRunnerFragment extends Fragment {
   }
 
   // --- METODOS UI ---
-
   private void mostrarDialogoOpciones() {
     String[] opciones = {"Cambiar Foto", "Eliminar Foto", "Cancelar"};
     new AlertDialog.Builder(getContext())
