@@ -26,7 +26,7 @@ import retrofit2.Response;
 public class PerfilRunnerViewModel extends AndroidViewModel {
   private final UsuarioRepositorio repo;
 
-  // --- ESTADOS DE DATOS (UI State) ---
+  //ESTADOS DE DATOS
   private final MutableLiveData<PerfilUsuarioResponse> perfilData = new MutableLiveData<>();
   private final MutableLiveData<Boolean> isEditable = new MutableLiveData<>(false);
   private final MutableLiveData<String> btnText = new MutableLiveData<>("Editar");
@@ -34,6 +34,17 @@ public class PerfilRunnerViewModel extends AndroidViewModel {
   private final MutableLiveData<String> mensajeToast = new MutableLiveData<>();
   private final MutableLiveData<String> avatarUrl = new MutableLiveData<>();
 
+  //Errores de campo
+  private final MutableLiveData<String> errorNombre = new MutableLiveData<>();
+  private final MutableLiveData<String> errorApellido = new MutableLiveData<>();
+  private final MutableLiveData<String> errorDni = new MutableLiveData<>();
+  private final MutableLiveData<String> errorTelefono = new MutableLiveData<>();
+  private final MutableLiveData<String> errorFechaNac = new MutableLiveData<>();
+  private final MutableLiveData<String> errorLocalidad = new MutableLiveData<>();
+  private final MutableLiveData<String> errorAgrupacion = new MutableLiveData<>();
+  private final MutableLiveData<String> errorNombreContacto = new MutableLiveData<>();
+  private final MutableLiveData<String> errorTelContacto = new MutableLiveData<>();
+  
   // --- EVENTOS (Single Shot) ---
   private final MutableLiveData<Boolean> eventShowAvatarOptions = new MutableLiveData<>(false);
   private final MutableLiveData<Boolean> eventShowDeleteConfirmation = new MutableLiveData<>(false);
@@ -45,14 +56,39 @@ public class PerfilRunnerViewModel extends AndroidViewModel {
     repo = new UsuarioRepositorio(application);
   }
 
-  // --- GETTERS ---
-  public LiveData<PerfilUsuarioResponse> getPerfilData() { return perfilData; }
-  public LiveData<Boolean> getIsEditable() { return isEditable; }
-  public LiveData<String> getBtnText() { return btnText; }
-  public LiveData<Boolean> getIsLoading() { return isLoading; }
-  public LiveData<String> getMensajeToast() { return mensajeToast; }
-  public LiveData<String> getAvatarUrl() { return avatarUrl; }
+    
+  //GETTERS de datos
+  public LiveData<PerfilUsuarioResponse> getPerfilData() {
+    return perfilData;
+  }
+  public LiveData<Boolean> getIsEditable() {
+    return isEditable;
+  }
+  public LiveData<String> getBtnText() {
+    return btnText;
+  }
+  public LiveData<Boolean> getIsLoading() {
+    return isLoading;
+  }
+  public LiveData<String> getMensajeToast() {
+    return mensajeToast;
+  }
+  public LiveData<String> getAvatarUrl() {
+    return avatarUrl;
+  }
 
+  //GETTERS de errores
+  public LiveData<String> getErrorNombre() { return errorNombre; }
+  public LiveData<String> getErrorApellido() { return errorApellido; }
+  public LiveData<String> getErrorDni() { return errorDni; }
+  public LiveData<String> getErrorTelefono() { return errorTelefono; }
+  public LiveData<String> getErrorFechaNac() { return errorFechaNac; }
+  public LiveData<String> getErrorLocalidad() { return errorLocalidad; }
+  public LiveData<String> getErrorAgrupacion() { return errorAgrupacion; }
+  public LiveData<String> getErrorNombreContacto() { return errorNombreContacto; }
+  public LiveData<String> getErrorTelContacto() { return errorTelContacto; }
+
+  //Get de eventos
   public LiveData<Boolean> getEventShowAvatarOptions() { return eventShowAvatarOptions; }
   public LiveData<Boolean> getEventShowDeleteConfirmation() { return eventShowDeleteConfirmation; }
   public LiveData<Boolean> getEventOpenGallery() { return eventOpenGallery; }
@@ -61,18 +97,18 @@ public class PerfilRunnerViewModel extends AndroidViewModel {
 
   // --- ACCIONES DE LA VISTA (User Actions) ---
 
-  // El botón principal actúa distinto según el estado (Igual que en tu ejemplo de Inmobiliaria)
+  // El boton principal actúa distinto según el estado (Igual que en tu ejemplo de Inmobiliaria)
   public void onBotonPrincipalClick(RunnerInput input) {
     if (Boolean.TRUE.equals(isEditable.getValue())) {
-      // Si estaba editando -> Intenta Guardar
+      // Si estaba editando -> intenta Guardar
       guardarCambios(input);
     } else {
-      // Si estaba viendo -> Habilita Edición
+      // Si estaba viendo -> habilita edicion
       habilitarEdicion();
     }
   }
 
-  // Acciones de imágenes
+  // Acciones de imagenes
   public void onEditAvatarClicked() { eventShowAvatarOptions.setValue(true); }
   public void onChangePhotoOptionSelected() { eventOpenGallery.setValue(true); }
   public void onDeletePhotoOptionSelected() { eventShowDeleteConfirmation.setValue(true); }
