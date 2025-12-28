@@ -20,11 +20,9 @@ import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
-import android.widget.Toast;
 
 import android.app.DatePickerDialog;
 import java.util.Calendar;
-import java.util.Locale;
 
 import com.bumptech.glide.Glide;
 import com.example.runnconnect.R;
@@ -50,9 +48,9 @@ public class PerfilRunnerFragment extends Fragment {
 
     // inicializar selector de imagen
     mediaImagen = registerForActivityResult(new ActivityResultContracts.PickVisualMedia(), uri -> {
-      if (uri != null) {
+      //if (uri != null) {
         mv.onImagenSeleccionada(uri);
-      }
+      //}
     });
 
     setupObservers();

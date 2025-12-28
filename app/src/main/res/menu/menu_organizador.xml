@@ -19,9 +19,9 @@
         android:icon="@drawable/writing"
         android:title="Crear Nuevo Evento" />
     <item
-        android:id="@+id/nav_perfil"
+        android:id="@+id/nav_perfil_organizador"
         android:icon="@drawable/user"
-        android:title="Mi Perfil" />
+        android:title="Mi Perfil Comercial" />
   </group>
 
   <item android:title="Cuenta">

@@ -1,0 +1,259 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#FAFAFA">
+
+  <ScrollView
+      android:id="@+id/scrollViewForm"
+      android:layout_width="0dp"
+      android:layout_height="0dp"
+      android:fillViewport="true"
+      app:layout_constraintBottom_toTopOf="@+id/btnAccion"
+      app:layout_constraintEnd_toEndOf="parent"
+      app:layout_constraintStart_toStartOf="parent"
+      app:layout_constraintTop_toTopOf="parent">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="16dp">
+
+      <TextView
+          android:id="@+id/tvTitulo"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:text="Perfil Organizador"
+          android:textColor="@android:color/black"
+          android:textSize="24sp"
+          android:textStyle="bold"
+          app:layout_constraintStart_toStartOf="parent"
+          app:layout_constraintTop_toTopOf="parent" />
+
+      <TextView
+          android:id="@+id/tvMensajeGlobal"
+          android:layout_width="0dp"
+          android:layout_height="wrap_content"
+          android:layout_marginTop="8dp"
+          android:gravity="center"
+          android:padding="8dp"
+          android:textAlignment="center"
+          android:textSize="14sp"
+          android:textStyle="bold"
+          android:visibility="gone"
+          app:layout_constraintEnd_toEndOf="parent"
+          app:layout_constraintStart_toStartOf="parent"
+          app:layout_constraintTop_toBottomOf="@id/tvTitulo"
+          tools:text="Error de conexión"
+          tools:visibility="visible" />
+
+      <androidx.cardview.widget.CardView
+          android:id="@+id/cardAvatar"
+          android:layout_width="100dp"
+          android:layout_height="100dp"
+          android:layout_marginTop="16dp"
+          app:cardCornerRadius="50dp"
+          app:cardElevation="4dp"
+          app:layout_constraintEnd_toEndOf="parent"
+          app:layout_constraintStart_toStartOf="parent"
+          app:layout_constraintTop_toBottomOf="@id/tvMensajeGlobal">
+
+        <ImageView
+            android:id="@+id/ivAvatar"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="#E0E0E0"
+            android:scaleType="centerCrop"
+            android:src="@android:drawable/ic_menu_camera" />
+      </androidx.cardview.widget.CardView>
+
+      <ImageView
+          android:id="@+id/btnEditAvatar"
+          android:layout_width="32dp"
+          android:layout_height="32dp"
+          android:background="@drawable/circle_background"
+          android:elevation="6dp"
+          android:padding="6dp"
+          android:src="@android:drawable/ic_menu_camera"
+          app:layout_constraintBottom_toBottomOf="@id/cardAvatar"
+          app:layout_constraintEnd_toEndOf="@id/cardAvatar" />
+
+      <TextView
+          android:id="@+id/tvLabelComercial"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:layout_marginTop="24dp"
+          android:text="Datos Comerciales"
+          android:textSize="16sp"
+          android:textStyle="bold"
+          app:layout_constraintStart_toStartOf="parent"
+          app:layout_constraintTop_toBottomOf="@id/cardAvatar" />
+
+      <TextView
+          android:id="@+id/lblNombreComercial"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:layout_marginTop="8dp"
+          android:text="Nombre Comercial (Público)"
+          android:textSize="12sp"
+          app:layout_constraintStart_toStartOf="parent"
+          app:layout_constraintTop_toBottomOf="@id/tvLabelComercial" />
+
+      <EditText
+          android:id="@+id/etNombreComercial"
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:background="@android:drawable/edit_text"
+          android:padding="10dp"
+          app:layout_constraintTop_toBottomOf="@id/lblNombreComercial" />
+
+      <TextView
+          android:id="@+id/lblRazonSocial"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:layout_marginTop="8dp"
+          android:text="Razón Social"
+          android:textSize="12sp"
+          app:layout_constraintStart_toStartOf="parent"
+          app:layout_constraintTop_toBottomOf="@id/etNombreComercial" />
+
+      <EditText
+          android:id="@+id/etRazonSocial"
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:background="@android:drawable/edit_text"
+          android:padding="10dp"
+          app:layout_constraintTop_toBottomOf="@id/lblRazonSocial" />
+
+      <TextView
+          android:id="@+id/lblCuit"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:layout_marginTop="8dp"
+          android:text="CUIT / Tax ID"
+          android:textSize="12sp"
+          app:layout_constraintStart_toStartOf="parent"
+          app:layout_constraintTop_toBottomOf="@id/etRazonSocial" />
+
+      <EditText
+          android:id="@+id/etCuit"
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:background="@android:drawable/edit_text"
+          android:hint="XX-XXXXXXXX-X"
+          android:inputType="number"
+          android:padding="10dp"
+          app:layout_constraintTop_toBottomOf="@id/lblCuit" />
+
+      <TextView
+          android:id="@+id/tvLabelContacto"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:layout_marginTop="24dp"
+          android:text="Contacto y Legal"
+          android:textSize="16sp"
+          android:textStyle="bold"
+          app:layout_constraintStart_toStartOf="parent"
+          app:layout_constraintTop_toBottomOf="@id/etCuit" />
+
+      <TextView
+          android:id="@+id/lblEmail"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:layout_marginTop="8dp"
+          android:text="Email (No editable)"
+          android:textSize="12sp"
+          app:layout_constraintStart_toStartOf="parent"
+          app:layout_constraintTop_toBottomOf="@id/tvLabelContacto" />
+
+      <EditText
+          android:id="@+id/etEmail"
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:background="@android:drawable/edit_text"
+          android:enabled="false"
+          android:padding="10dp"
+          app:layout_constraintTop_toBottomOf="@id/lblEmail" />
+
+      <TextView
+          android:id="@+id/lblNombreContacto"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:layout_marginTop="8dp"
+          android:text="Nombre de Contacto"
+          android:textSize="12sp"
+          app:layout_constraintStart_toStartOf="parent"
+          app:layout_constraintTop_toBottomOf="@id/etEmail" />
+
+      <EditText
+          android:id="@+id/etNombreContacto"
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:background="@android:drawable/edit_text"
+          android:padding="10dp"
+          app:layout_constraintTop_toBottomOf="@id/lblNombreContacto" />
+
+      <TextView
+          android:id="@+id/lblTel"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:layout_marginTop="8dp"
+          android:text="Teléfono Público"
+          android:textSize="12sp"
+          app:layout_constraintStart_toStartOf="parent"
+          app:layout_constraintTop_toBottomOf="@id/etNombreContacto" />
+
+      <EditText
+          android:id="@+id/etTelefono"
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:background="@android:drawable/edit_text"
+          android:inputType="phone"
+          android:padding="10dp"
+          app:layout_constraintTop_toBottomOf="@id/lblTel" />
+
+      <TextView
+          android:id="@+id/lblDireccion"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:layout_marginTop="8dp"
+          android:text="Dirección Legal"
+          android:textSize="12sp"
+          app:layout_constraintStart_toStartOf="parent"
+          app:layout_constraintTop_toBottomOf="@id/etTelefono" />
+
+      <EditText
+          android:id="@+id/etDireccionLegal"
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:background="@android:drawable/edit_text"
+          android:padding="10dp"
+          app:layout_constraintTop_toBottomOf="@id/lblDireccion" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+  </ScrollView>
+
+  <Button
+      android:id="@+id/btnAccion"
+      android:layout_width="0dp"
+      android:layout_height="wrap_content"
+      android:layout_margin="16dp"
+      android:text="Editar"
+      app:layout_constraintBottom_toBottomOf="parent"
+      app:layout_constraintEnd_toEndOf="parent"
+      app:layout_constraintStart_toStartOf="parent" />
+
+  <ProgressBar
+      android:id="@+id/progressBar"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:visibility="gone"
+      app:layout_constraintBottom_toBottomOf="parent"
+      app:layout_constraintEnd_toEndOf="parent"
+      app:layout_constraintStart_toStartOf="parent"
+      app:layout_constraintTop_toTopOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

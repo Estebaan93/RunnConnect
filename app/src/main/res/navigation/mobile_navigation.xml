@@ -24,6 +24,10 @@
       android:label="Mi Perfil"
       tools:layout="@layout/fragment_perfil_runner"/>
 
-
+  <fragment
+      android:id="@+id/nav_perfil_organizador"
+      android:name="com.example.runnconnect.ui.organizador.perfil.PerfilOrganizadorFragment"
+      android:label="Perfil Comercial"
+      tools:layout="@layout/fragment_perfil_organizador" />
 
 </navigation>
