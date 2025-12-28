@@ -18,6 +18,7 @@ import java.io.InputStream;
 
 import java.util.Calendar;
 import java.util.Locale;
+import java.util.regex.Pattern;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -26,15 +27,18 @@ import retrofit2.Response;
 public class PerfilRunnerViewModel extends AndroidViewModel {
   private final UsuarioRepositorio repo;
 
-  //ESTADOS DE DATOS
+  //estado de datos
   private final MutableLiveData<PerfilUsuarioResponse> perfilData = new MutableLiveData<>();
   private final MutableLiveData<Boolean> isEditable = new MutableLiveData<>(false);
   private final MutableLiveData<String> btnText = new MutableLiveData<>("Editar");
   private final MutableLiveData<Boolean> isLoading = new MutableLiveData<>(false);
-  private final MutableLiveData<String> mensajeToast = new MutableLiveData<>();
   private final MutableLiveData<String> avatarUrl = new MutableLiveData<>();
 
-  //Errores de campo
+  //mensajes globlales
+  private final MutableLiveData<String> mensajeGlobal = new MutableLiveData<>();
+  private final MutableLiveData<Boolean> esMensajeError = new MutableLiveData<>(false); // true=rojo, false=verde
+
+  //errores de campo
   private final MutableLiveData<String> errorNombre = new MutableLiveData<>();
   private final MutableLiveData<String> errorApellido = new MutableLiveData<>();
   private final MutableLiveData<String> errorDni = new MutableLiveData<>();
@@ -44,8 +48,9 @@ public class PerfilRunnerViewModel extends AndroidViewModel {
   private final MutableLiveData<String> errorAgrupacion = new MutableLiveData<>();
   private final MutableLiveData<String> errorNombreContacto = new MutableLiveData<>();
   private final MutableLiveData<String> errorTelContacto = new MutableLiveData<>();
-  
-  // --- EVENTOS (Single Shot) ---
+  private final MutableLiveData<String> eventShowDatePicker = new MutableLiveData<>();
+
+  // eventoos
   private final MutableLiveData<Boolean> eventShowAvatarOptions = new MutableLiveData<>(false);
   private final MutableLiveData<Boolean> eventShowDeleteConfirmation = new MutableLiveData<>(false);
   private final MutableLiveData<Boolean> eventOpenGallery = new MutableLiveData<>(false);
@@ -57,7 +62,7 @@ public class PerfilRunnerViewModel extends AndroidViewModel {
   }
 
     
-  //GETTERS de datos
+  //get de datos
   public LiveData<PerfilUsuarioResponse> getPerfilData() {
     return perfilData;
   }
@@ -70,14 +75,16 @@ public class PerfilRunnerViewModel extends AndroidViewModel {
   public LiveData<Boolean> getIsLoading() {
     return isLoading;
   }
-  public LiveData<String> getMensajeToast() {
-    return mensajeToast;
-  }
   public LiveData<String> getAvatarUrl() {
     return avatarUrl;
   }
+  public LiveData<String> getEventShowDatePicker() { return eventShowDatePicker; }
 
-  //GETTERS de errores
+  //mensjaes
+  public LiveData<String> getMensajeGlobal() { return mensajeGlobal; }
+  public LiveData<Boolean> getEsMensajeError() { return esMensajeError; }
+
+  //get de errores
   public LiveData<String> getErrorNombre() { return errorNombre; }
   public LiveData<String> getErrorApellido() { return errorApellido; }
   public LiveData<String> getErrorDni() { return errorDni; }
@@ -88,15 +95,14 @@ public class PerfilRunnerViewModel extends AndroidViewModel {
   public LiveData<String> getErrorNombreContacto() { return errorNombreContacto; }
   public LiveData<String> getErrorTelContacto() { return errorTelContacto; }
 
-  //Get de eventos
+  //get de eventos
   public LiveData<Boolean> getEventShowAvatarOptions() { return eventShowAvatarOptions; }
   public LiveData<Boolean> getEventShowDeleteConfirmation() { return eventShowDeleteConfirmation; }
   public LiveData<Boolean> getEventOpenGallery() { return eventOpenGallery; }
   public LiveData<String> getEventShowZoomImage() { return eventShowZoomImage; }
 
 
-  // --- ACCIONES DE LA VISTA (User Actions) ---
-
+  //acciones de la vista
   // El boton principal actúa distinto según el estado (Igual que en tu ejemplo de Inmobiliaria)
   public void onBotonPrincipalClick(RunnerInput input) {
     if (Boolean.TRUE.equals(isEditable.getValue())) {
@@ -107,6 +113,14 @@ public class PerfilRunnerViewModel extends AndroidViewModel {
       habilitarEdicion();
     }
   }
+  //recibe el click
+  public void onFechaNacClick(String fechaActual) {
+    // El VM decide: Solo abrimos calendario si es editable
+    if (Boolean.TRUE.equals(isEditable.getValue())) {
+      eventShowDatePicker.setValue(fechaActual);
+    }
+  }
+  public void onDatePickerShown() { eventShowDatePicker.setValue(null); }
 
   // Acciones de imagenes
   public void onEditAvatarClicked() { eventShowAvatarOptions.setValue(true); }
@@ -127,7 +141,7 @@ public class PerfilRunnerViewModel extends AndroidViewModel {
     if (archivo != null) {
       subirNuevaFoto(archivo);
     } else {
-      mensajeToast.setValue("Error al procesar la imagen seleccionada");
+      mostrarMensajeGlobal("Error al procesar imagen", true);
     }
   }
 
@@ -137,16 +151,18 @@ public class PerfilRunnerViewModel extends AndroidViewModel {
   public void onGalleryOpenConsumed() { eventOpenGallery.setValue(false); }
   public void onZoomImageConsumed() { eventShowZoomImage.setValue(null); }
 
-  // IMPORTANTE: Esto soluciona que el Toast salga dos veces al volver a la pantalla
-  public void onToastConsumed() { mensajeToast.setValue(null); }
+  //helper privado para setear mensajes
+  private void mostrarMensajeGlobal(String mensaje, boolean esError){
+    mensajeGlobal.setValue(mensaje);
+    esMensajeError.setValue(esError);
+  }
 
 
-  // --- LÓGICA DE NEGOCIO ---
-
+  //logica de negocio
   public void cargarPerfil() {
     isLoading.setValue(true);
     // Limpiamos mensaje anterior por si acaso
-    mensajeToast.setValue(null);
+    mostrarMensajeGlobal(null, false); //limpiamos mensaje previo
 
     repo.obtenerPerfil(new Callback<PerfilUsuarioResponse>() {
       @Override
@@ -154,18 +170,18 @@ public class PerfilRunnerViewModel extends AndroidViewModel {
         isLoading.setValue(false);
         if (response.isSuccessful() && response.body() != null) {
           PerfilUsuarioResponse p = response.body();
-          // Lógica: Formatear fecha antes de enviarla a la vista
+          //formatear fecha antes de enviarla a la vista
           p.setFechaNacimiento(formatearFechaNacimiento(p.getFechaNacimiento()));
           perfilData.setValue(p);
           procesarAvatar(p.getImgAvatar());
         } else {
-          mensajeToast.setValue("Error al cargar perfil");
+          mostrarMensajeGlobal("Error al cargar perfil", true);
         }
       }
       @Override
       public void onFailure(Call<PerfilUsuarioResponse> call, Throwable t) {
         isLoading.setValue(false);
-        mensajeToast.setValue("Error de conexion");
+        mostrarMensajeGlobal("Error de conexion", true);
       }
     });
   }
@@ -173,56 +189,84 @@ public class PerfilRunnerViewModel extends AndroidViewModel {
   private void habilitarEdicion() {
     isEditable.setValue(true);
     btnText.setValue("Guardar");
+    mostrarMensajeGlobal(null, false); // Limpiar mensaje
   }
 
   private void guardarCambios(RunnerInput input) {
-    // Validaciones (Lógica de negocio)
-    if (input.nombre.isEmpty() || input.apellido.isEmpty()) {
-      mensajeToast.setValue("Nombre y Apellido son obligatorios");
-      return;
-    }
+    boolean esValido = true;
+    // VALIDACIONES (Sin Toast, usando setError)
+    if (input.nombre == null || input.nombre.trim().length() < 3) { errorNombre.setValue("Mínimo 3 caracteres"); esValido = false; } else errorNombre.setValue(null);
+    if (input.apellido == null || input.apellido.trim().length() < 3) { errorApellido.setValue("Mínimo 3 caracteres"); esValido = false; } else errorApellido.setValue(null);
+    if (input.telefono == null || input.telefono.trim().length() < 7 || input.telefono.length() > 20) { errorTelefono.setValue("Entre 7 y 20 caracteres"); esValido = false; } else errorTelefono.setValue(null);
 
     int dniInt = 0;
     try {
-      if (input.dni != null && !input.dni.isEmpty()) {
-        dniInt = Integer.parseInt(input.dni);
-      }
-    } catch (NumberFormatException e) {
-      mensajeToast.setValue("El DNI debe ser numérico");
-      return;
-    }
+      dniInt = Integer.parseInt(input.dni);
+      if (dniInt < 1000000 || dniInt > 99999999) { errorDni.setValue("DNI inválido (7-8 dígitos)"); esValido = false; } else errorDni.setValue(null);
+    } catch (NumberFormatException e) { errorDni.setValue("Solo números"); esValido = false; }
+
+    if (input.fechaNac == null || input.fechaNac.trim().isEmpty()) { errorFechaNac.setValue("Requerido"); esValido = false; } else errorFechaNac.setValue(null);
+    if (input.localidad == null || input.localidad.trim().isEmpty()) { errorLocalidad.setValue("Requerido"); esValido = false; } else errorLocalidad.setValue(null);
+    if (input.agrupacion == null || input.agrupacion.trim().isEmpty()) { errorAgrupacion.setValue("Requerido"); esValido = false; } else errorAgrupacion.setValue(null);
+    if (input.nombreContacto == null || input.nombreContacto.trim().length() < 3) { errorNombreContacto.setValue("Mínimo 3 caracteres"); esValido = false; } else errorNombreContacto.setValue(null);
+    if (input.telContacto == null || !Pattern.matches("^\\d{6,15}$", input.telContacto)) { errorTelContacto.setValue("Solo números (6-15 dígitos)"); esValido = false; } else errorTelContacto.setValue(null);
+
+    if (!esValido) return;
 
     ActualizarPerfilRunnerRequest request = new ActualizarPerfilRunnerRequest(
-            input.nombre, input.apellido, input.telefono, input.fechaNac,
-            input.genero, dniInt, input.localidad, input.agrupacion,
-            input.nombreContacto, input.telContacto
+      input.nombre,
+      input.apellido,
+      input.telefono,
+      input.fechaNac,
+      input.genero,
+      dniInt,
+      input.localidad,
+      input.agrupacion,
+      input.nombreContacto,
+      input.telContacto
     );
 
     isLoading.setValue(true);
+    mostrarMensajeGlobal(null, false);
+
     repo.actualizarRunner(request, new Callback<PerfilUsuarioResponse>() {
       @Override
       public void onResponse(Call<PerfilUsuarioResponse> call, Response<PerfilUsuarioResponse> response) {
-
         if (response.isSuccessful()) {
-          cargarPerfil(); // recargamos los datos frescos
-          // Logica de estado post-guardado
+          cargarPerfil();
           isEditable.setValue(false);
           btnText.setValue("Editar");
-          mensajeToast.setValue("Perfil actualizado correctamente");
+          mostrarMensajeGlobal("Perfil actualizado correctamente", false); // Éxito en verde
         } else {
           isLoading.setValue(false);
-          mensajeToast.setValue("Error al actualizar");
+          String mensajeError = "Error al actualizar";
+          try {
+            if (response.errorBody() != null) {
+              // El errorBody es un stream, lo convertimos a string
+              String errorRaw = response.errorBody().string();
+              // Opcional: Podrías parsear el JSON para sacar solo el campo "message"
+              // Por ahora mostramos lo que venga o un mensaje genérico
+              if(errorRaw.contains("message")) {
+                // Un parseo rápido y sucio si no quieres crear un objeto Gson error
+                // Lo ideal es tener una clase ErrorResponse
+                mensajeError = new org.json.JSONObject(errorRaw).getString("message");
+              }
+            }
+          } catch (Exception e) {
+            e.printStackTrace();
+          }
+          mostrarMensajeGlobal(mensajeError, true);
         }
       }
       @Override
       public void onFailure(Call<PerfilUsuarioResponse> call, Throwable t) {
         isLoading.setValue(false);
-        mensajeToast.setValue("Fallo de red");
+        mostrarMensajeGlobal("Fallo de red", true);
       }
     });
   }
 
-  // --- UTILS ---
+  //
   private String formatearFechaNacimiento(String fecha) {
     if (fecha == null || fecha.isEmpty()) return "";
     return fecha.contains("T") ? fecha.split("T")[0] : fecha;
@@ -264,15 +308,15 @@ public class PerfilRunnerViewModel extends AndroidViewModel {
         isLoading.setValue(false);
         if (response.isSuccessful() && response.body() != null) {
           procesarAvatar(response.body().getImgAvatar());
-          mensajeToast.setValue("Foto actualizada con éxito");
+          mostrarMensajeGlobal("Foto actualizada", false);
         } else {
-          mensajeToast.setValue("Error al subir imagen");
+          mostrarMensajeGlobal("Error al subir imagen", true);
         }
       }
       @Override
       public void onFailure(Call<PerfilUsuarioResponse> call, Throwable t) {
         isLoading.setValue(false);
-        mensajeToast.setValue("Error de red");
+        mostrarMensajeGlobal("Error de red", true);
       }
     });
   }
@@ -285,15 +329,15 @@ public class PerfilRunnerViewModel extends AndroidViewModel {
         isLoading.setValue(false);
         if (response.isSuccessful() && response.body() != null) {
           procesarAvatar(response.body().getImgAvatar());
-          mensajeToast.setValue("Foto eliminada");
+          mostrarMensajeGlobal("Foto eliminada", false);
         } else {
-          mensajeToast.setValue("Error al eliminar");
+          mostrarMensajeGlobal("Error al eliminar", true);
         }
       }
       @Override
       public void onFailure(Call<PerfilUsuarioResponse> call, Throwable t) {
         isLoading.setValue(false);
-        mensajeToast.setValue("Error de red");
+        mostrarMensajeGlobal("Error de red", true);
       }
     });
   }
@@ -332,7 +376,7 @@ public class PerfilRunnerViewModel extends AndroidViewModel {
         return i;
       }
     }
-    return 0; // Default
+    return 0; // default
   }
 
 

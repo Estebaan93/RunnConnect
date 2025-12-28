@@ -48,7 +48,7 @@ public class PerfilRunnerFragment extends Fragment {
     binding.spGenero.setEnabled(false);
 
 
-    // Inicializar selector de imagen
+    // inicializar selector de imagen
     mediaImagen = registerForActivityResult(new ActivityResultContracts.PickVisualMedia(), uri -> {
       if (uri != null) {
         mv.onImagenSeleccionada(uri);
@@ -63,7 +63,7 @@ public class PerfilRunnerFragment extends Fragment {
   }
 
   private void setupListeners() {
-    // La logica de "si es editar o guardar" la decide el VM, nosotros solo mandamos datos
+    // la logica de "si es editar o guardar" la decide el VM, nosotros solo mandamos datos
     binding.btnAccion.setOnClickListener(v -> recolectarYEnviar());
 
     binding.btnEditAvatar.setOnClickListener(v -> mv.onEditAvatarClicked());
@@ -71,29 +71,33 @@ public class PerfilRunnerFragment extends Fragment {
 
     binding.etFechaNac.setOnClickListener(v->{
       //solo abrimos el calendario si esta habilitado para editar el perfil
-      if(binding.etFechaNac.isEnabled()){
+      /*if(binding.etFechaNac.isEnabled()){
         mostrarCalendario();
-      }
+      }*/
+      mv.onFechaNacClick(binding.etFechaNac.getText().toString());
     });
   }
 
-  private void mostrarCalendario() {
-    // 1. Pedimos al VM los datos listos para el calendario
-    // El Fragment no parsea nada.
-    Calendar cal = mv.obtenerFechaCalendario(binding.etFechaNac.getText().toString());
+  private void mostrarCalendario(String fechaActual) {
+    //pedimos al VM los datos listos para el calendario
+    //el Fragment no parsea nada.
+    Calendar cal = mv.obtenerFechaCalendario(fechaActual);
 
     int anio = cal.get(Calendar.YEAR);
     int mes = cal.get(Calendar.MONTH);
     int dia = cal.get(Calendar.DAY_OF_MONTH);
 
-    // 2. Mostramos UI (DatePicker es un componente de UI)
+    //mostramos UI (DatePicker es un componente de UI)
     DatePickerDialog datePicker = new DatePickerDialog(
       requireContext(),
       (view, year, month, dayOfMonth) -> {
-        // 3. Pedimos al VM que formatee el resultado
-        // El Fragment no formatea Strings.
+        // pedimos al VM que formatee el resultado
+        //el Fragment no formatea Strings.
         String fechaTexto = mv.procesarFechaSeleccionada(year, month, dayOfMonth);
+        //actuali la vista
         binding.etFechaNac.setText(fechaTexto);
+        //limpiamos error si existia
+        binding.etFechaNac.setError(null);
       },
       anio, mes, dia
     );
@@ -103,24 +107,29 @@ public class PerfilRunnerFragment extends Fragment {
   }
 
   private void setupObservers() {
-    // --- Observadores de DATOS ---
+    //observadores de DATOS
     mv.getPerfilData().observe(getViewLifecycleOwner(), p -> {
-      // El fragment solo asigna, no formatea
+      //el fragment solo asigna, no formatea
       binding.etEmail.setText(p.getEmail());
       binding.etNombre.setText(p.getNombre());
       binding.etApellido.setText(p.getApellido());
       binding.etTelefono.setText(p.getTelefono());
       binding.etDni.setText(p.getDni() != null ? String.valueOf(p.getDni()) : "");
-      binding.etFechaNac.setText(p.getFechaNacimiento()); // Fecha ya viene limpia del VM
 
-      // CAMBIO: Delegamos el calculo del índice al VM
-      int indice = mv.obtenerIndiceGenero(p.getGenero(), opcGenero);
-      binding.spGenero.setSelection(indice);
+      binding.etFechaNac.setText(p.getFechaNacimiento()); // fecha ya viene limpia del VM
+
+      binding.spGenero.setSelection(mv.obtenerIndiceGenero(p.getGenero(), opcGenero));
 
       binding.etLocalidad.setText(p.getLocalidad());
       binding.etAgrupacion.setText(p.getAgrupacion());
       binding.etNombreContacto.setText(p.getNombreContactoEmergencia());
       binding.etTelContacto.setText(p.getTelefonoEmergencia());
+    });
+    mv.getEventShowDatePicker().observe(getViewLifecycleOwner(), fechaBase -> {
+      if (fechaBase != null) {
+        mostrarCalendario(fechaBase); //abre el dialog
+        mv.onDatePickerShown(); // Reseteamos el evento
+      }
     });
 
     mv.getAvatarUrl().observe(getViewLifecycleOwner(), url -> {
@@ -132,22 +141,34 @@ public class PerfilRunnerFragment extends Fragment {
               .into(binding.ivAvatar);
     });
 
-    // Habilitar/Deshabilitar campos
+    //habilitar/deshabilitar campos
     mv.getIsEditable().observe(getViewLifecycleOwner(), enabled -> {
       binding.etNombre.setEnabled(enabled);
       binding.etApellido.setEnabled(enabled);
       binding.etTelefono.setEnabled(enabled);
       binding.etDni.setEnabled(enabled);
       binding.etFechaNac.setEnabled(enabled);
-
       binding.spGenero.setEnabled(enabled);
+
       binding.spGenero.setAlpha(enabled ? 1.0f : 0.7f);
 
       binding.etLocalidad.setEnabled(enabled);
       binding.etAgrupacion.setEnabled(enabled);
       binding.etNombreContacto.setEnabled(enabled);
       binding.etTelContacto.setEnabled(enabled);
-      binding.etEmail.setEnabled(false); // Email nunca editable
+      binding.etEmail.setEnabled(false); // email nunca editable
+
+      if (!enabled) { // limpiar errores al salir de edicion
+        binding.etNombre.setError(null);
+        binding.etApellido.setError(null);
+        binding.etDni.setError(null);
+        binding.etTelefono.setError(null);
+        binding.etFechaNac.setError(null);
+        binding.etLocalidad.setError(null);
+        binding.etAgrupacion.setError(null);
+        binding.etNombreContacto.setError(null);
+        binding.etTelContacto.setError(null);
+      }
     });
 
     mv.getBtnText().observe(getViewLifecycleOwner(), binding.btnAccion::setText);
@@ -155,17 +176,28 @@ public class PerfilRunnerFragment extends Fragment {
     mv.getIsLoading().observe(getViewLifecycleOwner(), loading ->
             binding.progressBar.setVisibility(loading ? View.VISIBLE : View.GONE));
 
-    // Toast con consumo de evento (Fix para que no se repita)
-    mv.getMensajeToast().observe(getViewLifecycleOwner(), msg -> {
-      if (msg != null) {
-        Toast.makeText(getContext(), msg, Toast.LENGTH_SHORT).show();
-        mv.onToastConsumed(); // IMPORTANTE: Avisar que ya se mostró
-      }
+    //mensajes globales
+    mv.getMensajeGlobal().observe(getViewLifecycleOwner(), msg -> {
+      binding.tvMensajeGlobal.setText(msg);
+      binding.tvMensajeGlobal.setVisibility(msg != null && !msg.isEmpty() ? View.VISIBLE : View.GONE);
+    });
+    mv.getEsMensajeError().observe(getViewLifecycleOwner(), isError -> {
+      binding.tvMensajeGlobal.setTextColor(isError ? Color.RED : Color.parseColor("#008000")); // Rojo o Verde oscuro
     });
 
+    //errores en campos
+    mv.getErrorNombre().observe(getViewLifecycleOwner(), e -> binding.etNombre.setError(e));
+    mv.getErrorApellido().observe(getViewLifecycleOwner(), e -> binding.etApellido.setError(e));
+    mv.getErrorDni().observe(getViewLifecycleOwner(), e -> binding.etDni.setError(e));
+    mv.getErrorTelefono().observe(getViewLifecycleOwner(), e -> binding.etTelefono.setError(e));
+    mv.getErrorFechaNac().observe(getViewLifecycleOwner(), e -> binding.etFechaNac.setError(e));
+    mv.getErrorLocalidad().observe(getViewLifecycleOwner(), e -> binding.etLocalidad.setError(e));
+    mv.getErrorAgrupacion().observe(getViewLifecycleOwner(), e -> binding.etAgrupacion.setError(e));
+    mv.getErrorNombreContacto().observe(getViewLifecycleOwner(), e -> binding.etNombreContacto.setError(e));
+    mv.getErrorTelContacto().observe(getViewLifecycleOwner(), e -> binding.etTelContacto.setError(e));
 
-    // --- Observadores de DIALOGOS (Eventos) ---
 
+    //eventos
     mv.getEventShowAvatarOptions().observe(getViewLifecycleOwner(), show -> {
       if (Boolean.TRUE.equals(show)) {
         mostrarDialogoOpciones();
@@ -197,7 +229,7 @@ public class PerfilRunnerFragment extends Fragment {
     });
   }
 
-  // --- METODOS UI ---
+  //metodos ui
   private void mostrarDialogoOpciones() {
     String[] opciones = {"Cambiar Foto", "Eliminar Foto", "Cancelar"};
     new AlertDialog.Builder(getContext())
@@ -234,7 +266,7 @@ public class PerfilRunnerFragment extends Fragment {
   }
 
   private void recolectarYEnviar() {
-    // Solo extraemos datos (UI Logic) y los empaquetamos
+    //solo extraemos datos y los empaquetamos
     String generoSeleccionado= binding.spGenero.getSelectedItem().toString();
     PerfilRunnerViewModel.RunnerInput input = new PerfilRunnerViewModel.RunnerInput(
             binding.etNombre.getText().toString(),
@@ -248,7 +280,7 @@ public class PerfilRunnerFragment extends Fragment {
             binding.etNombreContacto.getText().toString(),
             binding.etTelContacto.getText().toString()
     );
-    // Enviamos al VM
+    //enviamos al VM
     mv.onBotonPrincipalClick(input);
   }
 }

@@ -23,7 +23,7 @@ public class ApiClient {
 
       // 3. Construir Retrofit
       Retrofit retrofit = new Retrofit.Builder()
-              .baseUrl(BASE_URLTrabajoD)
+              .baseUrl(BASE_URL)
               .addConverterFactory(GsonConverterFactory.create(gson)) // Para convertir JSON a Objetos
               // .addConverterFactory(ScalarsConverterFactory.create()) // Descomentar si alguna vez necesitas recibir Strings puros
               .build();
