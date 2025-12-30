@@ -49,14 +49,14 @@ public class NoticiasRepositorio {
   }
 
   private List<Noticia> conectarYParsear() throws IOException, XmlPullParserException {
-    // CAMBIO CLAVE: Usamos Headers de PC Windows para saltar el bloqueo 403
+
     Request request = new Request.Builder()
             .url(RSS_URL)
             .build();
 
     try (Response response = client.newCall(request).execute()) {
       if (!response.isSuccessful()) {
-        // Si aún así falla (ej. sigue dando 403), lanzamos excepcion con el codigo
+
         throw new IOException("El servidor rechazo la conexion: " + response.code());
       }
 
@@ -152,7 +152,7 @@ public class NoticiasRepositorio {
 
   private String extraerImagenDeHtml(String html) {
     if (html == null) return null;
-    // Regex simple para buscar src="..."
+
     Pattern pattern = Pattern.compile("src\\s*=\\s*['\"]([^'\"]+)['\"]");
     Matcher matcher = pattern.matcher(html);
     if (matcher.find()) return matcher.group(1);

@@ -15,10 +15,14 @@ import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.ArrayAdapter;
+import android.widget.EditText;
 import android.widget.ImageView;
 
 import android.app.DatePickerDialog;
@@ -34,6 +38,11 @@ public class PerfilRunnerFragment extends Fragment {
   private PerfilRunnerViewModel mv;
   private ActivityResultLauncher<PickVisualMediaRequest> mediaImagen;
   private final String [] opcGenero={"F", "M", "X"};
+
+  //refeencia globales para el dialogo del password, para pintar el input si existe error
+  private AlertDialog dialogPassword;
+  private EditText etPassActualRef, etPassNuevaRef, etPassConfirmRef;
+
 
   public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
     binding = FragmentPerfilRunnerBinding.inflate(inflater, container, false);
@@ -53,6 +62,7 @@ public class PerfilRunnerFragment extends Fragment {
       //}
     });
 
+    setHasOptionsMenu(true); //habilita edicion del menu
     setupObservers();
     setupListeners();
     mv.cargarPerfil(); //cargar datos iniciales
@@ -61,7 +71,7 @@ public class PerfilRunnerFragment extends Fragment {
   }
 
   private void setupListeners() {
-    // la logica de "si es editar o guardar" la decide el VM, nosotros solo mandamos datos
+    // la logica de "si es editar o guardar" la decide el VM
     binding.btnAccion.setOnClickListener(v -> recolectarYEnviar());
 
     binding.btnEditAvatar.setOnClickListener(v -> mv.onEditAvatarClicked());
@@ -103,6 +113,67 @@ public class PerfilRunnerFragment extends Fragment {
     datePicker.getDatePicker().setMaxDate(System.currentTimeMillis());
     datePicker.show();
   }
+
+  // Agregar Menu
+  @Override
+  public void onCreateOptionsMenu(@NonNull Menu menu, @NonNull MenuInflater inflater) {
+    inflater.inflate(R.menu.menu_perfil_opciones, menu); // Crear este XML menu abajo
+    super.onCreateOptionsMenu(menu, inflater);
+  }
+
+  @Override
+  public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+    if (item.getItemId() == R.id.action_cambiar_pass) {
+      mostrarDialogoCambiarPassword();
+      return true;
+    }
+    return super.onOptionsItemSelected(item);
+  }
+
+  private void mostrarDialogoCambiarPassword() {
+    AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
+    // Inflar layout personalizado
+    View view = getLayoutInflater().inflate(R.layout.dialog_cambiar_password, null);
+
+    // asignamos a las variables globales para que el Observer las vea
+    etPassActualRef = view.findViewById(R.id.etPassActual);
+    etPassNuevaRef = view.findViewById(R.id.etPassNueva);
+    etPassConfirmRef = view.findViewById(R.id.etPassConfirm);
+
+    builder.setView(view)
+      .setPositiveButton("Cambiar", null) // Nulo aquí para sobreescribirlo después
+      .setNegativeButton("Cancelar", (dialog, which) -> limpiarReferenciasDialogo());
+
+    dialogPassword = builder.create();
+    dialogPassword.show();
+
+    // Sobreescribir el boton positivo para que NO cierre el dialogo automaticamente
+    dialogPassword.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
+      // Limpiamos errores previos visuales
+      etPassActualRef.setError(null);
+      etPassNuevaRef.setError(null);
+      etPassConfirmRef.setError(null);
+
+      String actual = etPassActualRef.getText().toString();
+      String nueva = etPassNuevaRef.getText().toString();
+      String confirm = etPassConfirmRef.getText().toString();
+
+      // Enviamos al VM. El dialogo SIGUE ABIERTO esperando respuesta
+      mv.cambiarPassword(actual, nueva, confirm);
+    });
+
+    // Limpiar referencias si se cierra por fuera o back
+    dialogPassword.setOnDismissListener(d -> limpiarReferenciasDialogo());
+  }
+
+  private void limpiarReferenciasDialogo() {
+    etPassActualRef = null;
+    etPassNuevaRef = null;
+    etPassConfirmRef = null;
+    dialogPassword = null;
+  }
+
+
 
   private void setupObservers() {
     //observadores de DATOS
@@ -225,6 +296,57 @@ public class PerfilRunnerFragment extends Fragment {
         mv.onZoomImageConsumed();
       }
     });
+
+    //NUEVO OBSERVER PARA PASSWORD
+    mv.getMensajePassword().observe(getViewLifecycleOwner(), msg -> {
+      if (msg == null) return;
+
+      // Caso EXITO
+      if (msg.startsWith("Éxito") || msg.startsWith("Exito")) {
+        if (dialogPassword != null && dialogPassword.isShowing()) {
+          dialogPassword.dismiss(); // AHORA SÍ cerramos el diálogo
+        }
+        // Mostramos mensaje general en la pantalla principal
+        binding.tvMensajeGlobal.setText(msg);
+        binding.tvMensajeGlobal.setTextColor(Color.parseColor("#008000")); // Verde
+        binding.tvMensajeGlobal.setVisibility(View.VISIBLE);
+      }
+      // Caso ERROR (Validamos que campo pintar)
+      else if (msg.startsWith("Error")) {
+        // Solo podemos pintar el error si el dialogo sigue abierto
+        if (dialogPassword != null && dialogPassword.isShowing()) {
+
+          if (msg.contains("campos son obligatorios")) {
+            if(etPassActualRef.getText().toString().isEmpty()) etPassActualRef.setError("Requerido");
+            if(etPassNuevaRef.getText().toString().isEmpty()) etPassNuevaRef.setError("Requerido");
+            if(etPassConfirmRef.getText().toString().isEmpty()) etPassConfirmRef.setError("Requerido");
+          }
+          else if (msg.contains("no coinciden")) {
+            etPassConfirmRef.setError("Las contraseñas no coinciden");
+            etPassConfirmRef.requestFocus();
+          }
+          else if (msg.contains("al menos 6 caracteres")) {
+            etPassNuevaRef.setError("Mínimo 6 caracteres");
+            etPassNuevaRef.requestFocus();
+          }
+          else {
+            etPassActualRef.setError(msg.replace("Error: ", ""));
+            etPassActualRef.requestFocus();
+          }
+        } else {
+          // Si por alguna razn el dialogo se cerro, lo mostramos en el global
+          binding.tvMensajeGlobal.setText(msg);
+          binding.tvMensajeGlobal.setTextColor(Color.RED);
+          binding.tvMensajeGlobal.setVisibility(View.VISIBLE);
+        }
+      }
+
+      // Limpiamos el mensaje en el VM para evitar rebotes
+      mv.limpiarMensajePassword();
+    });
+
+
+
   }
 
   //metodos ui
@@ -281,4 +403,6 @@ public class PerfilRunnerFragment extends Fragment {
     //enviamos al VM
     mv.onBotonPrincipalClick(input);
   }
+
+
 }

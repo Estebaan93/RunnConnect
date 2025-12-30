@@ -1,7 +1,6 @@
 //ui/login/LoginActivity
 package com.example.runnconnect.ui.login;
 
-import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
@@ -14,9 +13,7 @@ import android.widget.VideoView;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
 
-import com.example.runnconnect.MainActivity;
 import com.example.runnconnect.R;
-import com.example.runnconnect.ui.eventosPublicos.EventosPublicosActivity;
 import com.google.android.material.textfield.TextInputEditText;
 
 
@@ -28,7 +25,7 @@ public class LoginActivity extends AppCompatActivity {
   private VideoView videoBackground;
   private TextInputEditText etEmail, etPassword;
   private Button btnLogin, btnVisitante;
-  private TextView tvCrearCuenta;
+  private TextView tvCrearCuenta, tvErrorLogin;
   private ProgressBar progressBar;
 
   @Override
@@ -60,28 +57,59 @@ public class LoginActivity extends AppCompatActivity {
     btnVisitante = findViewById(R.id.btnVisitante);
     tvCrearCuenta = findViewById(R.id.tvCrearCuenta);
     progressBar = findViewById(R.id.progressBar);
+    tvErrorLogin= findViewById(R.id.tvErrorLogin);
   }
 
   private void setupVideoBackground() {
-    //El video en res/raw/background_video.mp4
     try {
       Uri uri = Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.background_video_login);
       videoBackground.setVideoURI(uri);
 
-      videoBackground.setOnPreparedListener(mp -> {
-        mp.setLooping(true); // Loop infinito
+      // fijar tamaño de pantalla
+      android.util.DisplayMetrics metrics = new android.util.DisplayMetrics();
+      getWindowManager().getDefaultDisplay().getRealMetrics(metrics);
+      android.view.ViewGroup.LayoutParams params = videoBackground.getLayoutParams();
+      params.width = metrics.widthPixels;
+      params.height = metrics.heightPixels;
+      videoBackground.setLayoutParams(params);
 
-        // Escalado para cubrir pantalla sin bordes negros
-        float videoRatio = mp.getVideoWidth() / (float) mp.getVideoHeight();
-        float screenRatio = videoBackground.getWidth() / (float) videoBackground.getHeight();
-        float scaleX = videoRatio / screenRatio;
-        if (scaleX >= 1f) videoBackground.setScaleX(scaleX);
-        else videoBackground.setScaleY(1f / scaleX);
+      videoBackground.setOnPreparedListener(mp -> {
+        mp.setLooping(true);
+
+        Runnable escalarVideo = () -> {
+          int viewWidth = videoBackground.getWidth();
+          int viewHeight = videoBackground.getHeight();
+
+          if (viewWidth == 0 || viewHeight == 0) return;
+
+          float videoWidth = mp.getVideoWidth();
+          float videoHeight = mp.getVideoHeight();
+
+          float videoRatio = videoWidth / videoHeight;
+          float viewRatio = (float) viewWidth / viewHeight;
+
+          float scale = 1f;
+
+          if (videoRatio > viewRatio) {
+            scale = videoRatio / viewRatio;
+          } else {
+            scale = viewRatio / videoRatio;
+          }
+
+          // multiplicamos por 1.02f (2% extra) para crear un borde y eliminar desborde de video
+
+          scale = scale * 1.02f;
+
+          videoBackground.setScaleX(scale);
+          videoBackground.setScaleY(scale);
+        };
+
+        escalarVideo.run();
       });
 
       videoBackground.start();
     } catch (Exception e) {
-      e.printStackTrace(); // Si falla el video, la app sigue funcionando
+      e.printStackTrace();
     }
   }
 
@@ -90,14 +118,28 @@ public class LoginActivity extends AppCompatActivity {
     viewModel.getIsLoading().observe(this, isLoading -> {
       progressBar.setVisibility(isLoading ? View.VISIBLE : View.GONE);
       btnLogin.setEnabled(!isLoading); // desactivar boton mientras carga
+
+      //si carga, ocultamos el error
+      if(isLoading){
+        tvErrorLogin.setVisibility(View.GONE);
+      }
     });
 
-    // Observar Mensajes de Error
+    //observar Mensajes de Error
     viewModel.getErrorMessage().observe(this, msg -> {
-      Toast.makeText(this, msg, Toast.LENGTH_LONG).show();
+      if (msg != null && !msg.isEmpty()) {
+        tvErrorLogin.setText(msg);
+        tvErrorLogin.setVisibility(View.VISIBLE);
+
+        //animacion simple
+        tvErrorLogin.setAlpha(0f);
+        tvErrorLogin.animate().alpha(1f).setDuration(300).start();
+      } else {
+        tvErrorLogin.setVisibility(View.GONE);
+      }
     });
 
-    // Observar navegar
+    //observar navegar
     viewModel.getNavegacionEvento().observe(this, intent -> {
       startActivity(intent);
       //si es visitante y consulta eventos publicos
@@ -121,7 +163,7 @@ public class LoginActivity extends AppCompatActivity {
 
     //Crear cuenta
     tvCrearCuenta.setOnClickListener(v -> {
-      Toast.makeText(this, "Próximamente: Registro", Toast.LENGTH_SHORT).show();
+      //Toast.makeText(this, "Próximamente: Registro", Toast.LENGTH_SHORT).show();
     });
   }
 

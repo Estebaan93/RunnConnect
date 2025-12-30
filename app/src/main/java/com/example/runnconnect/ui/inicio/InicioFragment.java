@@ -75,7 +75,7 @@ public class InicioFragment extends Fragment {
   private void abrirNoticiaEnNavegador(String url) {
     try {
       CustomTabsIntent.Builder builder = new CustomTabsIntent.Builder();
-      // Color de la barra del navegador (puedes usar R.color.purple_500 o el que definas)
+
       builder.setToolbarColor(ContextCompat.getColor(requireContext(), android.R.color.darker_gray));
       CustomTabsIntent customTabsIntent = builder.build();
       customTabsIntent.launchUrl(requireContext(), Uri.parse(url));

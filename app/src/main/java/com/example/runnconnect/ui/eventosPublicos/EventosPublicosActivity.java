@@ -21,18 +21,18 @@ public class EventosPublicosActivity extends AppCompatActivity {
     // Inicializamos el ViewModel
     viewModel = new ViewModelProvider(this).get(EventosPublicosViewModel.class);
 
-    // Configurar la Toolbar para volver atrás
+    // Configurar la Toolbar para volver atras
     androidx.appcompat.widget.Toolbar toolbar = findViewById(R.id.toolbar);
     setSupportActionBar(toolbar);
 
-    // Habilitar botón de "Atrás" en la barra superior
+    // Habilitar botón de "Atras" en la barra superior
     if (getSupportActionBar() != null) {
       getSupportActionBar().setDisplayHomeAsUpEnabled(true);
       getSupportActionBar().setDisplayShowHomeEnabled(true);
     }
   }
 
-  // Manejar el clic en la flecha de volver atrás
+  // Manejar el clic en la flecha de volver atras
   @Override
   public boolean onSupportNavigateUp() {
     onBackPressed();

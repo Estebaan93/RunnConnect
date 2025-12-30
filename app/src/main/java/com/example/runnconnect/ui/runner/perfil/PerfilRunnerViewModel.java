@@ -10,6 +10,7 @@ import androidx.lifecycle.MutableLiveData;
 
 import com.example.runnconnect.data.repositorio.UsuarioRepositorio;
 import com.example.runnconnect.data.request.ActualizarPerfilRunnerRequest;
+import com.example.runnconnect.data.request.CambiarPasswordRequest;
 import com.example.runnconnect.data.response.PerfilUsuarioResponse;
 
 import java.io.File;
@@ -33,6 +34,7 @@ public class PerfilRunnerViewModel extends AndroidViewModel {
   private final MutableLiveData<String> btnText = new MutableLiveData<>("Editar");
   private final MutableLiveData<Boolean> isLoading = new MutableLiveData<>(false);
   private final MutableLiveData<String> avatarUrl = new MutableLiveData<>();
+  private final MutableLiveData<String> mensajePassword = new MutableLiveData<>();
 
   //mensajes globlales
   private final MutableLiveData<String> mensajeGlobal = new MutableLiveData<>();
@@ -79,6 +81,7 @@ public class PerfilRunnerViewModel extends AndroidViewModel {
     return avatarUrl;
   }
   public LiveData<String> getEventShowDatePicker() { return eventShowDatePicker; }
+  public LiveData<String> getMensajePassword() { return mensajePassword; }
 
   //mensjaes
   public LiveData<String> getMensajeGlobal() { return mensajeGlobal; }
@@ -102,8 +105,9 @@ public class PerfilRunnerViewModel extends AndroidViewModel {
   public LiveData<String> getEventShowZoomImage() { return eventShowZoomImage; }
 
 
+
   //acciones de la vista
-  // El boton principal actúa distinto según el estado (Igual que en tu ejemplo de Inmobiliaria)
+  // El boton principal actua distinto segun el estado
   public void onBotonPrincipalClick(RunnerInput input) {
     if (Boolean.TRUE.equals(isEditable.getValue())) {
       // Si estaba editando -> intenta Guardar
@@ -115,7 +119,7 @@ public class PerfilRunnerViewModel extends AndroidViewModel {
   }
   //recibe el click
   public void onFechaNacClick(String fechaActual) {
-    // El VM decide: Solo abrimos calendario si es editable
+    // El VM decide solo abrimos calendario si es editable
     if (Boolean.TRUE.equals(isEditable.getValue())) {
       eventShowDatePicker.setValue(fechaActual);
     }
@@ -145,7 +149,7 @@ public class PerfilRunnerViewModel extends AndroidViewModel {
     }
   }
 
-  // --- CONSUMO DE EVENTOS (Reseteo para evitar rebotes) ---
+  //CONSUMO DE EVENTOS (Reseteo para evitar rebotes)
   public void onAvatarOptionsConsumed() { eventShowAvatarOptions.setValue(false); }
   public void onDeleteConfirmationConsumed() { eventShowDeleteConfirmation.setValue(false); }
   public void onGalleryOpenConsumed() { eventOpenGallery.setValue(false); }
@@ -155,6 +159,9 @@ public class PerfilRunnerViewModel extends AndroidViewModel {
   private void mostrarMensajeGlobal(String mensaje, boolean esError){
     mensajeGlobal.setValue(mensaje);
     esMensajeError.setValue(esError);
+  }
+  public void limpiarMensajePassword() {
+    mensajePassword.setValue(null);
   }
 
 
@@ -194,7 +201,7 @@ public class PerfilRunnerViewModel extends AndroidViewModel {
 
   private void guardarCambios(RunnerInput input) {
     boolean esValido = true;
-    // VALIDACIONES (Sin Toast, usando setError)
+    // VALIDACIONES
     if (input.nombre == null || input.nombre.trim().length() < 3) { errorNombre.setValue("Mínimo 3 caracteres"); esValido = false; } else errorNombre.setValue(null);
     if (input.apellido == null || input.apellido.trim().length() < 3) { errorApellido.setValue("Mínimo 3 caracteres"); esValido = false; } else errorApellido.setValue(null);
     if (input.telefono == null || input.telefono.trim().length() < 7 || input.telefono.length() > 20) { errorTelefono.setValue("Entre 7 y 20 caracteres"); esValido = false; } else errorTelefono.setValue(null);
@@ -244,11 +251,10 @@ public class PerfilRunnerViewModel extends AndroidViewModel {
             if (response.errorBody() != null) {
               // El errorBody es un stream, lo convertimos a string
               String errorRaw = response.errorBody().string();
-              // Opcional: Podrías parsear el JSON para sacar solo el campo "message"
-              // Por ahora mostramos lo que venga o un mensaje genérico
+
+              // mostramos lo que venga o un mensaje generico
               if(errorRaw.contains("message")) {
-                // Un parseo rápido y sucio si no quieres crear un objeto Gson error
-                // Lo ideal es tener una clase ErrorResponse
+                // Un parseo rapido
                 mensajeError = new org.json.JSONObject(errorRaw).getString("message");
               }
             }
@@ -377,6 +383,55 @@ public class PerfilRunnerViewModel extends AndroidViewModel {
       }
     }
     return 0; // default
+  }
+
+  //cambiar contraseña
+  public void cambiarPassword(String actual, String nueva, String confirmacion) {
+    // Validaciones locales rapidas
+    if (actual.isEmpty() || nueva.isEmpty() || confirmacion.isEmpty()) {
+      mensajePassword.setValue("Error: Todos los campos son obligatorios");
+      return;
+    }
+    if (!nueva.equals(confirmacion)) {
+      mensajePassword.setValue("Error: Las contraseñas nuevas no coinciden");
+      return;
+    }
+    if (nueva.length() < 6) {
+      mensajePassword.setValue("Error: La nueva contraseña debe tener al menos 6 caracteres");
+      return;
+    }
+
+    isLoading.setValue(true);
+
+    CambiarPasswordRequest request = new CambiarPasswordRequest(actual, nueva, confirmacion);
+
+    repo.cambiarPassword(request, new Callback<Void>() {
+      @Override
+      public void onResponse(Call<Void> call, Response<Void> response) {
+        isLoading.setValue(false);
+        if (response.isSuccessful()) {
+          mensajePassword.setValue("Éxito: Contraseña actualizada correctamente");
+        } else {
+          // Intentar leer el error del backend
+          String errorMsg = "Error al cambiar contraseña";
+          try {
+            if(response.errorBody() != null) {
+              String errorRaw = response.errorBody().string();
+              if(errorRaw.contains("message")) {
+                errorMsg = "Error: " + new org.json.JSONObject(errorRaw).getString("message");
+              }
+            }
+          } catch (Exception e) { e.printStackTrace(); }
+          mensajePassword.setValue(errorMsg);
+        }
+      }
+
+      @Override
+      public void onFailure(Call<Void> call, Throwable t) {
+        isLoading.setValue(false);
+        mensajePassword.setValue("Error: Fallo de conexión");
+      }
+    });
   }
 
 

@@ -22,8 +22,7 @@ public class InicioViewModel extends AndroidViewModel {
   // Constructor que recibe Application
   public InicioViewModel(@NonNull Application application) {
     super(application);
-    // Si tu repositorio necesitara contexto en el futuro, se lo pasarías aquí:
-    // repositorio = new NoticiasRepositorio(application);
+
     repositorio = new NoticiasRepositorio();
 
     cargarNoticias();

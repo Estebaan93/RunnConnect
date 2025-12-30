@@ -9,6 +9,7 @@ import com.example.runnconnect.data.conexion.ApiService;
 import com.example.runnconnect.data.preferencias.SessionManager;
 import com.example.runnconnect.data.request.ActualizarPerfilOrganizadorRequest;
 import com.example.runnconnect.data.request.ActualizarPerfilRunnerRequest;
+import com.example.runnconnect.data.request.CambiarPasswordRequest;
 import com.example.runnconnect.data.request.LoginRequest;
 import com.example.runnconnect.data.response.LoginResponse;
 import com.example.runnconnect.data.response.PerfilUsuarioResponse;
@@ -89,6 +90,12 @@ public class UsuarioRepositorio {
   public void eliminarAvatar(Callback<PerfilUsuarioResponse> callback) {
     String token = sessionManager.leerToken();
     apiService.eliminarAvatar("Bearer " + token).enqueue(callback);
+  }
+
+  //cambiar contraseña (runner/orga)
+  public void cambiarPassword(CambiarPasswordRequest request, Callback<Void> callback) {
+    String token = sessionManager.leerToken();
+    apiService.cambiarPassword("Bearer " + token, request).enqueue(callback);
   }
 
 

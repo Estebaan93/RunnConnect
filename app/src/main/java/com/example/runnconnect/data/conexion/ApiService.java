@@ -5,6 +5,7 @@ package com.example.runnconnect.data.conexion;
 
 import com.example.runnconnect.data.request.ActualizarPerfilOrganizadorRequest;
 import com.example.runnconnect.data.request.ActualizarPerfilRunnerRequest;
+import com.example.runnconnect.data.request.CambiarPasswordRequest;
 import com.example.runnconnect.data.request.LoginRequest;
 import com.example.runnconnect.data.response.LoginResponse;
 import com.example.runnconnect.data.response.PerfilUsuarioResponse;
@@ -47,6 +48,9 @@ public interface ApiService {
   @DELETE("Usuario/Avatar")
   Call<PerfilUsuarioResponse> eliminarAvatar(@Header("Authorization") String token);
 
+  //cambiar password (runner/orga)
+  @PUT("Usuario/CambiarPassword")
+  Call<Void> cambiarPassword(@Header("Authorization") String token, @Body CambiarPasswordRequest request);
 
 
 }

@@ -10,6 +10,7 @@ import androidx.lifecycle.MutableLiveData;
 
 import com.example.runnconnect.data.repositorio.UsuarioRepositorio;
 import com.example.runnconnect.data.request.ActualizarPerfilOrganizadorRequest;
+import com.example.runnconnect.data.request.CambiarPasswordRequest;
 import com.example.runnconnect.data.response.PerfilUsuarioResponse;
 
 import org.json.JSONObject;
@@ -34,6 +35,9 @@ public class PerfilOrganizadorViewModel extends AndroidViewModel {
   private final MutableLiveData<String> btnText = new MutableLiveData<>("Editar");
   private final MutableLiveData<Boolean> isLoading = new MutableLiveData<>(false);
   private final MutableLiveData<String> avatarUrl = new MutableLiveData<>();
+
+  //password
+  private final MutableLiveData<String>mensajePassword= new MutableLiveData<>();
 
   // mensajes Globales
   private final MutableLiveData<String> mensajeGlobal = new MutableLiveData<>();
@@ -66,6 +70,7 @@ public class PerfilOrganizadorViewModel extends AndroidViewModel {
   public LiveData<String> getAvatarUrl() { return avatarUrl; }
   public LiveData<String> getMensajeGlobal() { return mensajeGlobal; }
   public LiveData<Boolean> getEsMensajeError() { return esMensajeError; }
+  public LiveData<String> getMensajePassword() { return mensajePassword; }
 
   // get Errores
   public LiveData<String> getErrorNombreComercial() { return errorNombreComercial; }
@@ -160,9 +165,9 @@ public class PerfilOrganizadorViewModel extends AndroidViewModel {
       errorRazonSocial.setValue("Requerido"); esValido = false;
     } else errorRazonSocial.setValue(null);
 
-    // Validacion CUIT (Regex simple para XX-XXXXXXXX-X o 11 dígitos seguidos)
-    if (input.cuit == null || !Pattern.matches("^\\d{2}-\\d{8}-\\d{1}$|^\\d{11}$", input.cuit)) {
-      errorCuit.setValue("Formato inválido (XX-XXXXXXXX-X o 11 números)"); esValido = false;
+    // Validacion CUIT (11 digitos seguidos)
+    if (input.cuit == null || !Pattern.matches("^\\d{11}$", input.cuit)) {
+      errorCuit.setValue("Debe tener 11 números sin guiones"); esValido = false;
     } else errorCuit.setValue(null);
 
     if (input.direccion == null || input.direccion.trim().isEmpty()) {
@@ -223,6 +228,59 @@ public class PerfilOrganizadorViewModel extends AndroidViewModel {
       }
     });
   }
+
+  //LOGICA CAMBIAR PASSWORD
+  public void cambiarPassword(String actual, String nueva, String confirmacion) {
+    if (actual.isEmpty() || nueva.isEmpty() || confirmacion.isEmpty()) {
+      mensajePassword.setValue("Error: Todos los campos son obligatorios"); return;
+    }
+    if (!nueva.equals(confirmacion)) {
+      mensajePassword.setValue("Error: Las contraseñas no coinciden"); return;
+    }
+    if (nueva.length() < 6) {
+      mensajePassword.setValue("Error: La nueva contraseña debe tener al menos 6 caracteres"); return;
+    }
+
+    isLoading.setValue(true);
+    CambiarPasswordRequest request = new CambiarPasswordRequest(actual, nueva, confirmacion);
+
+    repo.cambiarPassword(request, new Callback<Void>() {
+      @Override
+      public void onResponse(Call<Void> call, Response<Void> response) {
+        isLoading.setValue(false);
+        if (response.isSuccessful()) {
+          mensajePassword.setValue("Éxito: Contraseña actualizada correctamente");
+        } else {
+          String errorMsg = "Error al cambiar contraseña";
+          try {
+            if (response.errorBody() != null) {
+              String errorRaw = response.errorBody().string();
+              JSONObject json = new JSONObject(errorRaw);
+
+              if (json.has("message")) errorMsg = "Error: " + json.getString("message");
+              else if (json.has("errors")) {
+                JSONObject errors = json.getJSONObject("errors");
+                java.util.Iterator<String> keys = errors.keys();
+                if (keys.hasNext()) {
+                  String campo = keys.next();
+                  errorMsg = "Error: " + errors.getJSONArray(campo).getString(0);
+                }
+              }
+            }
+          } catch (Exception e) { e.printStackTrace(); }
+          mensajePassword.setValue(errorMsg);
+        }
+      }
+      @Override
+      public void onFailure(Call<Void> call, Throwable t) {
+        isLoading.setValue(false);
+        mensajePassword.setValue("Error: Fallo de conexión");
+      }
+    });
+  }
+
+  public void limpiarMensajePassword() { mensajePassword.setValue(null); }
+
 
   //metodos Helper (Privados)
   private void mostrarMensajeGlobal(String mensaje, boolean esError){

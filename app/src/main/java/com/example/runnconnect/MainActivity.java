@@ -6,7 +6,10 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.view.Menu;
+import android.widget.ImageView;
+import android.widget.TextView;
 
+import com.bumptech.glide.Glide;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.navigation.NavigationView;
 
@@ -44,10 +47,46 @@ public class MainActivity extends AppCompatActivity {
     NavigationView navigationView = binding.navView;
     // Passing each menu ID as a set of Ids because each
     // menu should be considered as top level destinations.
+
     /*segun rol de usuario, leemos desde sharedpreferencias*/
     SharedPreferences sp= getSharedPreferences("session_sp", 0); //El nombre debe coincidir con el sessionManager
     String tipoUsuario= sp.getString("tipoUsuario", "runner"); //por defecto es el reunner
-    Log.d("LOGIN", "TIPO USUARIO: "+tipoUsuario);
+    String nombreUsuario= sp.getString("nombre", "Usuario");
+    String emailUsuario = sp.getString("email", "correo@ejemplo.com");
+    String avatarUrl = sp.getString("imgAvatar", "");
+
+    Log.d("LOGIN", "TIPO USUARIO: "+tipoUsuario + ", Nombre: " + nombreUsuario + ", Email: "+emailUsuario);
+
+    // 2. Obtener la vista del Header para editar sus componentes
+    // El Header es el índice 0 de los headers del NavigationView
+    View headerView = navigationView.getHeaderView(0);
+
+    // 3. Buscar los componentes dentro del Header
+    TextView tvNombre = headerView.findViewById(R.id.tvNavNombre);
+    TextView tvEmail = headerView.findViewById(R.id.tvNavEmail);
+    ImageView ivAvatar = headerView.findViewById(R.id.ivNavAvatar);
+
+    // 4. Asignar textos
+    tvNombre.setText(nombreUsuario);
+    tvEmail.setText(emailUsuario);
+
+    // 5. Cargar imagen con Glide
+    if (avatarUrl != null && !avatarUrl.isEmpty()) {
+      // Corrección para emulador (si viene localhost)
+      if (avatarUrl.contains("localhost")) {
+        avatarUrl = avatarUrl.replace("localhost", "10.0.2.2");
+      }
+
+      Glide.with(this)
+        .load(avatarUrl)
+        .placeholder(R.mipmap.ic_launcher_round) // Imagen mientras carga
+        .error(R.mipmap.ic_launcher_round)       // Imagen si falla
+        .circleCrop()                            // Recorte circular
+        .into(ivAvatar);
+    }
+
+    // ---------------------------------------------------
+
     //limpiamos el menu que viene por defecto en el xml
     navigationView.getMenu().clear();
 
@@ -78,7 +117,7 @@ public class MainActivity extends AppCompatActivity {
   @Override
   public boolean onCreateOptionsMenu(Menu menu) {
     // Inflate the menu; this adds items to the action bar if it is present.
-    getMenuInflater().inflate(R.menu.main, menu);
+    //getMenuInflater().inflate(R.menu.main, menu);
     return true;
   }
 

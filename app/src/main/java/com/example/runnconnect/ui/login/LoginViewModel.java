@@ -40,7 +40,10 @@ public class LoginViewModel extends AndroidViewModel {
   public LiveData<Intent> getNavegacionEvento() { return navegacionEvento; }
 
   public void login(String email, String password) {
-    // Validaciones básicas antes de llamar a la red
+    //limpiamos errores previos
+    errorMessage.setValue(null);
+
+    // Validaciones basicas antes de llamar a la red
     if (email.isEmpty() || password.isEmpty()) {
       errorMessage.setValue("Por favor complete todos los campos");
       return;
@@ -48,14 +51,14 @@ public class LoginViewModel extends AndroidViewModel {
 
     isLoading.setValue(true);
 
-    // Llamamos al repositorio y le pasamos el Callback aquí mismo (Estilo Inmobiliaria)
+    // Llamamos al repositorio y le pasamos el Callback
     repositorio.login(email, password, new Callback<LoginResponse>() {
       @Override
       public void onResponse(Call<LoginResponse> call, Response<LoginResponse> response) {
         isLoading.setValue(false);
 
         if (response.isSuccessful() && response.body() != null) {
-          // 1. Guardar la sesion en SharedPreferences (vía Repo)
+          //Guardar la sesion en SharedPreferences (via Repo)
           repositorio.guardarSesion(response.body());
           decidirNavegacionSegunRol();
         } else {
