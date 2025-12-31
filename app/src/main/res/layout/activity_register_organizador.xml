@@ -1,0 +1,220 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@android:color/black">
+
+    <VideoView
+        android:id="@+id/videoBackground"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:alpha="0.4"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/tvTitulo"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Cuenta Organizador"
+        android:textColor="@android:color/white"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        android:layout_marginTop="32dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <FrameLayout
+        android:id="@+id/layoutAvatar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tvTitulo">
+
+        <androidx.cardview.widget.CardView
+            android:layout_width="90dp"
+            android:layout_height="90dp"
+            app:cardCornerRadius="45dp">
+            <ImageView
+                android:id="@+id/ivAvatar"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:src="@android:drawable/ic_menu_camera"
+                android:scaleType="centerCrop"
+                android:background="#E0E0E0"/>
+        </androidx.cardview.widget.CardView>
+
+        <ImageView
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:src="@android:drawable/ic_menu_edit"
+            android:padding="4dp"
+            android:layout_gravity="bottom|end"/>
+    </FrameLayout>
+
+    <TextView
+        android:id="@+id/lblLogo"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Logo (Opcional)"
+        android:textColor="#BDBDBD"
+        android:textSize="12sp"
+        android:layout_marginTop="4dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/layoutAvatar" />
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/tilNombreComercial"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:hint="Nombre Comercial"
+        android:textColorHint="#BDBDBD"
+        android:layout_marginTop="16dp"
+        android:layout_marginStart="24dp"
+        android:layout_marginEnd="24dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/lblLogo">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/etNombreComercial"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="textPersonName"
+            android:textColor="@android:color/white"/>
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/tilRazonSocial"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:hint="Razón Social"
+        android:textColorHint="#BDBDBD"
+        android:layout_marginTop="8dp"
+        app:layout_constraintEnd_toEndOf="@id/tilNombreComercial"
+        app:layout_constraintStart_toStartOf="@id/tilNombreComercial"
+        app:layout_constraintTop_toBottomOf="@id/tilNombreComercial">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/etRazonSocial"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="textPersonName"
+            android:textColor="@android:color/white"/>
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/tilEmail"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:hint="Email"
+        android:textColorHint="#BDBDBD"
+        android:layout_marginTop="8dp"
+        app:layout_constraintEnd_toEndOf="@id/tilNombreComercial"
+        app:layout_constraintStart_toStartOf="@id/tilNombreComercial"
+        app:layout_constraintTop_toBottomOf="@id/tilRazonSocial">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/etEmail"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="textEmailAddress"
+            android:textColor="@android:color/white"/>
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/tilPassword"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:hint="Contraseña"
+        android:textColorHint="#BDBDBD"
+        android:layout_marginTop="8dp"
+        app:passwordToggleEnabled="true"
+        app:layout_constraintEnd_toEndOf="@id/tilNombreComercial"
+        app:layout_constraintStart_toStartOf="@id/tilNombreComercial"
+        app:layout_constraintTop_toBottomOf="@id/tilEmail">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/etPassword"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="textPassword"
+            android:textColor="@android:color/white"/>
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/tilConfirm"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:hint="Repetir Contraseña"
+        android:textColorHint="#BDBDBD"
+        android:layout_marginTop="8dp"
+        app:passwordToggleEnabled="true"
+        app:layout_constraintEnd_toEndOf="@id/tilNombreComercial"
+        app:layout_constraintStart_toStartOf="@id/tilNombreComercial"
+        app:layout_constraintTop_toBottomOf="@id/tilPassword">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/etConfirmPassword"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="textPassword"
+            android:textColor="@android:color/white"/>
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <TextView
+        android:id="@+id/tvErrorRegister"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:text="Error"
+        android:textColor="#FFCDD2"
+        android:gravity="center"
+        android:visibility="gone"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tilConfirm" />
+
+    <Button
+        android:id="@+id/btnRegistrar"
+        android:layout_width="0dp"
+        android:layout_height="55dp"
+        android:text="Crear Organización"
+        android:layout_marginTop="16dp"
+        app:layout_constraintEnd_toEndOf="@id/tilNombreComercial"
+        app:layout_constraintStart_toStartOf="@id/tilNombreComercial"
+        app:layout_constraintTop_toBottomOf="@id/tvErrorRegister" />
+
+    <ProgressBar
+        android:id="@+id/progressBar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/tvVolverLogin"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="¿Ya tienes cuenta? Inicia sesión"
+        android:textColor="#2196F3"
+        android:padding="16dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/btnRegistrar" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

@@ -1,6 +1,7 @@
 //ui/login/LoginActivity
 package com.example.runnconnect.ui.login;
 
+import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
@@ -10,10 +11,13 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.VideoView;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.example.runnconnect.R;
+import com.example.runnconnect.ui.registro.RegisterOrganizadorActivity;
+import com.example.runnconnect.ui.registro.RegisterRunnerActivity;
 import com.google.android.material.textfield.TextInputEditText;
 
 
@@ -164,7 +168,26 @@ public class LoginActivity extends AppCompatActivity {
     //Crear cuenta
     tvCrearCuenta.setOnClickListener(v -> {
       //Toast.makeText(this, "Próximamente: Registro", Toast.LENGTH_SHORT).show();
+      mostrarDialogoSeleccionRol();
     });
+  }
+  //nuevo para mostrar el selector
+  private void mostrarDialogoSeleccionRol() {
+    String[] opciones = {"Soy Corredor (Runner)", "Soy Organizador"};
+
+    new AlertDialog.Builder(this)
+      .setTitle("Crear Cuenta")
+      .setItems(opciones, (dialog, which) -> {
+        if (which == 0) {
+          // Runner
+          startActivity(new Intent(LoginActivity.this, RegisterRunnerActivity.class));
+        } else {
+          // Organizador
+          startActivity(new Intent(LoginActivity.this, RegisterOrganizadorActivity.class));
+        }
+      })
+      .setNegativeButton("Cancelar", null)
+      .show();
   }
 
 

@@ -22,6 +22,9 @@ import okhttp3.MultipartBody;
 import okhttp3.RequestBody;
 import retrofit2.Call;
 import retrofit2.Callback;
+import retrofit2.http.Multipart;
+import retrofit2.http.POST;
+import retrofit2.http.Part;
 
 public class UsuarioRepositorio {
   private final ApiService apiService;
@@ -119,6 +122,24 @@ public class UsuarioRepositorio {
 
     // Llamar a la API
     apiService.registrarRunner(rbNombre, rbApellido, rbEmail, rbPass, rbConfirm, bodyAvatar).enqueue(callback);
+  }
+
+  //registro (simple) del organizador - para crear eventos su perfil debe estar completo
+  public void registrarOrganizador(String razonSocial, String nombreComercial, String email, String password, String confirm, File archivoAvatar, Callback<LoginResponse> callback) {
+    // Convertimos Strings a RequestBody
+    RequestBody rbRazon = RequestBody.create(MediaType.parse("text/plain"), razonSocial);
+    RequestBody rbNombreCom = RequestBody.create(MediaType.parse("text/plain"), nombreComercial);
+    RequestBody rbEmail = RequestBody.create(MediaType.parse("text/plain"), email);
+    RequestBody rbPass = RequestBody.create(MediaType.parse("text/plain"), password);
+    RequestBody rbConfirm = RequestBody.create(MediaType.parse("text/plain"), confirm);
+
+    MultipartBody.Part bodyAvatar = null;
+    if (archivoAvatar != null) {
+      RequestBody reqFile = RequestBody.create(MediaType.parse("image/*"), archivoAvatar);
+      bodyAvatar = MultipartBody.Part.createFormData("ImgAvatar", archivoAvatar.getName(), reqFile);
+    }
+
+    apiService.registrarOrganizador(rbRazon, rbNombreCom, rbEmail, rbPass, rbConfirm, bodyAvatar).enqueue(callback);
   }
 
 

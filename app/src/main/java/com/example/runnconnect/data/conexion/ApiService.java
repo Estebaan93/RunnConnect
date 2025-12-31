@@ -62,6 +62,14 @@ public interface ApiService {
     @Part("Password") RequestBody password, @Part("ConfirmPassword") RequestBody confirmPassword, @Part MultipartBody.Part imgAvatar // Puede ser null
   );
 
+  //registro del organizador
+  @Multipart
+  @POST("api/Usuario/RegisterOrganizador") // Verifica si en tu C# el controller es "Usuario" o "Usuarios"
+  Call<LoginResponse> registrarOrganizador(
+    @Part("RazonSocial") RequestBody razonSocial, @Part("NombreComercial") RequestBody nombreComercial,
+    @Part("Email") RequestBody email, @Part("Password") RequestBody password,
+    @Part("ConfirmPassword") RequestBody confirmPassword, @Part MultipartBody.Part imgAvatar
+  );
 
 
 }
