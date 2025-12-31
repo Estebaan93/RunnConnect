@@ -213,7 +213,9 @@ public class PerfilRunnerViewModel extends AndroidViewModel {
     } catch (NumberFormatException e) { errorDni.setValue("Solo números"); esValido = false; }
 
     if (input.fechaNac == null || input.fechaNac.trim().isEmpty()) { errorFechaNac.setValue("Requerido"); esValido = false; } else errorFechaNac.setValue(null);
-    if (input.localidad == null || input.localidad.trim().isEmpty()) { errorLocalidad.setValue("Requerido"); esValido = false; } else errorLocalidad.setValue(null);
+
+    if (input.localidad == null || input.localidad.trim().isEmpty() || input.localidad.equals(", ")) { errorLocalidad.setValue("Requerido"); esValido = false; } else errorLocalidad.setValue(null);
+
     if (input.agrupacion == null || input.agrupacion.trim().isEmpty()) { errorAgrupacion.setValue("Requerido"); esValido = false; } else errorAgrupacion.setValue(null);
     if (input.nombreContacto == null || input.nombreContacto.trim().length() < 3) { errorNombreContacto.setValue("Mínimo 3 caracteres"); esValido = false; } else errorNombreContacto.setValue(null);
     if (input.telContacto == null || !Pattern.matches("^\\d{6,15}$", input.telContacto)) { errorTelContacto.setValue("Solo números (6-15 dígitos)"); esValido = false; } else errorTelContacto.setValue(null);

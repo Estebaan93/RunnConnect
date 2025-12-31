@@ -252,23 +252,58 @@
           android:padding="10dp"
           app:layout_constraintTop_toBottomOf="@id/lblTel" />
 
-      <TextView
-          android:id="@+id/lblLoc"
-          android:layout_width="wrap_content"
-          android:layout_height="wrap_content"
-          android:layout_marginTop="8dp"
-          android:text="Localidad"
-          android:textSize="12sp"
-          app:layout_constraintStart_toStartOf="parent"
-          app:layout_constraintTop_toBottomOf="@id/etTelefono" />
-
-      <EditText
-          android:id="@+id/etLocalidad"
+      <LinearLayout
+          android:id="@+id/linearUbicacion"
           android:layout_width="match_parent"
           android:layout_height="wrap_content"
-          android:background="@android:drawable/edit_text"
-          android:padding="10dp"
-          app:layout_constraintTop_toBottomOf="@id/lblLoc" />
+          android:orientation="vertical"
+          android:layout_marginTop="12dp"
+          app:layout_constraintTop_toBottomOf="@id/etTelefono"
+          app:layout_constraintStart_toStartOf="parent">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Ubicación (Provincia y Localidad)"
+            android:textColor="#757575"
+            android:textSize="12sp"
+            android:layout_marginBottom="6dp"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:baselineAligned="false">
+
+          <FrameLayout
+              android:layout_width="0dp"
+              android:layout_height="56dp"
+              android:layout_weight="1"
+              android:layout_marginEnd="6dp"
+              android:background="@drawable/bg_spinner_border"
+              android:padding="2dp">
+
+            <Spinner
+                android:id="@+id/spProvincia"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"/>
+          </FrameLayout>
+
+          <FrameLayout
+              android:layout_width="0dp"
+              android:layout_height="56dp"
+              android:layout_weight="1"
+              android:layout_marginStart="6dp"
+              android:background="@drawable/bg_spinner_border"
+              android:padding="2dp">
+
+            <Spinner
+                android:id="@+id/spLocalidad"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"/>
+          </FrameLayout>
+        </LinearLayout>
+      </LinearLayout>
 
       <TextView
           android:id="@+id/lblTeam"
@@ -278,7 +313,7 @@
           android:text="Agrupación / Sin agrupación"
           android:textSize="12sp"
           app:layout_constraintStart_toStartOf="parent"
-          app:layout_constraintTop_toBottomOf="@id/etLocalidad" />
+          app:layout_constraintTop_toBottomOf="@id/linearUbicacion" />
 
       <EditText
           android:id="@+id/etAgrupacion"

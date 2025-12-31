@@ -21,16 +21,19 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ImageView;
 
 import android.app.DatePickerDialog;
 import java.util.Calendar;
+import java.util.List;
 
 import com.bumptech.glide.Glide;
 import com.example.runnconnect.R;
 import com.example.runnconnect.databinding.FragmentPerfilRunnerBinding;
+import com.example.runnconnect.utils.LocalidadesHelper;
 
 public class PerfilRunnerFragment extends Fragment {
 
@@ -43,6 +46,11 @@ public class PerfilRunnerFragment extends Fragment {
   private AlertDialog dialogPassword;
   private EditText etPassActualRef, etPassNuevaRef, etPassConfirmRef;
 
+  //para spinner de ubicacion
+  private ArrayAdapter<String> adapterProvincia;
+  private ArrayAdapter<String> adapterLocalidad;
+  private String provinciaSeleccionada = "San Luis"; // Valor por defecto
+  private String localidadSeleccionada = "";
 
   public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
     binding = FragmentPerfilRunnerBinding.inflate(inflater, container, false);
@@ -54,6 +62,8 @@ public class PerfilRunnerFragment extends Fragment {
     //deshabilitado por defecto
     binding.spGenero.setEnabled(false);
 
+    //configurar Spinners de Ubicación (NUEVO)
+    setupSpinnersUbicacion();
 
     // inicializar selector de imagen
     mediaImagen = registerForActivityResult(new ActivityResultContracts.PickVisualMedia(), uri -> {
@@ -68,6 +78,41 @@ public class PerfilRunnerFragment extends Fragment {
     mv.cargarPerfil(); //cargar datos iniciales
 
     return binding.getRoot();
+  }
+
+  //spinner de ubi
+  private void setupSpinnersUbicacion() {
+    // Cargar Provincias desde el Helper
+    List<String> provincias = LocalidadesHelper.getProvincias();
+    adapterProvincia = new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_dropdown_item, provincias);
+    binding.spProvincia.setAdapter(adapterProvincia);
+
+    // Listener cambio de Provincia
+    binding.spProvincia.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+      @Override
+      public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+        provinciaSeleccionada = provincias.get(position);
+        cargarLocalidades(provinciaSeleccionada);
+      }
+      @Override
+      public void onNothingSelected(AdapterView<?> parent) {}
+    });
+  }
+
+  private void cargarLocalidades(String provincia) {
+    List<String> localidades = LocalidadesHelper.getLocalidades(provincia);
+    adapterLocalidad = new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_dropdown_item, localidades);
+    binding.spLocalidad.setAdapter(adapterLocalidad);
+
+    // Listener cambio de Localidad
+    binding.spLocalidad.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+      @Override
+      public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+        localidadSeleccionada = localidades.get(position);
+      }
+      @Override
+      public void onNothingSelected(AdapterView<?> parent) {}
+    });
   }
 
   private void setupListeners() {
@@ -189,7 +234,34 @@ public class PerfilRunnerFragment extends Fragment {
 
       binding.spGenero.setSelection(mv.obtenerIndiceGenero(p.getGenero(), opcGenero));
 
-      binding.etLocalidad.setText(p.getLocalidad());
+      // --- CAMBIO: Lógica para parsear "Ciudad, Provincia" ---
+      // binding.etLocalidad.setText(p.getLocalidad()); // ELIMINADO
+      if (p.getLocalidad() != null && !p.getLocalidad().isEmpty()) {
+        String fullLoc = p.getLocalidad();
+        // Intentamos separar por coma y espacio
+        String[] parts = fullLoc.split(", ");
+
+        String ciudadBD = parts[0];
+        String provinciaBD = (parts.length > 1) ? parts[1] : "San Luis"; // Default
+
+        // 1. Setear Provincia en el Spinner
+        int posProv = adapterProvincia.getPosition(provinciaBD);
+        if (posProv >= 0) {
+          binding.spProvincia.setSelection(posProv);
+
+          // Forzamos carga inmediata de ciudades para esa provincia
+          cargarLocalidades(provinciaBD);
+
+          // 2. Setear Ciudad (usamos .post para esperar a que se refresque el adapter)
+          binding.spLocalidad.post(() -> {
+            if (adapterLocalidad != null) {
+              int posLoc = adapterLocalidad.getPosition(ciudadBD);
+              if (posLoc >= 0) binding.spLocalidad.setSelection(posLoc);
+            }
+          });
+        }
+      }
+
       binding.etAgrupacion.setText(p.getAgrupacion());
       binding.etNombreContacto.setText(p.getNombreContactoEmergencia());
       binding.etTelContacto.setText(p.getTelefonoEmergencia());
@@ -221,7 +293,7 @@ public class PerfilRunnerFragment extends Fragment {
 
       binding.spGenero.setAlpha(enabled ? 1.0f : 0.7f);
 
-      binding.etLocalidad.setEnabled(enabled);
+      //binding.etLocalidad.setEnabled(enabled);
       binding.etAgrupacion.setEnabled(enabled);
       binding.etNombreContacto.setEnabled(enabled);
       binding.etTelContacto.setEnabled(enabled);
@@ -233,7 +305,7 @@ public class PerfilRunnerFragment extends Fragment {
         binding.etDni.setError(null);
         binding.etTelefono.setError(null);
         binding.etFechaNac.setError(null);
-        binding.etLocalidad.setError(null);
+        //binding.etLocalidad.setError(null);
         binding.etAgrupacion.setError(null);
         binding.etNombreContacto.setError(null);
         binding.etTelContacto.setError(null);
@@ -260,7 +332,7 @@ public class PerfilRunnerFragment extends Fragment {
     mv.getErrorDni().observe(getViewLifecycleOwner(), e -> binding.etDni.setError(e));
     mv.getErrorTelefono().observe(getViewLifecycleOwner(), e -> binding.etTelefono.setError(e));
     mv.getErrorFechaNac().observe(getViewLifecycleOwner(), e -> binding.etFechaNac.setError(e));
-    mv.getErrorLocalidad().observe(getViewLifecycleOwner(), e -> binding.etLocalidad.setError(e));
+    //mv.getErrorLocalidad().observe(getViewLifecycleOwner(), e -> binding.etLocalidad.setError(e));
     mv.getErrorAgrupacion().observe(getViewLifecycleOwner(), e -> binding.etAgrupacion.setError(e));
     mv.getErrorNombreContacto().observe(getViewLifecycleOwner(), e -> binding.etNombreContacto.setError(e));
     mv.getErrorTelContacto().observe(getViewLifecycleOwner(), e -> binding.etTelContacto.setError(e));
@@ -388,6 +460,8 @@ public class PerfilRunnerFragment extends Fragment {
   private void recolectarYEnviar() {
     //solo extraemos datos y los empaquetamos
     String generoSeleccionado= binding.spGenero.getSelectedItem().toString();
+    String ubicacionFinal = localidadSeleccionada + ", " + provinciaSeleccionada;
+
     PerfilRunnerViewModel.RunnerInput input = new PerfilRunnerViewModel.RunnerInput(
             binding.etNombre.getText().toString(),
             binding.etApellido.getText().toString(),
@@ -395,7 +469,7 @@ public class PerfilRunnerFragment extends Fragment {
             binding.etDni.getText().toString(),
             binding.etFechaNac.getText().toString(),
             generoSeleccionado,
-            binding.etLocalidad.getText().toString(),
+            ubicacionFinal,
             binding.etAgrupacion.getText().toString(),
             binding.etNombreContacto.getText().toString(),
             binding.etTelContacto.getText().toString()

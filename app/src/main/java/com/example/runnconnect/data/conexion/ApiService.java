@@ -56,7 +56,7 @@ public interface ApiService {
 
   //registro de runner (multipart para el avatar opcional)
   @Multipart
-  @POST("api/usuarios/RegisterRunner")
+  @POST("Usuario/RegisterRunner")
   Call<LoginResponse> registrarRunner(
     @Part("Nombre") RequestBody nombre, @Part("Apellido") RequestBody apellido, @Part("Email") RequestBody email,
     @Part("Password") RequestBody password, @Part("ConfirmPassword") RequestBody confirmPassword, @Part MultipartBody.Part imgAvatar // Puede ser null
@@ -64,7 +64,7 @@ public interface ApiService {
 
   //registro del organizador
   @Multipart
-  @POST("api/Usuario/RegisterOrganizador") // Verifica si en tu C# el controller es "Usuario" o "Usuarios"
+  @POST("Usuario/RegisterOrganizador") // Verifica si en tu C# el controller es "Usuario" o "Usuarios"
   Call<LoginResponse> registrarOrganizador(
     @Part("RazonSocial") RequestBody razonSocial, @Part("NombreComercial") RequestBody nombreComercial,
     @Part("Email") RequestBody email, @Part("Password") RequestBody password,
