@@ -11,6 +11,7 @@ import com.example.runnconnect.data.response.LoginResponse;
 import com.example.runnconnect.data.response.PerfilUsuarioResponse;
 
 import okhttp3.MultipartBody;
+import okhttp3.RequestBody;
 import retrofit2.Call;
 import retrofit2.http.Body;
 import retrofit2.http.DELETE;
@@ -51,6 +52,16 @@ public interface ApiService {
   //cambiar password (runner/orga)
   @PUT("Usuario/CambiarPassword")
   Call<Void> cambiarPassword(@Header("Authorization") String token, @Body CambiarPasswordRequest request);
+
+
+  //registro de runner (multipart para el avatar opcional)
+  @Multipart
+  @POST("api/usuarios/RegisterRunner")
+  Call<LoginResponse> registrarRunner(
+    @Part("Nombre") RequestBody nombre, @Part("Apellido") RequestBody apellido, @Part("Email") RequestBody email,
+    @Part("Password") RequestBody password, @Part("ConfirmPassword") RequestBody confirmPassword, @Part MultipartBody.Part imgAvatar // Puede ser null
+  );
+
 
 
 }

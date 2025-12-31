@@ -98,6 +98,29 @@ public class UsuarioRepositorio {
     apiService.cambiarPassword("Bearer " + token, request).enqueue(callback);
   }
 
+  //registro (simple) del runner - para inscribirse a eventos su perfil debe estar completo
+  public void registrarRunner(String nombre, String apellido, String email, String password, String confirmPassword, File archivoAvatar, Callback<LoginResponse> callback) {
+
+    // Convertir textos a RequestBody (text/plain)
+    RequestBody rbNombre = RequestBody.create(MediaType.parse("text/plain"), nombre);
+    RequestBody rbApellido = RequestBody.create(MediaType.parse("text/plain"), apellido);
+    RequestBody rbEmail = RequestBody.create(MediaType.parse("text/plain"), email);
+    RequestBody rbPass = RequestBody.create(MediaType.parse("text/plain"), password);
+    RequestBody rbConfirm = RequestBody.create(MediaType.parse("text/plain"), confirmPassword);
+
+    // Preparar imagen (si existe)
+    MultipartBody.Part bodyAvatar = null;
+    if (archivoAvatar != null) {
+      // "image/*" para que acepte jpg o png
+      RequestBody reqFile = RequestBody.create(MediaType.parse("image/*"), archivoAvatar);
+      // "ImgAvatar" debe coincidir EXACTO con la propiedad en RegisterRunnerDto de C#
+      bodyAvatar = MultipartBody.Part.createFormData("ImgAvatar", archivoAvatar.getName(), reqFile);
+    }
+
+    // Llamar a la API
+    apiService.registrarRunner(rbNombre, rbApellido, rbEmail, rbPass, rbConfirm, bodyAvatar).enqueue(callback);
+  }
+
 
 
 }
