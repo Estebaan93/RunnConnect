@@ -72,4 +72,13 @@ public interface ApiService {
   );
 
 
+  //eventos
+  //crear evento (POST api/Evento)
+  @POST("Evento")
+  retrofit2.Call<okhttp3.ResponseBody> crearEvento(
+    @retrofit2.http.Header("Authorization") String token,
+    @retrofit2.http.Body com.example.runnconnect.data.request.CrearEventoRequest request
+  );
+
+
 }
