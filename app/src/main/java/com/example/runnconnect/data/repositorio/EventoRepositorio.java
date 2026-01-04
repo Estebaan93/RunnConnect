@@ -31,5 +31,13 @@ public class EventoRepositorio {
     }
   }
 
+  public void obtenerMisEventos(int pagina, Callback<com.example.runnconnect.data.response.EventosPaginadosResponse> callback) {
+    String token = sessionManager.leerToken(); // Usamos el SessionManager que corregimos antes
+    if (token != null) {
+      // Pedimos página X, 20 items por página
+      apiService.obtenerMisEventos("Bearer " + token, pagina, 20).enqueue(callback);
+    }
+  }
+
 
 }

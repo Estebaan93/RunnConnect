@@ -20,4 +20,17 @@ public class CrearCategoriaRequest {
     this.genero = "X";
   }
 
+  // Setters necesarios para el ViewModel
+  public void setEdadMinima(Integer edadMinima) {
+    this.edadMinima = edadMinima;
+  }
+
+  public void setEdadMaxima(Integer edadMaxima) {
+    this.edadMaxima = edadMaxima;
+  }
+
+  public void setGenero(String genero) {
+    this.genero = genero;
+  }
+
 }

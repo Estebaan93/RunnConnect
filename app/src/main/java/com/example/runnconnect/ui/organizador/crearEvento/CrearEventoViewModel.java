@@ -66,64 +66,102 @@ public class CrearEventoViewModel extends AndroidViewModel {
   }
 
   // Validacion visual opcional inmediata
-  public void validarFechaFutura(int year, int month, int day) {
+  /*public void validarFechaFutura(int year, int month, int day) {
     Calendar selected = Calendar.getInstance();
     selected.set(year, month, day);
 
-  }
+  }*/
 
-  public void publicarEvento(String titulo, String descripcion, String lugar,
-                             String datosPago, String catNombre, String catPrecio, String cupo) {
-    // 1. Validaciones Básicas
+  // --- LÓGICA DE NEGOCIO ---
+
+  public void procesarYPublicar(String titulo, String descripcion, String lugar, String datosPago,
+                                String distanciaRaw, String modalidad, String genero,
+                                String edadMinRaw, String edadMaxRaw,
+                                String catPrecio, String cupoRaw) {
+
+    // 1. Limpieza de datos (trim)
+    titulo = titulo.trim();
+    lugar = lugar.trim();
+    distanciaRaw = distanciaRaw.trim();
+
+    // 2. Validaciones Obligatorias
     if (titulo.isEmpty() || lugar.isEmpty() || fechaIso.isEmpty() || horaIso.isEmpty() ||
-      catNombre.isEmpty() || catPrecio.isEmpty()) {
-      mostrarMensaje("Complete todos los campos obligatorios", true);
+      distanciaRaw.isEmpty() || catPrecio.isEmpty()) {
+      mostrarMensaje("Faltan campos obligatorios (Título, Fecha, Distancia, Precio)", true);
       return;
     }
 
-    // 2. Validación Fecha Futura
+    // 3. Validar Fecha Futura
     Calendar fechaEvento = Calendar.getInstance();
     fechaEvento.set(selYear, selMonth, selDay, selHour, selMinute, 0);
-    Calendar ahora = Calendar.getInstance();
-    if (fechaEvento.before(ahora)) {
-      mostrarMensaje("La fecha y hora deben ser futuras.", true);
+    if (fechaEvento.before(Calendar.getInstance())) {
+      mostrarMensaje("La fecha del evento debe ser futura", true);
       return;
     }
 
-    // 3. Parsear Números
+    // 4. Lógica de Valores por Defecto y Formateo
+
+    // Distancia: El usuario pone "10", el sistema agrega "K"
+    String nombreDistancia = distanciaRaw + "K";
+
+    // Edades: Si viene vacío, aplicamos defaults
+    int edadMin = 18;
+    int edadMax = 99;
+
+    // Parseo Numérico Seguro
     Integer cupoInt = null;
     BigDecimal precioDecimal = BigDecimal.ZERO;
+
     try {
-      if (!cupo.isEmpty()) cupoInt = Integer.parseInt(cupo);
+      if (!cupoRaw.isEmpty()) cupoInt = Integer.parseInt(cupoRaw);
       precioDecimal = new BigDecimal(catPrecio);
+
+      if (!edadMinRaw.isEmpty()) edadMin = Integer.parseInt(edadMinRaw);
+      if (!edadMaxRaw.isEmpty()) edadMax = Integer.parseInt(edadMaxRaw);
+
     } catch (NumberFormatException e) {
-      mostrarMensaje("El cupo o precio no son válidos", true);
+      mostrarMensaje("Error en formato numérico (Revisa precio, cupo o edades)", true);
       return;
     }
 
-    // 4. Crear Lista de Categorías
+    // Validación Lógica Edades
+    if (edadMin > edadMax) {
+      mostrarMensaje("La edad mínima no puede ser mayor a la máxima", true);
+      return;
+    }
+
+    // 5. Construcción del Nombre de Categoría
+    // Ej: "10K" + " " + "Trail" + optional "(Damas)"
+    String nombreCategoriaFinal = nombreDistancia + " " + modalidad;
+    if (!genero.equals("X")) {
+      // Opcional: Agregar sufijo si es específico de sexo
+      nombreCategoriaFinal += " (" + (genero.equals("F") ? "Femenino" : "Masculino") + ")";
+    }
+
+    // 6. Armado de Objetos Request
     List<CrearCategoriaRequest> listaCategorias = new ArrayList<>();
-    listaCategorias.add(new CrearCategoriaRequest(
-      catNombre,      // Ej: "10K General"
-      precioDecimal,  // Ej: 5000.00
-      cupoInt         // Usamos el cupo total para la categoría por defecto
-    ));
+    CrearCategoriaRequest cat = new CrearCategoriaRequest(
+      nombreCategoriaFinal,
+      precioDecimal,
+      cupoInt
+    );
+    cat.setEdadMinima(edadMin);
+    cat.setEdadMaxima(edadMax);
+    cat.setGenero(genero);
 
-    // 5. Preparar Request
+    listaCategorias.add(cat);
+
     String fechaHoraFinal = fechaIso + "T" + horaIso + ":00";
-
     CrearEventoRequest request = new CrearEventoRequest(
-      titulo,
-      descripcion,
-      fechaHoraFinal,
-      lugar,
-      cupoInt,
-      null,
-      datosPago,      // CBU / Alias
-      listaCategorias // Lista de categorías
+      titulo, descripcion, fechaHoraFinal, lugar,
+      cupoInt, null, datosPago, listaCategorias
     );
 
-    // 6. Llamada API
+    // 7. Llamada al Repositorio
+    ejecutarLlamadaAPI(request);
+  }
+
+  private void ejecutarLlamadaAPI(CrearEventoRequest request) {
     isLoading.setValue(true);
     mostrarMensaje(null, false);
 
@@ -131,33 +169,11 @@ public class CrearEventoViewModel extends AndroidViewModel {
       @Override
       public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
         isLoading.setValue(false);
-
         if (response.isSuccessful()) {
           mostrarMensaje("¡Evento creado exitosamente!", false);
           new android.os.Handler().postDelayed(() -> navegarAtras.setValue(true), 1500);
         } else {
-          String errorMsg = "Error desconocido";
-          try {
-            if (response.errorBody() != null) {
-              String raw = response.errorBody().string();
-              Log.e("API_ERROR", raw); // Log para debug
-
-              JSONObject json = new JSONObject(raw);
-
-              if (json.has("message")) {
-                errorMsg = json.getString("message");
-              } else if (json.has("errors")) {
-                JSONObject errors = json.getJSONObject("errors");
-                if (errors.keys().hasNext()) {
-                  String key = errors.keys().next();
-                  errorMsg = key + ": " + errors.getJSONArray(key).getString(0);
-                }
-              }
-            }
-          } catch (Exception e) {
-            errorMsg = "Error: " + e.getMessage();
-          }
-          mostrarMensaje(errorMsg, true);
+          manejarErrorApi(response);
         }
       }
 
@@ -167,6 +183,25 @@ public class CrearEventoViewModel extends AndroidViewModel {
         mostrarMensaje("Fallo de conexión: " + t.getMessage(), true);
       }
     });
+  }
+
+  private void manejarErrorApi(Response<ResponseBody> response) {
+    String errorMsg = "Error desconocido";
+    try {
+      if (response.errorBody() != null) {
+        String raw = response.errorBody().string();
+        JSONObject json = new JSONObject(raw);
+        if (json.has("message")) errorMsg = json.getString("message");
+        else if (json.has("errors")) {
+          JSONObject errors = json.getJSONObject("errors");
+          if (errors.keys().hasNext()) {
+            String key = errors.keys().next();
+            errorMsg = key + ": " + errors.getJSONArray(key).getString(0);
+          }
+        }
+      }
+    } catch (Exception e) { errorMsg = "Error al leer respuesta"; }
+    mostrarMensaje(errorMsg, true);
   }
 
   private void mostrarMensaje(String msg, boolean error) {

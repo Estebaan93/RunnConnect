@@ -36,4 +36,10 @@
       android:label="Publicar Evento"
       tools:layout="@layout/fragment_crear_evento" />
 
+  <fragment
+      android:id="@+id/nav_mis_eventos"
+      android:name="com.example.runnconnect.ui.organizador.misEventos.MisEventosFragment"
+      android:label="Mis Eventos"
+      tools:layout="@layout/fragment_mis_eventos" />
+
 </navigation>

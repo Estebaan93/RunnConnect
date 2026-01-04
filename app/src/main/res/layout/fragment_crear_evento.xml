@@ -36,23 +36,130 @@
         android:visibility="gone"
         app:layout_constraintTop_toBottomOf="@id/tvTituloPagina"
         app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        tools:text="Error al crear evento"
+        tools:visibility="visible"/>
+
+    <TextView
+        android:id="@+id/lblTitulo"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Título del Evento"
+        android:textColor="#616161"
+        android:textSize="12sp"
+        android:layout_marginTop="16dp"
+        app:layout_constraintTop_toBottomOf="@id/tvMensajeGlobal"
+        app:layout_constraintStart_toStartOf="parent"/>
+
+    <EditText
+        android:id="@+id/etTitulo"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:inputType="textCapSentences"
+        android:background="@android:drawable/edit_text"
+        android:paddingVertical="12dp"
+        app:layout_constraintTop_toBottomOf="@id/lblTitulo"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"/>
 
-    <TextView android:id="@+id/lblTitulo" android:text="Título" app:layout_constraintTop_toBottomOf="@id/tvMensajeGlobal" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="16dp" app:layout_constraintStart_toStartOf="parent"/>
-    <EditText android:id="@+id/etTitulo" android:layout_width="match_parent" android:layout_height="wrap_content" android:background="@android:drawable/edit_text" app:layout_constraintTop_toBottomOf="@id/lblTitulo"/>
+    <TextView
+        android:id="@+id/lblDescripcion"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Descripción"
+        android:textColor="#616161"
+        android:textSize="12sp"
+        android:layout_marginTop="12dp"
+        app:layout_constraintTop_toBottomOf="@id/etTitulo"
+        app:layout_constraintStart_toStartOf="parent"/>
 
-    <TextView android:id="@+id/lblDescripcion" android:text="Descripción" app:layout_constraintTop_toBottomOf="@id/etTitulo" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="12dp" app:layout_constraintStart_toStartOf="parent"/>
-    <EditText android:id="@+id/etDescripcion" android:layout_width="match_parent" android:layout_height="wrap_content" android:background="@android:drawable/edit_text" app:layout_constraintTop_toBottomOf="@id/lblDescripcion"/>
+    <EditText
+        android:id="@+id/etDescripcion"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:inputType="textMultiLine"
+        android:minLines="2"
+        android:gravity="top|start"
+        android:background="@android:drawable/edit_text"
+        android:paddingVertical="12dp"
+        app:layout_constraintTop_toBottomOf="@id/lblDescripcion"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
 
-    <TextView android:id="@+id/lblFecha" android:text="Fecha y Hora" app:layout_constraintTop_toBottomOf="@id/etDescripcion" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="12dp" app:layout_constraintStart_toStartOf="parent"/>
-    <LinearLayout android:id="@+id/contFecha" android:orientation="horizontal" android:layout_width="match_parent" android:layout_height="wrap_content" app:layout_constraintTop_toBottomOf="@id/lblFecha">
-      <EditText android:id="@+id/etFecha" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:hint="Fecha" android:focusable="false" android:clickable="true"/>
-      <EditText android:id="@+id/etHora" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:hint="Hora" android:focusable="false" android:clickable="true"/>
-    </LinearLayout>
+    <TextView
+        android:id="@+id/lblFecha"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Fecha"
+        android:textColor="#616161"
+        android:textSize="12sp"
+        android:layout_marginTop="12dp"
+        app:layout_constraintTop_toBottomOf="@id/etDescripcion"
+        app:layout_constraintStart_toStartOf="parent"/>
 
-    <TextView android:id="@+id/lblUbicacion" android:text="Ubicación" app:layout_constraintTop_toBottomOf="@id/contFecha" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="12dp" app:layout_constraintStart_toStartOf="parent"/>
-    <EditText android:id="@+id/etUbicacion" android:layout_width="match_parent" android:layout_height="wrap_content" android:background="@android:drawable/edit_text" app:layout_constraintTop_toBottomOf="@id/lblUbicacion"/>
+    <EditText
+        android:id="@+id/etFecha"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:hint="dd/mm/aaaa"
+        android:focusable="false"
+        android:clickable="true"
+        android:inputType="none"
+        android:background="@android:drawable/edit_text"
+        android:paddingVertical="12dp"
+        android:layout_marginEnd="8dp"
+        app:layout_constraintTop_toBottomOf="@id/lblFecha"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/etHora"/>
 
+    <TextView
+        android:id="@+id/lblHora"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Hora"
+        android:textColor="#616161"
+        android:textSize="12sp"
+        android:layout_marginTop="12dp"
+        android:layout_marginStart="8dp"
+        app:layout_constraintTop_toBottomOf="@id/etDescripcion"
+        app:layout_constraintStart_toStartOf="@+id/etHora"/>
+
+    <EditText
+        android:id="@+id/etHora"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:hint="--:--"
+        android:focusable="false"
+        android:clickable="true"
+        android:inputType="none"
+        android:background="@android:drawable/edit_text"
+        android:paddingVertical="12dp"
+        android:layout_marginStart="8dp"
+        app:layout_constraintTop_toBottomOf="@id/lblHora"
+        app:layout_constraintStart_toEndOf="@+id/etFecha"
+        app:layout_constraintEnd_toEndOf="parent"/>
+
+    <TextView
+        android:id="@+id/lblUbicacion"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Ubicación / Dirección"
+        android:textColor="#616161"
+        android:textSize="12sp"
+        android:layout_marginTop="12dp"
+        app:layout_constraintTop_toBottomOf="@id/etFecha"
+        app:layout_constraintStart_toStartOf="parent"/>
+
+    <EditText
+        android:id="@+id/etUbicacion"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:inputType="textPostalAddress"
+        android:background="@android:drawable/edit_text"
+        android:paddingVertical="12dp"
+        app:layout_constraintTop_toBottomOf="@id/lblUbicacion"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
 
     <TextView
         android:id="@+id/lblDatosPago"
@@ -61,7 +168,7 @@
         android:text="Datos de Pago (CBU / Alias)"
         android:textColor="#616161"
         android:textSize="12sp"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="12dp"
         app:layout_constraintTop_toBottomOf="@id/etUbicacion"
         app:layout_constraintStart_toStartOf="parent"/>
 
@@ -72,7 +179,7 @@
         android:inputType="textMultiLine"
         android:minLines="2"
         android:gravity="top|start"
-        android:hint="Ej: Alias: RUNNERS.SL - Titular: Juan Perez"
+        android:hint="Ej: Alias: RUNNERS.SL"
         android:background="@android:drawable/edit_text"
         android:paddingVertical="12dp"
         app:layout_constraintTop_toBottomOf="@id/lblDatosPago"
@@ -81,11 +188,13 @@
 
     <View
         android:id="@+id/divider"
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="1dp"
         android:background="#CCCCCC"
         android:layout_marginTop="20dp"
-        app:layout_constraintTop_toBottomOf="@id/etDatosPago"/>
+        app:layout_constraintTop_toBottomOf="@id/etDatosPago"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
 
     <TextView
         android:id="@+id/tvTituloCat"
@@ -99,46 +208,159 @@
         app:layout_constraintStart_toStartOf="parent"/>
 
     <TextView
-        android:id="@+id/tvSubCat"
+        android:id="@+id/lblDistancia"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="(Ej: 10K General. Podrás agregar más luego)"
-        android:textSize="10sp"
+        android:text="Distancia (Km)"
+        android:textSize="12sp"
+        android:layout_marginTop="12dp"
         app:layout_constraintTop_toBottomOf="@id/tvTituloCat"
         app:layout_constraintStart_toStartOf="parent"/>
 
+    <EditText
+        android:id="@+id/etDistanciaValor"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:inputType="numberDecimal"
+        android:hint="Ej: 10, 42.195, 7.5"
+        android:background="@android:drawable/edit_text"
+        android:paddingVertical="12dp"
+        app:layout_constraintTop_toBottomOf="@id/lblDistancia"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
+
+    <HorizontalScrollView
+        android:id="@+id/scrollChips"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:scrollbars="none"
+        app:layout_constraintTop_toBottomOf="@id/etDistanciaValor"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+      <com.google.android.material.chip.ChipGroup
+          android:id="@+id/chipGroupDistancias"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          app:singleSelection="true"
+          app:selectionRequired="false">
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/chip3k"
+            style="@style/Widget.MaterialComponents.Chip.Choice"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="3K"/>
+        <com.google.android.material.chip.Chip
+            android:id="@+id/chip5k"
+            style="@style/Widget.MaterialComponents.Chip.Choice"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="5K"/>
+        <com.google.android.material.chip.Chip
+            android:id="@+id/chip10k"
+            style="@style/Widget.MaterialComponents.Chip.Choice"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="10K"/>
+        <com.google.android.material.chip.Chip
+            android:id="@+id/chip21k"
+            style="@style/Widget.MaterialComponents.Chip.Choice"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="21K"/>
+        <com.google.android.material.chip.Chip
+            android:id="@+id/chip42k"
+            style="@style/Widget.MaterialComponents.Chip.Choice"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="42K"/>
+      </com.google.android.material.chip.ChipGroup>
+    </HorizontalScrollView>
+
     <TextView
-        android:id="@+id/lblCatNombre"
+        android:id="@+id/lblModalidad"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Nombre Distancia"
-        android:textColor="#616161"
+        android:text="Modalidad"
         android:textSize="12sp"
-        android:layout_marginTop="8dp"
-        app:layout_constraintTop_toBottomOf="@id/tvSubCat"
+        android:layout_marginTop="12dp"
+        app:layout_constraintTop_toBottomOf="@id/scrollChips"
+        app:layout_constraintStart_toStartOf="parent"/>
+
+    <Spinner
+        android:id="@+id/spModalidad"
+        android:layout_width="0dp"
+        android:layout_height="48dp"
+        android:background="@drawable/bg_spinner_border"
+        app:layout_constraintTop_toBottomOf="@id/lblModalidad"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
+
+    <TextView
+        android:id="@+id/lblGenero"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Género"
+        android:textSize="12sp"
+        android:layout_marginTop="12dp"
+        app:layout_constraintTop_toBottomOf="@id/spModalidad"
+        app:layout_constraintStart_toStartOf="parent"/>
+
+    <Spinner
+        android:id="@+id/spGeneroCat"
+        android:layout_width="0dp"
+        android:layout_height="48dp"
+        android:background="@drawable/bg_spinner_border"
+        app:layout_constraintTop_toBottomOf="@id/lblGenero"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
+
+    <TextView
+        android:id="@+id/lblEdad"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Rango de Edad (Años)"
+        android:textSize="12sp"
+        android:layout_marginTop="12dp"
+        app:layout_constraintTop_toBottomOf="@id/spGeneroCat"
         app:layout_constraintStart_toStartOf="parent"/>
 
     <EditText
-        android:id="@+id/etCatNombre"
+        android:id="@+id/etEdadMin"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:hint="Ej: 10K Competitiva"
-        android:inputType="textCapWords"
+        android:hint="Mín (Ej: 18)"
+        android:inputType="number"
         android:background="@android:drawable/edit_text"
         android:paddingVertical="12dp"
-        app:layout_constraintTop_toBottomOf="@id/lblCatNombre"
+        android:layout_marginEnd="8dp"
+        app:layout_constraintTop_toBottomOf="@id/lblEdad"
         app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/etEdadMax"/>
+
+    <EditText
+        android:id="@+id/etEdadMax"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:hint="Máx (Ej: 99)"
+        android:inputType="number"
+        android:background="@android:drawable/edit_text"
+        android:paddingVertical="12dp"
+        android:layout_marginStart="8dp"
+        app:layout_constraintTop_toBottomOf="@id/lblEdad"
+        app:layout_constraintStart_toEndOf="@+id/etEdadMin"
         app:layout_constraintEnd_toEndOf="parent"/>
 
     <TextView
         android:id="@+id/lblCatPrecio"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Precio Inscripción ($)"
-        android:textColor="#616161"
+        android:text="Precio ($)"
         android:textSize="12sp"
-        android:layout_marginTop="16dp"
-        app:layout_constraintTop_toBottomOf="@id/etCatNombre"
+        android:layout_marginTop="12dp"
+        app:layout_constraintTop_toBottomOf="@id/etEdadMin"
         app:layout_constraintStart_toStartOf="parent"/>
 
     <EditText
@@ -157,12 +379,11 @@
         android:id="@+id/lblCupo"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Cupo Total Evento"
-        android:textColor="#616161"
+        android:text="Cupo Total"
         android:textSize="12sp"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="12dp"
         android:layout_marginStart="8dp"
-        app:layout_constraintTop_toBottomOf="@id/etCatNombre"
+        app:layout_constraintTop_toBottomOf="@id/etEdadMin"
         app:layout_constraintStart_toStartOf="@+id/etCupo"/>
 
     <EditText
@@ -182,8 +403,8 @@
         android:layout_width="0dp"
         android:layout_height="60dp"
         android:text="Publicar Evento"
-        android:layout_marginBottom="16dp"
         android:layout_marginTop="32dp"
+        android:layout_marginBottom="16dp"
         app:layout_constraintTop_toBottomOf="@id/etCatPrecio"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
