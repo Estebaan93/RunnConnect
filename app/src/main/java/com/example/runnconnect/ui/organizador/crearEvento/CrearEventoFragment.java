@@ -13,7 +13,9 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.navigation.Navigation; // Usaremos esto para navegar
 
+import com.example.runnconnect.R; // Asegúrate de importar R
 import com.example.runnconnect.databinding.FragmentCrearEventoBinding;
 import com.google.android.material.chip.Chip;
 
@@ -24,7 +26,7 @@ public class CrearEventoFragment extends Fragment {
   private FragmentCrearEventoBinding binding;
   private CrearEventoViewModel viewModel;
 
-  // Estado UI temporal (Selecciones de Spinners)
+  // Variables de estado UI (Selección actual de Spinners)
   private String modalidadSel = "Calle";
   private String generoSel = "X";
 
@@ -33,7 +35,7 @@ public class CrearEventoFragment extends Fragment {
     viewModel = new ViewModelProvider(this).get(CrearEventoViewModel.class);
 
     setupPickers();
-    setupChips();     // UI Helper: Llena el EditText al tocar un Chip
+    setupChips();
     setupSpinners();
     setupListeners();
     setupObservers();
@@ -42,12 +44,12 @@ public class CrearEventoFragment extends Fragment {
   }
 
   private void setupChips() {
-    // Esto es comportamiento de VISTA: Actualizar un input al tocar otro componente
+    // Comportamiento puramente de UI: Tocar chip -> Llenar caja de texto
     binding.chipGroupDistancias.setOnCheckedStateChangeListener((group, checkedIds) -> {
       if (!checkedIds.isEmpty()) {
         Chip chip = group.findViewById(checkedIds.get(0));
         if (chip != null) {
-          // Solo UI: Ponemos el número en el EditText
+          // Quitamos la "K" visualmente solo para el EditText
           String texto = chip.getText().toString().replace("K", "").trim();
           binding.etDistanciaValor.setText(texto);
         }
@@ -56,19 +58,18 @@ public class CrearEventoFragment extends Fragment {
   }
 
   private void setupSpinners() {
-    // Configuración de adaptadores (UI pura)
+    // 1. Modalidades
     String[] modalidades = {"Calle", "Trail", "Cross", "Aventura", "Obstáculos", "Caminata", "Kids", "MTB", "Triatlón"};
     ArrayAdapter<String> adapterMod = new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_dropdown_item, modalidades);
     binding.spModalidad.setAdapter(adapterMod);
 
     binding.spModalidad.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
       @Override
-      public void onItemSelected(AdapterView<?> p, View v, int pos, long id) {
-        modalidadSel = modalidades[pos];
-      }
+      public void onItemSelected(AdapterView<?> p, View v, int pos, long id) { modalidadSel = modalidades[pos]; }
       @Override public void onNothingSelected(AdapterView<?> p) {}
     });
 
+    // 2. Género
     String[] generosVisual = {"Mixto / General", "Femenino", "Masculino"};
     final String[] generosValor = {"X", "F", "M"};
 
@@ -77,34 +78,71 @@ public class CrearEventoFragment extends Fragment {
 
     binding.spGeneroCat.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
       @Override
-      public void onItemSelected(AdapterView<?> p, View v, int pos, long id) {
-        generoSel = generosValor[pos];
-      }
+      public void onItemSelected(AdapterView<?> p, View v, int pos, long id) { generoSel = generosValor[pos]; }
       @Override public void onNothingSelected(AdapterView<?> p) {}
     });
   }
 
   private void setupListeners() {
-    binding.btnPublicar.setOnClickListener(v -> {
-      // PURE MVVM: Pasamos los datos CRUDOS al ViewModel.
-      // No validamos nada aquí.
-      viewModel.procesarYPublicar(
+    binding.btnContinuarMapa.setOnClickListener(v -> {
+      // MVVM PURO: El Fragment no valida nada. Pasa todo crudo al VM.
+      viewModel.procesarYContinuar(
         binding.etTitulo.getText().toString(),
         binding.etDescripcion.getText().toString(),
         binding.etUbicacion.getText().toString(),
         binding.etDatosPago.getText().toString(),
-        binding.etDistanciaValor.getText().toString(), // El número crudo (ej: "10")
-        modalidadSel,
-        generoSel,
-        binding.etEdadMin.getText().toString(), // String vacío o número
-        binding.etEdadMax.getText().toString(), // String vacío o número
+        binding.etDistanciaValor.getText().toString(), // Ej: "10" o vacío
+        modalidadSel, // Ej: "Trail"
+        generoSel,    // Ej: "X"
+        binding.etEdadMin.getText().toString(),
+        binding.etEdadMax.getText().toString(),
         binding.etCatPrecio.getText().toString(),
         binding.etCupo.getText().toString()
       );
     });
   }
 
-  // setupPickers y setupObservers se mantienen igual (solo pintan)
+  private void setupObservers() {
+    // 1. Loading
+    viewModel.getIsLoading().observe(getViewLifecycleOwner(), loading -> {
+      binding.progressBar.setVisibility(loading ? View.VISIBLE : View.GONE);
+      binding.btnContinuarMapa.setEnabled(!loading);
+    });
+
+    // 2. Mensajes de Error/Exito
+    viewModel.getMensajeGlobal().observe(getViewLifecycleOwner(), msg -> {
+      binding.tvMensajeGlobal.setText(msg);
+      binding.tvMensajeGlobal.setVisibility(msg != null && !msg.isEmpty() ? View.VISIBLE : View.GONE);
+    });
+
+    viewModel.getEsError().observe(getViewLifecycleOwner(), isError -> {
+      binding.tvMensajeGlobal.setTextColor(isError ? android.graphics.Color.RED : android.graphics.Color.parseColor("#008000"));
+    });
+
+    // 3. NAVEGACIÓN AL MAPA (Paso 2)
+    viewModel.getIrAlMapa().observe(getViewLifecycleOwner(), idEvento -> {
+      if (idEvento != null) {
+        // A. Preparamos el paquete de datos
+        Bundle args = new Bundle();
+        args.putInt("idEvento", idEvento);
+
+        // B. EJECUTAMOS LA NAVEGACIÓN REAL
+        // Asegúrate que "action_crear_a_mapaEditor" coincida con tu mobile_navigation.xml
+        try {
+          Navigation.findNavController(requireView())
+            .navigate(R.id.action_crear_a_mapaEditor, args);
+        } catch (Exception e) {
+          Toast.makeText(getContext(), "Error nav: Verifique mobile_navigation.xml", Toast.LENGTH_LONG).show();
+          e.printStackTrace();
+        }
+
+        // C. Reseteamos para que no vuelva a navegar si rotas la pantalla
+        viewModel.resetearNav(); // Navigation.findNavController(requireView()).navigate(R.id.action_crear_a_mapa, args);
+      }
+    });
+  }
+
+  // Pickers visuales (Fecha/Hora)
   private void setupPickers() {
     binding.etFecha.setOnClickListener(v -> {
       Calendar cal = Calendar.getInstance();
@@ -120,26 +158,6 @@ public class CrearEventoFragment extends Fragment {
       new TimePickerDialog(requireContext(), (view, h, m) -> {
         binding.etHora.setText(viewModel.procesarHora(h, m));
       }, cal.get(Calendar.HOUR_OF_DAY), cal.get(Calendar.MINUTE), true).show();
-    });
-  }
-
-  private void setupObservers() {
-    viewModel.getIsLoading().observe(getViewLifecycleOwner(), loading -> {
-      binding.progressBar.setVisibility(loading ? View.VISIBLE : View.GONE);
-      binding.btnPublicar.setEnabled(!loading);
-    });
-
-    viewModel.getMensajeGlobal().observe(getViewLifecycleOwner(), msg -> {
-      binding.tvMensajeGlobal.setText(msg);
-      binding.tvMensajeGlobal.setVisibility(msg != null && !msg.isEmpty() ? View.VISIBLE : View.GONE);
-    });
-
-    viewModel.getEsError().observe(getViewLifecycleOwner(), isError -> {
-      binding.tvMensajeGlobal.setTextColor(isError ? android.graphics.Color.RED : android.graphics.Color.parseColor("#008000"));
-    });
-
-    viewModel.getNavegarAtras().observe(getViewLifecycleOwner(), nav -> {
-      if (Boolean.TRUE.equals(nav)) requireActivity().onBackPressed();
     });
   }
 }

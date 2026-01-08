@@ -87,14 +87,24 @@ public interface ApiService {
 
 
   //--------------EVENTOS------------------
-  //crear evento (POST api/Evento)
+  //crear evento (POST api/Evento)- orga
   @POST("Evento")
   retrofit2.Call<okhttp3.ResponseBody> crearEvento(
     @retrofit2.http.Header("Authorization") String token,
     @retrofit2.http.Body com.example.runnconnect.data.request.CrearEventoRequest request
   );
 
-  //obtener eventos del organizador
+  //guardar ruta (trazado de mapa) - orga
+  @PUT("Evento/{idEvento}/Ruta")
+  retrofit2.Call<okhttp3.ResponseBody> guardarRuta(
+    @retrofit2.http.Header("Authorization") String token,
+    @retrofit2.http.Path("idEvento") int idEvento,
+    @retrofit2.http.Body com.example.runnconnect.data.request.GuardarRutaRequest request
+  );
+
+
+
+  //obtener eventos del organizador (runner/orga)
   @GET("Evento/MisEventos")
   retrofit2.Call<com.example.runnconnect.data.response.EventosPaginadosResponse> obtenerMisEventos(
     @retrofit2.http.Header("Authorization") String token,

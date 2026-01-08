@@ -46,6 +46,7 @@ dependencies {
   implementation(libs.legacy.support.v4)
   implementation(libs.browser)
   implementation(libs.glide)
+  implementation(libs.play.services.maps)
   testImplementation(libs.junit)
   androidTestImplementation(libs.ext.junit)
   androidTestImplementation(libs.espresso.core)
