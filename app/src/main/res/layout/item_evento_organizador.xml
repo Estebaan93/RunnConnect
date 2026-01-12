@@ -72,7 +72,6 @@
         android:id="@+id/tvInscriptos"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:text="Inscriptos: 150"
         android:textStyle="bold"
         android:gravity="center"
         android:textSize="12sp"

@@ -34,11 +34,9 @@
       android:name="com.example.runnconnect.ui.organizador.crearEvento.CrearEventoFragment"
       android:label="Publicar Evento"
       tools:layout="@layout/fragment_crear_evento">
-
     <action
         android:id="@+id/action_crear_a_mapaEditor"
         app:destination="@id/nav_mapa_editor" />
-
   </fragment>
 
   <fragment
@@ -46,7 +44,6 @@
       android:name="com.example.runnconnect.ui.organizador.mapa.MapaEditorFragment"
       android:label="Dibujar Ruta"
       tools:layout="@layout/fragment_editor_mapa">
-
     <argument
         android:name="idEvento"
         app:argType="integer"
@@ -57,6 +54,27 @@
       android:id="@+id/nav_mis_eventos"
       android:name="com.example.runnconnect.ui.organizador.misEventos.MisEventosFragment"
       android:label="Mis Eventos"
-      tools:layout="@layout/fragment_mis_eventos" />
+      tools:layout="@layout/fragment_mis_eventos">
+
+    <action
+        android:id="@+id/action_misEventos_to_detalleEvento"
+        app:destination="@id/nav_detalle_evento_organizador" />
+  </fragment>
+
+  <fragment
+      android:id="@+id/nav_detalle_evento_organizador"
+      android:name="com.example.runnconnect.ui.organizador.misEventos.DetalleEventoFragment"
+      android:label="Detalle del Evento"
+      tools:layout="@layout/fragment_detalle_evento">
+
+    <argument
+        android:name="idEvento"
+        app:argType="integer"
+        android:defaultValue="0" />
+
+    <action
+        android:id="@+id/action_detalle_to_mapaEditor"
+        app:destination="@id/nav_mapa_editor" />
+  </fragment>
 
 </navigation>

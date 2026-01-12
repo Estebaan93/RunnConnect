@@ -1,23 +1,28 @@
 package com.example.runnconnect.data.response;
 
-public class EventoResumenResponse {
+public class EventoDetalleResponse {
   private int idEvento;
   private String nombre;
-  private String fechaHora; // Viene como string ISO (2025-12-05T09:00:00)
+  private String descripcion;
+  private String fechaHora;
   private String lugar;
-  private String estado; // "publicado", "finalizado", "cancelado" etc.
   private int cupoTotal;
   private int inscriptosActuales;
-  private int cantidadCategorias;
+  private int cuposDisponibles;
+  private String estado;
+  private String urlPronosticoClima;
+  private String datosPago;
 
   // Getters
   public int getIdEvento() { return idEvento; }
   public String getNombre() { return nombre; }
+  public String getDescripcion() { return descripcion; }
   public String getFechaHora() { return fechaHora; }
   public String getLugar() { return lugar; }
-  public String getEstado() { return estado; }
   public int getCupoTotal() { return cupoTotal; }
   public int getInscriptosActuales() { return inscriptosActuales; }
-  public int getCantidadCategorias() { return cantidadCategorias; }
+  public String getEstado() { return estado; }
+  public String getDatosPago() { return datosPago; }
+
 
 }

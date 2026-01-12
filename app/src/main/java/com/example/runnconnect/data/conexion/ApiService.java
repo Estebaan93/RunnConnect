@@ -5,13 +5,23 @@ package com.example.runnconnect.data.conexion;
 
 import com.example.runnconnect.data.request.ActualizarPerfilOrganizadorRequest;
 import com.example.runnconnect.data.request.ActualizarPerfilRunnerRequest;
+import com.example.runnconnect.data.request.CambiarEstadoRequest;
 import com.example.runnconnect.data.request.CambiarPasswordRequest;
+import com.example.runnconnect.data.request.CrearEventoRequest;
+import com.example.runnconnect.data.request.GuardarRutaRequest;
 import com.example.runnconnect.data.request.LoginRequest;
+import com.example.runnconnect.data.response.EventoDetalleResponse;
+import com.example.runnconnect.data.response.EventoResumenResponse;
+import com.example.runnconnect.data.response.EventosPaginadosResponse;
 import com.example.runnconnect.data.response.LoginResponse;
+import com.example.runnconnect.data.response.MapaEventoResponse;
 import com.example.runnconnect.data.response.PerfilUsuarioResponse;
+
+import java.util.List;
 
 import okhttp3.MultipartBody;
 import okhttp3.RequestBody;
+import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.http.Body;
 import retrofit2.http.DELETE;
@@ -21,6 +31,8 @@ import retrofit2.http.Multipart;
 import retrofit2.http.POST;
 import retrofit2.http.PUT;
 import retrofit2.http.Part;
+import retrofit2.http.Path;
+import retrofit2.http.Query;
 
 public interface ApiService {
 
@@ -89,29 +101,46 @@ public interface ApiService {
   //--------------EVENTOS------------------
   //crear evento (POST api/Evento)- orga
   @POST("Evento")
-  retrofit2.Call<okhttp3.ResponseBody> crearEvento(
-    @retrofit2.http.Header("Authorization") String token,
-    @retrofit2.http.Body com.example.runnconnect.data.request.CrearEventoRequest request
+  Call<ResponseBody> crearEvento(
+    @Header("Authorization") String token,
+    @Body CrearEventoRequest request
   );
 
   //guardar ruta (trazado de mapa) - orga
   @PUT("Evento/{idEvento}/Ruta")
-  retrofit2.Call<okhttp3.ResponseBody> guardarRuta(
-    @retrofit2.http.Header("Authorization") String token,
-    @retrofit2.http.Path("idEvento") int idEvento,
-    @retrofit2.http.Body com.example.runnconnect.data.request.GuardarRutaRequest request
+  Call<ResponseBody> guardarRuta(
+    @Header("Authorization") String token,
+    @Path("idEvento") int idEvento,
+    @Body GuardarRutaRequest request
   );
 
+  //recuperar ruta y puntos (orga)
+  @GET("Evento/{idEvento}/Mapa")
+  Call<MapaEventoResponse> obtenerMapaCompleto(
+    @Header("Authorization") String token,
+    @Path("idEvento") int idEvento);
 
-
-  //obtener eventos del organizador (runner/orga)
+  //obtener eventos del organizador (orga)
   @GET("Evento/MisEventos")
-  retrofit2.Call<com.example.runnconnect.data.response.EventosPaginadosResponse> obtenerMisEventos(
-    @retrofit2.http.Header("Authorization") String token,
-    @retrofit2.http.Query("Pagina") int pagina,
-    @retrofit2.http.Query("TamanioPagina") int tamanio
+  Call<EventosPaginadosResponse> obtenerMisEventos(
+    @Header("Authorization") String token,
+    @Query("pagina") int pagina,
+    @Query("tamanioPagina") int tamanioPagina
   );
 
+  //obtener detalles de evento
+  @GET("Evento/{id}")
+  Call<EventoDetalleResponse> obtenerEventoPorId(
+    @Header("Authorization") String token,
+    @Path("id") int idEvento
+  );
+
+  //cambiar estado de un evento
+  @PUT("Evento/{id}/CambiarEstado")
+  Call<ResponseBody> cambiarEstado(
+    @Header("Authorization") String token,
+    @Path("id") int id,
+    @Body CambiarEstadoRequest request);
 
 
 }

@@ -17,11 +17,61 @@
       android:layout_height="wrap_content"
       android:background="#CCFFFFFF"
       android:padding="12dp"
-      android:text="👆 Toca el mapa para dibujar el recorrido punto por punto."
+      android:text="Toca el mapa para dibujar el recorrido."
       android:textAlignment="center"
       android:textColor="@android:color/black"
       android:textStyle="bold"
       app:layout_constraintTop_toTopOf="parent" />
+
+  <androidx.cardview.widget.CardView
+      android:id="@+id/cardDistancia"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:layout_marginTop="8dp"
+      android:layout_marginEnd="8dp"
+      app:cardCornerRadius="8dp"
+      app:cardElevation="6dp"
+      app:cardBackgroundColor="#FFFFFF"
+      app:layout_constraintTop_toBottomOf="@id/tvInstruccion"
+      app:layout_constraintEnd_toEndOf="parent">
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:paddingHorizontal="12dp"
+        android:paddingVertical="8dp"
+        android:gravity="center_vertical">
+
+      <TextView
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:text="Distancia: "
+          android:textSize="12sp"
+          android:textColor="#757575"/>
+
+      <TextView
+          android:id="@+id/tvDistanciaReal"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:text="0.00 km"
+          android:textSize="16sp"
+          android:textStyle="bold"
+          android:textColor="#1565C0"/>
+    </LinearLayout>
+  </androidx.cardview.widget.CardView>
+
+  <com.google.android.material.floatingactionbutton.FloatingActionButton
+      android:id="@+id/fabLayers"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:layout_marginEnd="48dp"
+      android:layout_marginBottom="28dp"
+      android:src="@android:drawable/ic_menu_mapmode"
+      app:backgroundTint="#FFFFFF"
+      app:fabSize="mini"
+      app:layout_constraintBottom_toTopOf="@+id/btnGuardarRuta"
+      app:layout_constraintEnd_toEndOf="parent" />
 
   <com.google.android.material.floatingactionbutton.FloatingActionButton
       android:id="@+id/fabUndo"
@@ -38,10 +88,14 @@
       android:layout_width="wrap_content"
       android:layout_height="wrap_content"
       android:layout_margin="16dp"
+      android:layout_marginEnd="104dp"
+      android:layout_marginBottom="24dp"
       android:text="Guardar Circuito"
       app:cornerRadius="20dp"
       app:layout_constraintBottom_toBottomOf="parent"
-      app:layout_constraintEnd_toEndOf="parent" />
+      app:layout_constraintEnd_toEndOf="parent"
+      app:layout_constraintHorizontal_bias="0.363"
+      app:layout_constraintStart_toEndOf="@+id/fabUndo" />
 
   <ProgressBar
       android:id="@+id/progressBar"

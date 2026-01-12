@@ -35,6 +35,9 @@ public class MapaEditorFragment extends Fragment implements OnMapReadyCallback {
   // El ID del evento que viene del paso anterior
   private int idEvento = 0;
 
+  //variable para alternar tipo de mapa
+  private int currentMapType= GoogleMap.MAP_TYPE_HYBRID;
+
   @Override
   public void onCreate(@Nullable Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
@@ -64,12 +67,20 @@ public class MapaEditorFragment extends Fragment implements OnMapReadyCallback {
   public void onMapReady(@NonNull GoogleMap googleMap) {
     mMap = googleMap;
 
-    // Configuración inicial: Zoom en San Luis (o ubicación del usuario si tuviéramos permiso GPS)
+    // INICIO: Modo Hhbrido (Mejor para Trail/Montaña por defecto)
+    mMap.setMapType(currentMapType);
+
+    // Configuracion inicial: Zoom en San Luis (o ubicacin del usuario si tuvieramos permiso GPS)
     LatLng sanLuisCentro = new LatLng(-33.29501, -66.33563);
     mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(sanLuisCentro, 13));
 
     // Habilitar controles de zoom
     mMap.getUiSettings().setZoomControlsEnabled(true);
+
+    // Si editamos un evento existente, cargamos su ruta
+    if(idEvento!=0){
+      viewModel.cargarRutaExistente(idEvento);
+    }
 
     // Listener: Al tocar el mapa, agregamos un punto
     mMap.setOnMapClickListener(latLng -> {
@@ -89,11 +100,30 @@ public class MapaEditorFragment extends Fragment implements OnMapReadyCallback {
       }
       viewModel.guardarRuta(idEvento);
     });
+    // NUEVO: Botón flotante para cambiar capas
+    binding.fabLayers.setOnClickListener(v -> {
+      if (mMap == null) return;
+
+      if (currentMapType == GoogleMap.MAP_TYPE_NORMAL) {
+        currentMapType = GoogleMap.MAP_TYPE_HYBRID; // Satélite
+        Toast.makeText(getContext(), "Vista Satelital (Montaña)", Toast.LENGTH_SHORT).show();
+      } else {
+        currentMapType = GoogleMap.MAP_TYPE_NORMAL; // Calles
+        Toast.makeText(getContext(), "Vista Normal (Ciudad)", Toast.LENGTH_SHORT).show();
+      }
+      mMap.setMapType(currentMapType);
+    });
+
   }
 
   private void setupObservers() {
     // Cada vez que cambia la lista de puntos, redibujamos
     viewModel.getPuntosRuta().observe(getViewLifecycleOwner(), this::dibujarRuta);
+
+    // NUEVO: Actualizar texto de kilómetros
+    viewModel.getTextoDistancia().observe(getViewLifecycleOwner(), txt -> {
+      binding.tvDistanciaReal.setText(txt);
+    });
 
     // Mensajes
     viewModel.getMensaje().observe(getViewLifecycleOwner(), msg -> {
@@ -115,7 +145,7 @@ public class MapaEditorFragment extends Fragment implements OnMapReadyCallback {
     });
   }
 
-  // Método "tonto" de pintado: Borra todo y dibuja de nuevo
+  // metodo de pintado: Borra y dibuja de nuevo
   private void dibujarRuta(List<LatLng> puntos) {
     if (mMap == null) return;
     mMap.clear(); // Limpiamos marcadores y líneas viejas
@@ -127,7 +157,7 @@ public class MapaEditorFragment extends Fragment implements OnMapReadyCallback {
       .addAll(puntos)
       .width(12)
       .color(Color.BLUE) // Puedes usar Color.parseColor("#1976D2")
-      .geodesic(true);
+      .geodesic(true); // Geodesic ayuda a la precisión visual en distancias largas
     mMap.addPolyline(polyline);
 
     // 2. Marcador de Inicio (Verde)
@@ -144,6 +174,9 @@ public class MapaEditorFragment extends Fragment implements OnMapReadyCallback {
         .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)));
     }
 
-    // Puntos intermedios (Puntos criticos) se verán después...
+    // Puntos intermedios (Puntos criticos) se veran después...
   }
+
+
+
 }

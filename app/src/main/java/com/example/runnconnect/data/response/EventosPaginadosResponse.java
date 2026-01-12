@@ -10,5 +10,7 @@ public class EventosPaginadosResponse {
   public List<EventoResumenResponse> getEventos() {
     return eventos;
   }
+  public int getTotalPaginas() { return totalPaginas; }
+  public int getPaginaActual() { return paginaActual; }
 
 }

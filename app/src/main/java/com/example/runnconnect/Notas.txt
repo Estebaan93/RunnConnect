@@ -1,0 +1,56 @@
+----------------------Registro--------------------------------
+RUNNER:
+
+
+ORGANIZADOR
+
+
+
+---------------------Perfil-----------------------------------------
+
+
+---------------------Runner-----------------------------------------
+
+
+
+---------------------Organizador-----------------------------------------
+Eventos: (REVISION 09 ENERO) - Al vencer el token no me carga los eventos
+ y solo me sale un toast con error de conexion, la app debe de cerrar la sesion
+ en caso de que detecte si el token esta vencido
+1. Crear eventos - Revision
+  NOTA: SI EN CREAR EVENTOS SE METEN DATOS INVALIDOS Y POSTERIOR SE NAVEGA A OTRO FRAGMENT, SE
+    SIGUE DISPARANDO EL ERROR DE "COMPLETE EL TITULO DEL NUEVO EVENTO, O SEGUN EL CAMPO QUE FALTE 
+    COMPLETAR". El error solo aparece si navegamos desde mis eventos -> crear nuevo evento "+".
+  a. Debe tener el perfil completo
+  b. 
+  c.
+  d.
+  e.
+  
+2. Actualizar eventos - REVISAR
+  . Reprogramar fecha, lugar, descripcion, datos pago, categoria, modalidad, genero, precio, cupo total, etc - Para implementar
+  . Ver editar/mapa (punto de interes, mapa general circuito)- Para implementar
+    nota: no me trae los puntos del evento, no arma la ruta. Tambien queda hacer el modulo completo de puntos de interes
+    
+3. Cambiar estado evento - Revision
+  . publicado, cancelado, finalizado - ok
+  
+4. Ver Detalles eventos - Revision
+  
+5. Ver resumen de eventos - Revision
+  a. Muestra la lista de todos los eventos
+    1. Al hacer click en la vista card me abre detalles del evento
+  
+6. Pagina de eventos - Revision
+
+--------------------------------------------------------------
+
+--------------------------------------------------------------
+
+--------------------------------------------------------------
+
+--------------------------------------------------------------
+
+--------------------------------------------------------------
+
+--------------------------------------------------------------

@@ -7,7 +7,13 @@ import android.content.SharedPreferences;
 import com.example.runnconnect.data.conexion.ApiClient;
 import com.example.runnconnect.data.conexion.ApiService;
 import com.example.runnconnect.data.preferencias.SessionManager;
+import com.example.runnconnect.data.request.CambiarEstadoRequest;
 import com.example.runnconnect.data.request.CrearEventoRequest;
+import com.example.runnconnect.data.response.EventoDetalleResponse;
+import com.example.runnconnect.data.response.EventoResumenResponse;
+import com.example.runnconnect.data.response.EventosPaginadosResponse;
+
+import java.util.List;
 
 import okhttp3.ResponseBody;
 import retrofit2.Callback;
@@ -31,13 +37,31 @@ public class EventoRepositorio {
     }
   }
 
-  public void obtenerMisEventos(int pagina, Callback<com.example.runnconnect.data.response.EventosPaginadosResponse> callback) {
-    String token = sessionManager.leerToken(); // Usamos el SessionManager que corregimos antes
+  //obtener listado de mis eventos
+  //GET api/Evento/MisEventos
+  public void obtenerMisEventos(int pagina, Callback<EventosPaginadosResponse>callback) {
+    String token = sessionManager.leerToken(); //
     if (token != null) {
-      // Pedimos página X, 20 items por página
-      apiService.obtenerMisEventos("Bearer " + token, pagina, 20).enqueue(callback);
+      // Pedimos página X, 5 items por página
+      apiService.obtenerMisEventos("Bearer " + token, pagina, 10).enqueue(callback);
     }
   }
 
+  //detalle de evento(orga) - nota: si es orga puede modificar datos del evento, si es runner no tiene
+  //acceso a modificar - el orga tiene que ser mismo dueño del organizador
+  public void obtenerDetalleEvento(int idEvento, Callback<EventoDetalleResponse> callback){
+    String token= sessionManager.leerToken();
+    if(token!= null){
+      apiService.obtenerEventoPorId("Bearer " + token, idEvento).enqueue(callback);
+    }
+  }
+
+  //cambiar estado (publicado, cancelado, finalizado)
+  public void cambiarEstado(int idEvento, CambiarEstadoRequest request, Callback<ResponseBody> callback) {
+    String token = sessionManager.leerToken();
+    if (token != null) {
+      apiService.cambiarEstado("Bearer " + token, idEvento, request).enqueue(callback);
+    }
+  }
 
 }
