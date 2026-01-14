@@ -6,7 +6,7 @@ public class EventoDetalleResponse {
   private String descripcion;
   private String fechaHora;
   private String lugar;
-  private int cupoTotal;
+  private Integer cupoTotal;
   private int inscriptosActuales;
   private int cuposDisponibles;
   private String estado;
@@ -19,10 +19,14 @@ public class EventoDetalleResponse {
   public String getDescripcion() { return descripcion; }
   public String getFechaHora() { return fechaHora; }
   public String getLugar() { return lugar; }
-  public int getCupoTotal() { return cupoTotal; }
+  public Integer getCupoTotal() { return cupoTotal; }
   public int getInscriptosActuales() { return inscriptosActuales; }
   public String getEstado() { return estado; }
   public String getDatosPago() { return datosPago; }
 
+  //SETTER
+  public void setEstado(String estado) {
+    this.estado = estado;
+  }
 
 }

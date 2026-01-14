@@ -34,10 +34,32 @@
       android:name="com.example.runnconnect.ui.organizador.crearEvento.CrearEventoFragment"
       android:label="Publicar Evento"
       tools:layout="@layout/fragment_crear_evento">
+
+    <argument
+        android:name="idEvento"
+        app:argType="integer"
+        android:defaultValue="0" />
+
     <action
         android:id="@+id/action_crear_a_mapaEditor"
         app:destination="@id/nav_mapa_editor" />
   </fragment>
+
+  <fragment
+      android:id="@+id/nav_editar_evento"
+      android:name="com.example.runnconnect.ui.organizador.crearEvento.CrearEventoFragment"
+      android:label="Editar Evento"
+      tools:layout="@layout/fragment_crear_evento">
+
+    <argument
+        android:name="idEvento"
+        app:argType="integer" />
+
+    <action
+        android:id="@+id/action_crear_a_mapaEditor"
+        app:destination="@id/nav_mapa_editor" />
+  </fragment>
+
 
   <fragment
       android:id="@+id/nav_mapa_editor"
@@ -75,6 +97,11 @@
     <action
         android:id="@+id/action_detalle_to_mapaEditor"
         app:destination="@id/nav_mapa_editor" />
+
+    <action
+        android:id="@+id/action_detalle_to_editarEvento"
+        app:destination="@id/nav_editar_evento" />
+
   </fragment>
 
 </navigation>

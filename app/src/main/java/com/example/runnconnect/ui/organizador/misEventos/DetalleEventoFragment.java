@@ -39,13 +39,28 @@ public class DetalleEventoFragment extends Fragment {
 
     setupObservers();
 
-    // Botón para ir al editor de mapa (reutilizamos tu fragmento existente)
+    // btn para ir al editor de mapa (reutilizamos tu fragmento existente)
     binding.btnVerMapa.setOnClickListener(v -> {
       Bundle args = new Bundle();
       args.putInt("idEvento", idEvento);
       // Navegar al fragmento que ya tienes creado en ui/organizador/mapa
       Navigation.findNavController(v).navigate(R.id.action_detalle_to_mapaEditor, args);
     });
+
+    //btn para habilitar info
+    binding.btnEditarInfo.setOnClickListener(v -> {
+      Bundle args = new Bundle();
+      args.putInt("idEvento", idEvento); // Pasamos el ID para activar modo edición
+
+      // Navegamos al fragmento que antes solo era para crear
+      try {
+        Navigation.findNavController(v).navigate(R.id.action_detalle_to_editarEvento, args);
+      } catch (Exception e) {
+        // Fallback: intentar navegar directo por ID de destino si la acción no existe
+        Navigation.findNavController(v).navigate(R.id.nav_editar_evento, args);
+      }
+    });
+
 
     return binding.getRoot();
   }
@@ -89,6 +104,7 @@ public class DetalleEventoFragment extends Fragment {
 
     viewModel.getErrorMsg().observe(getViewLifecycleOwner(), msg -> {
       if (msg != null) Toast.makeText(getContext(), msg, Toast.LENGTH_SHORT).show();
+      viewModel.limpiarMensaje();
     });
   }
 
@@ -96,30 +112,32 @@ public class DetalleEventoFragment extends Fragment {
     AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
     builder.setTitle("Administrar Estado");
 
-    // 1. Inflar el XML personalizado
     View view = getLayoutInflater().inflate(R.layout.dialog_cambiar_estado, null);
     builder.setView(view);
 
-    // 2. Obtener referencias
+    // Referencias
     android.widget.RadioGroup rgEstado = view.findViewById(R.id.rgEstado);
     android.widget.EditText etMotivo = view.findViewById(R.id.etMotivo);
-    android.widget.RadioButton rbPublicado = view.findViewById(R.id.rbPublicado);
-    android.widget.RadioButton rbFinalizado = view.findViewById(R.id.rbFinalizado);
-    android.widget.RadioButton rbCancelado = view.findViewById(R.id.rbCancelado);
 
-    // Pre-seleccionar según estado actual (Opcional, mejora UX)
-    // String estadoActual = binding.tvEstadoDetalle.getText().toString();
-    // if (estadoActual.equalsIgnoreCase("PUBLICADO")) rbPublicado.setChecked(true);
+    // IMPORTANTE: Ponemos NULL aquí para que no tenga comportamiento por defecto
+    builder.setPositiveButton("Guardar", null);
+    builder.setNegativeButton("Cerrar", null);
 
-    builder.setPositiveButton("Guardar", (dialog, which) -> {
-      // 3. Verificar que opcion se eligio
+    // Creamos el dialog pero no lo mostramos aun
+    AlertDialog dialog = builder.create();
+    dialog.show(); // Lo mostramos para poder acceder a sus botones
+
+    // AHORA SI: Sobreescribimos el botón para tener control manual
+    dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
+
+      // 1. Validaciones (Tu lógica original)
       int selectedId = rgEstado.getCheckedRadioButtonId();
-      String nuevoEstado = "";
+      String nuevoEstadoTemp = "";
 
-      if (selectedId == R.id.rbPublicado) nuevoEstado = "publicado";
-      else if (selectedId == R.id.rbFinalizado) nuevoEstado = "finalizado";
-      else if (selectedId == R.id.rbCancelado) nuevoEstado = "cancelado";
-      else if(selectedId==R.id.rbSuspendido) nuevoEstado="suspendido";
+      if (selectedId == R.id.rbPublicado) nuevoEstadoTemp = "publicado";
+      else if (selectedId == R.id.rbFinalizado) nuevoEstadoTemp = "finalizado";
+      else if (selectedId == R.id.rbCancelado) nuevoEstadoTemp = "cancelado";
+      else if(selectedId == R.id.rbSuspendido) nuevoEstadoTemp = "suspendido";
       else {
         Toast.makeText(getContext(), "Debes seleccionar un estado", Toast.LENGTH_SHORT).show();
         return;
@@ -127,19 +145,37 @@ public class DetalleEventoFragment extends Fragment {
 
       String motivo = etMotivo.getText().toString();
 
-      // validacion: cancelado y suspendido requieren motivo
-      if ((nuevoEstado.equals("cancelado") || nuevoEstado.equals("suspendido"))&& motivo.trim().isEmpty()) {
+      if ((nuevoEstadoTemp.equals("cancelado") || nuevoEstadoTemp.equals("suspendido")) && motivo.trim().isEmpty()) {
         Toast.makeText(getContext(), "Para cancelar o suspender, el motivo es obligatorio.", Toast.LENGTH_LONG).show();
-        return; // Nota: En un dialog estándar, esto cerrará el dialog igual.
-        // Para evitar que se cierre al fallar validación, se requiere un manejo más avanzado del botón Positive.
+        return;
       }
 
-      // Llamar al ViewModel
-      viewModel.cambiarEstado(idEvento, nuevoEstado, motivo);
-    });
+      // 2. MAGIA ANTI-ANR:
 
-    builder.setNegativeButton("Cerrar", null);
-    builder.show();
+      // A. Forzar cierre de teclado
+      try {
+        android.view.inputmethod.InputMethodManager imm = (android.view.inputmethod.InputMethodManager)
+          requireContext().getSystemService(android.content.Context.INPUT_METHOD_SERVICE);
+        imm.hideSoftInputFromWindow(etMotivo.getWindowToken(), 0);
+      } catch (Exception e) { e.printStackTrace(); }
+
+      // B. Deshabilitar botón para que no le den click 2 veces
+      v.setEnabled(false);
+
+      // C. Variables finales para el Handler
+      final String estadoDefinitivo = nuevoEstadoTemp;
+
+      // D. Esperar a que el teclado se vaya y luego actuar
+      new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(() -> {
+
+        // Llamamos a la API (Esto ya no colgará la app)
+        viewModel.cambiarEstado(idEvento, estadoDefinitivo, motivo);
+
+        // CERRAMOS EL DIALOGO MANUALMENTE AQUI
+        dialog.dismiss();
+
+      }, 500); // 500ms de seguridad
+    });
   }
 
 }

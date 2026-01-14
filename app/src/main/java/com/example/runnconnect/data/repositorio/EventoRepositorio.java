@@ -3,10 +3,12 @@ package com.example.runnconnect.data.repositorio;
 import android.app.Application;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.util.Log;
 
 import com.example.runnconnect.data.conexion.ApiClient;
 import com.example.runnconnect.data.conexion.ApiService;
 import com.example.runnconnect.data.preferencias.SessionManager;
+import com.example.runnconnect.data.request.ActualizarEventoRequest;
 import com.example.runnconnect.data.request.CambiarEstadoRequest;
 import com.example.runnconnect.data.request.CrearEventoRequest;
 import com.example.runnconnect.data.response.EventoDetalleResponse;
@@ -37,6 +39,14 @@ public class EventoRepositorio {
     }
   }
 
+  // Metodo para editar evento
+  public void actualizarEvento(int idEvento, ActualizarEventoRequest request, Callback<ResponseBody> callback) {
+    String token = sessionManager.leerToken();
+    if (token != null) {
+      apiService.actualizarEvento("Bearer " + token, idEvento, request).enqueue(callback);
+    }
+  }
+
   //obtener listado de mis eventos
   //GET api/Evento/MisEventos
   public void obtenerMisEventos(int pagina, Callback<EventosPaginadosResponse>callback) {
@@ -62,6 +72,7 @@ public class EventoRepositorio {
     if (token != null) {
       apiService.cambiarEstado("Bearer " + token, idEvento, request).enqueue(callback);
     }
+
   }
 
 }

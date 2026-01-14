@@ -29,8 +29,10 @@ Eventos: (REVISION 09 ENERO) - Al vencer el token no me carga los eventos
   
 2. Actualizar eventos - REVISAR
   . Reprogramar fecha, lugar, descripcion, datos pago, categoria, modalidad, genero, precio, cupo total, etc - Para implementar
-  . Ver editar/mapa (punto de interes, mapa general circuito)- Para implementar
-    nota: no me trae los puntos del evento, no arma la ruta. Tambien queda hacer el modulo completo de puntos de interes
+  . Ver editar/mapa (trae los puntos circuito) - ok
+  . Implementar - El modulo completo de puntos de interes
+  NOTA: LUEGO DE ACTUALIZAR EL ESTADO DE PUBLICADO -> SUSPENDIDO (DIALOG_ESTADO) LA UI SE CONGELA, PERO EL REQUEST SE VA Y ES SATISFACTORIO
+    QUEDANDO EN LA BD LOS CAMBIOS EN LA TABLA EVENTOS (ESTADO) Y NOTIFICAION_EVENTO (MOTIVO DE SUSPENSION)
     
 3. Cambiar estado evento - Revision
   . publicado, cancelado, finalizado - ok

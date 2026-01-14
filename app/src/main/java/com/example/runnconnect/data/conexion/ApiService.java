@@ -3,6 +3,7 @@ package com.example.runnconnect.data.conexion;
 
 
 
+import com.example.runnconnect.data.request.ActualizarEventoRequest;
 import com.example.runnconnect.data.request.ActualizarPerfilOrganizadorRequest;
 import com.example.runnconnect.data.request.ActualizarPerfilRunnerRequest;
 import com.example.runnconnect.data.request.CambiarEstadoRequest;
@@ -119,6 +120,14 @@ public interface ApiService {
   Call<MapaEventoResponse> obtenerMapaCompleto(
     @Header("Authorization") String token,
     @Path("idEvento") int idEvento);
+
+  // Actualizar evento (PUT)
+  @PUT("Evento/{id}")
+  Call<ResponseBody> actualizarEvento(
+    @Header("Authorization") String token,
+    @Path("id") int idEvento,
+    @Body ActualizarEventoRequest request
+  );
 
   //obtener eventos del organizador (orga)
   @GET("Evento/MisEventos")

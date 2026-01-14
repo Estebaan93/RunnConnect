@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#FFFFFF"
@@ -77,7 +78,8 @@
       android:layout_marginTop="16dp"
       app:layout_constraintTop_toBottomOf="@id/divider1"
       app:layout_constraintStart_toStartOf="parent"
-      app:layout_constraintEnd_toStartOf="@id/lblCupo"/>
+      app:layout_constraintEnd_toStartOf="@id/lblCupo"
+      app:layout_constraintHorizontal_chainStyle="spread"/>
 
   <TextView
       android:id="@+id/lblCupo"
@@ -132,21 +134,45 @@
       android:text="..."
       android:layout_marginTop="8dp"
       android:ellipsize="end"
+      android:layout_marginBottom="16dp"
       app:layout_constraintStart_toStartOf="parent"
       app:layout_constraintEnd_toEndOf="parent"
       app:layout_constraintTop_toBottomOf="@id/lblDesc"
-      app:layout_constraintBottom_toTopOf="@id/btnCambiarEstado"/>
+      app:layout_constraintBottom_toTopOf="@id/layoutBotones"/>
 
-  <com.google.android.material.button.MaterialButton
-      android:id="@+id/btnCambiarEstado"
+  <LinearLayout
+      android:id="@+id/layoutBotones"
       android:layout_width="match_parent"
       android:layout_height="wrap_content"
-      android:text="Administrar Estado / Suspender"
-      android:backgroundTint="#FF9800"
+      android:orientation="horizontal"
       android:layout_marginBottom="8dp"
-      app:icon="@android:drawable/ic_menu_edit"
-      app:iconGravity="textStart"
-      app:layout_constraintBottom_toTopOf="@id/btnVerMapa"/>
+      app:layout_constraintBottom_toTopOf="@id/btnVerMapa"
+      app:layout_constraintStart_toStartOf="parent"
+      app:layout_constraintEnd_toEndOf="parent">
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnCambiarEstado"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:text="Estado"
+        android:backgroundTint="#FF9800"
+        app:icon="@android:drawable/ic_menu_edit"
+        app:iconGravity="textStart"
+        android:layout_marginEnd="4dp"/>
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnEditarInfo"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:text="Editar Info"
+        android:backgroundTint="#2196F3"
+        app:icon="@android:drawable/ic_menu_agenda"
+        app:iconGravity="textStart"
+        android:layout_marginStart="4dp"/>
+
+  </LinearLayout>
 
   <com.google.android.material.button.MaterialButton
       android:id="@+id/btnVerMapa"
@@ -155,7 +181,9 @@
       android:text="Ver / Editar Ruta"
       app:icon="@android:drawable/ic_dialog_map"
       app:iconGravity="textStart"
-      app:layout_constraintBottom_toBottomOf="parent"/>
+      app:layout_constraintBottom_toBottomOf="parent"
+      app:layout_constraintStart_toStartOf="parent"
+      app:layout_constraintEnd_toEndOf="parent"/>
 
   <ProgressBar
       android:id="@+id/progressBar"

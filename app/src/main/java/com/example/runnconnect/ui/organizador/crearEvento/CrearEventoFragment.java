@@ -103,23 +103,85 @@ public class CrearEventoFragment extends Fragment {
   }
 
   private void setupObservers() {
-    // 1. Loading
+    // 1. Loading y Mensajes
     viewModel.getIsLoading().observe(getViewLifecycleOwner(), loading -> {
       binding.progressBar.setVisibility(loading ? View.VISIBLE : View.GONE);
       binding.btnContinuarMapa.setEnabled(!loading);
     });
 
-    // 2. Mensajes de Error/Exito
     viewModel.getMensajeGlobal().observe(getViewLifecycleOwner(), msg -> {
       binding.tvMensajeGlobal.setText(msg);
       binding.tvMensajeGlobal.setVisibility(msg != null && !msg.isEmpty() ? View.VISIBLE : View.GONE);
     });
 
-    viewModel.getEsError().observe(getViewLifecycleOwner(), isError -> {
-      binding.tvMensajeGlobal.setTextColor(isError ? android.graphics.Color.RED : android.graphics.Color.parseColor("#008000"));
+    // 2. NAVEGACIÓN AL MAPA/ATRAS
+    viewModel.getIrAlMapa().observe(getViewLifecycleOwner(), idEvento -> {
+      if (idEvento != null) {
+        Navigation.findNavController(requireView()).popBackStack();
+        viewModel.resetearNav();
+      }
     });
 
-    // 3. NAVEGACIÓN AL MAPA (Paso 2)
+    // 3. CARGAR DATOS (AUTOCOMPLETAR)
+    // Este observer detecta cuando la API trajo los datos del evento a editar
+    viewModel.getEventoCargado().observe(getViewLifecycleOwner(), evento -> {
+      if (evento == null) return;
+
+      // A. Textos de Cabecera
+      binding.tvTituloPagina.setText("Editar Evento");
+      binding.btnContinuarMapa.setText("Guardar Cambios");
+
+      // B. Llenar Campos de Texto
+      binding.etTitulo.setText(evento.getNombre());
+      binding.etDescripcion.setText(evento.getDescripcion());
+      binding.etUbicacion.setText(evento.getLugar());
+      binding.etDatosPago.setText(evento.getDatosPago());
+
+      // C. Llenar Cupo (Ahora funciona porque Integer acepta null)
+      if (evento.getCupoTotal() != null && evento.getCupoTotal() > 0) {
+        binding.etCupo.setText(String.valueOf(evento.getCupoTotal()));
+      }
+
+      // D. Procesar Fecha y Hora (yyyy-MM-ddTHH:mm:ss)
+      if (evento.getFechaHora() != null && evento.getFechaHora().contains("T")) {
+        try {
+          String[] partes = evento.getFechaHora().split("T");
+          String fechaRaw = partes[0]; // "2026-03-20"
+          String horaRaw = partes[1].substring(0, 5); // "15:10"
+
+          // Mostrar en UI (dd/MM/yyyy)
+          String[] f = fechaRaw.split("-");
+          binding.etFecha.setText(f[2] + "/" + f[1] + "/" + f[0]);
+          binding.etHora.setText(horaRaw);
+
+          // IMPORTANTE: Guardar en variables internas del ViewModel
+          // para que al dar "Guardar" sin tocar la fecha, no diga "Fecha inválida"
+          viewModel.setFechaHoraInterna(fechaRaw, horaRaw);
+
+        } catch (Exception e) {
+          e.printStackTrace();
+        }
+      }
+
+      // E. Ocultar sección Categorías (No se editan en este paso)
+      binding.tvTituloCat.setVisibility(View.GONE);
+      binding.lblDistancia.setVisibility(View.GONE);
+      binding.etDistanciaValor.setVisibility(View.GONE);
+      binding.scrollChips.setVisibility(View.GONE);
+      binding.lblModalidad.setVisibility(View.GONE);
+      binding.spModalidad.setVisibility(View.GONE);
+      binding.lblGenero.setVisibility(View.GONE);
+      binding.spGeneroCat.setVisibility(View.GONE);
+      binding.lblEdad.setVisibility(View.GONE);
+      binding.etEdadMin.setVisibility(View.GONE);
+      binding.etEdadMax.setVisibility(View.GONE);
+      binding.lblCatPrecio.setVisibility(View.GONE);
+      binding.etCatPrecio.setVisibility(View.GONE);
+
+      binding.tvAvisoMapa.setText("Al guardar, volverás al detalle.");
+    });
+
+    // 4. NAVEGACIÓN AL MAPA (Paso 2)
     viewModel.getIrAlMapa().observe(getViewLifecycleOwner(), idEvento -> {
       if (idEvento != null) {
         // A. Preparamos el paquete de datos

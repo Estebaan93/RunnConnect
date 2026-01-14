@@ -3,79 +3,28 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:padding="20dp">
-
-  <TextView
+    android:padding="20dp"
+    android:background="@android:color/white"> <com.google.android.material.textfield.TextInputLayout
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:hint="Escribe el motivo aquí...">
+  <com.google.android.material.textfield.TextInputEditText
+      android:id="@+id/etMotivo"
       android:layout_width="match_parent"
       android:layout_height="wrap_content"
-      android:text="Selecciona el nuevo estado:"
+      android:inputType="textCapSentences|textMultiLine"
+      android:minLines="2"
+      android:gravity="top"/>
+</com.google.android.material.textfield.TextInputLayout>
+
+  <Button
+      android:id="@+id/btnGuardarSheet"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:text="Confirmar Cambio"
+      android:backgroundTint="#FF9800"
+      android:textColor="@android:color/white"
       android:textStyle="bold"
-      android:textSize="16sp"
-      android:textColor="@android:color/black"
-      android:layout_marginBottom="12dp"/>
-
-  <RadioGroup
-      android:id="@+id/rgEstado"
-      android:layout_width="match_parent"
-      android:layout_height="wrap_content"
-      android:orientation="vertical">
-
-    <RadioButton
-        android:id="@+id/rbPublicado"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Publicado"
-        android:textColor="#2E7D32"
-        android:textStyle="bold"
-        android:padding="8dp"/>
-
-    <RadioButton
-        android:id="@+id/rbSuspendido"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Suspendido (Pausar / Reprogramar)"
-        android:textColor="#FF9800"
-        android:textStyle="bold"
-        android:padding="8dp"/>
-
-    <RadioButton
-        android:id="@+id/rbFinalizado"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Finalizado"
-        android:textColor="#616161"
-        android:padding="8dp"/>
-
-    <RadioButton
-        android:id="@+id/rbCancelado"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Cancelado (Requiere motivo)"
-        android:textColor="#C62828"
-        android:textStyle="bold"
-        android:padding="8dp"/>
-  </RadioGroup>
-
-  <TextView
-      android:layout_width="match_parent"
-      android:layout_height="wrap_content"
-      android:text="Motivo / Observaciones:"
-      android:layout_marginTop="16dp"
-      android:layout_marginBottom="8dp"
-      android:textSize="14sp"/>
-
-  <com.google.android.material.textfield.TextInputLayout
-      android:layout_width="match_parent"
-      android:layout_height="wrap_content"
-      android:hint="Escribe el motivo aquí...">
-
-    <com.google.android.material.textfield.TextInputEditText
-        android:id="@+id/etMotivo"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:inputType="textCapSentences|textMultiLine"
-        android:minLines="2"
-        android:gravity="top"/>
-  </com.google.android.material.textfield.TextInputLayout>
+      android:layout_marginTop="20dp"/>
 
 </LinearLayout>

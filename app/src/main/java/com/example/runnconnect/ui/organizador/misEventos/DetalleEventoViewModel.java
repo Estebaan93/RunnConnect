@@ -33,11 +33,11 @@ public class DetalleEventoViewModel extends AndroidViewModel {
   public LiveData<String> getErrorMsg() { return errorMsg; }
 
   public void cargarDetalle(int idEvento) {
-    isLoading.setValue(true);
+    //isLoading.setValue(true);
     repositorio.obtenerDetalleEvento(idEvento, new Callback<EventoDetalleResponse>() {
       @Override
       public void onResponse(Call<EventoDetalleResponse> call, Response<EventoDetalleResponse> response) {
-        isLoading.setValue(false);
+        //isLoading.setValue(false);
         if (response.isSuccessful() && response.body() != null) {
           evento.setValue(response.body());
         } else {
@@ -47,7 +47,7 @@ public class DetalleEventoViewModel extends AndroidViewModel {
 
       @Override
       public void onFailure(Call<EventoDetalleResponse> call, Throwable t) {
-        isLoading.setValue(false);
+        //isLoading.setValue(false);
         errorMsg.setValue("Error de conexión");
       }
     });
@@ -55,28 +55,44 @@ public class DetalleEventoViewModel extends AndroidViewModel {
 
   //cambiar estado
   public void cambiarEstado(int idEvento, String nuevoEstado, String motivo) {
-    isLoading.setValue(true);
+    //isLoading.setValue(true);
+    Log.d("DEBUG_ESTADO", "ID: " + idEvento + " | Estado: " + nuevoEstado + " | Motivo: " + motivo);
+
     CambiarEstadoRequest request = new CambiarEstadoRequest(nuevoEstado, motivo);
 
     repositorio.cambiarEstado(idEvento, request, new Callback<ResponseBody>() { // Crea este mtodo en repo
       @Override
       public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
-        isLoading.setValue(false);
+        //isLoading.setValue(false);
+
         if (response.isSuccessful()) {
           errorMsg.setValue("Estado actualizado correctamente");
-          cargarDetalle(idEvento); // Recargar datos para ver el cambio
+
+          // --- SOLUCION: ACTUALIZAR LOCALMENTE EN VEZ DE RELOAD ---
+          EventoDetalleResponse actual = evento.getValue();
+          if (actual != null) {
+            actual.setEstado(nuevoEstado);
+
+            evento.setValue(actual);
+          } else{
+            errorMsg.setValue("Estado actualizado");
+          }
         } else {
-          errorMsg.setValue("Error al actualizar estado");
-          Log.d("ErrorActualizarEstado", "Error: "+response.code());
+          errorMsg.setValue("Error al actualizar: " + response.code());
         }
       }
 
       @Override
       public void onFailure(Call<ResponseBody> call, Throwable t) {
-        isLoading.setValue(false);
+        //isLoading.setValue(false);
         errorMsg.setValue("Fallo de conexión");
       }
     });
+  }
+
+  // Limpia el mensaje para que no se repita al volver de otra pantalla
+  public void limpiarMensaje() {
+    errorMsg.setValue(null);
   }
 
 }
