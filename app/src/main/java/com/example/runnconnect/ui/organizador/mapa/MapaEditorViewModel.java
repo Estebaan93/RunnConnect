@@ -2,6 +2,7 @@ package com.example.runnconnect.ui.organizador.mapa;
 
 import android.app.Application;
 import android.location.Location;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.lifecycle.AndroidViewModel;
@@ -181,6 +182,7 @@ public class MapaEditorViewModel extends AndroidViewModel {
       public void onFailure(Call<MapaEventoResponse> call, Throwable t) {
         isLoading.setValue(false);
         mensaje.setValue("Error al cargar ruta previa");
+        Log.d("ErrorRecuperarRuta", "Error: "+t.getMessage());
       }
     });
   }

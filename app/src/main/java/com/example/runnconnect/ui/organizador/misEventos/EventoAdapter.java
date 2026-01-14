@@ -56,15 +56,26 @@ public class EventoAdapter extends RecyclerView.Adapter<EventoAdapter.EventoView
     holder.tvEstado.setText(estado);
 
     // Lógica de colores segura
-    if (estado.equals("PUBLICADO")) {
-      holder.tvEstado.setTextColor(Color.parseColor("#2E7D32")); // Verde
-      holder.tvEstado.setBackgroundColor(Color.parseColor("#E8F5E9"));
-    } else if (estado.equals("FINALIZADO")) {
-      holder.tvEstado.setTextColor(Color.parseColor("#616161")); // Gris
-      holder.tvEstado.setBackgroundColor(Color.parseColor("#F5F5F5"));
-    } else {
-      holder.tvEstado.setTextColor(Color.parseColor("#C62828")); // Rojo
-      holder.tvEstado.setBackgroundColor(Color.parseColor("#FFEBEE"));
+    switch (estado) {
+      case "PUBLICADO":
+        holder.tvEstado.setTextColor(Color.parseColor("#2E7D32")); // Verde
+        holder.tvEstado.setBackgroundColor(Color.parseColor("#E8F5E9"));
+        break;
+      case "SUSPENDIDO":
+        holder.tvEstado.setTextColor(Color.parseColor("#EF6C00")); // Naranja Oscuro
+        holder.tvEstado.setBackgroundColor(Color.parseColor("#FFF3E0")); // Naranja Claro
+        break;
+      case "FINALIZADO":
+        holder.tvEstado.setTextColor(Color.parseColor("#616161")); // Gris
+        holder.tvEstado.setBackgroundColor(Color.parseColor("#F5F5F5"));
+        break;
+      case "CANCELADO":
+        holder.tvEstado.setTextColor(Color.parseColor("#C62828")); // Rojo
+        holder.tvEstado.setBackgroundColor(Color.parseColor("#FFEBEE"));
+        break;
+      default:
+        holder.tvEstado.setTextColor(Color.BLACK);
+        holder.tvEstado.setBackgroundColor(Color.WHITE);
     }
 
     //conf de click en la tarjeta

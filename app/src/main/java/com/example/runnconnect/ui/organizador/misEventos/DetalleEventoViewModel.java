@@ -1,6 +1,7 @@
 package com.example.runnconnect.ui.organizador.misEventos;
 
 import android.app.Application;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.lifecycle.AndroidViewModel;
@@ -57,7 +58,7 @@ public class DetalleEventoViewModel extends AndroidViewModel {
     isLoading.setValue(true);
     CambiarEstadoRequest request = new CambiarEstadoRequest(nuevoEstado, motivo);
 
-    repositorio.cambiarEstado(idEvento, request, new Callback<ResponseBody>() { // Crea este método en repo
+    repositorio.cambiarEstado(idEvento, request, new Callback<ResponseBody>() { // Crea este mtodo en repo
       @Override
       public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
         isLoading.setValue(false);
@@ -66,6 +67,7 @@ public class DetalleEventoViewModel extends AndroidViewModel {
           cargarDetalle(idEvento); // Recargar datos para ver el cambio
         } else {
           errorMsg.setValue("Error al actualizar estado");
+          Log.d("ErrorActualizarEstado", "Error: "+response.code());
         }
       }
 

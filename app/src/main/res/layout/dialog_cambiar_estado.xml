@@ -30,6 +30,15 @@
         android:padding="8dp"/>
 
     <RadioButton
+        android:id="@+id/rbSuspendido"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Suspendido (Pausar / Reprogramar)"
+        android:textColor="#FF9800"
+        android:textStyle="bold"
+        android:padding="8dp"/>
+
+    <RadioButton
         android:id="@+id/rbFinalizado"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

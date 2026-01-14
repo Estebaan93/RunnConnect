@@ -94,6 +94,7 @@ public class MisEventosViewModel extends AndroidViewModel {
         } else {
           // Si el servidor devuelve error (ej: 401, 500)
           errorMsg.setValue("Error del servidor: " + response.code());
+          Log.d("ErrorServidor", "onResponse: " + response.code());
         }
       }
 

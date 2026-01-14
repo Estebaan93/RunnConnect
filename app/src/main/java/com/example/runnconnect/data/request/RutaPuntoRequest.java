@@ -10,4 +10,7 @@ public class RutaPuntoRequest {
     this.latitud=latitud;
     this.longitud=longitud;
   }
+  public int getOrden() { return orden; }
+  public double getLatitud() { return latitud; }
+  public double getLongitud() { return longitud; }
 }

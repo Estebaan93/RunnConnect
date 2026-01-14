@@ -65,6 +65,26 @@ public class DetalleEventoFragment extends Fragment {
       binding.tvInscriptosCount.setText(String.valueOf(evento.getInscriptosActuales()));
       binding.tvCupoTotal.setText(String.valueOf(evento.getCupoTotal()));
       binding.tvEstadoDetalle.setText(evento.getEstado().toUpperCase());
+
+      // --- LOGICA DE COLORES ---
+      String estado = evento.getEstado().toUpperCase();
+
+      switch (estado) {
+        case "PUBLICADO":
+          binding.tvEstadoDetalle.setTextColor(android.graphics.Color.parseColor("#2E7D32")); // Verde
+          break;
+        case "SUSPENDIDO":
+          binding.tvEstadoDetalle.setTextColor(android.graphics.Color.parseColor("#FF9800")); // Naranja
+          break;
+        case "FINALIZADO":
+          binding.tvEstadoDetalle.setTextColor(android.graphics.Color.GRAY); // Gris
+          break;
+        case "CANCELADO":
+          binding.tvEstadoDetalle.setTextColor(android.graphics.Color.RED); // Rojo
+          break;
+        default:
+          binding.tvEstadoDetalle.setTextColor(android.graphics.Color.BLACK);
+      }
     });
 
     viewModel.getErrorMsg().observe(getViewLifecycleOwner(), msg -> {
@@ -92,13 +112,14 @@ public class DetalleEventoFragment extends Fragment {
     // if (estadoActual.equalsIgnoreCase("PUBLICADO")) rbPublicado.setChecked(true);
 
     builder.setPositiveButton("Guardar", (dialog, which) -> {
-      // 3. Verificar qué opción se eligió
+      // 3. Verificar que opcion se eligio
       int selectedId = rgEstado.getCheckedRadioButtonId();
       String nuevoEstado = "";
 
       if (selectedId == R.id.rbPublicado) nuevoEstado = "publicado";
       else if (selectedId == R.id.rbFinalizado) nuevoEstado = "finalizado";
       else if (selectedId == R.id.rbCancelado) nuevoEstado = "cancelado";
+      else if(selectedId==R.id.rbSuspendido) nuevoEstado="suspendido";
       else {
         Toast.makeText(getContext(), "Debes seleccionar un estado", Toast.LENGTH_SHORT).show();
         return;
@@ -106,9 +127,9 @@ public class DetalleEventoFragment extends Fragment {
 
       String motivo = etMotivo.getText().toString();
 
-      // Validación: Cancelado requiere motivo
-      if (nuevoEstado.equals("cancelado") && motivo.trim().isEmpty()) {
-        Toast.makeText(getContext(), "Para cancelar, el motivo es obligatorio.", Toast.LENGTH_LONG).show();
+      // validacion: cancelado y suspendido requieren motivo
+      if ((nuevoEstado.equals("cancelado") || nuevoEstado.equals("suspendido"))&& motivo.trim().isEmpty()) {
+        Toast.makeText(getContext(), "Para cancelar o suspender, el motivo es obligatorio.", Toast.LENGTH_LONG).show();
         return; // Nota: En un dialog estándar, esto cerrará el dialog igual.
         // Para evitar que se cierre al fallar validación, se requiere un manejo más avanzado del botón Positive.
       }
