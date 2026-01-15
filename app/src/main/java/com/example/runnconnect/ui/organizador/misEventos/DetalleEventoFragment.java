@@ -1,13 +1,18 @@
 package com.example.runnconnect.ui.organizador.misEventos;
 
-import android.app.AlertDialog;
+import android.content.Context;
+import android.graphics.Color;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.Navigation;
@@ -22,47 +27,46 @@ public class DetalleEventoFragment extends Fragment {
 
   public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
     binding = FragmentDetalleEventoBinding.inflate(inflater, container, false);
-    binding.btnCambiarEstado.setOnClickListener(v-> mostrarDialogoEstado());
     viewModel = new ViewModelProvider(this).get(DetalleEventoViewModel.class);
 
-    // 1. Recuperar el ID enviado desde la lista
     if (getArguments() != null) {
       idEvento = getArguments().getInt("idEvento", 0);
     }
 
-    // 2. Cargar datos
     if (idEvento != 0) {
       viewModel.cargarDetalle(idEvento);
     } else {
       Toast.makeText(getContext(), "Error: ID de evento inválido", Toast.LENGTH_SHORT).show();
     }
 
+    setupListeners();
     setupObservers();
 
-    // btn para ir al editor de mapa (reutilizamos tu fragmento existente)
+    return binding.getRoot();
+  }
+
+  private void setupListeners() {
+    binding.btnCambiarEstado.setOnClickListener(v -> mostrarDialogoEstado());
+
     binding.btnVerMapa.setOnClickListener(v -> {
       Bundle args = new Bundle();
       args.putInt("idEvento", idEvento);
-      // Navegar al fragmento que ya tienes creado en ui/organizador/mapa
       Navigation.findNavController(v).navigate(R.id.action_detalle_to_mapaEditor, args);
     });
 
-    //btn para habilitar info
     binding.btnEditarInfo.setOnClickListener(v -> {
       Bundle args = new Bundle();
-      args.putInt("idEvento", idEvento); // Pasamos el ID para activar modo edición
-
-      // Navegamos al fragmento que antes solo era para crear
+      args.putInt("idEvento", idEvento);
       try {
         Navigation.findNavController(v).navigate(R.id.action_detalle_to_editarEvento, args);
       } catch (Exception e) {
-        // Fallback: intentar navegar directo por ID de destino si la acción no existe
-        Navigation.findNavController(v).navigate(R.id.nav_editar_evento, args);
+        try {
+          Navigation.findNavController(v).navigate(R.id.nav_crear_evento, args);
+        } catch (Exception ex) {
+          Toast.makeText(getContext(), "Error navegación", Toast.LENGTH_SHORT).show();
+        }
       }
     });
-
-
-    return binding.getRoot();
   }
 
   private void setupObservers() {
@@ -74,108 +78,96 @@ public class DetalleEventoFragment extends Fragment {
       if (evento == null) return;
 
       binding.tvTituloDetalle.setText(evento.getNombre());
-      binding.tvFechaDetalle.setText(evento.getFechaHora().replace("T", " "));
+      binding.tvFechaDetalle.setText(evento.getFechaHora() != null ? evento.getFechaHora().replace("T", " ") : "");
       binding.tvLugarDetalle.setText(evento.getLugar());
       binding.tvDescripcion.setText(evento.getDescripcion());
       binding.tvInscriptosCount.setText(String.valueOf(evento.getInscriptosActuales()));
       binding.tvCupoTotal.setText(String.valueOf(evento.getCupoTotal()));
       binding.tvEstadoDetalle.setText(evento.getEstado().toUpperCase());
 
-      // --- LOGICA DE COLORES ---
       String estado = evento.getEstado().toUpperCase();
-
       switch (estado) {
         case "PUBLICADO":
-          binding.tvEstadoDetalle.setTextColor(android.graphics.Color.parseColor("#2E7D32")); // Verde
+          binding.tvEstadoDetalle.setTextColor(Color.parseColor("#2E7D32"));
           break;
         case "SUSPENDIDO":
-          binding.tvEstadoDetalle.setTextColor(android.graphics.Color.parseColor("#FF9800")); // Naranja
+          binding.tvEstadoDetalle.setTextColor(Color.parseColor("#FF9800"));
           break;
         case "FINALIZADO":
-          binding.tvEstadoDetalle.setTextColor(android.graphics.Color.GRAY); // Gris
+          binding.tvEstadoDetalle.setTextColor(Color.GRAY);
           break;
         case "CANCELADO":
-          binding.tvEstadoDetalle.setTextColor(android.graphics.Color.RED); // Rojo
+          binding.tvEstadoDetalle.setTextColor(Color.RED);
           break;
         default:
-          binding.tvEstadoDetalle.setTextColor(android.graphics.Color.BLACK);
+          binding.tvEstadoDetalle.setTextColor(Color.BLACK);
       }
     });
 
     viewModel.getErrorMsg().observe(getViewLifecycleOwner(), msg -> {
-      if (msg != null) Toast.makeText(getContext(), msg, Toast.LENGTH_SHORT).show();
-      viewModel.limpiarMensaje();
+      if (msg != null && !msg.isEmpty()) {
+        Toast.makeText(getContext(), msg, Toast.LENGTH_SHORT).show();
+        viewModel.limpiarMensaje();
+      }
     });
   }
 
   private void mostrarDialogoEstado() {
     AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
-    builder.setTitle("Administrar Estado");
-
     View view = getLayoutInflater().inflate(R.layout.dialog_cambiar_estado, null);
     builder.setView(view);
 
-    // Referencias
     android.widget.RadioGroup rgEstado = view.findViewById(R.id.rgEstado);
     android.widget.EditText etMotivo = view.findViewById(R.id.etMotivo);
 
-    // IMPORTANTE: Ponemos NULL aquí para que no tenga comportamiento por defecto
     builder.setPositiveButton("Guardar", null);
     builder.setNegativeButton("Cerrar", null);
 
-    // Creamos el dialog pero no lo mostramos aun
     AlertDialog dialog = builder.create();
-    dialog.show(); // Lo mostramos para poder acceder a sus botones
+    dialog.show();
 
-    // AHORA SI: Sobreescribimos el botón para tener control manual
     dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
-
-      // 1. Validaciones (Tu lógica original)
+      // 1. Validaciones
       int selectedId = rgEstado.getCheckedRadioButtonId();
       String nuevoEstadoTemp = "";
 
       if (selectedId == R.id.rbPublicado) nuevoEstadoTemp = "publicado";
+      else if (selectedId == R.id.rbSuspendido) nuevoEstadoTemp = "suspendido";
       else if (selectedId == R.id.rbFinalizado) nuevoEstadoTemp = "finalizado";
       else if (selectedId == R.id.rbCancelado) nuevoEstadoTemp = "cancelado";
-      else if(selectedId == R.id.rbSuspendido) nuevoEstadoTemp = "suspendido";
       else {
-        Toast.makeText(getContext(), "Debes seleccionar un estado", Toast.LENGTH_SHORT).show();
+        Toast.makeText(getContext(), "Selecciona un estado", Toast.LENGTH_SHORT).show();
         return;
       }
 
-      String motivo = etMotivo.getText().toString();
-
-      if ((nuevoEstadoTemp.equals("cancelado") || nuevoEstadoTemp.equals("suspendido")) && motivo.trim().isEmpty()) {
-        Toast.makeText(getContext(), "Para cancelar o suspender, el motivo es obligatorio.", Toast.LENGTH_LONG).show();
+      String motivo = etMotivo.getText().toString().trim();
+      if ((nuevoEstadoTemp.equals("cancelado") || nuevoEstadoTemp.equals("suspendido")) && motivo.isEmpty()) {
+        etMotivo.setError("Motivo requerido");
         return;
       }
 
-      // 2. MAGIA ANTI-ANR:
-
-      // A. Forzar cierre de teclado
-      try {
-        android.view.inputmethod.InputMethodManager imm = (android.view.inputmethod.InputMethodManager)
-          requireContext().getSystemService(android.content.Context.INPUT_METHOD_SERVICE);
-        imm.hideSoftInputFromWindow(etMotivo.getWindowToken(), 0);
-      } catch (Exception e) { e.printStackTrace(); }
-
-      // B. Deshabilitar botón para que no le den click 2 veces
+      // 2. Prevenir doble click
       v.setEnabled(false);
 
-      // C. Variables finales para el Handler
-      final String estadoDefinitivo = nuevoEstadoTemp;
+      // 3. Ocultar teclado (Usando el foco del diálogo para asegurar referencia)
+      try {
+        View focus = dialog.getCurrentFocus();
+        if (focus != null) {
+          InputMethodManager imm = (InputMethodManager) requireContext().getSystemService(Context.INPUT_METHOD_SERVICE);
+          imm.hideSoftInputFromWindow(focus.getWindowToken(), 0);
+        }
+      } catch (Exception e) { e.printStackTrace(); }
 
-      // D. Esperar a que el teclado se vaya y luego actuar
-      new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(() -> {
+      // 4. CERRAR EL DIALOGO PRIMERO (Importante para evitar freeze)
+      dialog.dismiss();
 
-        // Llamamos a la API (Esto ya no colgará la app)
-        viewModel.cambiarEstado(idEvento, estadoDefinitivo, motivo);
-
-        // CERRAMOS EL DIALOGO MANUALMENTE AQUI
-        dialog.dismiss();
-
-      }, 500); // 500ms de seguridad
+      final String estadoFinal = nuevoEstadoTemp;
+      final String motivoFinal = motivo;
+      // 5. INICIAR CARGA CON RETARDO (Desacople de hilos UI)
+      // Esto permite que la ventana del diálogo se destruya completamente antes de estresar la UI con el loading
+      new Handler(Looper.getMainLooper()).postDelayed(() -> {
+        viewModel.cambiarEstado(idEvento, estadoFinal, motivoFinal);
+      }, 300); // 300ms de pausa técnica
     });
   }
-
 }

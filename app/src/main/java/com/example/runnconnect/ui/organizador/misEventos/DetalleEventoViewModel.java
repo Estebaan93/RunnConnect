@@ -1,8 +1,6 @@
 package com.example.runnconnect.ui.organizador.misEventos;
 
 import android.app.Application;
-import android.util.Log;
-
 import androidx.annotation.NonNull;
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
@@ -33,66 +31,67 @@ public class DetalleEventoViewModel extends AndroidViewModel {
   public LiveData<String> getErrorMsg() { return errorMsg; }
 
   public void cargarDetalle(int idEvento) {
-    //isLoading.setValue(true);
+    isLoading.setValue(true);
     repositorio.obtenerDetalleEvento(idEvento, new Callback<EventoDetalleResponse>() {
       @Override
       public void onResponse(Call<EventoDetalleResponse> call, Response<EventoDetalleResponse> response) {
-        //isLoading.setValue(false);
+        isLoading.setValue(false);
         if (response.isSuccessful() && response.body() != null) {
           evento.setValue(response.body());
         } else {
-          errorMsg.setValue("Error al cargar detalle: " + response.code());
+          errorMsg.setValue("Error al cargar detalle");
         }
       }
 
       @Override
       public void onFailure(Call<EventoDetalleResponse> call, Throwable t) {
-        //isLoading.setValue(false);
+        isLoading.setValue(false);
         errorMsg.setValue("Error de conexión");
       }
     });
   }
 
-  //cambiar estado
   public void cambiarEstado(int idEvento, String nuevoEstado, String motivo) {
-    //isLoading.setValue(true);
-    Log.d("DEBUG_ESTADO", "ID: " + idEvento + " | Estado: " + nuevoEstado + " | Motivo: " + motivo);
+    isLoading.setValue(true); // Se activa el loading
 
-    CambiarEstadoRequest request = new CambiarEstadoRequest(nuevoEstado, motivo);
+    try {
+      CambiarEstadoRequest request = new CambiarEstadoRequest(nuevoEstado, motivo);
 
-    repositorio.cambiarEstado(idEvento, request, new Callback<ResponseBody>() { // Crea este mtodo en repo
-      @Override
-      public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
-        //isLoading.setValue(false);
+      repositorio.cambiarEstado(idEvento, request, new Callback<ResponseBody>() {
+        @Override
+        public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+          isLoading.setValue(false); // Apagamos loading
 
-        if (response.isSuccessful()) {
-          errorMsg.setValue("Estado actualizado correctamente");
+          if (response.isSuccessful()) {
+            errorMsg.setValue("Estado actualizado correctamente");
 
-          // --- SOLUCION: ACTUALIZAR LOCALMENTE EN VEZ DE RELOAD ---
-          EventoDetalleResponse actual = evento.getValue();
-          if (actual != null) {
-            actual.setEstado(nuevoEstado);
-
-            evento.setValue(actual);
-          } else{
-            errorMsg.setValue("Estado actualizado");
+            // Actualización optimista en local
+            EventoDetalleResponse actual = evento.getValue();
+            if (actual != null) {
+              actual.setEstado(nuevoEstado);
+              evento.setValue(actual);
+            } else {
+              cargarDetalle(idEvento);
+            }
+          } else {
+            errorMsg.setValue("Error al actualizar: " + response.code());
           }
-        } else {
-          errorMsg.setValue("Error al actualizar: " + response.code());
         }
-      }
 
-      @Override
-      public void onFailure(Call<ResponseBody> call, Throwable t) {
-        //isLoading.setValue(false);
-        errorMsg.setValue("Fallo de conexión");
-      }
-    });
+        @Override
+        public void onFailure(Call<ResponseBody> call, Throwable t) {
+          isLoading.setValue(false); // Apagamos loading
+          errorMsg.setValue("Fallo de conexión: " + t.getMessage());
+        }
+      });
+    } catch (Exception e) {
+      // Si falla la creación del request o el repositorio explota antes de llamar
+      isLoading.setValue(false);
+      errorMsg.setValue("Error interno: " + e.getMessage());
+    }
   }
 
-  // Limpia el mensaje para que no se repita al volver de otra pantalla
   public void limpiarMensaje() {
     errorMsg.setValue(null);
   }
-
 }
