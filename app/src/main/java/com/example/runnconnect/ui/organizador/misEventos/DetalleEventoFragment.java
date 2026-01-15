@@ -120,6 +120,28 @@ public class DetalleEventoFragment extends Fragment {
     android.widget.RadioGroup rgEstado = view.findViewById(R.id.rgEstado);
     android.widget.EditText etMotivo = view.findViewById(R.id.etMotivo);
 
+    // Recuperamos el evento actual del ViewModel
+    if (viewModel.getEvento().getValue() != null) {
+      String estadoActual = viewModel.getEvento().getValue().getEstado(); // Ej: "suspendido"
+
+      if (estadoActual != null) {
+        switch (estadoActual.toLowerCase()) {
+          case "publicado":
+            rgEstado.check(R.id.rbPublicado);
+            break;
+          case "suspendido":
+            rgEstado.check(R.id.rbSuspendido);
+            break;
+          case "finalizado":
+            rgEstado.check(R.id.rbFinalizado);
+            break;
+          case "cancelado":
+            rgEstado.check(R.id.rbCancelado);
+            break;
+        }
+      }
+    }
+
     builder.setPositiveButton("Guardar", null);
     builder.setNegativeButton("Cerrar", null);
 

@@ -21,6 +21,7 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
 
@@ -34,6 +35,9 @@ public class MapaEditorFragment extends Fragment implements OnMapReadyCallback {
 
   // El ID del evento que viene del paso anterior
   private int idEvento = 0;
+
+  //bandera para centrar la camara
+  private boolean camaraCentradaInicialmente= false;
 
   //variable para alternar tipo de mapa
   private int currentMapType= GoogleMap.MAP_TYPE_HYBRID;
@@ -70,18 +74,19 @@ public class MapaEditorFragment extends Fragment implements OnMapReadyCallback {
     // INICIO: Modo Hhbrido (Mejor para Trail/Montaña por defecto)
     mMap.setMapType(currentMapType);
 
-    // Configuracion inicial: Zoom en San Luis (o ubicacin del usuario si tuvieramos permiso GPS)
-    LatLng sanLuisCentro = new LatLng(-33.29501, -66.33563);
-    mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(sanLuisCentro, 13));
-
     // Habilitar controles de zoom
     mMap.getUiSettings().setZoomControlsEnabled(true);
 
-    // Si editamos un evento existente, cargamos su ruta
-    if(idEvento!=0){
+    /*si el evento es nuevo se muestra el centro de san luis -
+    * si el evnto existe cargamos el punto 1 o largada para enfocar la ruta*/
+
+    if (idEvento == 0) {
+      LatLng sanLuisCentro = new LatLng(-33.29501, -66.33563);
+      mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(sanLuisCentro, 13));
+    } else {
+      // Si hay ID, cargamos la ruta. La cámara se moverá en 'dibujarRuta'
       viewModel.cargarRutaExistente(idEvento);
     }
-
     // Listener: Al tocar el mapa, agregamos un punto
     mMap.setOnMapClickListener(latLng -> {
       viewModel.agregarPunto(latLng);
@@ -173,10 +178,32 @@ public class MapaEditorFragment extends Fragment implements OnMapReadyCallback {
         .title("Meta")
         .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)));
     }
+// --- CORRECCIÓN CLAVE: MOVER CÁMARA AUTOMÁTICAMENTE ---
+    // Si estamos editando un evento existente y es la PRIMERA VEZ que dibujamos la ruta cargada
+    // y NO hemos centrado la cámara todavía:
+    if (idEvento != 0 && !camaraCentradaInicialmente && !puntos.isEmpty()) {
 
-    // Puntos intermedios (Puntos criticos) se veran después...
+      // Opción A: Centrar solo en la Largada con Zoom Alto
+      // mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(puntos.get(0), 16));
+
+      // Opción B (RECOMENDADA): Encuadrar toda la ruta para verla completa
+      try {
+        LatLngBounds.Builder builder = new LatLngBounds.Builder();
+        for (LatLng p : puntos) {
+          builder.include(p);
+        }
+        LatLngBounds bounds = builder.build();
+        // moveCamera con padding de 100 pixels para que no quede pegado al borde
+        mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, 100));
+      } catch (Exception e) {
+        // Fallback si la ruta es un solo punto o error de bounds: ir a la largada
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(puntos.get(0), 15));
+      }
+
+      // Marcamos como centrado para que al seguir editando no te mueva la cámara a cada rato
+      camaraCentradaInicialmente = true;
+    }
+
   }
-
-
 
 }

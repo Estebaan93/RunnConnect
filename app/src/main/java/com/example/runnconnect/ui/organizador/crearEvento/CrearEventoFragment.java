@@ -40,6 +40,17 @@ public class CrearEventoFragment extends Fragment {
     setupListeners();
     setupObservers();
 
+    //detectar si es edicion
+    if(getArguments() !=null){
+      int idRecibido= getArguments().getInt("idEvento",0);
+
+      //si es id es mayor a 0, le avisamos al viewModel que cargue los datos
+      if(idRecibido>0){
+        viewModel.verificarModoEdicion(idRecibido);
+      }
+    }
+
+
     return binding.getRoot();
   }
 
@@ -59,7 +70,7 @@ public class CrearEventoFragment extends Fragment {
 
   private void setupSpinners() {
     // 1. Modalidades
-    String[] modalidades = {"Calle", "Trail", "Cross", "Aventura", "Obstáculos", "Caminata", "Kids", "MTB", "Triatlón"};
+    String[] modalidades = {"Calle", "Trail", "Cross", "Aventura", "Obstáculos", "Correcaminata", "Kids", "Triatlón"};
     ArrayAdapter<String> adapterMod = new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_dropdown_item, modalidades);
     binding.spModalidad.setAdapter(adapterMod);
 
@@ -117,7 +128,16 @@ public class CrearEventoFragment extends Fragment {
     // 2. NAVEGACIÓN AL MAPA/ATRAS
     viewModel.getIrAlMapa().observe(getViewLifecycleOwner(), idEvento -> {
       if (idEvento != null) {
-        Navigation.findNavController(requireView()).popBackStack();
+        if (binding.btnContinuarMapa.getText().toString().contains("Guardar Cambios")) {
+          Navigation.findNavController(requireView()).popBackStack();
+        } else {
+          // Flujo normal de creación
+          Bundle args = new Bundle();
+          args.putInt("idEvento", idEvento);
+          try {
+            Navigation.findNavController(requireView()).navigate(R.id.action_crear_a_mapaEditor, args);
+          } catch (Exception e) { e.printStackTrace(); }
+        }
         viewModel.resetearNav();
       }
     });
@@ -135,8 +155,48 @@ public class CrearEventoFragment extends Fragment {
       binding.etTitulo.setText(evento.getNombre());
       binding.etDescripcion.setText(evento.getDescripcion());
       binding.etUbicacion.setText(evento.getLugar());
-      binding.etDatosPago.setText(evento.getDatosPago());
 
+      //campos no editables
+      binding.etTitulo.setEnabled(false);
+      binding.etUbicacion.setEnabled(false);
+
+      binding.tvTituloCat.setVisibility(View.VISIBLE);
+      //distancia
+      binding.lblDistancia.setVisibility(View.VISIBLE);
+      binding.etDistanciaValor.setVisibility(View.VISIBLE);
+      binding.etDistanciaValor.setEnabled(false); // Solo lectura
+
+      // Los Chips (Botones de selección rápida) los ocultamos porque confunden
+      // si no se pueden usar. El valor se ve en el EditText.
+      binding.scrollChips.setVisibility(View.GONE);
+
+      // Modalidad
+      binding.lblModalidad.setVisibility(View.VISIBLE);
+      binding.spModalidad.setVisibility(View.VISIBLE);
+      binding.spModalidad.setEnabled(false); // Solo lectura
+
+      // Género
+      binding.lblGenero.setVisibility(View.VISIBLE);
+      binding.spGeneroCat.setVisibility(View.VISIBLE);
+      binding.spGeneroCat.setEnabled(false); // Solo lectura
+
+      // Edades
+      binding.lblEdad.setVisibility(View.VISIBLE);
+      binding.etEdadMin.setVisibility(View.VISIBLE);
+      binding.etEdadMax.setVisibility(View.VISIBLE);
+      binding.etEdadMin.setEnabled(false);
+      binding.etEdadMax.setEnabled(false);
+
+      // Precio
+      binding.lblCatPrecio.setVisibility(View.VISIBLE);
+      binding.etCatPrecio.setVisibility(View.VISIBLE);
+      binding.etCatPrecio.setEnabled(false); // Solo lectura
+
+
+      // Manejo de nulos en Datos de Pago
+      if (evento.getDatosPago() != null) {
+        binding.etDatosPago.setText(evento.getDatosPago());
+      }
       // C. Llenar Cupo (Ahora funciona porque Integer acepta null)
       if (evento.getCupoTotal() != null && evento.getCupoTotal() > 0) {
         binding.etCupo.setText(String.valueOf(evento.getCupoTotal()));
@@ -222,4 +282,6 @@ public class CrearEventoFragment extends Fragment {
       }, cal.get(Calendar.HOUR_OF_DAY), cal.get(Calendar.MINUTE), true).show();
     });
   }
+
+
 }
