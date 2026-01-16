@@ -102,6 +102,39 @@ public class DetalleEventoFragment extends Fragment {
         default:
           binding.tvEstadoDetalle.setTextColor(Color.BLACK);
       }
+      // 3. --- NUEVO: DATOS TÉCNICOS (CATEGORÍA) ---
+      if (evento.getCategorias() != null && !evento.getCategorias().isEmpty()) {
+        // Tomamos la primera categoría (asumiendo evento simple)
+        var cat = evento.getCategorias().get(0);
+
+        // A. Distancia y Modalidad (Viene en "nombre": "10K Trail")
+        // Si quieres separarlo bonito:
+        String distMod = cat.getNombre();
+        if(distMod == null) distMod = "Sin categoría";
+        binding.tvDistanciaTipo.setText(distMod);
+
+        // B. Género (Parseo visual)
+        String generoCode = cat.getGenero();
+        String generoTexto = "General";
+        if ("F".equalsIgnoreCase(generoCode)) generoTexto = "Femenino";
+        else if ("M".equalsIgnoreCase(generoCode)) generoTexto = "Masculino";
+        else if ("X".equalsIgnoreCase(generoCode)) generoTexto = "Mixto";
+
+        // C. Precio
+        String precio = "$" + cat.getPrecio();
+
+        // Seteamos el texto combinado
+        binding.tvGeneroPrecio.setText(String.format("%s  |  %s", generoTexto, precio));
+
+        // Hacemos visibles los campos por si acaso estaban gone
+        binding.tvDistanciaTipo.setVisibility(View.VISIBLE);
+        binding.tvGeneroPrecio.setVisibility(View.VISIBLE);
+
+      } else {
+        // Si no hay categorías, ocultamos o mostramos "Sin datos"
+        binding.tvDistanciaTipo.setText("Sin datos de categoría");
+        binding.tvGeneroPrecio.setVisibility(View.GONE);
+      }
     });
 
     viewModel.getErrorMsg().observe(getViewLifecycleOwner(), msg -> {
