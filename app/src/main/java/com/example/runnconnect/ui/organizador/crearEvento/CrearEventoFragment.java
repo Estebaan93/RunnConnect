@@ -8,6 +8,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Spinner;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -125,13 +126,12 @@ public class CrearEventoFragment extends Fragment {
       binding.tvMensajeGlobal.setVisibility(msg != null && !msg.isEmpty() ? View.VISIBLE : View.GONE);
     });
 
-    // 2. NAVEGACIÓN AL MAPA/ATRAS
+    // 2. Navegación
     viewModel.getIrAlMapa().observe(getViewLifecycleOwner(), idEvento -> {
       if (idEvento != null) {
         if (binding.btnContinuarMapa.getText().toString().contains("Guardar Cambios")) {
           Navigation.findNavController(requireView()).popBackStack();
         } else {
-          // Flujo normal de creación
           Bundle args = new Bundle();
           args.putInt("idEvento", idEvento);
           try {
@@ -142,8 +142,7 @@ public class CrearEventoFragment extends Fragment {
       }
     });
 
-    // 3. CARGAR DATOS (AUTOCOMPLETAR)
-    // Este observer detecta cuando la API trajo los datos del evento a editar
+    // 3. CARGAR DATOS (LOGICA CORREGIDA PARA MOSTRAR TODO)
     viewModel.getEventoCargado().observe(getViewLifecycleOwner(), evento -> {
       if (evento == null) return;
 
@@ -151,117 +150,110 @@ public class CrearEventoFragment extends Fragment {
       binding.tvTituloPagina.setText("Editar Evento");
       binding.btnContinuarMapa.setText("Guardar Cambios");
 
-      // B. Llenar Campos de Texto
+      // B. Campos Editables
       binding.etTitulo.setText(evento.getNombre());
       binding.etDescripcion.setText(evento.getDescripcion());
       binding.etUbicacion.setText(evento.getLugar());
 
-      //campos no editables
+      // C. Bloquear campos de integridad
       binding.etTitulo.setEnabled(false);
       binding.etUbicacion.setEnabled(false);
 
+      // D. Mostrar y Bloquear Campos de Categoría
       binding.tvTituloCat.setVisibility(View.VISIBLE);
-      //distancia
       binding.lblDistancia.setVisibility(View.VISIBLE);
       binding.etDistanciaValor.setVisibility(View.VISIBLE);
-      binding.etDistanciaValor.setEnabled(false); // Solo lectura
-
-      // Los Chips (Botones de selección rápida) los ocultamos porque confunden
-      // si no se pueden usar. El valor se ve en el EditText.
-      binding.scrollChips.setVisibility(View.GONE);
-
-      // Modalidad
+      binding.etDistanciaValor.setEnabled(false);
       binding.lblModalidad.setVisibility(View.VISIBLE);
       binding.spModalidad.setVisibility(View.VISIBLE);
-      binding.spModalidad.setEnabled(false); // Solo lectura
-
-      // Género
+      binding.spModalidad.setEnabled(false);
       binding.lblGenero.setVisibility(View.VISIBLE);
       binding.spGeneroCat.setVisibility(View.VISIBLE);
-      binding.spGeneroCat.setEnabled(false); // Solo lectura
-
-      // Edades
+      binding.spGeneroCat.setEnabled(false);
       binding.lblEdad.setVisibility(View.VISIBLE);
       binding.etEdadMin.setVisibility(View.VISIBLE);
       binding.etEdadMax.setVisibility(View.VISIBLE);
       binding.etEdadMin.setEnabled(false);
       binding.etEdadMax.setEnabled(false);
-
-      // Precio
       binding.lblCatPrecio.setVisibility(View.VISIBLE);
       binding.etCatPrecio.setVisibility(View.VISIBLE);
-      binding.etCatPrecio.setEnabled(false); // Solo lectura
+      binding.etCatPrecio.setEnabled(false);
+      binding.scrollChips.setVisibility(View.GONE);
 
+      // --- LLENAR DATOS DE LA CATEGORÍA (NUEVO) ---
+      if (evento.getCategorias() != null && !evento.getCategorias().isEmpty()) {
+        var cat = evento.getCategorias().get(0);
 
-      // Manejo de nulos en Datos de Pago
-      if (evento.getDatosPago() != null) {
-        binding.etDatosPago.setText(evento.getDatosPago());
+        // 1. Precio (Mapeado desde costoInscripcion)
+        binding.etCatPrecio.setText(String.valueOf(cat.getPrecio()));
+
+        // 2. Edades
+        binding.etEdadMin.setText(String.valueOf(cat.getEdadMinima()));
+        binding.etEdadMax.setText(String.valueOf(cat.getEdadMaxima()));
+
+        // 3. Distancia y Modalidad (Parseo de "5K Calle")
+        String nombreCompleto = cat.getNombre();
+        if (nombreCompleto != null) {
+          String[] partes = nombreCompleto.split(" ");
+          if (partes.length > 0) {
+            // Parte 1: Distancia (quitamos la K visualmente si quieres, o la dejas)
+            binding.etDistanciaValor.setText(partes[0].replace("K", ""));
+          }
+          if (partes.length > 1) {
+            // Parte 2: Modalidad (Selecciona en el spinner)
+            seleccionarEnSpinner(binding.spModalidad, partes[1]);
+          } else {
+            // Fallback
+            binding.etDistanciaValor.setText(nombreCompleto);
+          }
+        }
+
+        // 4. Género
+        seleccionarEnSpinner(binding.spGeneroCat, cat.getGenero());
       }
-      // C. Llenar Cupo (Ahora funciona porque Integer acepta null)
-      if (evento.getCupoTotal() != null && evento.getCupoTotal() > 0) {
-        binding.etCupo.setText(String.valueOf(evento.getCupoTotal()));
-      }
 
-      // D. Procesar Fecha y Hora (yyyy-MM-ddTHH:mm:ss)
+      // E. Resto de campos
+      if (evento.getDatosPago() != null) binding.etDatosPago.setText(evento.getDatosPago());
+      if (evento.getCupoTotal() != null) binding.etCupo.setText(String.valueOf(evento.getCupoTotal()));
+
       if (evento.getFechaHora() != null && evento.getFechaHora().contains("T")) {
         try {
           String[] partes = evento.getFechaHora().split("T");
-          String fechaRaw = partes[0]; // "2026-03-20"
-          String horaRaw = partes[1].substring(0, 5); // "15:10"
-
-          // Mostrar en UI (dd/MM/yyyy)
+          String fechaRaw = partes[0];
+          String horaRaw = partes[1].substring(0, 5);
           String[] f = fechaRaw.split("-");
           binding.etFecha.setText(f[2] + "/" + f[1] + "/" + f[0]);
           binding.etHora.setText(horaRaw);
-
-          // IMPORTANTE: Guardar en variables internas del ViewModel
-          // para que al dar "Guardar" sin tocar la fecha, no diga "Fecha inválida"
           viewModel.setFechaHoraInterna(fechaRaw, horaRaw);
-
-        } catch (Exception e) {
-          e.printStackTrace();
-        }
+        } catch (Exception e) { e.printStackTrace(); }
       }
 
-      // E. Ocultar sección Categorías (No se editan en este paso)
-      binding.tvTituloCat.setVisibility(View.GONE);
-      binding.lblDistancia.setVisibility(View.GONE);
-      binding.etDistanciaValor.setVisibility(View.GONE);
-      binding.scrollChips.setVisibility(View.GONE);
-      binding.lblModalidad.setVisibility(View.GONE);
-      binding.spModalidad.setVisibility(View.GONE);
-      binding.lblGenero.setVisibility(View.GONE);
-      binding.spGeneroCat.setVisibility(View.GONE);
-      binding.lblEdad.setVisibility(View.GONE);
-      binding.etEdadMin.setVisibility(View.GONE);
-      binding.etEdadMax.setVisibility(View.GONE);
-      binding.lblCatPrecio.setVisibility(View.GONE);
-      binding.etCatPrecio.setVisibility(View.GONE);
-
-      binding.tvAvisoMapa.setText("Al guardar, volverás al detalle.");
+      binding.tvAvisoMapa.setText("Nota: Precio, Distancia y Lugar no se editan para mantener integridad.");
     });
+  }
+  // --- HELPER PARA SPINNERS ---
+  // Busca el texto en el spinner y lo selecciona visualmente
+  private void seleccionarEnSpinner(Spinner spinner, String valorBuscado) {
+    if (valorBuscado == null) return;
+    ArrayAdapter adapter = (ArrayAdapter) spinner.getAdapter();
+    for (int i = 0; i < adapter.getCount(); i++) {
+      String item = adapter.getItem(i).toString();
 
-    // 4. NAVEGACIÓN AL MAPA (Paso 2)
-    viewModel.getIrAlMapa().observe(getViewLifecycleOwner(), idEvento -> {
-      if (idEvento != null) {
-        // A. Preparamos el paquete de datos
-        Bundle args = new Bundle();
-        args.putInt("idEvento", idEvento);
+      // Comparación flexible:
+      // 1. Texto exacto (ej: "Trail" == "Trail")
+      // 2. Valores internos (ej: "F" vs "Femenino")
+      boolean coincide = item.equalsIgnoreCase(valorBuscado);
 
-        // B. EJECUTAMOS LA NAVEGACIÓN REAL
-        // Asegúrate que "action_crear_a_mapaEditor" coincida con tu mobile_navigation.xml
-        try {
-          Navigation.findNavController(requireView())
-            .navigate(R.id.action_crear_a_mapaEditor, args);
-        } catch (Exception e) {
-          Toast.makeText(getContext(), "Error nav: Verifique mobile_navigation.xml", Toast.LENGTH_LONG).show();
-          e.printStackTrace();
-        }
+      // Caso especial Genero: "F" -> "Femenino"
+      if (valorBuscado.equals("F") && item.contains("Femenino")) coincide = true;
+      if (valorBuscado.equals("M") && item.contains("Masculino")) coincide = true;
+      if (valorBuscado.equals("X") && item.contains("Mixto")) coincide = true;
 
-        // C. Reseteamos para que no vuelva a navegar si rotas la pantalla
-        viewModel.resetearNav(); // Navigation.findNavController(requireView()).navigate(R.id.action_crear_a_mapa, args);
+      if (coincide) {
+        spinner.setSelection(i);
+        break;
       }
-    });
+    }
   }
 
   // Pickers visuales (Fecha/Hora)
