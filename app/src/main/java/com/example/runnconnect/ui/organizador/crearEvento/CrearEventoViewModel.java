@@ -10,6 +10,7 @@ import com.example.runnconnect.data.repositorio.EventoRepositorio;
 import com.example.runnconnect.data.request.ActualizarEventoRequest;
 import com.example.runnconnect.data.request.CrearCategoriaRequest;
 import com.example.runnconnect.data.request.CrearEventoRequest;
+import com.example.runnconnect.data.response.CategoriaResponse;
 import com.example.runnconnect.data.response.EventoDetalleResponse;
 
 import org.json.JSONObject;
@@ -28,18 +29,39 @@ import retrofit2.Response;
 public class CrearEventoViewModel extends AndroidViewModel {
   private final EventoRepositorio repositorio;
 
-  // Estados
+  // --- LIVE DATA PARA LA VISTA (OUTPUTS) ---
   private final MutableLiveData<Boolean> isLoading = new MutableLiveData<>(false);
   private final MutableLiveData<String> mensajeGlobal = new MutableLiveData<>();
-  private final MutableLiveData<Boolean> esError = new MutableLiveData<>(false);
-  private final MutableLiveData<Integer> irAlMapa = new MutableLiveData<>(null);
 
-  //habilita edicion
-  private final MutableLiveData<EventoDetalleResponse> eventoCargado= new MutableLiveData<>();
-  private boolean esModoEdicion= false;
-  private int idEventoEdicion=0;
+  // Campos de Texto
+  private final MutableLiveData<String> titulo = new MutableLiveData<>();
+  private final MutableLiveData<String> descripcion = new MutableLiveData<>();
+  private final MutableLiveData<String> ubicacion = new MutableLiveData<>();
+  private final MutableLiveData<String> fechaDisplay = new MutableLiveData<>();
+  private final MutableLiveData<String> horaDisplay = new MutableLiveData<>();
+  private final MutableLiveData<String> datosPago = new MutableLiveData<>();
+  private final MutableLiveData<String> cupo = new MutableLiveData<>();
 
-  // Datos temporales
+  // Campos de Categoría (Solo lectura en edición)
+  private final MutableLiveData<String> distancia = new MutableLiveData<>();
+  private final MutableLiveData<String> precio = new MutableLiveData<>();
+  private final MutableLiveData<String> edadMin = new MutableLiveData<>();
+  private final MutableLiveData<String> edadMax = new MutableLiveData<>();
+
+  // Selecciones para Spinners (El VM decide qué texto seleccionar)
+  private final MutableLiveData<String> seleccionModalidad = new MutableLiveData<>();
+  private final MutableLiveData<String> seleccionGenero = new MutableLiveData<>();
+
+  // Estados de Habilitación de UI
+  private final MutableLiveData<Boolean> esModoEdicionUI = new MutableLiveData<>(false);
+  private final MutableLiveData<Boolean> camposBloqueados = new MutableLiveData<>(false);
+
+  // Navegación (1 = Mapa, 2 = Atrás)
+  private final MutableLiveData<Integer> navegacionExito = new MutableLiveData<>(0);
+
+  // --- VARIABLES INTERNAS (ESTADO) ---
+  private boolean esEdicion = false;
+  private int idEventoEdicion = 0;
   private String fechaIso = "";
   private String horaIso = "";
   private int selYear, selMonth, selDay, selHour, selMinute;
@@ -49,198 +71,214 @@ public class CrearEventoViewModel extends AndroidViewModel {
     repositorio = new EventoRepositorio(application);
   }
 
-  // Getters
+  // --- GETTERS ---
   public LiveData<Boolean> getIsLoading() { return isLoading; }
   public LiveData<String> getMensajeGlobal() { return mensajeGlobal; }
-  public LiveData<Boolean> getEsError() { return esError; }
-  public LiveData<Integer> getIrAlMapa() { return irAlMapa; }
+  public LiveData<String> getTitulo() { return titulo; }
+  public LiveData<String> getDescripcion() { return descripcion; }
+  public LiveData<String> getUbicacion() { return ubicacion; }
+  public LiveData<String> getFechaDisplay() { return fechaDisplay; }
+  public LiveData<String> getHoraDisplay() { return horaDisplay; }
+  public LiveData<String> getDatosPago() { return datosPago; }
+  public LiveData<String> getCupo() { return cupo; }
+  public LiveData<String> getDistancia() { return distancia; }
+  public LiveData<String> getPrecio() { return precio; }
+  public LiveData<String> getEdadMin() { return edadMin; }
+  public LiveData<String> getEdadMax() { return edadMax; }
+  public LiveData<String> getSeleccionModalidad() { return seleccionModalidad; }
+  public LiveData<String> getSeleccionGenero() { return seleccionGenero; }
+  public LiveData<Boolean> getEsModoEdicionUI() { return esModoEdicionUI; }
+  public LiveData<Boolean> getCamposBloqueados() { return camposBloqueados; }
+  public LiveData<Integer> getNavegacionExito() { return navegacionExito; }
 
-  public LiveData<EventoDetalleResponse> getEventoCargado() { return eventoCargado; }
+  public void resetearNavegacion() { navegacionExito.setValue(0); }
 
-  //resetear mapa
-  public void resetearNav(){
-    irAlMapa.setValue(null);
+  // --- INPUTS DE LA VISTA ---
+
+  public void onChipDistanciaSelected(String textoChip) {
+    if (textoChip != null) {
+      distancia.setValue(textoChip.replace("K", "").trim());
+    }
   }
 
-  // helpers UI
-  public String procesarFecha(int year, int month, int day) {
+  public void onFechaSelected(int year, int month, int day) {
     this.selYear = year; this.selMonth = month; this.selDay = day;
+    // Formato para API
     fechaIso = String.format(Locale.getDefault(), "%04d-%02d-%02d", year, month + 1, day);
-    return String.format(Locale.getDefault(), "%02d/%02d/%04d", day, month + 1, year);
+    // Formato para UI
+    fechaDisplay.setValue(String.format(Locale.getDefault(), "%02d/%02d/%04d", day, month + 1, year));
   }
 
-  public String procesarHora(int hour, int minute) {
+  public void onHoraSelected(int hour, int minute) {
     this.selHour = hour; this.selMinute = minute;
+    // Formato para API y UI
     horaIso = String.format(Locale.getDefault(), "%02d:%02d", hour, minute);
-    return horaIso;
+    horaDisplay.setValue(horaIso);
   }
 
-  // Mtodo auxiliar para setear fecha interna cuando cargamos datos existentes
-  public void setFechaHoraInterna(String fechaIso, String horaIso) {
-    this.fechaIso = fechaIso;
-    this.horaIso = horaIso;
-    // Nota: No seteamos selYear/selMonth aquí por simplicidad,
-    // pero validamos que fechaIso no esté vacía al guardar.
-  }
+  // --- LÓGICA DE CARGA (EDICIÓN) ---
 
-  // --- 1. DETECTAR SI ES EDICIÓN Y CARGAR DATOS ---
   public void verificarModoEdicion(int idEvento) {
-    if (idEvento > 0) {
-      esModoEdicion = true;
-      idEventoEdicion = idEvento;
-      isLoading.setValue(true);
+    if (idEvento <= 0) return;
 
-      repositorio.obtenerDetalleEvento(idEvento, new Callback<EventoDetalleResponse>() {
-        @Override
-        public void onResponse(Call<EventoDetalleResponse> call, Response<EventoDetalleResponse> response) {
-          isLoading.setValue(false);
-          if (response.isSuccessful() && response.body() != null) {
-            eventoCargado.setValue(response.body());
-          } else {
-            mostrarMensaje("Error al cargar datos del evento", true);
-          }
+    esEdicion = true;
+    idEventoEdicion = idEvento;
+    esModoEdicionUI.setValue(true); // Activa UI de edición
+    isLoading.setValue(true);
+
+    repositorio.obtenerDetalleEvento(idEvento, new Callback<EventoDetalleResponse>() {
+      @Override
+      public void onResponse(Call<EventoDetalleResponse> call, Response<EventoDetalleResponse> response) {
+        isLoading.setValue(false);
+        if (response.isSuccessful() && response.body() != null) {
+          mapearEventoAUI(response.body());
+        } else {
+          mensajeGlobal.setValue("No se pudieron cargar los datos.");
         }
-        @Override
-        public void onFailure(Call<EventoDetalleResponse> call, Throwable t) {
-          isLoading.setValue(false);
-          mostrarMensaje("Error de conexión", true);
-        }
-      });
-    }
+      }
+      @Override
+      public void onFailure(Call<EventoDetalleResponse> call, Throwable t) {
+        isLoading.setValue(false);
+        mensajeGlobal.setValue("Error de conexión al cargar evento.");
+      }
+    });
   }
 
+  private void mapearEventoAUI(EventoDetalleResponse evento) {
+    // 1. Campos directos
+    titulo.setValue(evento.getNombre());
+    descripcion.setValue(evento.getDescripcion());
+    ubicacion.setValue(evento.getLugar());
+    camposBloqueados.setValue(true); // Bloquear integridad
 
+    if (evento.getDatosPago() != null) datosPago.setValue(evento.getDatosPago());
+    if (evento.getCupoTotal() != null) cupo.setValue(String.valueOf(evento.getCupoTotal()));
 
-  // --- LÓGICA DE NEGOCIO FUSIONADA (CREAR + EDITAR) ---
-  public void procesarYContinuar(String titulo, String descripcion, String lugar, String datosPago,
-                                 String distanciaRaw, String modalidad, String genero,
-                                 String edadMinRaw, String edadMaxRaw,
-                                 String catPrecio, String cupoRaw) {
-
-    // 1. Limpieza Común (Trim)
-    titulo = (titulo != null) ? titulo.trim() : "";
-    lugar = (lugar != null) ? lugar.trim() : "";
-
-    // 2. Validaciones Comunes (Obligatorias para ambos casos)
-    if (titulo.isEmpty()) { mostrarMensaje("El título es obligatorio", true); return; }
-    if (lugar.isEmpty()) { mostrarMensaje("La ubicación es obligatoria", true); return; }
-
-    // Validar que se haya seleccionado fecha y hora (ya sea por picker o cargada del backend)
-    if (fechaIso.isEmpty() || horaIso.isEmpty()) {
-      mostrarMensaje("Debes seleccionar fecha y hora", true);
-      return;
+    // 2. Parseo Fecha (Try-Catch encapsulado aquí)
+    if (evento.getFechaHora() != null && evento.getFechaHora().contains("T")) {
+      try {
+        String[] partes = evento.getFechaHora().split("T");
+        this.fechaIso = partes[0];
+        this.horaIso = partes[1].substring(0, 5);
+        String[] f = fechaIso.split("-");
+        fechaDisplay.setValue(f[2] + "/" + f[1] + "/" + f[0]);
+        horaDisplay.setValue(horaIso);
+      } catch (Exception e) { e.printStackTrace(); }
     }
 
-    // 3. Validar Fecha Futura (Común)
-    // Solo validamos si el usuario usó los pickers (selYear != 0).
-    // Si viene de edición y no tocó la fecha, asumimos que es válida o la está cambiando.
-    if (selYear != 0) {
-      Calendar fechaEvento = Calendar.getInstance();
-      fechaEvento.set(selYear, selMonth, selDay, selHour, selMinute, 0);
-      if (fechaEvento.before(Calendar.getInstance())) {
-        mostrarMensaje("La fecha debe ser futura", true);
-        return;
+    // 3. Parseo Categoría (Separar nombre y mapear género)
+    if (evento.getCategorias() != null && !evento.getCategorias().isEmpty()) {
+      CategoriaResponse cat = evento.getCategorias().get(0);
+
+      precio.setValue(String.valueOf(cat.getPrecio()));
+      edadMin.setValue(String.valueOf(cat.getEdadMinima()));
+      edadMax.setValue(String.valueOf(cat.getEdadMaxima()));
+
+      // Mapear "X" -> "Mixto / General" para que coincida con el Spinner del Fragment
+      String g = cat.getGenero();
+      if ("F".equals(g)) seleccionGenero.setValue("Femenino");
+      else if ("M".equals(g)) seleccionGenero.setValue("Masculino");
+      else seleccionGenero.setValue("Mixto / General"); // Default X
+
+      // Separar "10K Trail"
+      String nombreCat = cat.getNombre();
+      if (nombreCat != null) {
+        String[] partes = nombreCat.split(" ");
+        if (partes.length > 0) distancia.setValue(partes[0].replace("K", ""));
+        if (partes.length > 1) seleccionModalidad.setValue(partes[1]);
+        else distancia.setValue(nombreCat);
       }
     }
-
-    // 4. Parseo seguro de Cupo (Común)
-    Integer cupoInt = null;
-    try {
-      if (cupoRaw != null && !cupoRaw.trim().isEmpty()) cupoInt = Integer.parseInt(cupoRaw.trim());
-    } catch (NumberFormatException e) {
-      mostrarMensaje("Formato de cupo inválido", true);
-      return;
-    }
-
-    // Construcción de la fecha final ISO
-    String fechaHoraFinal = fechaIso + "T" + horaIso + ":00";
-
-    // =================================================================
-    // RAMA 1: MODO EDICIÓN (PUT)
-    // =================================================================
-    if (esModoEdicion) {
-      // En edición IGNORAMOS campos de categoría (precio, distancia, etc.)
-      ActualizarEventoRequest request = new ActualizarEventoRequest();
-      request.setNombre(titulo);
-      request.setDescripcion(descripcion);
-      request.setFechaHora(fechaHoraFinal);
-      request.setLugar(lugar);
-      request.setCupoTotal(cupoInt);
-      request.setDatosPago(datosPago);
-      // request.setUrlPronosticoClima(...) // Si lo agregas a futuro
-
-      ejecutarActualizacionAPI(request);
-      return; // ¡IMPORTANTE! Salimos aquí para no ejecutar lógica de creación
-    }
-
-    // =================================================================
-    // RAMA 2: MODO CREACIÓN (POST) - (TU LÓGICA ORIGINAL)
-    // =================================================================
-
-    // Validaciones exclusivas de creación (Categorías y Precios)
-    distanciaRaw = (distanciaRaw != null) ? distanciaRaw.trim() : "";
-    if (distanciaRaw.isEmpty()) { mostrarMensaje("Debes indicar la distancia (ej: 10)", true); return; }
-    if (catPrecio == null || catPrecio.trim().isEmpty()) { mostrarMensaje("Debes indicar el precio", true); return; }
-
-    // Parseo de precio
-    BigDecimal precioDecimal = BigDecimal.ZERO;
-    try {
-      precioDecimal = new BigDecimal(catPrecio.trim());
-    } catch (Exception e) {
-      mostrarMensaje("Formato de precio inválido", true);
-      return;
-    }
-
-    // Distancia: Lógica de la "K"
-    String nombreDistancia = distanciaRaw.toUpperCase().contains("K") ? distanciaRaw : distanciaRaw + "K";
-
-    // Edades: Defaults del negocio
-    int edadMin = 18;
-    int edadMax = 99;
-    if (edadMinRaw != null && !edadMinRaw.trim().isEmpty()) {
-      try { edadMin = Integer.parseInt(edadMinRaw.trim()); } catch (NumberFormatException e) {}
-    }
-    if (edadMaxRaw != null && !edadMaxRaw.trim().isEmpty()) {
-      try { edadMax = Integer.parseInt(edadMaxRaw.trim()); } catch (NumberFormatException e) {}
-    }
-
-    if (edadMin > edadMax) {
-      mostrarMensaje("La edad mínima no puede ser mayor a la máxima", true);
-      return;
-    }
-
-    // Construccion del Nombre de Categoría
-    String nombreCategoriaFinal = nombreDistancia + " " + modalidad;
-    if (!genero.equals("X")) {
-      nombreCategoriaFinal += " (" + (genero.equals("F") ? "Damas" : "Caballeros") + ")";
-    }
-
-    // Armado del Request Completo
-    List<CrearCategoriaRequest> listaCategorias = new ArrayList<>();
-    CrearCategoriaRequest cat = new CrearCategoriaRequest(
-      nombreCategoriaFinal,
-      precioDecimal,
-      cupoInt
-    );
-    cat.setEdadMinima(edadMin);
-    cat.setEdadMaxima(edadMax);
-    cat.setGenero(genero);
-
-    listaCategorias.add(cat);
-
-    CrearEventoRequest request = new CrearEventoRequest(
-      titulo, descripcion, fechaHoraFinal, lugar,
-      cupoInt, null, datosPago, listaCategorias
-    );
-
-    // Llamada a API Creacion
-    ejecutarLlamadaAPI(request);
   }
 
-  private void ejecutarLlamadaAPI(CrearEventoRequest request) {
-    isLoading.setValue(true);
-    mostrarMensaje(null, false);
+  // --- LÓGICA DE GUARDADO ---
 
+  public void guardarEvento(String tituloIn, String descripcionIn, String lugarIn, String datosPagoIn,
+                            String distanciaIn, String modalidadIn, String generoIn,
+                            String edadMinIn, String edadMaxIn, String precioIn, String cupoIn) {
+
+    // 1. Validaciones
+    if (tituloIn == null || tituloIn.trim().isEmpty()) { mensajeGlobal.setValue("El título es obligatorio"); return; }
+    if (lugarIn == null || lugarIn.trim().isEmpty()) { mensajeGlobal.setValue("La ubicación es obligatoria"); return; }
+    if (fechaIso.isEmpty() || horaIso.isEmpty()) { mensajeGlobal.setValue("Selecciona fecha y hora"); return; }
+
+    Integer cupoInt = null;
+    try {
+      if (cupoIn != null && !cupoIn.trim().isEmpty()) cupoInt = Integer.parseInt(cupoIn.trim());
+    } catch (NumberFormatException e) { mensajeGlobal.setValue("Cupo inválido"); return; }
+
+    String fechaHoraFinal = fechaIso + "T" + horaIso + ":00";
+
+    // 2. RAMA EDICIÓN
+    if (esEdicion) {
+      ActualizarEventoRequest request = new ActualizarEventoRequest();
+      request.setNombre(tituloIn);
+      request.setDescripcion(descripcionIn);
+      request.setFechaHora(fechaHoraFinal);
+      request.setLugar(lugarIn);
+      request.setCupoTotal(cupoInt);
+      request.setDatosPago(datosPagoIn);
+
+      ejecutarActualizacion(request);
+      return;
+    }
+
+    // 3. RAMA CREACIÓN (Requiere más validaciones)
+    if (distanciaIn == null || distanciaIn.trim().isEmpty()) { mensajeGlobal.setValue("Falta la distancia"); return; }
+    if (precioIn == null || precioIn.trim().isEmpty()) { mensajeGlobal.setValue("Falta el precio"); return; }
+
+    BigDecimal precioDec;
+    try { precioDec = new BigDecimal(precioIn.trim()); } catch (Exception e) { mensajeGlobal.setValue("Precio inválido"); return; }
+
+    // Formateo de datos
+    String nombreDistancia = distanciaIn.toUpperCase().contains("K") ? distanciaIn : distanciaIn + "K";
+
+    // Mapeo inverso de Género UI -> API
+    String generoApi = "X";
+    if (generoIn.contains("Femenino")) generoApi = "F";
+    else if (generoIn.contains("Masculino")) generoApi = "M";
+
+    CrearCategoriaRequest cat = new CrearCategoriaRequest(
+      nombreDistancia + " " + modalidadIn + (generoApi.equals("X") ? "" : " (" + generoIn + ")"),
+      precioDec, cupoInt
+    );
+    cat.setGenero(generoApi);
+    try { cat.setEdadMinima(Integer.parseInt(edadMinIn)); } catch(Exception e) {}
+    try { cat.setEdadMaxima(Integer.parseInt(edadMaxIn)); } catch(Exception e) {}
+
+    List<CrearCategoriaRequest> lista = new ArrayList<>();
+    lista.add(cat);
+
+    CrearEventoRequest request = new CrearEventoRequest(
+      tituloIn, descripcionIn, fechaHoraFinal, lugarIn, cupoInt, null, datosPagoIn, lista
+    );
+
+    ejecutarCreacion(request);
+  }
+
+  private void ejecutarActualizacion(ActualizarEventoRequest request) {
+    isLoading.setValue(true);
+    repositorio.actualizarEvento(idEventoEdicion, request, new Callback<ResponseBody>() {
+      @Override
+      public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+        isLoading.setValue(false);
+        if (response.isSuccessful()) {
+          mensajeGlobal.setValue("¡Actualizado correctamente!");
+          new android.os.Handler().postDelayed(() -> navegacionExito.setValue(2), 800);
+        } else {
+          manejarErrorApi(response);
+        }
+      }
+      @Override
+      public void onFailure(Call<ResponseBody> call, Throwable t) {
+        isLoading.setValue(false);
+        mensajeGlobal.setValue("Error de conexión");
+      }
+    });
+  }
+
+  private void ejecutarCreacion(CrearEventoRequest request) {
+    isLoading.setValue(true);
     repositorio.crearEvento(request, new Callback<ResponseBody>() {
       @Override
       public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
@@ -249,79 +287,32 @@ public class CrearEventoViewModel extends AndroidViewModel {
           try {
             String raw = response.body().string();
             JSONObject json = new JSONObject(raw);
-
-            // Extraer el ID para ir al mapa
             if (json.has("evento")) {
               int idNuevo = json.getJSONObject("evento").getInt("idEvento");
-              mostrarMensaje("¡Guardado! Cargando mapa...", false);
-              // Retardo visual breve antes de cambiar de pantalla
-              new android.os.Handler().postDelayed(() -> irAlMapa.setValue(idNuevo), 800);
-            } else {
-              mostrarMensaje("Evento creado, pero sin ID retornado.", true);
+              mensajeGlobal.setValue("¡Creado! Configurando mapa...");
+              navegacionExito.setValue(idNuevo);
             }
-          } catch (Exception e) {
-            mostrarMensaje("Error al procesar respuesta: " + e.getMessage(), true);
-          }
+          } catch (Exception e) { mensajeGlobal.setValue("Evento creado, error al leer ID"); }
         } else {
           manejarErrorApi(response);
         }
       }
-
       @Override
       public void onFailure(Call<ResponseBody> call, Throwable t) {
         isLoading.setValue(false);
-        mostrarMensaje("Fallo de conexión: " + t.getMessage(), true);
+        mensajeGlobal.setValue("Error de conexión");
       }
     });
   }
 
   private void manejarErrorApi(Response<ResponseBody> response) {
-    String errorMsg = "Error desconocido";
+    String msg = "Error del servidor: " + response.code();
     try {
       if (response.errorBody() != null) {
-        String raw = response.errorBody().string();
-        JSONObject json = new JSONObject(raw);
-        if (json.has("message")) errorMsg = json.getString("message");
-        else if (json.has("errors")) {
-          // Manejo de errores de validación .NET
-          JSONObject errors = json.getJSONObject("errors");
-          if (errors.keys().hasNext()) {
-            String key = errors.keys().next();
-            errorMsg = key + ": " + errors.getJSONArray(key).getString(0);
-          }
-        }
+        JSONObject json = new JSONObject(response.errorBody().string());
+        if (json.has("message")) msg = json.getString("message");
       }
-    } catch (Exception e) { errorMsg = "Error de lectura"; }
-    mostrarMensaje(errorMsg, true);
-  }
-
-  private void mostrarMensaje(String msg, boolean error) {
-    esError.setValue(error);
+    } catch (Exception e) { }
     mensajeGlobal.setValue(msg);
   }
-
-  // Mtodo para EDITAR (PUT)
-  private void ejecutarActualizacionAPI(ActualizarEventoRequest request) {
-    isLoading.setValue(true);
-    repositorio.actualizarEvento(idEventoEdicion, request, new Callback<ResponseBody>() {
-      @Override
-      public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
-        isLoading.setValue(false);
-        if (response.isSuccessful()) {
-          mostrarMensaje("¡Evento reprogramado/actualizado!", false);
-          // Volver al mapa/detalle tras breve pausa
-          new android.os.Handler().postDelayed(() -> irAlMapa.setValue(idEventoEdicion), 800);
-        } else {
-          manejarErrorApi(response);
-        }
-      }
-      @Override
-      public void onFailure(Call<ResponseBody> call, Throwable t) {
-        isLoading.setValue(false);
-        mostrarMensaje("Fallo de conexión", true);
-      }
-    });
-  }
-
-
 }

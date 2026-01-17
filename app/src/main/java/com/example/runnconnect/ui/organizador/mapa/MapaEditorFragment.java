@@ -77,14 +77,12 @@ public class MapaEditorFragment extends Fragment implements OnMapReadyCallback {
     // Habilitar controles de zoom
     mMap.getUiSettings().setZoomControlsEnabled(true);
 
-    /*si el evento es nuevo se muestra el centro de san luis -
-    * si el evnto existe cargamos el punto 1 o largada para enfocar la ruta*/
+    /*si el evento es nuevo se muestra el centro de san luis*/
+    LatLng sanLuisCentro = new LatLng(-33.29501, -66.33563);
+    mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(sanLuisCentro, 13));
 
-    if (idEvento == 0) {
-      LatLng sanLuisCentro = new LatLng(-33.29501, -66.33563);
-      mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(sanLuisCentro, 13));
-    } else {
-      // Si hay ID, cargamos la ruta. La cámara se moverá en 'dibujarRuta'
+    /*si el evnto existe cargamos el punto 1 o largada para enfocar la ruta*/
+    if (idEvento != 0) {
       viewModel.cargarRutaExistente(idEvento);
     }
     // Listener: Al tocar el mapa, agregamos un punto
