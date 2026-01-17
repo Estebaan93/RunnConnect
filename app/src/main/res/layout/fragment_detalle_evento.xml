@@ -79,15 +79,18 @@
       android:id="@+id/tvGeneroPrecio"
       android:layout_width="0dp"
       android:layout_height="wrap_content"
-      android:text="Género - Precio"
-      android:textSize="15sp"
-      android:textColor="#424242"
-      android:drawablePadding="8dp"
       android:layout_marginTop="8dp"
+      android:drawablePadding="8dp"
+      android:text="Género - Precio"
+      android:textAlignment="textStart"
+      android:textColor="#424242"
+      android:textSize="15sp"
       app:drawableStartCompat="@android:drawable/ic_menu_info_details"
-      app:layout_constraintTop_toBottomOf="@id/tvDistanciaTipo"
+      app:flow_horizontalAlign="start"
+      app:flow_verticalAlign="bottom"
+      app:layout_constraintEnd_toEndOf="parent"
       app:layout_constraintStart_toStartOf="parent"
-      app:layout_constraintEnd_toEndOf="parent"/>
+      app:layout_constraintTop_toBottomOf="@id/tvDistanciaTipo" />
 
   <View
       android:id="@+id/divider1"

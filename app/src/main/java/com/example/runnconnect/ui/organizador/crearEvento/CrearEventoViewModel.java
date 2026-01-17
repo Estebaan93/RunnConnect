@@ -33,7 +33,7 @@ public class CrearEventoViewModel extends AndroidViewModel {
   private final MutableLiveData<Boolean> isLoading = new MutableLiveData<>(false);
   private final MutableLiveData<String> mensajeGlobal = new MutableLiveData<>();
 
-  // Campos de Texto
+  // Campos de Texto (Para rellenar la UI)
   private final MutableLiveData<String> titulo = new MutableLiveData<>();
   private final MutableLiveData<String> descripcion = new MutableLiveData<>();
   private final MutableLiveData<String> ubicacion = new MutableLiveData<>();
@@ -42,13 +42,13 @@ public class CrearEventoViewModel extends AndroidViewModel {
   private final MutableLiveData<String> datosPago = new MutableLiveData<>();
   private final MutableLiveData<String> cupo = new MutableLiveData<>();
 
-  // Campos de Categoría (Solo lectura en edición)
+  // Campos de Categoría (Para rellenar la UI)
   private final MutableLiveData<String> distancia = new MutableLiveData<>();
   private final MutableLiveData<String> precio = new MutableLiveData<>();
   private final MutableLiveData<String> edadMin = new MutableLiveData<>();
   private final MutableLiveData<String> edadMax = new MutableLiveData<>();
 
-  // Selecciones para Spinners (El VM decide qué texto seleccionar)
+  // Selecciones para Spinners (El VM decide qué texto debe seleccionarse)
   private final MutableLiveData<String> seleccionModalidad = new MutableLiveData<>();
   private final MutableLiveData<String> seleccionGenero = new MutableLiveData<>();
 
@@ -93,19 +93,20 @@ public class CrearEventoViewModel extends AndroidViewModel {
 
   public void resetearNavegacion() { navegacionExito.setValue(0); }
 
-  // --- INPUTS DE LA VISTA ---
+  // --- INPUTS DE LA VISTA (INTERACCIÓN USUARIO) ---
 
   public void onChipDistanciaSelected(String textoChip) {
     if (textoChip != null) {
+      // Lógica de negocio: Quitar la "K" del chip para ponerlo en el EditText
       distancia.setValue(textoChip.replace("K", "").trim());
     }
   }
 
   public void onFechaSelected(int year, int month, int day) {
     this.selYear = year; this.selMonth = month; this.selDay = day;
-    // Formato para API
+    // Formato ISO para API
     fechaIso = String.format(Locale.getDefault(), "%04d-%02d-%02d", year, month + 1, day);
-    // Formato para UI
+    // Formato legible para UI
     fechaDisplay.setValue(String.format(Locale.getDefault(), "%02d/%02d/%04d", day, month + 1, year));
   }
 
@@ -123,7 +124,7 @@ public class CrearEventoViewModel extends AndroidViewModel {
 
     esEdicion = true;
     idEventoEdicion = idEvento;
-    esModoEdicionUI.setValue(true); // Activa UI de edición
+    esModoEdicionUI.setValue(true); // Activa flags de UI de edición
     isLoading.setValue(true);
 
     repositorio.obtenerDetalleEvento(idEvento, new Callback<EventoDetalleResponse>() {
@@ -144,12 +145,13 @@ public class CrearEventoViewModel extends AndroidViewModel {
     });
   }
 
+  // Transformación: Modelo de Datos -> Estado de Vista
   private void mapearEventoAUI(EventoDetalleResponse evento) {
     // 1. Campos directos
     titulo.setValue(evento.getNombre());
     descripcion.setValue(evento.getDescripcion());
     ubicacion.setValue(evento.getLugar());
-    camposBloqueados.setValue(true); // Bloquear integridad
+    camposBloqueados.setValue(true); // Activar bloqueo de integridad
 
     if (evento.getDatosPago() != null) datosPago.setValue(evento.getDatosPago());
     if (evento.getCupoTotal() != null) cupo.setValue(String.valueOf(evento.getCupoTotal()));
@@ -160,8 +162,9 @@ public class CrearEventoViewModel extends AndroidViewModel {
         String[] partes = evento.getFechaHora().split("T");
         this.fechaIso = partes[0];
         this.horaIso = partes[1].substring(0, 5);
+
         String[] f = fechaIso.split("-");
-        fechaDisplay.setValue(f[2] + "/" + f[1] + "/" + f[0]);
+        fechaDisplay.setValue(f[2] + "/" + f[1] + "/" + f[0]); // dd/MM/yyyy
         horaDisplay.setValue(horaIso);
       } catch (Exception e) { e.printStackTrace(); }
     }
@@ -174,13 +177,14 @@ public class CrearEventoViewModel extends AndroidViewModel {
       edadMin.setValue(String.valueOf(cat.getEdadMinima()));
       edadMax.setValue(String.valueOf(cat.getEdadMaxima()));
 
-      // Mapear "X" -> "Mixto / General" para que coincida con el Spinner del Fragment
+      // Mapeo de género (DB Code -> UI String)
+      // Esto asegura que el Spinner seleccione el texto correcto
       String g = cat.getGenero();
       if ("F".equals(g)) seleccionGenero.setValue("Femenino");
       else if ("M".equals(g)) seleccionGenero.setValue("Masculino");
       else seleccionGenero.setValue("Mixto / General"); // Default X
 
-      // Separar "10K Trail"
+      // Separar "10K Trail" -> Distancia: 10, Modalidad: Trail
       String nombreCat = cat.getNombre();
       if (nombreCat != null) {
         String[] partes = nombreCat.split(" ");
@@ -223,7 +227,7 @@ public class CrearEventoViewModel extends AndroidViewModel {
       return;
     }
 
-    // 3. RAMA CREACIÓN (Requiere más validaciones)
+    // 3. RAMA CREACIÓN
     if (distanciaIn == null || distanciaIn.trim().isEmpty()) { mensajeGlobal.setValue("Falta la distancia"); return; }
     if (precioIn == null || precioIn.trim().isEmpty()) { mensajeGlobal.setValue("Falta el precio"); return; }
 
@@ -233,7 +237,7 @@ public class CrearEventoViewModel extends AndroidViewModel {
     // Formateo de datos
     String nombreDistancia = distanciaIn.toUpperCase().contains("K") ? distanciaIn : distanciaIn + "K";
 
-    // Mapeo inverso de Género UI -> API
+    // Mapeo inverso de Género (UI String -> API Code)
     String generoApi = "X";
     if (generoIn.contains("Femenino")) generoApi = "F";
     else if (generoIn.contains("Masculino")) generoApi = "M";
@@ -264,6 +268,7 @@ public class CrearEventoViewModel extends AndroidViewModel {
         isLoading.setValue(false);
         if (response.isSuccessful()) {
           mensajeGlobal.setValue("¡Actualizado correctamente!");
+          // Código 2 = Volver Atrás
           new android.os.Handler().postDelayed(() -> navegacionExito.setValue(2), 800);
         } else {
           manejarErrorApi(response);
@@ -290,6 +295,7 @@ public class CrearEventoViewModel extends AndroidViewModel {
             if (json.has("evento")) {
               int idNuevo = json.getJSONObject("evento").getInt("idEvento");
               mensajeGlobal.setValue("¡Creado! Configurando mapa...");
+              // Código = ID del nuevo evento (para ir al mapa)
               navegacionExito.setValue(idNuevo);
             }
           } catch (Exception e) { mensajeGlobal.setValue("Evento creado, error al leer ID"); }

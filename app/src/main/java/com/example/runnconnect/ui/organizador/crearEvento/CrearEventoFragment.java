@@ -33,7 +33,7 @@ public class CrearEventoFragment extends Fragment {
     setupListeners();
     setupObservers();
 
-    // Solo pasamos el ID al ViewModel. Él decide si cargar datos.
+    // Solo le pasamos el ID al ViewModel. El Fragment no decide nada.
     if (getArguments() != null) {
       viewModel.verificarModoEdicion(getArguments().getInt("idEvento", 0));
     }
@@ -42,7 +42,7 @@ public class CrearEventoFragment extends Fragment {
   }
 
   private void setupUI() {
-    // Configuración de Spinners (Sin lógica de selección aquí, solo llenado)
+    // Configuración inicial de los adapters (pura UI)
     String[] modalidades = {"Calle", "Trail", "Cross", "Aventura", "Obstáculos", "Correcaminata", "Kids", "Triatlón"};
     ArrayAdapter<String> adapterMod = new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_dropdown_item, modalidades);
     binding.spModalidad.setAdapter(adapterMod);
@@ -53,7 +53,7 @@ public class CrearEventoFragment extends Fragment {
   }
 
   private void setupObservers() {
-    // 1. Estados UI
+    // 1. Estados Globales
     viewModel.getIsLoading().observe(getViewLifecycleOwner(), loading -> {
       binding.progressBar.setVisibility(loading ? View.VISIBLE : View.GONE);
       binding.btnContinuarMapa.setEnabled(!loading);
@@ -64,7 +64,7 @@ public class CrearEventoFragment extends Fragment {
       binding.tvMensajeGlobal.setVisibility(msg != null && !msg.isEmpty() ? View.VISIBLE : View.GONE);
     });
 
-    // 2. Data Binding Manual (VM -> View)
+    // 2. Data Binding (VM -> View)
     viewModel.getTitulo().observe(getViewLifecycleOwner(), s -> binding.etTitulo.setText(s));
     viewModel.getDescripcion().observe(getViewLifecycleOwner(), s -> binding.etDescripcion.setText(s));
     viewModel.getUbicacion().observe(getViewLifecycleOwner(), s -> binding.etUbicacion.setText(s));
@@ -73,17 +73,17 @@ public class CrearEventoFragment extends Fragment {
     viewModel.getDatosPago().observe(getViewLifecycleOwner(), s -> binding.etDatosPago.setText(s));
     viewModel.getCupo().observe(getViewLifecycleOwner(), s -> binding.etCupo.setText(s));
 
-    // Campos de categoría
+    // Campos de categoría (Visualización)
     viewModel.getDistancia().observe(getViewLifecycleOwner(), s -> binding.etDistanciaValor.setText(s));
     viewModel.getPrecio().observe(getViewLifecycleOwner(), s -> binding.etCatPrecio.setText(s));
     viewModel.getEdadMin().observe(getViewLifecycleOwner(), s -> binding.etEdadMin.setText(s));
     viewModel.getEdadMax().observe(getViewLifecycleOwner(), s -> binding.etEdadMax.setText(s));
 
-    // 3. Selección Automática de Spinners
+    // Selección automática de Spinners (El VM dice "Calle", la vista lo busca)
     viewModel.getSeleccionModalidad().observe(getViewLifecycleOwner(), val -> setSpinnerSelection(binding.spModalidad, val));
     viewModel.getSeleccionGenero().observe(getViewLifecycleOwner(), val -> setSpinnerSelection(binding.spGeneroCat, val));
 
-    // 4. Cambios de Visibilidad/Estado (Modo Edición)
+    // 3. Cambios de Visibilidad/Estado (Modo Edición)
     viewModel.getEsModoEdicionUI().observe(getViewLifecycleOwner(), isEdit -> {
       if (isEdit) {
         binding.tvTituloPagina.setText("Editar Evento");
@@ -91,8 +91,16 @@ public class CrearEventoFragment extends Fragment {
         binding.tvTituloCat.setVisibility(View.VISIBLE);
         binding.lblDistancia.setVisibility(View.VISIBLE);
         binding.etDistanciaValor.setVisibility(View.VISIBLE);
+        binding.lblModalidad.setVisibility(View.VISIBLE);
+        binding.spModalidad.setVisibility(View.VISIBLE);
+        binding.lblGenero.setVisibility(View.VISIBLE);
+        binding.spGeneroCat.setVisibility(View.VISIBLE);
+        binding.lblEdad.setVisibility(View.VISIBLE);
+        binding.etEdadMin.setVisibility(View.VISIBLE);
+        binding.etEdadMax.setVisibility(View.VISIBLE);
+        binding.lblCatPrecio.setVisibility(View.VISIBLE);
+        binding.etCatPrecio.setVisibility(View.VISIBLE);
         binding.scrollChips.setVisibility(View.GONE);
-        // ... activar resto de visibilidades si estaban en gone ...
         binding.tvAvisoMapa.setText("Nota: Precio, Distancia y Lugar no se editan.");
       }
     });
@@ -110,7 +118,7 @@ public class CrearEventoFragment extends Fragment {
       }
     });
 
-    // 5. Navegación
+    // 4. Navegación
     viewModel.getNavegacionExito().observe(getViewLifecycleOwner(), code -> {
       if (code == 0) return;
       if (code == 2) {
@@ -128,7 +136,7 @@ public class CrearEventoFragment extends Fragment {
 
   private void setupListeners() {
     binding.btnContinuarMapa.setOnClickListener(v -> {
-      // Pasamos los datos crudos al VM. Él los valida y transforma.
+      // El View solo recolecta y pasa al ViewModel
       viewModel.guardarEvento(
         binding.etTitulo.getText().toString(),
         binding.etDescripcion.getText().toString(),
@@ -153,7 +161,6 @@ public class CrearEventoFragment extends Fragment {
 
     binding.etFecha.setOnClickListener(v -> {
       Calendar c = Calendar.getInstance();
-      // Restringimos la fecha mínima en el dialogo, eso es UI pura.
       DatePickerDialog d = new DatePickerDialog(requireContext(),
         (view, y, m, d1) -> viewModel.onFechaSelected(y, m, d1),
         c.get(Calendar.YEAR), c.get(Calendar.MONTH), c.get(Calendar.DAY_OF_MONTH));
@@ -169,8 +176,7 @@ public class CrearEventoFragment extends Fragment {
     });
   }
 
-  // Helper de UI para Spinners (Reemplaza al bucle complejo)
-  // ArrayAdapter tiene getPosition, usamos eso para simplificar
+  // Helper UI: Busca el índice del texto en el Spinner (Esto es aceptable en el View)
   private void setSpinnerSelection(Spinner spinner, String value) {
     if (value == null) return;
     ArrayAdapter<String> adapter = (ArrayAdapter<String>) spinner.getAdapter();
