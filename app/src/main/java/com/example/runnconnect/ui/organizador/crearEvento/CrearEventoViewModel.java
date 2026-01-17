@@ -1,6 +1,8 @@
 package com.example.runnconnect.ui.organizador.crearEvento;
 
 import android.app.Application;
+import android.view.View; // Importante para View.VISIBLE
+
 import androidx.annotation.NonNull;
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
@@ -29,11 +31,11 @@ import retrofit2.Response;
 public class CrearEventoViewModel extends AndroidViewModel {
   private final EventoRepositorio repositorio;
 
-  // --- LIVE DATA PARA LA VISTA (OUTPUTS) ---
+  // --- SALIDAS DE UI ---
   private final MutableLiveData<Boolean> isLoading = new MutableLiveData<>(false);
   private final MutableLiveData<String> mensajeGlobal = new MutableLiveData<>();
 
-  // Campos de Texto (Para rellenar la UI)
+  // Campos de Texto
   private final MutableLiveData<String> titulo = new MutableLiveData<>();
   private final MutableLiveData<String> descripcion = new MutableLiveData<>();
   private final MutableLiveData<String> ubicacion = new MutableLiveData<>();
@@ -42,24 +44,29 @@ public class CrearEventoViewModel extends AndroidViewModel {
   private final MutableLiveData<String> datosPago = new MutableLiveData<>();
   private final MutableLiveData<String> cupo = new MutableLiveData<>();
 
-  // Campos de Categoría (Para rellenar la UI)
+  // Campos de Categoría
   private final MutableLiveData<String> distancia = new MutableLiveData<>();
   private final MutableLiveData<String> precio = new MutableLiveData<>();
   private final MutableLiveData<String> edadMin = new MutableLiveData<>();
   private final MutableLiveData<String> edadMax = new MutableLiveData<>();
 
-  // Selecciones para Spinners (El VM decide qué texto debe seleccionarse)
+  // Selecciones para Spinners
   private final MutableLiveData<String> seleccionModalidad = new MutableLiveData<>();
   private final MutableLiveData<String> seleccionGenero = new MutableLiveData<>();
 
-  // Estados de Habilitación de UI
-  private final MutableLiveData<Boolean> esModoEdicionUI = new MutableLiveData<>(false);
-  private final MutableLiveData<Boolean> camposBloqueados = new MutableLiveData<>(false);
+  // --- CONTROL DE UI (VISIBILIDAD Y BLOQUEO) ---
+  private final MutableLiveData<String> uiTituloPagina = new MutableLiveData<>();
+  private final MutableLiveData<String> uiTextoBoton = new MutableLiveData<>();
+  private final MutableLiveData<String> uiTextoAviso = new MutableLiveData<>();
 
-  // Navegación (1 = Mapa, 2 = Atrás)
+  private final MutableLiveData<Integer> uiVisibilidadCamposExtra = new MutableLiveData<>();
+  private final MutableLiveData<Integer> uiVisibilidadChips = new MutableLiveData<>();
+  private final MutableLiveData<Boolean> uiCamposHabilitados = new MutableLiveData<>();
+
+  // Navegación
   private final MutableLiveData<Integer> navegacionExito = new MutableLiveData<>(0);
 
-  // --- VARIABLES INTERNAS (ESTADO) ---
+  // Estado Interno
   private boolean esEdicion = false;
   private int idEventoEdicion = 0;
   private String fechaIso = "";
@@ -69,6 +76,9 @@ public class CrearEventoViewModel extends AndroidViewModel {
   public CrearEventoViewModel(@NonNull Application application) {
     super(application);
     repositorio = new EventoRepositorio(application);
+
+    // Inicializar en modo CREAR
+    configurarModoCrear();
   }
 
   // --- GETTERS ---
@@ -87,44 +97,76 @@ public class CrearEventoViewModel extends AndroidViewModel {
   public LiveData<String> getEdadMax() { return edadMax; }
   public LiveData<String> getSeleccionModalidad() { return seleccionModalidad; }
   public LiveData<String> getSeleccionGenero() { return seleccionGenero; }
-  public LiveData<Boolean> getEsModoEdicionUI() { return esModoEdicionUI; }
-  public LiveData<Boolean> getCamposBloqueados() { return camposBloqueados; }
-  public LiveData<Integer> getNavegacionExito() { return navegacionExito; }
 
+  public LiveData<String> getUiTituloPagina() { return uiTituloPagina; }
+  public LiveData<String> getUiTextoBoton() { return uiTextoBoton; }
+  public LiveData<String> getUiTextoAviso() { return uiTextoAviso; }
+  public LiveData<Integer> getUiVisibilidadCamposExtra() { return uiVisibilidadCamposExtra; }
+  public LiveData<Integer> getUiVisibilidadChips() { return uiVisibilidadChips; }
+  public LiveData<Boolean> getUiCamposHabilitados() { return uiCamposHabilitados; }
+
+  public LiveData<Integer> getNavegacionExito() { return navegacionExito; }
   public void resetearNavegacion() { navegacionExito.setValue(0); }
 
-  // --- INPUTS DE LA VISTA (INTERACCIÓN USUARIO) ---
+  // --- LÓGICA DE MODOS ---
+
+  private void configurarModoCrear() {
+    uiTituloPagina.setValue("Nuevo Evento");
+    uiTextoBoton.setValue("Guardar y Definir Ruta 🗺️");
+    uiTextoAviso.setValue("¡Siguiente paso: Dibujar el circuito en el mapa!");
+
+    // --- CORRECCIÓN AQUÍ ---
+    // Antes estaba en GONE. Debe ser VISIBLE para poder escribir el precio y distancia.
+    uiVisibilidadCamposExtra.setValue(View.VISIBLE);
+
+    // Mostrar chips para ayuda rápida
+    uiVisibilidadChips.setValue(View.VISIBLE);
+
+    // Habilitar edición (True = Enabled)
+    uiCamposHabilitados.setValue(true);
+  }
+
+  private void configurarModoEditar() {
+    uiTituloPagina.setValue("Editar Evento");
+    uiTextoBoton.setValue("Guardar Cambios");
+    uiTextoAviso.setValue("Nota: Precio, Distancia y Lugar no se editan para mantener integridad.");
+
+    // Mostrar campos para ver contexto (pero estarán bloqueados)
+    uiVisibilidadCamposExtra.setValue(View.VISIBLE);
+
+    // Ocultar chips (no se edita distancia)
+    uiVisibilidadChips.setValue(View.GONE);
+
+    // Deshabilitar campos críticos (False = Disabled)
+    uiCamposHabilitados.setValue(false);
+  }
+
+  // --- RESTO DE MÉTODOS (IGUAL QUE ANTES) ---
 
   public void onChipDistanciaSelected(String textoChip) {
     if (textoChip != null) {
-      // Lógica de negocio: Quitar la "K" del chip para ponerlo en el EditText
       distancia.setValue(textoChip.replace("K", "").trim());
     }
   }
 
   public void onFechaSelected(int year, int month, int day) {
     this.selYear = year; this.selMonth = month; this.selDay = day;
-    // Formato ISO para API
     fechaIso = String.format(Locale.getDefault(), "%04d-%02d-%02d", year, month + 1, day);
-    // Formato legible para UI
     fechaDisplay.setValue(String.format(Locale.getDefault(), "%02d/%02d/%04d", day, month + 1, year));
   }
 
   public void onHoraSelected(int hour, int minute) {
     this.selHour = hour; this.selMinute = minute;
-    // Formato para API y UI
     horaIso = String.format(Locale.getDefault(), "%02d:%02d", hour, minute);
     horaDisplay.setValue(horaIso);
   }
-
-  // --- LÓGICA DE CARGA (EDICIÓN) ---
 
   public void verificarModoEdicion(int idEvento) {
     if (idEvento <= 0) return;
 
     esEdicion = true;
     idEventoEdicion = idEvento;
-    esModoEdicionUI.setValue(true); // Activa flags de UI de edición
+    configurarModoEditar(); // Cambiar UI a modo edición
     isLoading.setValue(true);
 
     repositorio.obtenerDetalleEvento(idEvento, new Callback<EventoDetalleResponse>() {
@@ -140,36 +182,30 @@ public class CrearEventoViewModel extends AndroidViewModel {
       @Override
       public void onFailure(Call<EventoDetalleResponse> call, Throwable t) {
         isLoading.setValue(false);
-        mensajeGlobal.setValue("Error de conexión al cargar evento.");
+        mensajeGlobal.setValue("Error de conexión.");
       }
     });
   }
 
-  // Transformación: Modelo de Datos -> Estado de Vista
   private void mapearEventoAUI(EventoDetalleResponse evento) {
-    // 1. Campos directos
     titulo.setValue(evento.getNombre());
     descripcion.setValue(evento.getDescripcion());
     ubicacion.setValue(evento.getLugar());
-    camposBloqueados.setValue(true); // Activar bloqueo de integridad
 
     if (evento.getDatosPago() != null) datosPago.setValue(evento.getDatosPago());
     if (evento.getCupoTotal() != null) cupo.setValue(String.valueOf(evento.getCupoTotal()));
 
-    // 2. Parseo Fecha (Try-Catch encapsulado aquí)
     if (evento.getFechaHora() != null && evento.getFechaHora().contains("T")) {
       try {
         String[] partes = evento.getFechaHora().split("T");
         this.fechaIso = partes[0];
         this.horaIso = partes[1].substring(0, 5);
-
         String[] f = fechaIso.split("-");
-        fechaDisplay.setValue(f[2] + "/" + f[1] + "/" + f[0]); // dd/MM/yyyy
+        fechaDisplay.setValue(f[2] + "/" + f[1] + "/" + f[0]);
         horaDisplay.setValue(horaIso);
       } catch (Exception e) { e.printStackTrace(); }
     }
 
-    // 3. Parseo Categoría (Separar nombre y mapear género)
     if (evento.getCategorias() != null && !evento.getCategorias().isEmpty()) {
       CategoriaResponse cat = evento.getCategorias().get(0);
 
@@ -177,14 +213,11 @@ public class CrearEventoViewModel extends AndroidViewModel {
       edadMin.setValue(String.valueOf(cat.getEdadMinima()));
       edadMax.setValue(String.valueOf(cat.getEdadMaxima()));
 
-      // Mapeo de género (DB Code -> UI String)
-      // Esto asegura que el Spinner seleccione el texto correcto
       String g = cat.getGenero();
       if ("F".equals(g)) seleccionGenero.setValue("Femenino");
       else if ("M".equals(g)) seleccionGenero.setValue("Masculino");
-      else seleccionGenero.setValue("Mixto / General"); // Default X
+      else seleccionGenero.setValue("Mixto / General");
 
-      // Separar "10K Trail" -> Distancia: 10, Modalidad: Trail
       String nombreCat = cat.getNombre();
       if (nombreCat != null) {
         String[] partes = nombreCat.split(" ");
@@ -195,15 +228,12 @@ public class CrearEventoViewModel extends AndroidViewModel {
     }
   }
 
-  // --- LÓGICA DE GUARDADO ---
-
   public void guardarEvento(String tituloIn, String descripcionIn, String lugarIn, String datosPagoIn,
                             String distanciaIn, String modalidadIn, String generoIn,
                             String edadMinIn, String edadMaxIn, String precioIn, String cupoIn) {
 
-    // 1. Validaciones
-    if (tituloIn == null || tituloIn.trim().isEmpty()) { mensajeGlobal.setValue("El título es obligatorio"); return; }
-    if (lugarIn == null || lugarIn.trim().isEmpty()) { mensajeGlobal.setValue("La ubicación es obligatoria"); return; }
+    if (tituloIn.trim().isEmpty()) { mensajeGlobal.setValue("El título es obligatorio"); return; }
+    if (lugarIn.trim().isEmpty()) { mensajeGlobal.setValue("La ubicación es obligatoria"); return; }
     if (fechaIso.isEmpty() || horaIso.isEmpty()) { mensajeGlobal.setValue("Selecciona fecha y hora"); return; }
 
     Integer cupoInt = null;
@@ -213,7 +243,6 @@ public class CrearEventoViewModel extends AndroidViewModel {
 
     String fechaHoraFinal = fechaIso + "T" + horaIso + ":00";
 
-    // 2. RAMA EDICIÓN
     if (esEdicion) {
       ActualizarEventoRequest request = new ActualizarEventoRequest();
       request.setNombre(tituloIn);
@@ -227,17 +256,14 @@ public class CrearEventoViewModel extends AndroidViewModel {
       return;
     }
 
-    // 3. RAMA CREACIÓN
-    if (distanciaIn == null || distanciaIn.trim().isEmpty()) { mensajeGlobal.setValue("Falta la distancia"); return; }
-    if (precioIn == null || precioIn.trim().isEmpty()) { mensajeGlobal.setValue("Falta el precio"); return; }
+    if (distanciaIn.trim().isEmpty()) { mensajeGlobal.setValue("Falta la distancia"); return; }
+    if (precioIn.trim().isEmpty()) { mensajeGlobal.setValue("Falta el precio"); return; }
 
     BigDecimal precioDec;
     try { precioDec = new BigDecimal(precioIn.trim()); } catch (Exception e) { mensajeGlobal.setValue("Precio inválido"); return; }
 
-    // Formateo de datos
     String nombreDistancia = distanciaIn.toUpperCase().contains("K") ? distanciaIn : distanciaIn + "K";
 
-    // Mapeo inverso de Género (UI String -> API Code)
     String generoApi = "X";
     if (generoIn.contains("Femenino")) generoApi = "F";
     else if (generoIn.contains("Masculino")) generoApi = "M";
@@ -268,7 +294,6 @@ public class CrearEventoViewModel extends AndroidViewModel {
         isLoading.setValue(false);
         if (response.isSuccessful()) {
           mensajeGlobal.setValue("¡Actualizado correctamente!");
-          // Código 2 = Volver Atrás
           new android.os.Handler().postDelayed(() -> navegacionExito.setValue(2), 800);
         } else {
           manejarErrorApi(response);
@@ -295,7 +320,6 @@ public class CrearEventoViewModel extends AndroidViewModel {
             if (json.has("evento")) {
               int idNuevo = json.getJSONObject("evento").getInt("idEvento");
               mensajeGlobal.setValue("¡Creado! Configurando mapa...");
-              // Código = ID del nuevo evento (para ir al mapa)
               navegacionExito.setValue(idNuevo);
             }
           } catch (Exception e) { mensajeGlobal.setValue("Evento creado, error al leer ID"); }

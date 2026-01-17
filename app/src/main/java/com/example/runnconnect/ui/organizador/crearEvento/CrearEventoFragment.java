@@ -33,7 +33,7 @@ public class CrearEventoFragment extends Fragment {
     setupListeners();
     setupObservers();
 
-    // Solo le pasamos el ID al ViewModel. El Fragment no decide nada.
+    // PASO 1: Entregar el ID al ViewModel. Él sabrá qué hacer con él.
     if (getArguments() != null) {
       viewModel.verificarModoEdicion(getArguments().getInt("idEvento", 0));
     }
@@ -42,7 +42,7 @@ public class CrearEventoFragment extends Fragment {
   }
 
   private void setupUI() {
-    // Configuración inicial de los adapters (pura UI)
+    // Configuración inicial de adapters (Pura UI, no lógica)
     String[] modalidades = {"Calle", "Trail", "Cross", "Aventura", "Obstáculos", "Correcaminata", "Kids", "Triatlón"};
     ArrayAdapter<String> adapterMod = new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_dropdown_item, modalidades);
     binding.spModalidad.setAdapter(adapterMod);
@@ -53,7 +53,67 @@ public class CrearEventoFragment extends Fragment {
   }
 
   private void setupObservers() {
-    // 1. Estados Globales
+    // --- A. OBSERVADORES DE TEXTO (BINDING PURO) ---
+    // Lo que diga el ViewModel, lo ponemos en pantalla.
+
+    // 1. Textos Estáticos (Títulos, Botones, Avisos)
+    viewModel.getUiTituloPagina().observe(getViewLifecycleOwner(), binding.tvTituloPagina::setText);
+    viewModel.getUiTextoBoton().observe(getViewLifecycleOwner(), binding.btnContinuarMapa::setText);
+    viewModel.getUiTextoAviso().observe(getViewLifecycleOwner(), binding.tvAvisoMapa::setText);
+
+    // 2. Textos Dinámicos (Datos del evento)
+    viewModel.getTitulo().observe(getViewLifecycleOwner(), s -> binding.etTitulo.setText(s));
+    viewModel.getDescripcion().observe(getViewLifecycleOwner(), s -> binding.etDescripcion.setText(s));
+    viewModel.getUbicacion().observe(getViewLifecycleOwner(), s -> binding.etUbicacion.setText(s));
+    viewModel.getFechaDisplay().observe(getViewLifecycleOwner(), s -> binding.etFecha.setText(s));
+    viewModel.getHoraDisplay().observe(getViewLifecycleOwner(), s -> binding.etHora.setText(s));
+    viewModel.getDatosPago().observe(getViewLifecycleOwner(), s -> binding.etDatosPago.setText(s));
+    viewModel.getCupo().observe(getViewLifecycleOwner(), s -> binding.etCupo.setText(s));
+
+    // Datos de categoría (Para contexto)
+    viewModel.getDistancia().observe(getViewLifecycleOwner(), s -> binding.etDistanciaValor.setText(s));
+    viewModel.getPrecio().observe(getViewLifecycleOwner(), s -> binding.etCatPrecio.setText(s));
+    viewModel.getEdadMin().observe(getViewLifecycleOwner(), s -> binding.etEdadMin.setText(s));
+    viewModel.getEdadMax().observe(getViewLifecycleOwner(), s -> binding.etEdadMax.setText(s));
+
+    // 3. Selecciones de Spinner automáticas
+    viewModel.getSeleccionModalidad().observe(getViewLifecycleOwner(), val -> setSpinnerSelection(binding.spModalidad, val));
+    viewModel.getSeleccionGenero().observe(getViewLifecycleOwner(), val -> setSpinnerSelection(binding.spGeneroCat, val));
+
+    // --- B. OBSERVADORES DE ESTADO VISUAL ---
+
+    // 1. Visibilidad (VM envía View.VISIBLE o View.GONE)
+    viewModel.getUiVisibilidadChips().observe(getViewLifecycleOwner(), binding.scrollChips::setVisibility);
+
+    viewModel.getUiVisibilidadCamposExtra().observe(getViewLifecycleOwner(), visibility -> {
+      binding.tvTituloCat.setVisibility(visibility);
+      binding.lblDistancia.setVisibility(visibility);
+      binding.etDistanciaValor.setVisibility(visibility);
+      binding.lblModalidad.setVisibility(visibility);
+      binding.spModalidad.setVisibility(visibility);
+      binding.lblGenero.setVisibility(visibility);
+      binding.spGeneroCat.setVisibility(visibility);
+      binding.lblEdad.setVisibility(visibility);
+      binding.etEdadMin.setVisibility(visibility);
+      binding.etEdadMax.setVisibility(visibility);
+      binding.lblCatPrecio.setVisibility(visibility);
+      binding.etCatPrecio.setVisibility(visibility);
+    });
+
+    // 2. Habilitación de Campos (VM envía true/false)
+    viewModel.getUiCamposHabilitados().observe(getViewLifecycleOwner(), habilitado -> {
+      binding.etTitulo.setEnabled(habilitado);
+      binding.etUbicacion.setEnabled(habilitado);
+      // Estos siempre siguen la lógica de integridad
+      binding.etDistanciaValor.setEnabled(habilitado);
+      binding.spModalidad.setEnabled(habilitado);
+      binding.spGeneroCat.setEnabled(habilitado);
+      binding.etCatPrecio.setEnabled(habilitado);
+      binding.etEdadMin.setEnabled(habilitado);
+      binding.etEdadMax.setEnabled(habilitado);
+    });
+
+    // 3. Loading y Mensajes
     viewModel.getIsLoading().observe(getViewLifecycleOwner(), loading -> {
       binding.progressBar.setVisibility(loading ? View.VISIBLE : View.GONE);
       binding.btnContinuarMapa.setEnabled(!loading);
@@ -64,61 +124,7 @@ public class CrearEventoFragment extends Fragment {
       binding.tvMensajeGlobal.setVisibility(msg != null && !msg.isEmpty() ? View.VISIBLE : View.GONE);
     });
 
-    // 2. Data Binding (VM -> View)
-    viewModel.getTitulo().observe(getViewLifecycleOwner(), s -> binding.etTitulo.setText(s));
-    viewModel.getDescripcion().observe(getViewLifecycleOwner(), s -> binding.etDescripcion.setText(s));
-    viewModel.getUbicacion().observe(getViewLifecycleOwner(), s -> binding.etUbicacion.setText(s));
-    viewModel.getFechaDisplay().observe(getViewLifecycleOwner(), s -> binding.etFecha.setText(s));
-    viewModel.getHoraDisplay().observe(getViewLifecycleOwner(), s -> binding.etHora.setText(s));
-    viewModel.getDatosPago().observe(getViewLifecycleOwner(), s -> binding.etDatosPago.setText(s));
-    viewModel.getCupo().observe(getViewLifecycleOwner(), s -> binding.etCupo.setText(s));
-
-    // Campos de categoría (Visualización)
-    viewModel.getDistancia().observe(getViewLifecycleOwner(), s -> binding.etDistanciaValor.setText(s));
-    viewModel.getPrecio().observe(getViewLifecycleOwner(), s -> binding.etCatPrecio.setText(s));
-    viewModel.getEdadMin().observe(getViewLifecycleOwner(), s -> binding.etEdadMin.setText(s));
-    viewModel.getEdadMax().observe(getViewLifecycleOwner(), s -> binding.etEdadMax.setText(s));
-
-    // Selección automática de Spinners (El VM dice "Calle", la vista lo busca)
-    viewModel.getSeleccionModalidad().observe(getViewLifecycleOwner(), val -> setSpinnerSelection(binding.spModalidad, val));
-    viewModel.getSeleccionGenero().observe(getViewLifecycleOwner(), val -> setSpinnerSelection(binding.spGeneroCat, val));
-
-    // 3. Cambios de Visibilidad/Estado (Modo Edición)
-    viewModel.getEsModoEdicionUI().observe(getViewLifecycleOwner(), isEdit -> {
-      if (isEdit) {
-        binding.tvTituloPagina.setText("Editar Evento");
-        binding.btnContinuarMapa.setText("Guardar Cambios");
-        binding.tvTituloCat.setVisibility(View.VISIBLE);
-        binding.lblDistancia.setVisibility(View.VISIBLE);
-        binding.etDistanciaValor.setVisibility(View.VISIBLE);
-        binding.lblModalidad.setVisibility(View.VISIBLE);
-        binding.spModalidad.setVisibility(View.VISIBLE);
-        binding.lblGenero.setVisibility(View.VISIBLE);
-        binding.spGeneroCat.setVisibility(View.VISIBLE);
-        binding.lblEdad.setVisibility(View.VISIBLE);
-        binding.etEdadMin.setVisibility(View.VISIBLE);
-        binding.etEdadMax.setVisibility(View.VISIBLE);
-        binding.lblCatPrecio.setVisibility(View.VISIBLE);
-        binding.etCatPrecio.setVisibility(View.VISIBLE);
-        binding.scrollChips.setVisibility(View.GONE);
-        binding.tvAvisoMapa.setText("Nota: Precio, Distancia y Lugar no se editan.");
-      }
-    });
-
-    viewModel.getCamposBloqueados().observe(getViewLifecycleOwner(), bloqueados -> {
-      if (bloqueados) {
-        binding.etTitulo.setEnabled(false);
-        binding.etUbicacion.setEnabled(false);
-        binding.etDistanciaValor.setEnabled(false);
-        binding.spModalidad.setEnabled(false);
-        binding.spGeneroCat.setEnabled(false);
-        binding.etCatPrecio.setEnabled(false);
-        binding.etEdadMin.setEnabled(false);
-        binding.etEdadMax.setEnabled(false);
-      }
-    });
-
-    // 4. Navegación
+    // --- C. NAVEGACIÓN ---
     viewModel.getNavegacionExito().observe(getViewLifecycleOwner(), code -> {
       if (code == 0) return;
       if (code == 2) {
@@ -176,7 +182,7 @@ public class CrearEventoFragment extends Fragment {
     });
   }
 
-  // Helper UI: Busca el índice del texto en el Spinner (Esto es aceptable en el View)
+  // Helper UI: Busca el índice del texto en el Spinner
   private void setSpinnerSelection(Spinner spinner, String value) {
     if (value == null) return;
     ArrayAdapter<String> adapter = (ArrayAdapter<String>) spinner.getAdapter();
