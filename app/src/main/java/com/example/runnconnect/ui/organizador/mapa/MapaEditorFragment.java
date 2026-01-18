@@ -11,6 +11,8 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.navigation.NavController;
+import androidx.navigation.NavOptions;
 import androidx.navigation.Navigation;
 
 import com.example.runnconnect.R;
@@ -21,7 +23,6 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
 
@@ -32,20 +33,11 @@ public class MapaEditorFragment extends Fragment implements OnMapReadyCallback {
   private FragmentEditorMapaBinding binding;
   private MapaEditorViewModel viewModel;
   private GoogleMap mMap;
-
-  // El ID del evento que viene del paso anterior
   private int idEvento = 0;
-
-  //bandera para centrar la camara
-  private boolean camaraCentradaInicialmente= false;
-
-  //variable para alternar tipo de mapa
-  private int currentMapType= GoogleMap.MAP_TYPE_HYBRID;
 
   @Override
   public void onCreate(@Nullable Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
-    // Recibir argumentos (ID Evento)
     if (getArguments() != null) {
       idEvento = getArguments().getInt("idEvento", 0);
     }
@@ -55,7 +47,6 @@ public class MapaEditorFragment extends Fragment implements OnMapReadyCallback {
     binding = FragmentEditorMapaBinding.inflate(inflater, container, false);
     viewModel = new ViewModelProvider(this).get(MapaEditorViewModel.class);
 
-    // Inicializar el mapa
     SupportMapFragment mapFragment = (SupportMapFragment) getChildFragmentManager().findFragmentById(R.id.map);
     if (mapFragment != null) {
       mapFragment.getMapAsync(this);
@@ -67,141 +58,128 @@ public class MapaEditorFragment extends Fragment implements OnMapReadyCallback {
     return binding.getRoot();
   }
 
-  @Override
-  public void onMapReady(@NonNull GoogleMap googleMap) {
-    mMap = googleMap;
-
-    // INICIO: Modo Hhbrido (Mejor para Trail/Montaña por defecto)
-    mMap.setMapType(currentMapType);
-
-    // Habilitar controles de zoom
-    mMap.getUiSettings().setZoomControlsEnabled(true);
-
-    /*si el evento es nuevo se muestra el centro de san luis*/
-    LatLng sanLuisCentro = new LatLng(-33.29501, -66.33563);
-    mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(sanLuisCentro, 13));
-
-    /*si el evnto existe cargamos el punto 1 o largada para enfocar la ruta*/
-    if (idEvento != 0) {
-      viewModel.cargarRutaExistente(idEvento);
-    }
-    // Listener: Al tocar el mapa, agregamos un punto
-    mMap.setOnMapClickListener(latLng -> {
-      viewModel.agregarPunto(latLng);
-    });
-  }
-
+  // --- ENTRADAS (Usuario -> ViewModel) ---
   private void setupListeners() {
-    // Botón Deshacer
-    binding.fabUndo.setOnClickListener(v -> viewModel.deshacerUltimo());
-
-    // Botón Guardar
-    binding.btnGuardarRuta.setOnClickListener(v -> {
-      if (idEvento == 0) {
-        Toast.makeText(getContext(), "Error: No hay evento seleccionado", Toast.LENGTH_SHORT).show();
-        return;
-      }
-      viewModel.guardarRuta(idEvento);
-    });
-    // NUEVO: Botón flotante para cambiar capas
-    binding.fabLayers.setOnClickListener(v -> {
-      if (mMap == null) return;
-
-      if (currentMapType == GoogleMap.MAP_TYPE_NORMAL) {
-        currentMapType = GoogleMap.MAP_TYPE_HYBRID; // Satélite
-        Toast.makeText(getContext(), "Vista Satelital (Montaña)", Toast.LENGTH_SHORT).show();
-      } else {
-        currentMapType = GoogleMap.MAP_TYPE_NORMAL; // Calles
-        Toast.makeText(getContext(), "Vista Normal (Ciudad)", Toast.LENGTH_SHORT).show();
-      }
-      mMap.setMapType(currentMapType);
-    });
-
+    binding.fabUndo.setOnClickListener(v -> viewModel.deshacer());
+    binding.fabLayers.setOnClickListener(v -> viewModel.alternarCapas());
+    binding.btnGuardarRuta.setOnClickListener(v -> viewModel.guardarRuta(idEvento));
   }
 
+  // --- SALIDAS (ViewModel -> UI) ---
   private void setupObservers() {
-    // Cada vez que cambia la lista de puntos, redibujamos
-    viewModel.getPuntosRuta().observe(getViewLifecycleOwner(), this::dibujarRuta);
 
-    // NUEVO: Actualizar texto de kilómetros
-    viewModel.getTextoDistancia().observe(getViewLifecycleOwner(), txt -> {
-      binding.tvDistanciaReal.setText(txt);
-    });
-
-    // Mensajes
-    viewModel.getMensaje().observe(getViewLifecycleOwner(), msg -> {
-      if (msg != null) Toast.makeText(getContext(), msg, Toast.LENGTH_SHORT).show();
-    });
-
-    // Loading
+    // 1. Mostrar carga
     viewModel.getIsLoading().observe(getViewLifecycleOwner(), loading -> {
       binding.progressBar.setVisibility(loading ? View.VISIBLE : View.GONE);
       binding.btnGuardarRuta.setEnabled(!loading);
     });
 
-    // Navegación al terminar
-    viewModel.getGuardadoExitoso().observe(getViewLifecycleOwner(), exito -> {
-      if (exito) {
-        // Volvemos a "Mis Eventos" o "Inicio" eliminando la pila de "Crear"
-        Navigation.findNavController(requireView()).popBackStack(R.id.nav_mis_eventos, false);
+    // 2. Actualizar texto distancia
+    viewModel.getTextoDistancia().observe(getViewLifecycleOwner(), binding.tvDistanciaReal::setText);
+
+    // 3. Configurar tipo de mapa
+    viewModel.getTipoMapa().observe(getViewLifecycleOwner(), tipo -> {
+      if (mMap != null) mMap.setMapType(tipo);
+    });
+
+    // 4. Dibujar ruta
+    viewModel.getPuntosRuta().observe(getViewLifecycleOwner(), this::dibujarEnMapa);
+
+    // 5. Mensajes de Error
+    viewModel.getOrdenMostrarError().observe(getViewLifecycleOwner(), msg -> {
+      if (msg != null) {
+        Toast.makeText(getContext(), msg, Toast.LENGTH_SHORT).show();
+        viewModel.resetOrdenError();
+      }
+    });
+
+    // 6. Orden de Zoom (Ruta cargada)
+    viewModel.getOrdenHacerZoomRuta().observe(getViewLifecycleOwner(), bounds -> {
+      if (bounds != null && mMap != null) {
+        mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, 100));
+        viewModel.resetOrdenCamara();
+      }
+    });
+
+    // 7. Orden de Centro (Evento nuevo o fallback)
+    viewModel.getOrdenCentrarCamara().observe(getViewLifecycleOwner(), centro -> {
+      if (centro != null && mMap != null) {
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(centro, 13));
+        viewModel.resetOrdenCamara();
+      }
+    });
+
+    // 8. ORDEN DE NAVEGACION
+    viewModel.getOrdenNavegarSalida().observe(getViewLifecycleOwner(), mensaje -> {
+      if (mensaje != null) {
+        navegarAlListado(mensaje);
+        viewModel.resetOrdenNavegacion();
       }
     });
   }
 
-  // metodo de pintado: Borra y dibuja de nuevo
-  private void dibujarRuta(List<LatLng> puntos) {
-    if (mMap == null) return;
-    mMap.clear(); // Limpiamos marcadores y líneas viejas
+  @Override
+  public void onMapReady(@NonNull GoogleMap googleMap) {
+    mMap = googleMap;
+    mMap.getUiSettings().setZoomControlsEnabled(true);
+    mMap.setOnMapClickListener(latLng -> viewModel.agregarPunto(latLng));
 
-    if (puntos.isEmpty()) return;
-
-    // 1. Dibujar la línea (Polyline)
-    PolylineOptions polyline = new PolylineOptions()
-      .addAll(puntos)
-      .width(12)
-      .color(Color.BLUE) // Puedes usar Color.parseColor("#1976D2")
-      .geodesic(true); // Geodesic ayuda a la precisión visual en distancias largas
-    mMap.addPolyline(polyline);
-
-    // 2. Marcador de Inicio (Verde)
-    mMap.addMarker(new MarkerOptions()
-      .position(puntos.get(0))
-      .title("Largada")
-      .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)));
-
-    // 3. Marcador de Fin (Rojo) - Solo si hay más de 1 punto
-    if (puntos.size() > 1) {
-      mMap.addMarker(new MarkerOptions()
-        .position(puntos.get(puntos.size() - 1))
-        .title("Meta")
-        .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)));
-    }
-// --- CORRECCIÓN CLAVE: MOVER CÁMARA AUTOMÁTICAMENTE ---
-    // Si estamos editando un evento existente y es la PRIMERA VEZ que dibujamos la ruta cargada
-    // y NO hemos centrado la cámara todavía:
-    if (idEvento != 0 && !camaraCentradaInicialmente && !puntos.isEmpty()) {
-
-      // Opción A: Centrar solo en la Largada con Zoom Alto
-      // mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(puntos.get(0), 16));
-
-      // Opción B (RECOMENDADA): Encuadrar toda la ruta para verla completa
-      try {
-        LatLngBounds.Builder builder = new LatLngBounds.Builder();
-        for (LatLng p : puntos) {
-          builder.include(p);
-        }
-        LatLngBounds bounds = builder.build();
-        // moveCamera con padding de 100 pixels para que no quede pegado al borde
-        mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, 100));
-      } catch (Exception e) {
-        // Fallback si la ruta es un solo punto o error de bounds: ir a la largada
-        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(puntos.get(0), 15));
-      }
-
-      // Marcamos como centrado para que al seguir editando no te mueva la cámara a cada rato
-      camaraCentradaInicialmente = true;
+    // Sincronizar estado inicial
+    if (viewModel.getTipoMapa().getValue() != null) {
+      mMap.setMapType(viewModel.getTipoMapa().getValue());
     }
 
+    // Avisar al VM que estamos listos
+    viewModel.onMapReady(idEvento);
   }
 
+  // PINTAR (Solo visual, no calcula nada)
+  private void dibujarEnMapa(List<LatLng> puntos) {
+    if (mMap == null) return;
+    mMap.clear();
+
+    if (puntos == null || puntos.isEmpty()) return;
+
+    PolylineOptions poly = new PolylineOptions()
+      .addAll(puntos).width(12).color(Color.BLUE).geodesic(true);
+    mMap.addPolyline(poly);
+
+    mMap.addMarker(new MarkerOptions().position(puntos.get(0))
+      .title("Largada").icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)));
+
+    if (puntos.size() > 1) {
+      mMap.addMarker(new MarkerOptions().position(puntos.get(puntos.size() - 1))
+        .title("Meta").icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)));
+    }
+  }
+
+  // NAVEGACION
+  private void navegarAlListado(String mensajeExito) {
+    NavController navController = Navigation.findNavController(requireView());
+
+    // 1. Intentar pasar mensaje al stack anterior
+    try {
+      if (navController.getPreviousBackStackEntry() != null) {
+        navController.getPreviousBackStackEntry()
+          .getSavedStateHandle()
+          .set("mensaje_exito", mensajeExito);
+      }
+    } catch (Exception e) {}
+
+    // 2. Intentar volver atras (Pop)
+    boolean sePudoVolver = navController.popBackStack(R.id.nav_mis_eventos, false);
+
+    // 3. Si no se pudo (vienes del menu), navegar explícitamente
+    if (!sePudoVolver) {
+      NavOptions options = new NavOptions.Builder()
+        .setPopUpTo(R.id.nav_crear_evento, true) // Limpiar historial
+        .setLaunchSingleTop(true)
+        .build();
+
+      Bundle args = new Bundle();
+      args.putString("mensaje_arg", mensajeExito);
+
+      navController.navigate(R.id.nav_mis_eventos, args, options);
+    }
+  }
 }

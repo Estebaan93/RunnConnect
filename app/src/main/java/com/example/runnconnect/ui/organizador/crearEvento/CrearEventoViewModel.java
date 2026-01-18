@@ -1,7 +1,7 @@
 package com.example.runnconnect.ui.organizador.crearEvento;
 
 import android.app.Application;
-import android.view.View; // Importante para View.VISIBLE
+import android.view.View;
 
 import androidx.annotation.NonNull;
 import androidx.lifecycle.AndroidViewModel;
@@ -19,7 +19,6 @@ import org.json.JSONObject;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.List;
 import java.util.Locale;
 
@@ -31,11 +30,19 @@ import retrofit2.Response;
 public class CrearEventoViewModel extends AndroidViewModel {
   private final EventoRepositorio repositorio;
 
-  // --- SALIDAS DE UI ---
+  // --- ESTADOS GENERALES ---
   private final MutableLiveData<Boolean> isLoading = new MutableLiveData<>(false);
-  private final MutableLiveData<String> mensajeGlobal = new MutableLiveData<>();
+  private final MutableLiveData<String> mensajeGlobal = new MutableLiveData<>(); // Para errores generales (API, Conexión)
 
-  // Campos de Texto
+  // --- ERRORES DE CAMPOS ESPECIFICOS (Para setError y focus) ---
+  private final MutableLiveData<String> errorTitulo = new MutableLiveData<>();
+  private final MutableLiveData<String> errorUbicacion = new MutableLiveData<>();
+  private final MutableLiveData<String> errorDistancia = new MutableLiveData<>();
+  private final MutableLiveData<String> errorPrecio = new MutableLiveData<>();
+  private final MutableLiveData<String> errorCupo = new MutableLiveData<>();
+  // Fecha y Hora no tienen setError nativo usaremos mensajeGlobal
+
+  // --- DATOS DE LA UI (Binding) ---
   private final MutableLiveData<String> titulo = new MutableLiveData<>();
   private final MutableLiveData<String> descripcion = new MutableLiveData<>();
   private final MutableLiveData<String> ubicacion = new MutableLiveData<>();
@@ -44,26 +51,21 @@ public class CrearEventoViewModel extends AndroidViewModel {
   private final MutableLiveData<String> datosPago = new MutableLiveData<>();
   private final MutableLiveData<String> cupo = new MutableLiveData<>();
 
-  // Campos de Categoría
   private final MutableLiveData<String> distancia = new MutableLiveData<>();
   private final MutableLiveData<String> precio = new MutableLiveData<>();
   private final MutableLiveData<String> edadMin = new MutableLiveData<>();
   private final MutableLiveData<String> edadMax = new MutableLiveData<>();
 
-  // Selecciones para Spinners
   private final MutableLiveData<String> seleccionModalidad = new MutableLiveData<>();
   private final MutableLiveData<String> seleccionGenero = new MutableLiveData<>();
 
-  // --- CONTROL DE UI (VISIBILIDAD Y BLOQUEO) ---
+  // --- CONTROL UI ---
   private final MutableLiveData<String> uiTituloPagina = new MutableLiveData<>();
   private final MutableLiveData<String> uiTextoBoton = new MutableLiveData<>();
   private final MutableLiveData<String> uiTextoAviso = new MutableLiveData<>();
-
   private final MutableLiveData<Integer> uiVisibilidadCamposExtra = new MutableLiveData<>();
   private final MutableLiveData<Integer> uiVisibilidadChips = new MutableLiveData<>();
   private final MutableLiveData<Boolean> uiCamposHabilitados = new MutableLiveData<>();
-
-  // Navegación
   private final MutableLiveData<Integer> navegacionExito = new MutableLiveData<>(0);
 
   // Estado Interno
@@ -76,14 +78,21 @@ public class CrearEventoViewModel extends AndroidViewModel {
   public CrearEventoViewModel(@NonNull Application application) {
     super(application);
     repositorio = new EventoRepositorio(application);
-
-    // Inicializar en modo CREAR
     configurarModoCrear();
   }
 
   // --- GETTERS ---
   public LiveData<Boolean> getIsLoading() { return isLoading; }
   public LiveData<String> getMensajeGlobal() { return mensajeGlobal; }
+
+  // Getters de Errores
+  public LiveData<String> getErrorTitulo() { return errorTitulo; }
+  public LiveData<String> getErrorUbicacion() { return errorUbicacion; }
+  public LiveData<String> getErrorDistancia() { return errorDistancia; }
+  public LiveData<String> getErrorPrecio() { return errorPrecio; }
+  public LiveData<String> getErrorCupo() { return errorCupo; }
+
+  // Getters de Datos
   public LiveData<String> getTitulo() { return titulo; }
   public LiveData<String> getDescripcion() { return descripcion; }
   public LiveData<String> getUbicacion() { return ubicacion; }
@@ -104,145 +113,60 @@ public class CrearEventoViewModel extends AndroidViewModel {
   public LiveData<Integer> getUiVisibilidadCamposExtra() { return uiVisibilidadCamposExtra; }
   public LiveData<Integer> getUiVisibilidadChips() { return uiVisibilidadChips; }
   public LiveData<Boolean> getUiCamposHabilitados() { return uiCamposHabilitados; }
-
   public LiveData<Integer> getNavegacionExito() { return navegacionExito; }
+
   public void resetearNavegacion() { navegacionExito.setValue(0); }
 
-  // --- LÓGICA DE MODOS ---
-
-  private void configurarModoCrear() {
-    uiTituloPagina.setValue("Nuevo Evento");
-    uiTextoBoton.setValue("Guardar y Definir Ruta 🗺️");
-    uiTextoAviso.setValue("¡Siguiente paso: Dibujar el circuito en el mapa!");
-
-    // --- CORRECCIÓN AQUÍ ---
-    // Antes estaba en GONE. Debe ser VISIBLE para poder escribir el precio y distancia.
-    uiVisibilidadCamposExtra.setValue(View.VISIBLE);
-
-    // Mostrar chips para ayuda rápida
-    uiVisibilidadChips.setValue(View.VISIBLE);
-
-    // Habilitar edición (True = Enabled)
-    uiCamposHabilitados.setValue(true);
-  }
-
-  private void configurarModoEditar() {
-    uiTituloPagina.setValue("Editar Evento");
-    uiTextoBoton.setValue("Guardar Cambios");
-    uiTextoAviso.setValue("Nota: Precio, Distancia y Lugar no se editan para mantener integridad.");
-
-    // Mostrar campos para ver contexto (pero estarán bloqueados)
-    uiVisibilidadCamposExtra.setValue(View.VISIBLE);
-
-    // Ocultar chips (no se edita distancia)
-    uiVisibilidadChips.setValue(View.GONE);
-
-    // Deshabilitar campos críticos (False = Disabled)
-    uiCamposHabilitados.setValue(false);
-  }
-
-  // --- RESTO DE MÉTODOS (IGUAL QUE ANTES) ---
-
-  public void onChipDistanciaSelected(String textoChip) {
-    if (textoChip != null) {
-      distancia.setValue(textoChip.replace("K", "").trim());
-    }
-  }
-
-  public void onFechaSelected(int year, int month, int day) {
-    this.selYear = year; this.selMonth = month; this.selDay = day;
-    fechaIso = String.format(Locale.getDefault(), "%04d-%02d-%02d", year, month + 1, day);
-    fechaDisplay.setValue(String.format(Locale.getDefault(), "%02d/%02d/%04d", day, month + 1, year));
-  }
-
-  public void onHoraSelected(int hour, int minute) {
-    this.selHour = hour; this.selMinute = minute;
-    horaIso = String.format(Locale.getDefault(), "%02d:%02d", hour, minute);
-    horaDisplay.setValue(horaIso);
-  }
-
-  public void verificarModoEdicion(int idEvento) {
-    if (idEvento <= 0) return;
-
-    esEdicion = true;
-    idEventoEdicion = idEvento;
-    configurarModoEditar(); // Cambiar UI a modo edición
-    isLoading.setValue(true);
-
-    repositorio.obtenerDetalleEvento(idEvento, new Callback<EventoDetalleResponse>() {
-      @Override
-      public void onResponse(Call<EventoDetalleResponse> call, Response<EventoDetalleResponse> response) {
-        isLoading.setValue(false);
-        if (response.isSuccessful() && response.body() != null) {
-          mapearEventoAUI(response.body());
-        } else {
-          mensajeGlobal.setValue("No se pudieron cargar los datos.");
-        }
-      }
-      @Override
-      public void onFailure(Call<EventoDetalleResponse> call, Throwable t) {
-        isLoading.setValue(false);
-        mensajeGlobal.setValue("Error de conexión.");
-      }
-    });
-  }
-
-  private void mapearEventoAUI(EventoDetalleResponse evento) {
-    titulo.setValue(evento.getNombre());
-    descripcion.setValue(evento.getDescripcion());
-    ubicacion.setValue(evento.getLugar());
-
-    if (evento.getDatosPago() != null) datosPago.setValue(evento.getDatosPago());
-    if (evento.getCupoTotal() != null) cupo.setValue(String.valueOf(evento.getCupoTotal()));
-
-    if (evento.getFechaHora() != null && evento.getFechaHora().contains("T")) {
-      try {
-        String[] partes = evento.getFechaHora().split("T");
-        this.fechaIso = partes[0];
-        this.horaIso = partes[1].substring(0, 5);
-        String[] f = fechaIso.split("-");
-        fechaDisplay.setValue(f[2] + "/" + f[1] + "/" + f[0]);
-        horaDisplay.setValue(horaIso);
-      } catch (Exception e) { e.printStackTrace(); }
-    }
-
-    if (evento.getCategorias() != null && !evento.getCategorias().isEmpty()) {
-      CategoriaResponse cat = evento.getCategorias().get(0);
-
-      precio.setValue(String.valueOf(cat.getPrecio()));
-      edadMin.setValue(String.valueOf(cat.getEdadMinima()));
-      edadMax.setValue(String.valueOf(cat.getEdadMaxima()));
-
-      String g = cat.getGenero();
-      if ("F".equals(g)) seleccionGenero.setValue("Femenino");
-      else if ("M".equals(g)) seleccionGenero.setValue("Masculino");
-      else seleccionGenero.setValue("Mixto / General");
-
-      String nombreCat = cat.getNombre();
-      if (nombreCat != null) {
-        String[] partes = nombreCat.split(" ");
-        if (partes.length > 0) distancia.setValue(partes[0].replace("K", ""));
-        if (partes.length > 1) seleccionModalidad.setValue(partes[1]);
-        else distancia.setValue(nombreCat);
-      }
-    }
-  }
+  // --- LOGICA DE VALIDACION Y GUARDADO ---
 
   public void guardarEvento(String tituloIn, String descripcionIn, String lugarIn, String datosPagoIn,
                             String distanciaIn, String modalidadIn, String generoIn,
                             String edadMinIn, String edadMaxIn, String precioIn, String cupoIn) {
 
-    if (tituloIn.trim().isEmpty()) { mensajeGlobal.setValue("El título es obligatorio"); return; }
-    if (lugarIn.trim().isEmpty()) { mensajeGlobal.setValue("La ubicación es obligatoria"); return; }
-    if (fechaIso.isEmpty() || horaIso.isEmpty()) { mensajeGlobal.setValue("Selecciona fecha y hora"); return; }
+    // 1. Limpiar errores previos
+    mensajeGlobal.setValue(null);
+    errorTitulo.setValue(null);
+    errorUbicacion.setValue(null);
+    errorDistancia.setValue(null);
+    errorPrecio.setValue(null);
+    errorCupo.setValue(null);
 
+    boolean hayError = false;
+
+    // 2. Validaciones Granulares (Setear error y cortar flujo si es necesario)
+    if (tituloIn.trim().isEmpty()) {
+      errorTitulo.setValue("El título es obligatorio");
+      hayError = true;
+    }
+
+    if (lugarIn.trim().isEmpty()) {
+      errorUbicacion.setValue("La ubicación es obligatoria");
+      hayError = true;
+    }
+
+    // Si hay errores basicos, paramos aqui para que la UI haga foco en el primero
+    if (hayError) return;
+
+    // Validaciones de fecha
+    if (fechaIso.isEmpty() || horaIso.isEmpty()) {
+      mensajeGlobal.setValue("Debes seleccionar fecha y hora");
+      return;
+    }
+
+    // Validacion Cupo (Numerico)
     Integer cupoInt = null;
     try {
-      if (cupoIn != null && !cupoIn.trim().isEmpty()) cupoInt = Integer.parseInt(cupoIn.trim());
-    } catch (NumberFormatException e) { mensajeGlobal.setValue("Cupo inválido"); return; }
+      if (cupoIn != null && !cupoIn.trim().isEmpty()) {
+        cupoInt = Integer.parseInt(cupoIn.trim());
+      }
+    } catch (NumberFormatException e) {
+      errorCupo.setValue("Formato de número inválido");
+      return;
+    }
 
     String fechaHoraFinal = fechaIso + "T" + horaIso + ":00";
 
+    // --- RAMA EDICION ---
     if (esEdicion) {
       ActualizarEventoRequest request = new ActualizarEventoRequest();
       request.setNombre(tituloIn);
@@ -256,12 +180,25 @@ public class CrearEventoViewModel extends AndroidViewModel {
       return;
     }
 
-    if (distanciaIn.trim().isEmpty()) { mensajeGlobal.setValue("Falta la distancia"); return; }
-    if (precioIn.trim().isEmpty()) { mensajeGlobal.setValue("Falta el precio"); return; }
+    // --- RAMA CREACION (Validaciones extra) ---
+    if (distanciaIn.trim().isEmpty()) {
+      errorDistancia.setValue("Indica la distancia (ej: 10)");
+      return;
+    }
+    if (precioIn.trim().isEmpty()) {
+      errorPrecio.setValue("Indica el precio");
+      return;
+    }
 
     BigDecimal precioDec;
-    try { precioDec = new BigDecimal(precioIn.trim()); } catch (Exception e) { mensajeGlobal.setValue("Precio inválido"); return; }
+    try {
+      precioDec = new BigDecimal(precioIn.trim());
+    } catch (Exception e) {
+      errorPrecio.setValue("Precio inválido");
+      return;
+    }
 
+    // Armado del objeto
     String nombreDistancia = distanciaIn.toUpperCase().contains("K") ? distanciaIn : distanciaIn + "K";
 
     String generoApi = "X";
@@ -293,7 +230,7 @@ public class CrearEventoViewModel extends AndroidViewModel {
       public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
         isLoading.setValue(false);
         if (response.isSuccessful()) {
-          mensajeGlobal.setValue("¡Actualizado correctamente!");
+          mensajeGlobal.setValue("¡Cambios guardados con éxito!");
           new android.os.Handler().postDelayed(() -> navegacionExito.setValue(2), 800);
         } else {
           manejarErrorApi(response);
@@ -319,10 +256,10 @@ public class CrearEventoViewModel extends AndroidViewModel {
             JSONObject json = new JSONObject(raw);
             if (json.has("evento")) {
               int idNuevo = json.getJSONObject("evento").getInt("idEvento");
-              mensajeGlobal.setValue("¡Creado! Configurando mapa...");
+              mensajeGlobal.setValue("¡Evento creado! Redirigiendo al mapa...");
               navegacionExito.setValue(idNuevo);
             }
-          } catch (Exception e) { mensajeGlobal.setValue("Evento creado, error al leer ID"); }
+          } catch (Exception e) { mensajeGlobal.setValue("Evento creado, pero hubo error leyendo la respuesta."); }
         } else {
           manejarErrorApi(response);
         }
@@ -330,7 +267,7 @@ public class CrearEventoViewModel extends AndroidViewModel {
       @Override
       public void onFailure(Call<ResponseBody> call, Throwable t) {
         isLoading.setValue(false);
-        mensajeGlobal.setValue("Error de conexión");
+        mensajeGlobal.setValue("No se pudo conectar con el servidor.");
       }
     });
   }
@@ -341,8 +278,105 @@ public class CrearEventoViewModel extends AndroidViewModel {
       if (response.errorBody() != null) {
         JSONObject json = new JSONObject(response.errorBody().string());
         if (json.has("message")) msg = json.getString("message");
+        else if (json.has("errors")) { // Captura de errores de validacion del backend (.NET)
+          JSONObject errors = json.getJSONObject("errors");
+          if(errors.keys().hasNext()) {
+            String key = errors.keys().next();
+            msg = errors.getJSONArray(key).getString(0);
+          }
+        }
       }
     } catch (Exception e) { }
     mensajeGlobal.setValue(msg);
+  }
+
+  // --- CONFIGURACION UI (MISMOS METODOS QUE ANTES) ---
+  private void configurarModoCrear() {
+    uiTituloPagina.setValue("Nuevo Evento");
+    uiTextoBoton.setValue("Guardar y Definir Ruta");
+    uiTextoAviso.setValue("¡Siguiente paso: Dibujar el circuito en el mapa!");
+    uiVisibilidadCamposExtra.setValue(View.VISIBLE);
+    uiVisibilidadChips.setValue(View.VISIBLE);
+    uiCamposHabilitados.setValue(true);
+  }
+
+  private void configurarModoEditar() {
+    uiTituloPagina.setValue("Editar Evento");
+    uiTextoBoton.setValue("Guardar Cambios");
+    uiTextoAviso.setValue("Nota: Precio, Distancia y Lugar no se editan.");
+    uiVisibilidadCamposExtra.setValue(View.VISIBLE);
+    uiVisibilidadChips.setValue(View.GONE);
+    uiCamposHabilitados.setValue(false);
+  }
+
+  // Inputs UI
+  public void onChipDistanciaSelected(String textoChip) {
+    if (textoChip != null) distancia.setValue(textoChip.replace("K", "").trim());
+  }
+  public void onFechaSelected(int year, int month, int day) {
+    this.selYear = year; this.selMonth = month; this.selDay = day;
+    fechaIso = String.format(Locale.getDefault(), "%04d-%02d-%02d", year, month + 1, day);
+    fechaDisplay.setValue(String.format(Locale.getDefault(), "%02d/%02d/%04d", day, month + 1, year));
+  }
+  public void onHoraSelected(int hour, int minute) {
+    this.selHour = hour; this.selMinute = minute;
+    horaIso = String.format(Locale.getDefault(), "%02d:%02d", hour, minute);
+    horaDisplay.setValue(horaIso);
+  }
+
+  public void verificarModoEdicion(int idEvento) {
+    if (idEvento <= 0) return;
+    esEdicion = true;
+    idEventoEdicion = idEvento;
+    configurarModoEditar();
+    isLoading.setValue(true);
+    repositorio.obtenerDetalleEvento(idEvento, new Callback<EventoDetalleResponse>() {
+      @Override
+      public void onResponse(Call<EventoDetalleResponse> call, Response<EventoDetalleResponse> response) {
+        isLoading.setValue(false);
+        if (response.isSuccessful() && response.body() != null) mapearEventoAUI(response.body());
+        else mensajeGlobal.setValue("Error cargando datos.");
+      }
+      @Override
+      public void onFailure(Call<EventoDetalleResponse> call, Throwable t) {
+        isLoading.setValue(false);
+        mensajeGlobal.setValue("Error de conexión.");
+      }
+    });
+  }
+
+  private void mapearEventoAUI(EventoDetalleResponse evento) {
+    titulo.setValue(evento.getNombre());
+    descripcion.setValue(evento.getDescripcion());
+    ubicacion.setValue(evento.getLugar());
+    if (evento.getDatosPago() != null) datosPago.setValue(evento.getDatosPago());
+    if (evento.getCupoTotal() != null) cupo.setValue(String.valueOf(evento.getCupoTotal()));
+    if (evento.getFechaHora() != null && evento.getFechaHora().contains("T")) {
+      try {
+        String[] partes = evento.getFechaHora().split("T");
+        this.fechaIso = partes[0];
+        this.horaIso = partes[1].substring(0, 5);
+        String[] f = fechaIso.split("-");
+        fechaDisplay.setValue(f[2] + "/" + f[1] + "/" + f[0]);
+        horaDisplay.setValue(horaIso);
+      } catch (Exception e) { e.printStackTrace(); }
+    }
+    if (evento.getCategorias() != null && !evento.getCategorias().isEmpty()) {
+      CategoriaResponse cat = evento.getCategorias().get(0);
+      precio.setValue(String.valueOf(cat.getPrecio()));
+      edadMin.setValue(String.valueOf(cat.getEdadMinima()));
+      edadMax.setValue(String.valueOf(cat.getEdadMaxima()));
+      String g = cat.getGenero();
+      if ("F".equals(g)) seleccionGenero.setValue("Femenino");
+      else if ("M".equals(g)) seleccionGenero.setValue("Masculino");
+      else seleccionGenero.setValue("Mixto / General");
+      String nombreCat = cat.getNombre();
+      if (nombreCat != null) {
+        String[] partes = nombreCat.split(" ");
+        if (partes.length > 0) distancia.setValue(partes[0].replace("K", ""));
+        if (partes.length > 1) seleccionModalidad.setValue(partes[1]);
+        else distancia.setValue(nombreCat);
+      }
+    }
   }
 }

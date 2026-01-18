@@ -55,7 +55,7 @@ public class EventoAdapter extends RecyclerView.Adapter<EventoAdapter.EventoView
     holder.tvCupo.setText("Cupo Total: " + evento.getCupoTotal());
     holder.tvEstado.setText(estado);
 
-    // Lógica de colores segura
+    // Logica de colores segura
     switch (estado) {
       case "PUBLICADO":
         holder.tvEstado.setTextColor(Color.parseColor("#2E7D32")); // Verde

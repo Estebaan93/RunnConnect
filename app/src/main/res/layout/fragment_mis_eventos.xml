@@ -23,6 +23,22 @@
       app:layout_constraintTop_toTopOf="parent"/>
 
   <TextView
+      android:id="@+id/tvMensajeExito"
+      android:layout_width="0dp"
+      android:layout_height="wrap_content"
+      android:background="#E8F5E9"
+      android:textColor="#2E7D32"
+      android:textStyle="bold"
+      android:padding="12dp"
+      android:gravity="center"
+      android:text="¡Evento guardado correctamente!"
+      android:visibility="gone"
+      app:layout_constraintTop_toTopOf="parent"
+      app:layout_constraintStart_toStartOf="parent"
+      app:layout_constraintEnd_toEndOf="parent"
+      android:elevation="4dp"/>
+
+  <TextView
       android:id="@+id/tvVacio"
       android:layout_width="wrap_content"
       android:layout_height="wrap_content"

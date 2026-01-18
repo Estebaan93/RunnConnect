@@ -6,11 +6,12 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.runnconnect.R;
 import com.example.runnconnect.databinding.FragmentMisEventosBinding;
@@ -37,6 +38,38 @@ public class MisEventosFragment extends Fragment {
     );
 
     return binding.getRoot();
+  }
+
+  @Override
+  public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+    super.onViewCreated(view, savedInstanceState);
+    // CONFIGURACION DE RECEPCION DE MENSAJES (Inter-Fragment Communication)
+    detectarMensajesEntrantes(view);
+  }
+
+  // Detecta si MapaEditor nos envio algo al volver
+  private void detectarMensajesEntrantes(View view) {
+    NavController navController = Navigation.findNavController(view);
+
+    // 1. Caso: Volver atras
+    if (navController.getCurrentBackStackEntry() != null) {
+      navController.getCurrentBackStackEntry().getSavedStateHandle()
+        .getLiveData("mensaje_exito", "") // Observamos cambios en esta clave
+        .observe(getViewLifecycleOwner(), mensaje -> {
+          if (!mensaje.isEmpty()) {
+            viewModel.mostrarMensajeExito(mensaje);
+            // Limpiamos el estado para que no se repita al rotar
+            navController.getCurrentBackStackEntry().getSavedStateHandle().set("mensaje_exito", "");
+          }
+        });
+    }
+
+    // 2. Caso: Navegacion directa (navigate) -> Usamos Arguments
+    if (getArguments() != null && getArguments().containsKey("mensaje_arg")) {
+      String msg = getArguments().getString("mensaje_arg");
+      viewModel.mostrarMensajeExito(msg);
+      getArguments().remove("mensaje_arg"); // Limpiamos argumento
+    }
   }
 
   private void setupRecyclerView() {
@@ -82,6 +115,15 @@ public class MisEventosFragment extends Fragment {
   }
 
   private void setupObservers() {
+    // Observer para el banner de exito
+    viewModel.getMensajeExito().observe(getViewLifecycleOwner(), mensaje -> {
+      if (mensaje != null && !mensaje.isEmpty()) {
+        binding.tvMensajeExito.setText(mensaje);
+        binding.tvMensajeExito.setVisibility(View.VISIBLE);
+      } else {
+        binding.tvMensajeExito.setVisibility(View.GONE);
+      }
+    });
     viewModel.getListaEventos().observe(getViewLifecycleOwner(), eventos -> {
       if (eventos == null) return;
 
@@ -96,7 +138,7 @@ public class MisEventosFragment extends Fragment {
           adapter.setEventos(eventos);
         }
       } else {
-        // Son páginas siguientes, agregamos
+        // Son paginas siguientes, agregamos
         adapter.agregarEventos(eventos);
       }
     });

@@ -1,7 +1,6 @@
 package com.example.runnconnect.ui.organizador.misEventos;
 
 import android.content.Context;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -9,7 +8,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
@@ -25,6 +23,8 @@ public class DetalleEventoFragment extends Fragment {
   private DetalleEventoViewModel viewModel;
   private int idEvento = 0;
 
+  private AlertDialog dialogEstado;
+
   public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
     binding = FragmentDetalleEventoBinding.inflate(inflater, container, false);
     viewModel = new ViewModelProvider(this).get(DetalleEventoViewModel.class);
@@ -36,13 +36,59 @@ public class DetalleEventoFragment extends Fragment {
     if (idEvento != 0) {
       viewModel.cargarDetalle(idEvento);
     } else {
-      Toast.makeText(getContext(), "Error: ID de evento inválido", Toast.LENGTH_SHORT).show();
+      // Manejo de error crítico sin Toast: Usamos el mensaje global si existe, o un textview de error
+      // Como fallback rápido si no hay layout cargado aún, un Toast es inevitable, pero aquí ya hay binding.
+      binding.tvMensajeGlobal.setText("Error: ID de evento inválido");
+      binding.tvMensajeGlobal.setVisibility(View.VISIBLE);
     }
 
     setupListeners();
     setupObservers();
 
     return binding.getRoot();
+  }
+
+  private void setupObservers() {
+    // 1. Visibilidad y Carga
+    viewModel.getIsLoading().observe(getViewLifecycleOwner(), loading ->
+      binding.progressBar.setVisibility(loading ? View.VISIBLE : View.GONE)
+    );
+
+    // 2. MENSAJES EN PANTALLA (Reemplazo de Toast)
+    viewModel.getMensajeGlobal().observe(getViewLifecycleOwner(), msg -> {
+      // Asumimos que agregaste un TextView con id 'tvMensajeGlobal' en tu XML
+      if (binding.tvMensajeGlobal != null) {
+        binding.tvMensajeGlobal.setText(msg);
+        binding.tvMensajeGlobal.setVisibility(msg != null && !msg.isEmpty() ? View.VISIBLE : View.GONE);
+      }
+      // Opcional: Podrías usar un Handler para ocultarlo después de 3 segundos si quieres efecto "Toast" pero en view
+    });
+
+    // 3. Data Binding (Textos y Colores)
+    viewModel.getUiTitulo().observe(getViewLifecycleOwner(), binding.tvTituloDetalle::setText);
+    viewModel.getUiFecha().observe(getViewLifecycleOwner(), binding.tvFechaDetalle::setText);
+    viewModel.getUiLugar().observe(getViewLifecycleOwner(), binding.tvLugarDetalle::setText);
+    viewModel.getUiDescripcion().observe(getViewLifecycleOwner(), binding.tvDescripcion::setText);
+    viewModel.getUiInscriptos().observe(getViewLifecycleOwner(), binding.tvInscriptosCount::setText);
+    viewModel.getUiCupo().observe(getViewLifecycleOwner(), binding.tvCupoTotal::setText);
+
+    viewModel.getUiEstadoTexto().observe(getViewLifecycleOwner(), binding.tvEstadoDetalle::setText);
+    viewModel.getUiEstadoColor().observe(getViewLifecycleOwner(), color -> binding.tvEstadoDetalle.setTextColor(color));
+
+    viewModel.getUiDistanciaTipo().observe(getViewLifecycleOwner(), binding.tvDistanciaTipo::setText);
+    viewModel.getUiGeneroPrecio().observe(getViewLifecycleOwner(), binding.tvGeneroPrecio::setText);
+
+    viewModel.getUiVisibilidadDatosCategoria().observe(getViewLifecycleOwner(), visibility -> {
+      binding.tvDistanciaTipo.setVisibility(visibility);
+      binding.tvGeneroPrecio.setVisibility(visibility);
+    });
+
+    // 4. Control del Diálogo
+    viewModel.getDialogDismiss().observe(getViewLifecycleOwner(), shouldDismiss -> {
+      if (shouldDismiss && dialogEstado != null && dialogEstado.isShowing()) {
+        dialogEstado.dismiss();
+      }
+    });
   }
 
   private void setupListeners() {
@@ -60,87 +106,7 @@ public class DetalleEventoFragment extends Fragment {
       try {
         Navigation.findNavController(v).navigate(R.id.action_detalle_to_editarEvento, args);
       } catch (Exception e) {
-        try {
-          Navigation.findNavController(v).navigate(R.id.nav_crear_evento, args);
-        } catch (Exception ex) {
-          Toast.makeText(getContext(), "Error navegación", Toast.LENGTH_SHORT).show();
-        }
-      }
-    });
-  }
-
-  private void setupObservers() {
-    viewModel.getIsLoading().observe(getViewLifecycleOwner(), loading ->
-      binding.progressBar.setVisibility(loading ? View.VISIBLE : View.GONE)
-    );
-
-    viewModel.getEvento().observe(getViewLifecycleOwner(), evento -> {
-      if (evento == null) return;
-
-      binding.tvTituloDetalle.setText(evento.getNombre());
-      binding.tvFechaDetalle.setText(evento.getFechaHora() != null ? evento.getFechaHora().replace("T", " ") : "");
-      binding.tvLugarDetalle.setText(evento.getLugar());
-      binding.tvDescripcion.setText(evento.getDescripcion());
-      binding.tvInscriptosCount.setText(String.valueOf(evento.getInscriptosActuales()));
-      binding.tvCupoTotal.setText(String.valueOf(evento.getCupoTotal()));
-      binding.tvEstadoDetalle.setText(evento.getEstado().toUpperCase());
-
-      String estado = evento.getEstado().toUpperCase();
-      switch (estado) {
-        case "PUBLICADO":
-          binding.tvEstadoDetalle.setTextColor(Color.parseColor("#2E7D32"));
-          break;
-        case "SUSPENDIDO":
-          binding.tvEstadoDetalle.setTextColor(Color.parseColor("#FF9800"));
-          break;
-        case "FINALIZADO":
-          binding.tvEstadoDetalle.setTextColor(Color.GRAY);
-          break;
-        case "CANCELADO":
-          binding.tvEstadoDetalle.setTextColor(Color.RED);
-          break;
-        default:
-          binding.tvEstadoDetalle.setTextColor(Color.BLACK);
-      }
-      // 3. --- NUEVO: DATOS TÉCNICOS (CATEGORÍA) ---
-      if (evento.getCategorias() != null && !evento.getCategorias().isEmpty()) {
-        // Tomamos la primera categoría (asumiendo evento simple)
-        var cat = evento.getCategorias().get(0);
-
-        // A. Distancia y Modalidad (Viene en "nombre": "10K Trail")
-        // Si quieres separarlo bonito:
-        String distMod = cat.getNombre();
-        if(distMod == null) distMod = "Sin categoría";
-        binding.tvDistanciaTipo.setText(distMod);
-
-        // B. Género (Parseo visual)
-        String generoCode = cat.getGenero();
-        String generoTexto = "General";
-        if ("F".equalsIgnoreCase(generoCode)) generoTexto = "Femenino";
-        else if ("M".equalsIgnoreCase(generoCode)) generoTexto = "Masculino";
-        else if ("X".equalsIgnoreCase(generoCode)) generoTexto = "Mixto";
-
-        // C. Precio
-        String precio = "$" + cat.getPrecio();
-
-        // Seteamos el texto combinado
-        binding.tvGeneroPrecio.setText(String.format("%s  |  %s", generoTexto, precio));
-
-        // Hacemos visibles los campos por si acaso estaban gone
-        binding.tvDistanciaTipo.setVisibility(View.VISIBLE);
-        binding.tvGeneroPrecio.setVisibility(View.VISIBLE);
-
-      } else {
-        // Si no hay categorías, ocultamos o mostramos "Sin datos"
-        binding.tvDistanciaTipo.setText("Sin datos de categoría");
-        binding.tvGeneroPrecio.setVisibility(View.GONE);
-      }
-    });
-
-    viewModel.getErrorMsg().observe(getViewLifecycleOwner(), msg -> {
-      if (msg != null && !msg.isEmpty()) {
-        Toast.makeText(getContext(), msg, Toast.LENGTH_SHORT).show();
-        viewModel.limpiarMensaje();
+        try { Navigation.findNavController(v).navigate(R.id.nav_crear_evento, args); } catch (Exception ex) {}
       }
     });
   }
@@ -153,76 +119,40 @@ public class DetalleEventoFragment extends Fragment {
     android.widget.RadioGroup rgEstado = view.findViewById(R.id.rgEstado);
     android.widget.EditText etMotivo = view.findViewById(R.id.etMotivo);
 
-    // Recuperamos el evento actual del ViewModel
-    if (viewModel.getEvento().getValue() != null) {
-      String estadoActual = viewModel.getEvento().getValue().getEstado(); // Ej: "suspendido"
-
-      if (estadoActual != null) {
-        switch (estadoActual.toLowerCase()) {
-          case "publicado":
-            rgEstado.check(R.id.rbPublicado);
-            break;
-          case "suspendido":
-            rgEstado.check(R.id.rbSuspendido);
-            break;
-          case "finalizado":
-            rgEstado.check(R.id.rbFinalizado);
-            break;
-          case "cancelado":
-            rgEstado.check(R.id.rbCancelado);
-            break;
-        }
-      }
+    // Preselección
+    if (viewModel.getEventoRaw().getValue() != null) {
+      String estadoActual = viewModel.getEventoRaw().getValue().getEstado();
+      int idParaMarcar = viewModel.calcularPreseleccionRadio(estadoActual);
+      if (idParaMarcar != -1) rgEstado.check(idParaMarcar);
     }
 
     builder.setPositiveButton("Guardar", null);
     builder.setNegativeButton("Cerrar", null);
 
-    AlertDialog dialog = builder.create();
-    dialog.show();
+    dialogEstado = builder.create();
+    dialogEstado.show();
 
-    dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
-      // 1. Validaciones
+    dialogEstado.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
       int selectedId = rgEstado.getCheckedRadioButtonId();
-      String nuevoEstadoTemp = "";
+      String motivo = etMotivo.getText().toString();
 
-      if (selectedId == R.id.rbPublicado) nuevoEstadoTemp = "publicado";
-      else if (selectedId == R.id.rbSuspendido) nuevoEstadoTemp = "suspendido";
-      else if (selectedId == R.id.rbFinalizado) nuevoEstadoTemp = "finalizado";
-      else if (selectedId == R.id.rbCancelado) nuevoEstadoTemp = "cancelado";
-      else {
-        Toast.makeText(getContext(), "Selecciona un estado", Toast.LENGTH_SHORT).show();
-        return;
-      }
-
-      String motivo = etMotivo.getText().toString().trim();
-      if ((nuevoEstadoTemp.equals("cancelado") || nuevoEstadoTemp.equals("suspendido")) && motivo.isEmpty()) {
-        etMotivo.setError("Motivo requerido");
-        return;
-      }
-
-      // 2. Prevenir doble click
-      v.setEnabled(false);
-
-      // 3. Ocultar teclado (Usando el foco del diálogo para asegurar referencia)
       try {
-        View focus = dialog.getCurrentFocus();
-        if (focus != null) {
-          InputMethodManager imm = (InputMethodManager) requireContext().getSystemService(Context.INPUT_METHOD_SERVICE);
-          imm.hideSoftInputFromWindow(focus.getWindowToken(), 0);
-        }
-      } catch (Exception e) { e.printStackTrace(); }
+        InputMethodManager imm = (InputMethodManager) requireContext().getSystemService(Context.INPUT_METHOD_SERVICE);
+        imm.hideSoftInputFromWindow(etMotivo.getWindowToken(), 0);
+      } catch (Exception e) {}
 
-      // 4. CERRAR EL DIALOGO PRIMERO (Importante para evitar freeze)
-      dialog.dismiss();
-
-      final String estadoFinal = nuevoEstadoTemp;
-      final String motivoFinal = motivo;
-      // 5. INICIAR CARGA CON RETARDO (Desacople de hilos UI)
-      // Esto permite que la ventana del diálogo se destruya completamente antes de estresar la UI con el loading
       new Handler(Looper.getMainLooper()).postDelayed(() -> {
-        viewModel.cambiarEstado(idEvento, estadoFinal, motivoFinal);
-      }, 300); // 300ms de pausa técnica
+        viewModel.procesarCambioEstado(idEvento, selectedId, motivo);
+      }, 100);
+    });
+
+    // Error en el diálogo (Sin Toast)
+    viewModel.getDialogError().observe(getViewLifecycleOwner(), error -> {
+      if (error != null && dialogEstado != null && dialogEstado.isShowing()) {
+        // Usamos el setError del EditText para mostrar el error ahí mismo
+        etMotivo.setError(error);
+        etMotivo.requestFocus();
+      }
     });
   }
 }

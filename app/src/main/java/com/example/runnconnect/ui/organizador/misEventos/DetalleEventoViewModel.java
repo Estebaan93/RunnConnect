@@ -1,13 +1,18 @@
 package com.example.runnconnect.ui.organizador.misEventos;
 
 import android.app.Application;
+import android.graphics.Color;
+import android.view.View;
+
 import androidx.annotation.NonNull;
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
+import com.example.runnconnect.R;
 import com.example.runnconnect.data.repositorio.EventoRepositorio;
 import com.example.runnconnect.data.request.CambiarEstadoRequest;
+import com.example.runnconnect.data.response.CategoriaResponse;
 import com.example.runnconnect.data.response.EventoDetalleResponse;
 
 import okhttp3.ResponseBody;
@@ -17,19 +22,65 @@ import retrofit2.Response;
 
 public class DetalleEventoViewModel extends AndroidViewModel {
   private final EventoRepositorio repositorio;
-  private final MutableLiveData<EventoDetalleResponse> evento = new MutableLiveData<>();
+  private final MutableLiveData<EventoDetalleResponse> eventoRaw = new MutableLiveData<>();
+
+  // --- ESTADOS DE UI ---
   private final MutableLiveData<Boolean> isLoading = new MutableLiveData<>(false);
-  private final MutableLiveData<String> errorMsg = new MutableLiveData<>();
+
+  // CAMBIO: Ahora es mensajeGlobal para mostrar en TextView, no Toast
+  private final MutableLiveData<String> mensajeGlobal = new MutableLiveData<>();
+
+  // Campos de Texto
+  private final MutableLiveData<String> uiTitulo = new MutableLiveData<>();
+  private final MutableLiveData<String> uiFecha = new MutableLiveData<>();
+  private final MutableLiveData<String> uiLugar = new MutableLiveData<>();
+  private final MutableLiveData<String> uiDescripcion = new MutableLiveData<>();
+  private final MutableLiveData<String> uiInscriptos = new MutableLiveData<>();
+  private final MutableLiveData<String> uiCupo = new MutableLiveData<>();
+
+  // Estado (Texto y Color)
+  private final MutableLiveData<String> uiEstadoTexto = new MutableLiveData<>();
+  private final MutableLiveData<Integer> uiEstadoColor = new MutableLiveData<>();
+
+  // Datos Técnicos (Categoría)
+  private final MutableLiveData<String> uiDistanciaTipo = new MutableLiveData<>();
+  private final MutableLiveData<String> uiGeneroPrecio = new MutableLiveData<>();
+  private final MutableLiveData<Integer> uiVisibilidadDatosCategoria = new MutableLiveData<>(View.GONE);
+
+  // Control del Diálogo
+  private final MutableLiveData<String> dialogError = new MutableLiveData<>();
+  private final MutableLiveData<Boolean> dialogDismiss = new MutableLiveData<>();
 
   public DetalleEventoViewModel(@NonNull Application application) {
     super(application);
     repositorio = new EventoRepositorio(application);
   }
 
-  public LiveData<EventoDetalleResponse> getEvento() { return evento; }
+  // --- GETTERS ---
   public LiveData<Boolean> getIsLoading() { return isLoading; }
-  public LiveData<String> getErrorMsg() { return errorMsg; }
+  public LiveData<String> getMensajeGlobal() { return mensajeGlobal; } // Getter actualizado
+  public LiveData<String> getUiTitulo() { return uiTitulo; }
+  public LiveData<String> getUiFecha() { return uiFecha; }
+  public LiveData<String> getUiLugar() { return uiLugar; }
+  public LiveData<String> getUiDescripcion() { return uiDescripcion; }
+  public LiveData<String> getUiInscriptos() { return uiInscriptos; }
+  public LiveData<String> getUiCupo() { return uiCupo; }
+  public LiveData<String> getUiEstadoTexto() { return uiEstadoTexto; }
+  public LiveData<Integer> getUiEstadoColor() { return uiEstadoColor; }
+  public LiveData<String> getUiDistanciaTipo() { return uiDistanciaTipo; }
+  public LiveData<String> getUiGeneroPrecio() { return uiGeneroPrecio; }
+  public LiveData<Integer> getUiVisibilidadDatosCategoria() { return uiVisibilidadDatosCategoria; }
+  public LiveData<String> getDialogError() { return dialogError; }
+  public LiveData<Boolean> getDialogDismiss() { return dialogDismiss; }
+  public LiveData<EventoDetalleResponse> getEventoRaw() { return eventoRaw; }
 
+  public void limpiarMensajes() {
+    mensajeGlobal.setValue(null);
+    dialogError.setValue(null);
+    dialogDismiss.setValue(false);
+  }
+
+  // --- CARGA DE DATOS ---
   public void cargarDetalle(int idEvento) {
     isLoading.setValue(true);
     repositorio.obtenerDetalleEvento(idEvento, new Callback<EventoDetalleResponse>() {
@@ -37,61 +88,123 @@ public class DetalleEventoViewModel extends AndroidViewModel {
       public void onResponse(Call<EventoDetalleResponse> call, Response<EventoDetalleResponse> response) {
         isLoading.setValue(false);
         if (response.isSuccessful() && response.body() != null) {
-          evento.setValue(response.body());
+          eventoRaw.setValue(response.body());
+          mapearDatosAUI(response.body());
         } else {
-          errorMsg.setValue("Error al cargar detalle");
+          mensajeGlobal.setValue("No se pudo cargar la información del evento.");
         }
       }
-
       @Override
       public void onFailure(Call<EventoDetalleResponse> call, Throwable t) {
         isLoading.setValue(false);
-        errorMsg.setValue("Error de conexión");
+        mensajeGlobal.setValue("Error de conexión al cargar detalle.");
       }
     });
   }
 
-  public void cambiarEstado(int idEvento, String nuevoEstado, String motivo) {
-    isLoading.setValue(true); // Se activa el loading
+  // Transformación: Modelo -> Vista
+  private void mapearDatosAUI(EventoDetalleResponse evento) {
+    uiTitulo.setValue(evento.getNombre());
+    uiLugar.setValue(evento.getLugar());
+    uiDescripcion.setValue(evento.getDescripcion());
+    uiInscriptos.setValue(String.valueOf(evento.getInscriptosActuales()));
+    uiCupo.setValue(String.valueOf(evento.getCupoTotal()));
 
-    try {
-      CambiarEstadoRequest request = new CambiarEstadoRequest(nuevoEstado, motivo);
+    if (evento.getFechaHora() != null) {
+      uiFecha.setValue(evento.getFechaHora().replace("T", " "));
+    }
 
-      repositorio.cambiarEstado(idEvento, request, new Callback<ResponseBody>() {
-        @Override
-        public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
-          isLoading.setValue(false); // Apagamos loading
+    String estadoUpper = (evento.getEstado() != null) ? evento.getEstado().toUpperCase() : "DESCONOCIDO";
+    uiEstadoTexto.setValue(estadoUpper);
 
-          if (response.isSuccessful()) {
-            errorMsg.setValue("Estado actualizado correctamente");
+    switch (estadoUpper) {
+      case "PUBLICADO": uiEstadoColor.setValue(Color.parseColor("#2E7D32")); break;
+      case "SUSPENDIDO": uiEstadoColor.setValue(Color.parseColor("#FF9800")); break;
+      case "FINALIZADO": uiEstadoColor.setValue(Color.GRAY); break;
+      case "CANCELADO": uiEstadoColor.setValue(Color.RED); break;
+      default: uiEstadoColor.setValue(Color.BLACK);
+    }
 
-            // Actualización optimista en local
-            EventoDetalleResponse actual = evento.getValue();
-            if (actual != null) {
-              actual.setEstado(nuevoEstado);
-              evento.setValue(actual);
-            } else {
-              cargarDetalle(idEvento);
-            }
-          } else {
-            errorMsg.setValue("Error al actualizar: " + response.code());
-          }
-        }
+    if (evento.getCategorias() != null && !evento.getCategorias().isEmpty()) {
+      CategoriaResponse cat = evento.getCategorias().get(0);
 
-        @Override
-        public void onFailure(Call<ResponseBody> call, Throwable t) {
-          isLoading.setValue(false); // Apagamos loading
-          errorMsg.setValue("Fallo de conexión: " + t.getMessage());
-        }
-      });
-    } catch (Exception e) {
-      // Si falla la creación del request o el repositorio explota antes de llamar
-      isLoading.setValue(false);
-      errorMsg.setValue("Error interno: " + e.getMessage());
+      String distMod = cat.getNombre() != null ? cat.getNombre() : "Sin categoría";
+      uiDistanciaTipo.setValue(distMod);
+
+      String generoTexto = "General";
+      if ("F".equalsIgnoreCase(cat.getGenero())) generoTexto = "Femenino";
+      else if ("M".equalsIgnoreCase(cat.getGenero())) generoTexto = "Masculino";
+      else if ("X".equalsIgnoreCase(cat.getGenero())) generoTexto = "Mixto";
+
+      String precio = "$" + cat.getPrecio();
+      uiGeneroPrecio.setValue(String.format("%s  |  %s", generoTexto, precio));
+      uiVisibilidadDatosCategoria.setValue(View.VISIBLE);
+    } else {
+      uiVisibilidadDatosCategoria.setValue(View.GONE);
     }
   }
 
-  public void limpiarMensaje() {
-    errorMsg.setValue(null);
+  // --- LÓGICA DEL DIÁLOGO ---
+
+  public int calcularPreseleccionRadio(String estadoActual) {
+    if (estadoActual == null) return -1;
+    switch (estadoActual.toLowerCase()) {
+      case "publicado": return R.id.rbPublicado;
+      case "suspendido": return R.id.rbSuspendido;
+      case "finalizado": return R.id.rbFinalizado;
+      case "cancelado": return R.id.rbCancelado;
+      default: return -1;
+    }
+  }
+
+  public void procesarCambioEstado(int idEvento, int radioIdSeleccionado, String motivo) {
+    String nuevoEstado = "";
+
+    if (radioIdSeleccionado == R.id.rbPublicado) nuevoEstado = "publicado";
+    else if (radioIdSeleccionado == R.id.rbSuspendido) nuevoEstado = "suspendido";
+    else if (radioIdSeleccionado == R.id.rbFinalizado) nuevoEstado = "finalizado";
+    else if (radioIdSeleccionado == R.id.rbCancelado) nuevoEstado = "cancelado";
+    else {
+      dialogError.setValue("Debes seleccionar una opción.");
+      return;
+    }
+
+    if ((nuevoEstado.equals("cancelado") || nuevoEstado.equals("suspendido")) && motivo.trim().isEmpty()) {
+      dialogError.setValue("Escribe el motivo (requerido).");
+      return;
+    }
+
+    dialogDismiss.setValue(true);
+    ejecutarCambioEstado(idEvento, nuevoEstado, motivo);
+  }
+
+  private void ejecutarCambioEstado(int idEvento, String nuevoEstado, String motivo) {
+    isLoading.setValue(true);
+    CambiarEstadoRequest request = new CambiarEstadoRequest(nuevoEstado, motivo);
+
+    repositorio.cambiarEstado(idEvento, request, new Callback<ResponseBody>() {
+      @Override
+      public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+        isLoading.setValue(false);
+        if (response.isSuccessful()) {
+          mensajeGlobal.setValue("Estado actualizado correctamente"); // Esto saldrá en la pantalla
+
+          EventoDetalleResponse actual = eventoRaw.getValue();
+          if (actual != null) {
+            actual.setEstado(nuevoEstado);
+            mapearDatosAUI(actual);
+          } else {
+            cargarDetalle(idEvento);
+          }
+        } else {
+          mensajeGlobal.setValue("No se pudo actualizar: " + response.code());
+        }
+      }
+      @Override
+      public void onFailure(Call<ResponseBody> call, Throwable t) {
+        isLoading.setValue(false);
+        mensajeGlobal.setValue("Error de conexión");
+      }
+    });
   }
 }

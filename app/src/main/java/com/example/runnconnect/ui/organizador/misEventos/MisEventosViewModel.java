@@ -1,6 +1,7 @@
 package com.example.runnconnect.ui.organizador.misEventos;
 
 import android.app.Application;
+import android.os.Looper;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
@@ -12,6 +13,8 @@ import com.example.runnconnect.data.response.EventoResumenResponse;
 import com.example.runnconnect.data.response.EventosPaginadosResponse;
 
 import java.util.List;
+import android.os.Handler;
+
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -21,6 +24,8 @@ public class MisEventosViewModel extends AndroidViewModel {
   private final MutableLiveData<Boolean> isLoading = new MutableLiveData<>(false);
   private final MutableLiveData<String> errorMsg = new MutableLiveData<>();
   private final EventoRepositorio repositorio;
+
+  private final MutableLiveData<String> mensajeExito= new MutableLiveData<>(null);
 
   //control de paginancion de los items card mis eventos
   private int paginaActual = 1;
@@ -40,7 +45,23 @@ public class MisEventosViewModel extends AndroidViewModel {
   public int getPaginaActual() { return paginaActual; }
   public boolean isUltimaPagina() { return esUltimaPagina; }
   public boolean isLoadingMore() { return isLoadingMore; }
+  public LiveData<String> getMensajeExito() { return mensajeExito; }
 
+
+  // NUEVO: Metodo para recibir el mensaje y ocultarlo tras 4 segundos
+  public void mostrarMensajeExito(String mensaje) {
+    if (mensaje == null || mensaje.isEmpty()) return;
+
+    mensajeExito.setValue(mensaje);
+
+    // Timer para ocultar el mensaje automáticamente
+    new Handler(Looper.getMainLooper()).postDelayed(() -> {
+      mensajeExito.setValue(null); // Esto ocultará la vista en el Fragment
+    }, 4000);
+
+    // Opcional: Recargar la lista para ver el evento nuevo
+    cargarEventos(true);
+  }
 
   //recibe los metodos y decide si cargar
   public void verificarScroll(int itemsVisibles, int totalItems, int primerItemVisible) {
@@ -49,10 +70,10 @@ public class MisEventosViewModel extends AndroidViewModel {
       return;
     }
 
-    // 2. Lógica de Negocio (Umbral de 3 items)
-    // Si (lo que veo + lo que ya pasé) >= total - 3, entonces estoy al final
+    // 2. Logica de Negocio (3 items)
+    // Si (lo que veo + lo que ya pase) >= total - 3, entonces estoy al final
     if ((itemsVisibles + primerItemVisible) >= (totalItems - 3) && totalItems > 0) {
-      cargarEventos(false); // false = Paginación
+      cargarEventos(false); // false = Paginacion
     }
   }
 
@@ -65,10 +86,10 @@ public class MisEventosViewModel extends AndroidViewModel {
       esUltimaPagina = false;
       isLoading.setValue(true); // Spinner grande solo al inicio
     } else {
-      if (esUltimaPagina) return; // Si ya no hay más, salir
+      if (esUltimaPagina) return; // Si ya no hay mas, salir
       paginaActual++;
       // No activamos isLoading global para no bloquear toda la pantalla,
-      // idealmente mostraríamos un spinner pequeño abajo.
+
     }
     Log.d("PAGINACION_TEST", "Pidiendo página: " + paginaActual + "...");
     isLoadingMore = true;
