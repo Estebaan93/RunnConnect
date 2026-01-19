@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    app:cardCornerRadius="16dp"
+    app:cardElevation="8dp">
+
+  <ScrollView
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="24dp">
+
+      <TextView
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:text="Ficha del Corredor"
+          android:textSize="20sp"
+          android:textStyle="bold"
+          android:textColor="@android:color/black"
+          android:layout_gravity="center_horizontal"/>
+
+      <TextView
+          android:id="@+id/tvNombreCompleto"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:textSize="18sp"
+          android:textStyle="bold"
+          android:textColor="#1565C0"
+          android:layout_marginTop="16dp"
+          tools:text="Juan Perez"/>
+
+      <TextView
+          android:id="@+id/tvDniSexoEdad"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:textColor="#757575"
+          android:layout_marginTop="4dp"
+          tools:text="DNI: 12345678 | Masc | 30 Años"/>
+
+      <TextView
+          android:id="@+id/tvLocalidad"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:textColor="#757575"
+          android:layout_marginTop="4dp"
+          tools:text="San Luis, Capital"/>
+
+      <View
+          android:layout_width="match_parent"
+          android:layout_height="1dp"
+          android:background="#E0E0E0"
+          android:layout_marginVertical="12dp"/>
+
+      <TextView
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:text="Inscripción"
+          android:textStyle="bold"
+          android:textColor="#424242"/>
+
+      <TextView
+          android:id="@+id/tvCategoriaTalle"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:layout_marginTop="4dp"
+          tools:text="Categoría: 10K Calle | Talle: L"/>
+
+      <View
+          android:layout_width="match_parent"
+          android:layout_height="1dp"
+          android:background="#E0E0E0"
+          android:layout_marginVertical="12dp"/>
+
+      <TextView
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:text="Contacto Directo"
+          android:textStyle="bold"
+          android:textColor="#424242"/>
+
+      <LinearLayout
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:orientation="horizontal"
+          android:layout_marginTop="8dp">
+        <ImageView
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:src="@android:drawable/sym_action_email"
+            app:tint="#757575"/>
+        <TextView
+            android:id="@+id/tvEmail"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            tools:text="juan@mail.com"/>
+      </LinearLayout>
+
+      <LinearLayout
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:orientation="horizontal"
+          android:layout_marginTop="8dp">
+        <ImageView
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:src="@android:drawable/sym_action_call"
+            app:tint="#757575"/>
+        <TextView
+            android:id="@+id/tvTelefono"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            tools:text="+54 266 4555555"/>
+      </LinearLayout>
+
+      <View
+          android:layout_width="match_parent"
+          android:layout_height="1dp"
+          android:background="#E0E0E0"
+          android:layout_marginVertical="12dp"/>
+
+      <TextView
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:text="En caso de Emergencia"
+          android:textStyle="bold"
+          android:textColor="#D32F2F"/>
+
+      <TextView
+          android:id="@+id/tvContactoEmergencia"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:layout_marginTop="8dp"
+          android:textStyle="bold"
+          tools:text="Contacto: María Perez"/>
+
+      <TextView
+          android:id="@+id/tvTelEmergencia"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:layout_marginTop="4dp"
+          tools:text="Tel: +54 266 4111222"/>
+
+      <Button
+          android:id="@+id/btnCerrarDetalle"
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:layout_marginTop="24dp"
+          android:text="Cerrar"
+          style="@style/Widget.MaterialComponents.Button.OutlinedButton"/>
+
+    </LinearLayout>
+  </ScrollView>
+</androidx.cardview.widget.CardView>

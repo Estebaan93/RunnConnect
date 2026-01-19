@@ -6,6 +6,7 @@ package com.example.runnconnect.data.conexion;
 import com.example.runnconnect.data.request.ActualizarEventoRequest;
 import com.example.runnconnect.data.request.ActualizarPerfilOrganizadorRequest;
 import com.example.runnconnect.data.request.ActualizarPerfilRunnerRequest;
+import com.example.runnconnect.data.request.CambiarEstadoPagoRequest;
 import com.example.runnconnect.data.request.CambiarEstadoRequest;
 import com.example.runnconnect.data.request.CambiarPasswordRequest;
 import com.example.runnconnect.data.request.CrearEventoRequest;
@@ -14,6 +15,7 @@ import com.example.runnconnect.data.request.LoginRequest;
 import com.example.runnconnect.data.response.EventoDetalleResponse;
 import com.example.runnconnect.data.response.EventoResumenResponse;
 import com.example.runnconnect.data.response.EventosPaginadosResponse;
+import com.example.runnconnect.data.response.ListaInscriptosResponse;
 import com.example.runnconnect.data.response.LoginResponse;
 import com.example.runnconnect.data.response.MapaEventoResponse;
 import com.example.runnconnect.data.response.PerfilUsuarioResponse;
@@ -151,5 +153,22 @@ public interface ApiService {
     @Path("id") int id,
     @Body CambiarEstadoRequest request);
 
+  // GET para obtener lista filtrada
+  @GET("Evento/{idEvento}/Inscripciones")
+  Call<ListaInscriptosResponse> obtenerInscriptos(
+    @Header("Authorization") String token,
+    @Path("idEvento") int idEvento,
+    @Query("EstadoPago") String estadoPago, // "procesando", "pagado", etc.
+    @Query("Pagina") int pagina,
+    @Query("TamanioPagina") int tamanio
+  );
+
+  // PUT para cambiar estado (Aprobar/Rechazar pago)
+  @PUT("Inscripcion/{id}/EstadoPago")
+  Call<ResponseBody> cambiarEstadoPago(
+    @Header("Authorization") String token,
+    @Path("id") int idInscripcion,
+    @Body CambiarEstadoPagoRequest request
+  );
 
 }

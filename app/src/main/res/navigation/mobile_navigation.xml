@@ -34,12 +34,24 @@
       android:name="com.example.runnconnect.ui.organizador.crearEvento.CrearEventoFragment"
       android:label="Publicar Evento"
       tools:layout="@layout/fragment_crear_evento">
-
     <argument
         android:name="idEvento"
         app:argType="integer"
         android:defaultValue="0" />
+    <action
+        android:id="@+id/action_crear_a_mapaEditor"
+        app:destination="@id/nav_mapa_editor" />
+  </fragment>
 
+  <fragment
+      android:id="@+id/nav_nuevo_evento_fab"
+      android:name="com.example.runnconnect.ui.organizador.crearEvento.CrearEventoFragment"
+      android:label="Nuevo Evento"
+      tools:layout="@layout/fragment_crear_evento">
+    <argument
+        android:name="idEvento"
+        app:argType="integer"
+        android:defaultValue="0" />
     <action
         android:id="@+id/action_crear_a_mapaEditor"
         app:destination="@id/nav_mapa_editor" />
@@ -50,16 +62,13 @@
       android:name="com.example.runnconnect.ui.organizador.crearEvento.CrearEventoFragment"
       android:label="Editar Evento"
       tools:layout="@layout/fragment_crear_evento">
-
     <argument
         android:name="idEvento"
         app:argType="integer" />
-
     <action
         android:id="@+id/action_crear_a_mapaEditor"
         app:destination="@id/nav_mapa_editor" />
   </fragment>
-
 
   <fragment
       android:id="@+id/nav_mapa_editor"
@@ -77,7 +86,6 @@
       android:name="com.example.runnconnect.ui.organizador.misEventos.MisEventosFragment"
       android:label="Mis Eventos"
       tools:layout="@layout/fragment_mis_eventos">
-
     <action
         android:id="@+id/action_misEventos_to_detalleEvento"
         app:destination="@id/nav_detalle_evento_organizador" />
@@ -102,22 +110,18 @@
         android:id="@+id/action_detalle_to_editarEvento"
         app:destination="@id/nav_editar_evento" />
 
+    <action
+        android:id="@+id/action_detalle_to_gestionInscriptos"
+        app:destination="@id/nav_gestion_inscriptos" />
   </fragment>
 
   <fragment
-      android:id="@+id/nav_nuevo_evento_fab"
-      android:name="com.example.runnconnect.ui.organizador.crearEvento.CrearEventoFragment"
-      android:label="Nuevo Evento"
-      tools:layout="@layout/fragment_crear_evento">
-
+      android:id="@+id/nav_gestion_inscriptos"
+      android:name="com.example.runnconnect.ui.organizador.inscriptos.GestionInscriptosFragment"
+      android:label="Gestión de Inscriptos">
     <argument
         android:name="idEvento"
-        app:argType="integer"
-        android:defaultValue="0" />
-
-    <action
-        android:id="@+id/action_crear_a_mapaEditor"
-        app:destination="@id/nav_mapa_editor" />
+        app:argType="integer" />
   </fragment>
 
 </navigation>

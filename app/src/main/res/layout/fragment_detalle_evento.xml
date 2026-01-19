@@ -178,7 +178,7 @@
       android:layout_height="wrap_content"
       android:layout_marginBottom="8dp"
       android:orientation="horizontal"
-      app:layout_constraintBottom_toTopOf="@id/btnVerMapa"
+      app:layout_constraintBottom_toTopOf="@id/btnGestionInscriptos"
       app:layout_constraintEnd_toEndOf="parent"
       app:layout_constraintStart_toStartOf="parent">
 
@@ -207,6 +207,19 @@
   </LinearLayout>
 
   <com.google.android.material.button.MaterialButton
+      android:id="@+id/btnGestionInscriptos"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:layout_marginBottom="8dp"
+      android:backgroundTint="#2E7D32"
+      android:text="Gestionar Inscriptos"
+      app:icon="@android:drawable/ic_menu_my_calendar"
+      app:iconGravity="textStart"
+      app:layout_constraintBottom_toTopOf="@id/btnVerMapa"
+      app:layout_constraintEnd_toEndOf="parent"
+      app:layout_constraintStart_toStartOf="parent" />
+
+  <com.google.android.material.button.MaterialButton
       android:id="@+id/btnVerMapa"
       android:layout_width="match_parent"
       android:layout_height="wrap_content"
@@ -233,9 +246,7 @@
       app:layout_constraintEnd_toEndOf="parent"
       app:layout_constraintStart_toStartOf="parent"
       app:layout_constraintTop_toTopOf="parent"
-      app:layout_constraintVertical_bias="0.815"
-      tools:text="Mensaje de error o éxito"
-      tools:visibility="visible" />
+      app:layout_constraintVertical_bias="0.815" />
 
   <ProgressBar
       android:id="@+id/progressBar"

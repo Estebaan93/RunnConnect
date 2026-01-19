@@ -36,8 +36,6 @@ public class DetalleEventoFragment extends Fragment {
     if (idEvento != 0) {
       viewModel.cargarDetalle(idEvento);
     } else {
-      // Manejo de error crítico sin Toast: Usamos el mensaje global si existe, o un textview de error
-      // Como fallback rápido si no hay layout cargado aún, un Toast es inevitable, pero aquí ya hay binding.
       binding.tvMensajeGlobal.setText("Error: ID de evento inválido");
       binding.tvMensajeGlobal.setVisibility(View.VISIBLE);
     }
@@ -54,17 +52,15 @@ public class DetalleEventoFragment extends Fragment {
       binding.progressBar.setVisibility(loading ? View.VISIBLE : View.GONE)
     );
 
-    // 2. MENSAJES EN PANTALLA (Reemplazo de Toast)
+    // 2. MENSAJES EN PANTALLA
     viewModel.getMensajeGlobal().observe(getViewLifecycleOwner(), msg -> {
-      // Asumimos que agregaste un TextView con id 'tvMensajeGlobal' en tu XML
       if (binding.tvMensajeGlobal != null) {
         binding.tvMensajeGlobal.setText(msg);
         binding.tvMensajeGlobal.setVisibility(msg != null && !msg.isEmpty() ? View.VISIBLE : View.GONE);
       }
-      // Opcional: Podrías usar un Handler para ocultarlo después de 3 segundos si quieres efecto "Toast" pero en view
     });
 
-    // 3. Data Binding (Textos y Colores)
+    // 3. Data Binding
     viewModel.getUiTitulo().observe(getViewLifecycleOwner(), binding.tvTituloDetalle::setText);
     viewModel.getUiFecha().observe(getViewLifecycleOwner(), binding.tvFechaDetalle::setText);
     viewModel.getUiLugar().observe(getViewLifecycleOwner(), binding.tvLugarDetalle::setText);
@@ -94,6 +90,14 @@ public class DetalleEventoFragment extends Fragment {
   private void setupListeners() {
     binding.btnCambiarEstado.setOnClickListener(v -> mostrarDialogoEstado());
 
+    // --- NUEVO: NAVEGAR A GESTIÓN DE INSCRIPTOS ---
+    binding.btnGestionInscriptos.setOnClickListener(v -> {
+      Bundle args = new Bundle();
+      args.putInt("idEvento", idEvento);
+      Navigation.findNavController(v).navigate(R.id.action_detalle_to_gestionInscriptos, args);
+    });
+    // ----------------------------------------------
+
     binding.btnVerMapa.setOnClickListener(v -> {
       Bundle args = new Bundle();
       args.putInt("idEvento", idEvento);
@@ -106,6 +110,7 @@ public class DetalleEventoFragment extends Fragment {
       try {
         Navigation.findNavController(v).navigate(R.id.action_detalle_to_editarEvento, args);
       } catch (Exception e) {
+        // Fallback por si la navegación cambia, aunque con el XML unificado no debería fallar
         try { Navigation.findNavController(v).navigate(R.id.nav_crear_evento, args); } catch (Exception ex) {}
       }
     });
@@ -146,10 +151,8 @@ public class DetalleEventoFragment extends Fragment {
       }, 100);
     });
 
-    // Error en el dialogo
     viewModel.getDialogError().observe(getViewLifecycleOwner(), error -> {
       if (error != null && dialogEstado != null && dialogEstado.isShowing()) {
-        // Usamos el setError del EditText para mostrar el error ahí mismo
         etMotivo.setError(error);
         etMotivo.requestFocus();
       }
