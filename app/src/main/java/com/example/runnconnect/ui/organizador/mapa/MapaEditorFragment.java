@@ -157,28 +157,32 @@ public class MapaEditorFragment extends Fragment implements OnMapReadyCallback {
   private void navegarAlListado(String mensajeExito) {
     NavController navController = Navigation.findNavController(requireView());
 
-    // 1. Intentar pasar mensaje al stack anterior
     try {
-      if (navController.getPreviousBackStackEntry() != null) {
-        navController.getPreviousBackStackEntry()
-          .getSavedStateHandle()
-          .set("mensaje_exito", mensajeExito);
-      }
-    } catch (Exception e) {}
+      // CASO A: Venimos del botón (+) de Mis Eventos
+      // Intentamos buscar la instancia de "Mis Eventos" que quedó en pausa atrás.
+      androidx.navigation.NavBackStackEntry entry = navController.getBackStackEntry(R.id.nav_mis_eventos);
 
-    // 2. Intentar volver atras (Pop)
-    boolean sePudoVolver = navController.popBackStack(R.id.nav_mis_eventos, false);
+      // Si la línea anterior no falló, significa que existe. Le inyectamos el mensaje.
+      entry.getSavedStateHandle().set("mensaje_exito", mensajeExito);
 
-    // 3. Si no se pudo (vienes del menu), navegar explícitamente
-    if (!sePudoVolver) {
+      // Volvemos a ella (eliminando CrearEvento y MapaEditor de la pila)
+      navController.popBackStack(R.id.nav_mis_eventos, false);
+
+    } catch (IllegalArgumentException e) {
+      // CASO B: Venimos del Menú Hamburguesa -> Crear Evento
+      // "Mis Eventos" NO está en la pila atrás. Debemos navegar hacia ella explícitamente.
+
+      // Limpiamos la pila para que no quede basura al volver atrás
       NavOptions options = new NavOptions.Builder()
-        .setPopUpTo(R.id.nav_crear_evento, true) // Limpiar historial
+        .setPopUpTo(R.id.nav_mapa_editor, true)
         .setLaunchSingleTop(true)
         .build();
 
+      // Empaquetamos el mensaje como argumento tradicional
       Bundle args = new Bundle();
       args.putString("mensaje_arg", mensajeExito);
 
+      // Navegamos
       navController.navigate(R.id.nav_mis_eventos, args, options);
     }
   }

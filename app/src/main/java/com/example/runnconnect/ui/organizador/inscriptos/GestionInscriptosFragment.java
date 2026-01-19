@@ -22,9 +22,10 @@ import com.example.runnconnect.data.response.InscriptoEventoResponse;
 import com.example.runnconnect.databinding.FragmentGestionInscriptosBinding;
 
 public class GestionInscriptosFragment extends Fragment {
+
   private FragmentGestionInscriptosBinding binding;
   private GestionInscriptosViewModel viewModel;
-  private InscriptosAdapter adapter; // Asumo que ya tienes o crearás este adapter
+  private InscriptosAdapter adapter;
   private int idEvento = 0;
 
   public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -39,14 +40,12 @@ public class GestionInscriptosFragment extends Fragment {
     setupListeners();
     setupObservers();
 
-    // Carga inicial (el VM usa filtro "procesando" por defecto)
     viewModel.cargarInscriptos(idEvento);
 
     return binding.getRoot();
   }
 
   private void setupListeners() {
-    // Listener de Chips para filtrar estados
     binding.chipGroupFiltros.setOnCheckedStateChangeListener((group, checkedIds) -> {
       if (checkedIds.isEmpty()) return;
       int id = checkedIds.get(0);
@@ -54,16 +53,15 @@ public class GestionInscriptosFragment extends Fragment {
       if (id == R.id.chipProcesando) viewModel.cambiarFiltro("procesando");
       else if (id == R.id.chipPagado) viewModel.cambiarFiltro("pagado");
       else if (id == R.id.chipPendiente) viewModel.cambiarFiltro("pendiente");
-      else viewModel.cambiarFiltro(null); // Todos
+      else viewModel.cambiarFiltro(null);
     });
   }
 
   private void setupObservers() {
-    // 1. Loading
+    // UI States
     viewModel.getIsLoading().observe(getViewLifecycleOwner(), loading ->
       binding.progressBar.setVisibility(loading ? View.VISIBLE : View.GONE));
 
-    // 2. Mensajes (Toast)
     viewModel.getMensajeToast().observe(getViewLifecycleOwner(), msg -> {
       if (msg != null) {
         Toast.makeText(getContext(), msg, Toast.LENGTH_SHORT).show();
@@ -71,41 +69,48 @@ public class GestionInscriptosFragment extends Fragment {
       }
     });
 
-    // 3. Lista de Inscriptos
     viewModel.getListaInscriptos().observe(getViewLifecycleOwner(), lista -> {
-      if (lista != null) {
-        adapter.setLista(lista);
-      }
+      if (lista != null) adapter.setLista(lista);
     });
 
-    // 4. Estado vacío (si no hay resultados)
     viewModel.getEsListaVacia().observe(getViewLifecycleOwner(), vacio -> {
       binding.tvVacio.setVisibility(vacio ? View.VISIBLE : View.GONE);
       binding.recyclerInscriptos.setVisibility(vacio ? View.GONE : View.VISIBLE);
     });
+
+    // ordenes de dialogos
+    viewModel.getOrdenMostrarValidacion().observe(getViewLifecycleOwner(), item -> {
+      if (item != null) {
+        mostrarDialogoValidacion(item);
+        viewModel.limpiarOrdenesDialogo();
+      }
+    });
+
+    viewModel.getOrdenMostrarDetalle().observe(getViewLifecycleOwner(), item -> {
+      if (item != null) {
+        mostrarDetalleRunner(item);
+        viewModel.limpiarOrdenesDialogo();
+      }
+    });
   }
 
   private void setupRecyclerView() {
-    adapter = new InscriptosAdapter(item -> {
-      // Lógica de click
-      if ("procesando".equalsIgnoreCase(item.getEstadoPago())) {
-        mostrarDialogoValidacion(item); // Tu diálogo existente para aprobar pagos
-      } else {
-        mostrarDetalleRunner(item); // NUEVO: Diálogo informativo
-      }
-    });
+
+    adapter = new InscriptosAdapter(item -> viewModel.onInscriptoSeleccionado(item));
 
     binding.recyclerInscriptos.setLayoutManager(new LinearLayoutManager(getContext()));
     binding.recyclerInscriptos.setAdapter(adapter);
   }
-  // --- NUEVO MÉTODO: Muestra ficha del corredor ---
+
+  // --- VISUALIZACION (Pura UI: Inflar Layouts y Pintar Datos) ---
+
   private void mostrarDetalleRunner(InscriptoEventoResponse item) {
     final Dialog dialog = new Dialog(requireContext());
     dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
     dialog.setContentView(R.layout.dialog_detalle_runner);
     dialog.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
 
-    // Referencias
+    // Bindings manuales
     TextView tvNombre = dialog.findViewById(R.id.tvNombreCompleto);
     TextView tvDniSexo = dialog.findViewById(R.id.tvDniSexoEdad);
     TextView tvLocalidad = dialog.findViewById(R.id.tvLocalidad);
@@ -120,77 +125,61 @@ public class GestionInscriptosFragment extends Fragment {
 
     if (r != null) {
       tvNombre.setText(r.getNombreCompleto());
-
-      // Formateo de datos (Manejo de nulos)
       String dni = r.getDni();
       String genero = r.getGenero() != null ? r.getGenero() : "-";
-      // Nota: Podrías calcular la edad aquí si tienes la fecha de nacimiento
       tvDniSexo.setText(String.format("DNI: %s | Sexo: %s", dni, genero));
-
       tvLocalidad.setText(r.getLocalidad() != null ? r.getLocalidad() : "Localidad no especificada");
       tvEmail.setText(r.getEmail());
       tvTel.setText(r.getTelefono() != null ? r.getTelefono() : "-");
-
       tvEmergencia.setText("Contacto: " + (r.getNombreContactoEmergencia() != null ? r.getNombreContactoEmergencia() : "No informado"));
       tvTelEmergencia.setText("Tel: " + (r.getTelefonoEmergencia() != null ? r.getTelefonoEmergencia() : "-"));
     } else {
-      tvNombre.setText("Usuario eliminado o no disponible");
+      tvNombre.setText("Usuario no disponible");
     }
 
     String talle = item.getTalleRemera() != null ? item.getTalleRemera() : "-";
     tvCatTalle.setText("Categoría: " + item.getNombreCategoria() + " | Talle: " + talle);
 
     btnCerrar.setOnClickListener(v -> dialog.dismiss());
-
     dialog.show();
   }
 
-  // --- DIÁLOGO DE VALIDACIÓN DE PAGO ---
   private void mostrarDialogoValidacion(InscriptoEventoResponse item) {
     final Dialog dialog = new Dialog(requireContext());
     dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
     dialog.setContentView(R.layout.dialog_validar_pago);
     dialog.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
 
-    // Referencias a las vistas del diálogo
     ImageView imgComprobante = dialog.findViewById(R.id.imgComprobante);
     Button btnAceptar = dialog.findViewById(R.id.btnAceptarPago);
     Button btnRechazar = dialog.findViewById(R.id.btnRechazarPago);
     TextView tvNombre = dialog.findViewById(R.id.tvNombreRunner);
     TextView tvDni = dialog.findViewById(R.id.tvDniRunner);
 
-    // Llenar datos usando el objeto Runner interno
     if (item.getRunner() != null) {
       tvNombre.setText(item.getRunner().getNombreCompleto());
       tvDni.setText("DNI: " + item.getRunner().getDni());
     }
 
-    // Cargar imagen con Glide
     if (item.getComprobantePagoURL() != null && !item.getComprobantePagoURL().isEmpty()) {
-      Glide.with(this)
-        .load(item.getComprobantePagoURL())
-        .placeholder(R.drawable.ic_launcher_background) // Usa un placeholder real
-        .error(R.drawable.ic_launcher_foreground) // Imagen de error
-        .into(imgComprobante);
+      Glide.with(this).load(item.getComprobantePagoURL())
+        .placeholder(R.drawable.ic_launcher_background)
+        .error(R.drawable.ic_launcher_foreground).into(imgComprobante);
     } else {
-      // Manejo si no hay URL (aunque no debería pasar en estado "procesando")
       imgComprobante.setImageResource(R.drawable.ic_launcher_foreground);
     }
 
-    // Botones de acción
+    // CORRECCIÓN: Delegamos la acción al VM sin pasar strings de negocio
     btnAceptar.setOnClickListener(v -> {
-      viewModel.validarPago(item.getIdInscripcion(), true, "Pago confirmado por organizador");
+      viewModel.aprobarPago(item.getIdInscripcion());
       dialog.dismiss();
     });
 
     btnRechazar.setOnClickListener(v -> {
-      viewModel.validarPago(item.getIdInscripcion(), false, "Comprobante inválido o ilegible");
+      viewModel.rechazarPago(item.getIdInscripcion());
       dialog.dismiss();
     });
 
     dialog.show();
   }
-
-
-
 }

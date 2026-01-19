@@ -20,20 +20,21 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-
 public class GestionInscriptosViewModel extends AndroidViewModel {
-  // Necesitarás crear este repositorio o agregar los métodos al EventoRepositorio existente
   private final InscripcionRepositorio repositorio;
 
-  // --- ESTADOS DE UI ---
+  // --- ESTADOS DE DATOS ---
   private final MutableLiveData<List<InscriptoEventoResponse>> listaInscriptos = new MutableLiveData<>();
   private final MutableLiveData<Boolean> isLoading = new MutableLiveData<>(false);
   private final MutableLiveData<String> mensajeToast = new MutableLiveData<>();
   private final MutableLiveData<Boolean> esListaVacia = new MutableLiveData<>(false);
 
-  // --- ESTADO INTERNO ---
+  // --- ORDENES DE UI (Navegación / Diálogos) ---
+  private final MutableLiveData<InscriptoEventoResponse> ordenMostrarValidacion = new MutableLiveData<>();
+  private final MutableLiveData<InscriptoEventoResponse> ordenMostrarDetalle = new MutableLiveData<>();
+
+  // Estado interno
   private int idEventoActual = 0;
-  // Filtro por defecto: "procesando" (lo que el organizador necesita ver urgente)
   private String filtroEstado = "procesando";
 
   public GestionInscriptosViewModel(@NonNull Application application) {
@@ -47,9 +48,18 @@ public class GestionInscriptosViewModel extends AndroidViewModel {
   public LiveData<String> getMensajeToast() { return mensajeToast; }
   public LiveData<Boolean> getEsListaVacia() { return esListaVacia; }
 
-  public void limpiarMensaje() { mensajeToast.setValue(null); }
+  // Getters de Órdenes
+  public LiveData<InscriptoEventoResponse> getOrdenMostrarValidacion() { return ordenMostrarValidacion; }
+  public LiveData<InscriptoEventoResponse> getOrdenMostrarDetalle() { return ordenMostrarDetalle; }
 
-  // --- ACCIONES (INPUTS) ---
+  // --- CONSUMO DE ÓRDENES ---
+  public void limpiarMensaje() { mensajeToast.setValue(null); }
+  public void limpiarOrdenesDialogo() {
+    ordenMostrarValidacion.setValue(null);
+    ordenMostrarDetalle.setValue(null);
+  }
+
+  // --- ENTRADAS (Acciones del Usuario) ---
 
   public void cargarInscriptos(int idEvento) {
     this.idEventoActual = idEvento;
@@ -57,14 +67,34 @@ public class GestionInscriptosViewModel extends AndroidViewModel {
   }
 
   public void cambiarFiltro(String nuevoEstado) {
-    this.filtroEstado = nuevoEstado; // Puede ser "procesando", "pagado", "pendiente" o null (todos)
+    this.filtroEstado = nuevoEstado;
     ejecutarConsulta();
   }
 
-  // Lógica para Aprobar/Rechazar pago
-  public void validarPago(int idInscripcion, boolean aceptar, String motivo) {
-    String nuevoEstado = aceptar ? "pagado" : "rechazado";
+  // LÓGICA CLAVE: El VM decide qué diálogo mostrar según el estado
+  public void onInscriptoSeleccionado(InscriptoEventoResponse item) {
+    if (item == null) return;
 
+    if ("procesando".equalsIgnoreCase(item.getEstadoPago())) {
+      ordenMostrarValidacion.setValue(item);
+    } else {
+      ordenMostrarDetalle.setValue(item);
+    }
+  }
+
+  // Lógica encapsulada: Aprobar
+  public void aprobarPago(int idInscripcion) {
+    ejecutarCambioEstado(idInscripcion, "pagado", "Pago confirmado por organizador");
+  }
+
+  // Lógica encapsulada: Rechazar
+  public void rechazarPago(int idInscripcion) {
+    ejecutarCambioEstado(idInscripcion, "rechazado", "Comprobante inválido o ilegible");
+  }
+
+  // --- PRIVADO: API ---
+
+  private void ejecutarCambioEstado(int idInscripcion, String nuevoEstado, String motivo) {
     isLoading.setValue(true);
     CambiarEstadoPagoRequest request = new CambiarEstadoPagoRequest(nuevoEstado, motivo);
 
@@ -73,9 +103,8 @@ public class GestionInscriptosViewModel extends AndroidViewModel {
       public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
         isLoading.setValue(false);
         if (response.isSuccessful()) {
-          mensajeToast.setValue(aceptar ? "Pago Aprobado" : "Pago Rechazado");
-          // Recargamos la lista para que el item desaparezca de la pestaña "Procesando"
-          ejecutarConsulta();
+          mensajeToast.setValue("pagado".equals(nuevoEstado) ? "Pago Aprobado" : "Pago Rechazado");
+          ejecutarConsulta(); // Recargar lista
         } else {
           mensajeToast.setValue("Error al procesar: " + response.code());
         }
@@ -88,15 +117,10 @@ public class GestionInscriptosViewModel extends AndroidViewModel {
     });
   }
 
-  // --- LÓGICA PRIVADA ---
-
   private void ejecutarConsulta() {
     if (idEventoActual == 0) return;
-
     isLoading.setValue(true);
 
-    // Llamada a la API (Asumimos página 1 y tamaño 100 para simplificar la gestión en una sola pantalla)
-    // Endpoint: GET /api/Evento/{id}/Inscripciones?EstadoPago=...&Pagina=1&TamanioPagina=100
     repositorio.obtenerInscriptos(idEventoActual, filtroEstado, 1, 100, new Callback<ListaInscriptosResponse>() {
       @Override
       public void onResponse(Call<ListaInscriptosResponse> call, Response<ListaInscriptosResponse> response) {
@@ -108,10 +132,7 @@ public class GestionInscriptosViewModel extends AndroidViewModel {
         } else {
           listaInscriptos.setValue(new ArrayList<>());
           esListaVacia.setValue(true);
-          // Solo mostramos error si no es un 404 esperado (lista vacía)
-          if (response.code() != 404) {
-            mensajeToast.setValue("Error cargando lista.");
-          }
+          if (response.code() != 404) mensajeToast.setValue("Error cargando lista.");
         }
       }
       @Override
@@ -123,6 +144,4 @@ public class GestionInscriptosViewModel extends AndroidViewModel {
       }
     });
   }
-
-
 }

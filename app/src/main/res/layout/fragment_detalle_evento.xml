@@ -167,10 +167,26 @@
       android:layout_marginBottom="16dp"
       android:ellipsize="end"
       android:text="..."
-      app:layout_constraintBottom_toTopOf="@id/layoutBotones"
+      app:layout_constraintBottom_toTopOf="@id/tvMensajeGlobal"
       app:layout_constraintEnd_toEndOf="parent"
       app:layout_constraintStart_toStartOf="parent"
       app:layout_constraintTop_toBottomOf="@id/lblDesc" />
+
+  <TextView
+      android:id="@+id/tvMensajeGlobal"
+      android:layout_width="0dp"
+      android:layout_height="wrap_content"
+      android:layout_marginBottom="12dp"
+      android:background="#FFEBEE"
+      android:gravity="center"
+      android:padding="10dp"
+      android:textColor="#D32F2F"
+      android:textSize="14sp"
+      android:textStyle="bold"
+      android:visibility="gone"
+      app:layout_constraintBottom_toTopOf="@id/layoutBotones"
+      app:layout_constraintEnd_toEndOf="parent"
+      app:layout_constraintStart_toStartOf="parent" />
 
   <LinearLayout
       android:id="@+id/layoutBotones"
@@ -203,7 +219,6 @@
         android:text="Editar Info"
         app:icon="@android:drawable/ic_menu_agenda"
         app:iconGravity="textStart" />
-
   </LinearLayout>
 
   <com.google.android.material.button.MaterialButton
@@ -229,24 +244,6 @@
       app:layout_constraintBottom_toBottomOf="parent"
       app:layout_constraintEnd_toEndOf="parent"
       app:layout_constraintStart_toStartOf="parent" />
-
-  <TextView
-      android:id="@+id/tvMensajeGlobal"
-      android:layout_width="0dp"
-      android:layout_height="wrap_content"
-      android:layout_margin="16dp"
-      android:background="#FFEBEE"
-      android:gravity="center"
-      android:padding="12dp"
-      android:textColor="#D32F2F"
-      android:textSize="14sp"
-      android:textStyle="bold"
-      android:visibility="gone"
-      app:layout_constraintBottom_toBottomOf="parent"
-      app:layout_constraintEnd_toEndOf="parent"
-      app:layout_constraintStart_toStartOf="parent"
-      app:layout_constraintTop_toTopOf="parent"
-      app:layout_constraintVertical_bias="0.815" />
 
   <ProgressBar
       android:id="@+id/progressBar"

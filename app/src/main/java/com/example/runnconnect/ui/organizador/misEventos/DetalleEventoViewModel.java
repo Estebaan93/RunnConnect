@@ -2,6 +2,9 @@ package com.example.runnconnect.ui.organizador.misEventos;
 
 import android.app.Application;
 import android.graphics.Color;
+import android.os.Handler;
+import android.os.Looper;
+import android.util.Log;
 import android.view.View;
 
 import androidx.annotation.NonNull;
@@ -15,6 +18,8 @@ import com.example.runnconnect.data.request.CambiarEstadoRequest;
 import com.example.runnconnect.data.response.CategoriaResponse;
 import com.example.runnconnect.data.response.EventoDetalleResponse;
 
+import org.json.JSONObject;
+
 import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -26,8 +31,6 @@ public class DetalleEventoViewModel extends AndroidViewModel {
 
   // --- ESTADOS DE UI ---
   private final MutableLiveData<Boolean> isLoading = new MutableLiveData<>(false);
-
-  // CAMBIO: Ahora es mensajeGlobal para mostrar en TextView, no Toast
   private final MutableLiveData<String> mensajeGlobal = new MutableLiveData<>();
 
   // Campos de Texto
@@ -47,7 +50,7 @@ public class DetalleEventoViewModel extends AndroidViewModel {
   private final MutableLiveData<String> uiGeneroPrecio = new MutableLiveData<>();
   private final MutableLiveData<Integer> uiVisibilidadDatosCategoria = new MutableLiveData<>(View.GONE);
 
-  // Control del Diálogo
+  // Control del Dialogo
   private final MutableLiveData<String> dialogError = new MutableLiveData<>();
   private final MutableLiveData<Boolean> dialogDismiss = new MutableLiveData<>();
 
@@ -74,10 +77,18 @@ public class DetalleEventoViewModel extends AndroidViewModel {
   public LiveData<Boolean> getDialogDismiss() { return dialogDismiss; }
   public LiveData<EventoDetalleResponse> getEventoRaw() { return eventoRaw; }
 
-  public void limpiarMensajes() {
+  /*public void limpiarMensajes() {
     mensajeGlobal.setValue(null);
     dialogError.setValue(null);
     dialogDismiss.setValue(false);
+  }*/
+  // NUEVO: para mostrar mensaje temporalmente
+  private void mostrarMensajeExito(String msg) {
+    mensajeGlobal.setValue(msg);
+    // Borrar automáticamente a los 4 segundos
+    new Handler(Looper.getMainLooper()).postDelayed(() -> {
+      mensajeGlobal.setValue(null);
+    }, 4000);
   }
 
   // --- CARGA DE DATOS ---
@@ -187,9 +198,9 @@ public class DetalleEventoViewModel extends AndroidViewModel {
       public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
         isLoading.setValue(false);
         if (response.isSuccessful()) {
-          mensajeGlobal.setValue("Estado actualizado correctamente"); // Esto saldrá en la pantalla
+            mostrarMensajeExito("Estado actualizado correctamente");
 
-          EventoDetalleResponse actual = eventoRaw.getValue();
+            EventoDetalleResponse actual = eventoRaw.getValue();
           if (actual != null) {
             actual.setEstado(nuevoEstado);
             mapearDatosAUI(actual);
@@ -197,7 +208,22 @@ public class DetalleEventoViewModel extends AndroidViewModel {
             cargarDetalle(idEvento);
           }
         } else {
-          mensajeGlobal.setValue("No se pudo actualizar: " + response.code());
+          String msjError="No se puede actualizar: "+ response.code();
+          //mensajeGlobal.setValue("No se pudo actualizar: " + response.code());
+          Log.d("ErrorEstado", "Error al actualizar el estado: " + response.body());
+          try{
+            if(response.errorBody() !=null){
+              String errorJson= response.errorBody().string();
+              JSONObject jsonObject= new JSONObject(errorJson);
+
+              if(jsonObject.has("message")){
+                msjError= jsonObject.getString("message");
+              }
+            }
+          } catch (Exception e) {
+            e.printStackTrace();
+          }
+          mostrarMensajeExito(msjError);
         }
       }
       @Override
