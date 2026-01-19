@@ -104,4 +104,20 @@
 
   </fragment>
 
+  <fragment
+      android:id="@+id/nav_nuevo_evento_fab"
+      android:name="com.example.runnconnect.ui.organizador.crearEvento.CrearEventoFragment"
+      android:label="Nuevo Evento"
+      tools:layout="@layout/fragment_crear_evento">
+
+    <argument
+        android:name="idEvento"
+        app:argType="integer"
+        android:defaultValue="0" />
+
+    <action
+        android:id="@+id/action_crear_a_mapaEditor"
+        app:destination="@id/nav_mapa_editor" />
+  </fragment>
+
 </navigation>

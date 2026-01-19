@@ -56,6 +56,7 @@ public class CrearEventoViewModel extends AndroidViewModel {
   private final MutableLiveData<String> edadMin = new MutableLiveData<>();
   private final MutableLiveData<String> edadMax = new MutableLiveData<>();
 
+  //selectores de modalidad
   private final MutableLiveData<String> seleccionModalidad = new MutableLiveData<>();
   private final MutableLiveData<String> seleccionGenero = new MutableLiveData<>();
 

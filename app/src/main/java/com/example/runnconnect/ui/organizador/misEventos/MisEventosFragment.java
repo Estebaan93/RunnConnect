@@ -34,7 +34,7 @@ public class MisEventosFragment extends Fragment {
 
     // Botón "+" para crear (Navega al Paso 1)
     binding.fabNuevoEvento.setOnClickListener(v ->
-      Navigation.findNavController(v).navigate(R.id.nav_crear_evento)
+      Navigation.findNavController(v).navigate(R.id.nav_nuevo_evento_fab)
     );
 
     return binding.getRoot();

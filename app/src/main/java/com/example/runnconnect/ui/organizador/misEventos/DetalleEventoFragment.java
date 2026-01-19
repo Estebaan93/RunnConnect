@@ -146,7 +146,7 @@ public class DetalleEventoFragment extends Fragment {
       }, 100);
     });
 
-    // Error en el diálogo (Sin Toast)
+    // Error en el dialogo
     viewModel.getDialogError().observe(getViewLifecycleOwner(), error -> {
       if (error != null && dialogEstado != null && dialogEstado.isShowing()) {
         // Usamos el setError del EditText para mostrar el error ahí mismo
