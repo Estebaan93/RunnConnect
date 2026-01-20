@@ -158,32 +158,31 @@ public class MapaEditorFragment extends Fragment implements OnMapReadyCallback {
     NavController navController = Navigation.findNavController(requireView());
 
     try {
-      // CASO A: Venimos del botón (+) de Mis Eventos
-      // Intentamos buscar la instancia de "Mis Eventos" que quedó en pausa atrás.
+      // CASO A: Venimos del boton (+) de Mis Eventos.
+      // Aqui "Mis Eventos" si existe en el historial.
       androidx.navigation.NavBackStackEntry entry = navController.getBackStackEntry(R.id.nav_mis_eventos);
-
-      // Si la línea anterior no falló, significa que existe. Le inyectamos el mensaje.
       entry.getSavedStateHandle().set("mensaje_exito", mensajeExito);
 
-      // Volvemos a ella (eliminando CrearEvento y MapaEditor de la pila)
+      // Volvemos a la lista eliminando lo del medio.
       navController.popBackStack(R.id.nav_mis_eventos, false);
 
     } catch (IllegalArgumentException e) {
-      // CASO B: Venimos del Menú Hamburguesa -> Crear Evento
-      // "Mis Eventos" NO está en la pila atrás. Debemos navegar hacia ella explícitamente.
+      // CASO B: Venimos del Menu Hamburguesa.
+      // La pila actual es: Inicio -> CrearEvento -> MapaEditor
+      // "Mis Eventos" NO esta atras.
 
-      // Limpiamos la pila para que no quede basura al volver atrás
       NavOptions options = new NavOptions.Builder()
-        .setPopUpTo(R.id.nav_mapa_editor, true)
+        // Esto borra el Mapa Y TAMBIEN borra el formulario de Crear Evento del historial.
+        .setPopUpTo(R.id.nav_crear_evento, true)
         .setLaunchSingleTop(true)
         .build();
 
-      // Empaquetamos el mensaje como argumento tradicional
       Bundle args = new Bundle();
       args.putString("mensaje_arg", mensajeExito);
 
-      // Navegamos
+      // Al navegar, la pila quedara: Inicio -> Mis Eventos
       navController.navigate(R.id.nav_mis_eventos, args, options);
     }
   }
+
 }
