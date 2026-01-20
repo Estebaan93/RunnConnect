@@ -169,7 +169,7 @@ public class GestionInscriptosFragment extends Fragment {
       imgComprobante.setImageResource(R.drawable.ic_launcher_foreground);
     }
 
-    // CORRECCIÓN: Delegamos la acción al VM sin pasar strings de negocio
+    // CORRECCION: Delegamos la acción al VM sin pasar strings de negocio
     btnAceptar.setOnClickListener(v -> {
       viewModel.aprobarPago(item.getIdInscripcion());
       dialog.dismiss();

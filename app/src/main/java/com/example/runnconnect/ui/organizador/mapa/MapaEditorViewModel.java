@@ -33,7 +33,7 @@ public class MapaEditorViewModel extends AndroidViewModel {
   private final MutableLiveData<List<LatLng>> puntosRuta = new MutableLiveData<>(new ArrayList<>());
   private final MutableLiveData<String> textoDistancia = new MutableLiveData<>("0.00 km");
   private final MutableLiveData<Boolean> isLoading = new MutableLiveData<>(false);
-  private final MutableLiveData<Integer> tipoMapa = new MutableLiveData<>(GoogleMap.MAP_TYPE_HYBRID);
+  private final MutableLiveData<Integer> tipoMapa = new MutableLiveData<>(GoogleMap.MAP_TYPE_NORMAL);
 
   // --- ORDENES PARA LA VISTA (Acciones puntuales) ---
   // Usamos null para indicar "sin orden pendiente"
