@@ -1,0 +1,205 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#F5F5F5">
+
+  <androidx.core.widget.NestedScrollView
+      android:layout_width="match_parent"
+      android:layout_height="match_parent"
+      android:fillViewport="true">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingBottom="100dp">
+
+      <View
+          android:id="@+id/viewHeaderBg"
+          android:layout_width="match_parent"
+          android:layout_height="80dp"
+          android:background="@color/purple_700"
+          app:layout_constraintTop_toTopOf="parent" />
+
+      <TextView
+          android:id="@+id/tvTituloDetalle"
+          android:layout_width="0dp"
+          android:layout_height="wrap_content"
+          android:text="Cargando evento..."
+          android:textColor="@color/white"
+          android:textSize="22sp"
+          android:textStyle="bold"
+          android:layout_margin="16dp"
+          app:layout_constraintStart_toStartOf="parent"
+          app:layout_constraintEnd_toEndOf="parent"
+          app:layout_constraintBottom_toBottomOf="@id/viewHeaderBg"/>
+
+      <androidx.cardview.widget.CardView
+          android:id="@+id/cardInfo"
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:layout_margin="16dp"
+          app:cardCornerRadius="12dp"
+          app:cardElevation="4dp"
+          app:layout_constraintTop_toBottomOf="@id/viewHeaderBg">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+          <TextView
+              android:id="@+id/tvFechaHora"
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content"
+              android:text="Fecha: --/--/----"
+              android:textSize="16sp"
+              android:drawablePadding="8dp"
+              app:drawableStartCompat="@android:drawable/ic_menu_my_calendar"/>
+
+          <TextView
+              android:id="@+id/tvLugar"
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content"
+              android:layout_marginTop="8dp"
+              android:text="Lugar: ---"
+              android:textSize="16sp"
+              android:drawablePadding="8dp"
+              app:drawableStartCompat="@android:drawable/ic_menu_mapmode"/>
+
+          <Button
+              android:id="@+id/btnVerMapa"
+              style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+              android:layout_width="wrap_content"
+              android:layout_height="31dp"
+              android:layout_marginTop="8dp"
+              android:gravity="start|center_vertical"
+              android:insetLeft="0dp"
+
+              android:insetTop="0dp"
+              android:insetBottom="0dp"
+              android:minWidth="0dp"
+              android:minHeight="0dp"
+              android:paddingStart="0dp"
+              android:paddingTop="8dp"
+              android:paddingEnd="12dp"
+              android:paddingBottom="8dp"
+              android:text="Ver Recorrido"
+              android:textSize="12sp"
+
+              app:icon="@android:drawable/ic_dialog_map"
+              app:iconGravity="textStart"
+              app:iconPadding="8dp" />
+
+          <TextView
+              android:id="@+id/tvEstado"
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content"
+              android:layout_marginTop="8dp"
+              android:text="Estado: ---"
+              android:textStyle="bold"
+              android:textColor="#4CAF50"/>
+
+          <TextView
+              android:id="@+id/tvCupos"
+              android:layout_width="match_parent"
+              android:layout_height="wrap_content"
+              android:text="Cupos: -/-"
+              android:gravity="end"
+              android:textSize="12sp"
+              android:layout_marginTop="4dp"/>
+        </LinearLayout>
+      </androidx.cardview.widget.CardView>
+
+      <TextView
+          android:id="@+id/lblDesc"
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:text="Descripción"
+          android:textStyle="bold"
+          android:textSize="18sp"
+          android:layout_marginHorizontal="16dp"
+          android:layout_marginTop="16dp"
+          app:layout_constraintTop_toBottomOf="@id/cardInfo"/>
+
+      <TextView
+          android:id="@+id/tvDescripcion"
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:text="..."
+          android:layout_marginHorizontal="16dp"
+          android:layout_marginTop="8dp"
+          app:layout_constraintTop_toBottomOf="@id/lblDesc"/>
+
+      <TextView
+          android:id="@+id/lblCat"
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:text="Categorías y Precios"
+          android:textStyle="bold"
+          android:textSize="18sp"
+          android:layout_marginHorizontal="16dp"
+          android:layout_marginTop="24dp"
+          app:layout_constraintTop_toBottomOf="@id/tvDescripcion"/>
+
+      <androidx.recyclerview.widget.RecyclerView
+          android:id="@+id/recyclerCategorias"
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:layout_marginHorizontal="16dp"
+          android:layout_marginTop="8dp"
+          android:nestedScrollingEnabled="false"
+          app:layout_constraintTop_toBottomOf="@id/lblCat"/>
+
+      <TextView
+          android:id="@+id/lblOrg"
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:text="Organizado por"
+          android:textStyle="bold"
+          android:textSize="18sp"
+          android:layout_marginHorizontal="16dp"
+          android:layout_marginTop="24dp"
+          app:layout_constraintTop_toBottomOf="@id/recyclerCategorias"/>
+
+      <TextView
+          android:id="@+id/tvNombreOrganizador"
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:text="---"
+          android:layout_marginHorizontal="16dp"
+          android:layout_marginTop="4dp"
+          app:layout_constraintTop_toBottomOf="@id/lblOrg"/>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+  </androidx.core.widget.NestedScrollView>
+
+  <LinearLayout
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:orientation="vertical"
+      android:layout_gravity="bottom"
+      android:background="@color/white"
+      android:elevation="16dp"
+      android:padding="16dp">
+
+    <Button
+        android:id="@+id/btnIrALogin"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Iniciar Sesión para Inscribirme"
+        android:backgroundTint="@color/purple_700"/>
+  </LinearLayout>
+
+  <ProgressBar
+      android:id="@+id/progressBar"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:layout_gravity="center"
+      android:visibility="gone"/>
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

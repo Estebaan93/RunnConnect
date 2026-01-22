@@ -14,6 +14,7 @@ import com.example.runnconnect.data.request.CrearEventoRequest;
 import com.example.runnconnect.data.response.EventoDetalleResponse;
 import com.example.runnconnect.data.response.EventoResumenResponse;
 import com.example.runnconnect.data.response.EventosPaginadosResponse;
+import com.example.runnconnect.data.response.MapaEventoResponse;
 
 import java.util.List;
 
@@ -66,6 +67,7 @@ public class EventoRepositorio {
     }
   }
 
+
   //cambiar estado (publicado, cancelado, finalizado)
   public void cambiarEstado(int idEvento, CambiarEstadoRequest request, Callback<ResponseBody> callback) {
     String token = sessionManager.leerToken();
@@ -73,6 +75,23 @@ public class EventoRepositorio {
       apiService.cambiarEstado("Bearer " + token, idEvento, request).enqueue(callback);
     }
 
+  }
+  //----EVENTOS PUBLICOS---------
+  //obt eventos publicos
+  public void obtenerEventosPublicados(int pagina, int tamanio, Callback<EventosPaginadosResponse> callback){
+    //sin token, eventos publicos
+    apiService.obtenerEventosPublicados(pagina, tamanio).enqueue(callback);
+
+  }
+
+  // Obtener detalle para invitados (Sin Token)
+  public void obtenerDetalleEventoPublico(int idEvento, Callback<EventoDetalleResponse> callback) {
+    // Llamamos a la variante token
+    apiService.obtenerEventoPorIdPublico(idEvento).enqueue(callback);
+  }
+  //obt circuito de un evento (publico)
+  public void obtenerMapaPublico(int idEvento, Callback<MapaEventoResponse> callback) {
+    apiService.obtenerMapaPublico(idEvento).enqueue(callback);
   }
 
 }

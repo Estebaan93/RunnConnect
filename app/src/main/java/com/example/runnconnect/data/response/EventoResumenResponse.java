@@ -1,5 +1,7 @@
 package com.example.runnconnect.data.response;
 
+import java.util.List;
+
 public class EventoResumenResponse {
   private int idEvento;
   private String nombre;
@@ -9,6 +11,9 @@ public class EventoResumenResponse {
   private int cupoTotal;
   private int inscriptosActuales;
   private int cantidadCategorias;
+  private String nombreOrganizador;
+  private List<CategoriaResponse> categorias;
+
 
   // Getters
   public int getIdEvento() { return idEvento; }
@@ -19,5 +24,8 @@ public class EventoResumenResponse {
   public int getCupoTotal() { return cupoTotal; }
   public int getInscriptosActuales() { return inscriptosActuales; }
   public int getCantidadCategorias() { return cantidadCategorias; }
+  public String getNombreOrganizador() { return nombreOrganizador; }
+  public List<CategoriaResponse> getCategorias() { return categorias;
+  }
 
 }

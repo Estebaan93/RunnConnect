@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="8dp"
+    app:cardCornerRadius="12dp"
+    app:cardElevation="4dp">
+
+  <androidx.constraintlayout.widget.ConstraintLayout
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:padding="16dp">
+
+    <TextView
+        android:id="@+id/tvNombreEvento"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="Nombre del Evento"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:textColor="@color/black"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
+
+    <TextView
+        android:id="@+id/tvFecha"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="00/00/0000"
+        android:layout_marginTop="8dp"
+        android:drawablePadding="6dp"
+        app:drawableStartCompat="@android:drawable/ic_menu_my_calendar"
+        app:layout_constraintTop_toBottomOf="@id/tvNombreEvento"
+        app:layout_constraintStart_toStartOf="parent"/>
+
+    <TextView
+        android:id="@+id/tvLugar"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="Ubicación"
+        android:layout_marginTop="4dp"
+        android:drawablePadding="6dp"
+        app:drawableStartCompat="@android:drawable/ic_menu_mapmode"
+        app:layout_constraintTop_toBottomOf="@id/tvFecha"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
+
+    <com.google.android.material.chip.ChipGroup
+        android:id="@+id/chipGroupCategorias"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        app:singleLine="false"
+        app:chipSpacingVertical="-4dp"
+        app:chipSpacingHorizontal="8dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tvLugar"/>
+
+    <TextView
+        android:id="@+id/tvOrganizador"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Org: RunnConnect"
+        android:textSize="12sp"
+        android:textColor="#757575"
+        android:layout_marginTop="12dp"
+        app:layout_constraintTop_toBottomOf="@id/chipGroupCategorias"
+        app:layout_constraintStart_toStartOf="parent"/>
+
+    <Button
+        android:id="@+id/btnVerDetalle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="VER DETALLE"
+        android:textSize="12sp"
+        android:backgroundTint="@color/purple_700"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/chipGroupCategorias"/>
+
+  </androidx.constraintlayout.widget.ConstraintLayout>
+</androidx.cardview.widget.CardView>

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:paddingVertical="12dp"
+    android:paddingHorizontal="4dp"
+    android:background="?android:attr/selectableItemBackground">
+
+  <TextView
+      android:id="@+id/tvNombreEdad"
+      android:layout_width="0dp"
+      android:layout_height="wrap_content"
+      android:layout_weight="1"
+      android:text="10K (18-30 años)"
+      android:textSize="16sp"
+      android:textColor="@color/black"/>
+
+  <TextView
+      android:id="@+id/tvPrecio"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:text="$ 15000.00"
+      android:textStyle="bold"
+      android:textSize="16sp"
+      android:textColor="#4CAF50"/>
+</LinearLayout>

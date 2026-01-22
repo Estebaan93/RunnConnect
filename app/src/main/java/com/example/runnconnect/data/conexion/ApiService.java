@@ -123,6 +123,10 @@ public interface ApiService {
     @Header("Authorization") String token,
     @Path("idEvento") int idEvento);
 
+  //mapa publico
+  @GET("Evento/{idEvento}/Mapa")
+  Call<MapaEventoResponse> obtenerMapaPublico(@Path("idEvento") int idEvento);
+
   // Actualizar evento (PUT)
   @PUT("Evento/{id}")
   Call<ResponseBody> actualizarEvento(
@@ -139,10 +143,15 @@ public interface ApiService {
     @Query("tamanioPagina") int tamanioPagina
   );
 
-  //obtener detalles de evento
+  //obtener detalles de evento (token para el organizador)
   @GET("Evento/{id}")
   Call<EventoDetalleResponse> obtenerEventoPorId(
     @Header("Authorization") String token,
+    @Path("id") int idEvento
+  );
+  // Obtener detalle PUBLICO (Sin Token)
+  @GET("Evento/{id}")
+  Call<EventoDetalleResponse> obtenerEventoPorIdPublico(
     @Path("id") int idEvento
   );
 
@@ -161,6 +170,13 @@ public interface ApiService {
     @Query("EstadoPago") String estadoPago, // "procesando", "pagado", etc.
     @Query("Pagina") int pagina,
     @Query("TamanioPagina") int tamanio
+  );
+
+  //obt eventos publicos
+  @GET("Evento/Publicados")
+  Call<EventosPaginadosResponse> obtenerEventosPublicados(
+    @Query("pagina") int pagina,
+    @Query("tamanioPagina") int tamanioPagina
   );
 
   // PUT para cambiar estado (Aprobar/Rechazar pago)

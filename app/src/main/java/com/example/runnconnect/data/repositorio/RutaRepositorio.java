@@ -31,7 +31,12 @@ public class RutaRepositorio {
     if(token !=null){
       apiService.obtenerMapaCompleto("Bearer "+token, idEvento).enqueue(callback);
     }
+  }
 
+  // --- MTODO PUBLICO (Sin Token) ---
+  public void obtenerRutaPublica(int idEvento, Callback<MapaEventoResponse> callback) {
+    // Llamada directa sin Bearer Token
+    apiService.obtenerMapaPublico(idEvento).enqueue(callback);
   }
 
 }
