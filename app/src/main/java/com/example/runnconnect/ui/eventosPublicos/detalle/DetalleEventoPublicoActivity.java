@@ -53,7 +53,6 @@ public class DetalleEventoPublicoActivity extends AppCompatActivity {
 
     viewModel.getMensajeError().observe(this, msg -> {
       if (msg != null) {
-        // Toast comentado para limpiar UI
         // Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
         viewModel.resetMensajeError();
       }
@@ -88,7 +87,7 @@ public class DetalleEventoPublicoActivity extends AppCompatActivity {
   }
 
   private void setupListeners() {
-    // 1. Botón "Iniciar Sesión para Inscribirme"
+    // 1. Botón "Iniciar Sesion para Inscribirme"
     binding.btnIrALogin.setOnClickListener(v -> {
       Intent intent = new Intent(this, com.example.runnconnect.ui.login.LoginActivity.class);
       // FLAGS IMPORTANTES: Borran la pila para que al dar "Atrás" no vuelva aquí
@@ -97,7 +96,7 @@ public class DetalleEventoPublicoActivity extends AppCompatActivity {
       finish();
     });
 
-    // 2. Botón "Ver Recorrido" (NUEVO)
+    // 2. Boton "Ver Recorrido" (NUEVO)
     binding.btnVerMapa.setOnClickListener(v -> {
       Intent i = new Intent(this, MapaPublicoActivity.class);
       i.putExtra("idEvento", idEvento);

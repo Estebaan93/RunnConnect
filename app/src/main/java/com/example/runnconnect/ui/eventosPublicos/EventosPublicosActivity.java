@@ -2,7 +2,7 @@ package com.example.runnconnect.ui.eventosPublicos;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.view.MenuItem; // <--- NO OLVIDES ESTE IMPORT
+import android.view.MenuItem; //
 import android.view.View;
 import android.widget.Toast;
 
@@ -26,7 +26,7 @@ public class EventosPublicosActivity extends AppCompatActivity {
     binding = ActivityEventosPublicosBinding.inflate(getLayoutInflater());
     setContentView(binding.getRoot());
 
-    // --- CONFIGURACIÓN DE LA BARRA VIOLETA ---
+    // --- CONFIGURACION DE LA BARRA VIOLETA ---
     if (getSupportActionBar() != null) {
       getSupportActionBar().setTitle("Próximos Eventos"); // Título
       getSupportActionBar().setDisplayHomeAsUpEnabled(true); // Flecha activada
@@ -38,13 +38,11 @@ public class EventosPublicosActivity extends AppCompatActivity {
     setupRecyclerView();
     setupObservers();
 
-    // YA NO NECESITAMOS ESTO (Bórralo si lo tienes):
-    // binding.btnVolverAtras.setOnClickListener(...)
 
     viewModel.cargarEventos();
   }
 
-  // --- ESTE MÉTODO CONTROLA EL CLIC EN LA FLECHA DE LA BARRA ---
+  // ---CONTROLA EL CLIC EN LA FLECHA DE LA BARRA ---
   @Override
   public boolean onOptionsItemSelected(@NonNull MenuItem item) {
     if (item.getItemId() == android.R.id.home) {

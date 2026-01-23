@@ -35,7 +35,7 @@ public class CategoriasDetalleAdapter extends RecyclerView.Adapter<CategoriasDet
     String info = item.getNombre() + " (" + item.getEdadMinima() + "-" + item.getEdadMaxima() + " años)";
     holder.binding.tvNombreEdad.setText(info);
 
-    // Precio (Usamos getPrecio() que definiste en tu modelo CategoriaResponse)
+    // Precio (Usamos getPrecio() del modelo CategoriaResponse)
     String precio = "$ " + item.getPrecio().toString();
     holder.binding.tvPrecio.setText(precio);
   }

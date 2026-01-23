@@ -1,58 +1,15 @@
-----------------------Registro--------------------------------
+
 RUNNER:
 
 
-ORGANIZADOR
+
+
+ORGANIZADOR:
+    Crear diferentes categorias para los eventos -> en publico el chip se deberian de ver
 
 
 
----------------------Perfil-----------------------------------------
 
-
----------------------Runner-----------------------------------------
-
-
-
----------------------Organizador-----------------------------------------
-Eventos: (REVISION 09 ENERO) - Al vencer el token no me carga los eventos
- y solo me sale un toast con error de conexion, la app debe de cerrar la sesion
- en caso de que detecte si el token esta vencido
-1. Crear eventos - Revision
-  NOTA: SI EN CREAR EVENTOS SE METEN DATOS INVALIDOS Y POSTERIOR SE NAVEGA A OTRO FRAGMENT, SE
-    SIGUE DISPARANDO EL ERROR DE "COMPLETE EL TITULO DEL NUEVO EVENTO, O SEGUN EL CAMPO QUE FALTE 
-    COMPLETAR". El error solo aparece si navegamos desde mis eventos -> crear nuevo evento "+".
-  a. Debe tener el perfil completo
-  b. 
-  c.
-  d.
-  e.
-  
-2. Actualizar eventos - REVISAR
-  . Reprogramar fecha, lugar, descripcion, datos pago, categoria, modalidad, genero, precio, cupo total, etc - Para implementar
-  . Ver editar/mapa (trae los puntos circuito) - ok
-  . Implementar - El modulo completo de puntos de interes
-  NOTA: LUEGO DE ACTUALIZAR EL ESTADO DE PUBLICADO -> SUSPENDIDO (DIALOG_ESTADO) LA UI SE CONGELA, PERO EL REQUEST SE VA Y ES SATISFACTORIO
-    QUEDANDO EN LA BD LOS CAMBIOS EN LA TABLA EVENTOS (ESTADO) Y NOTIFICAION_EVENTO (MOTIVO DE SUSPENSION)
-    
-3. Cambiar estado evento - Revision
-  . publicado, cancelado, finalizado - ok
-  
-4. Ver Detalles eventos - Revision
-  
-5. Ver resumen de eventos - Revision
-  a. Muestra la lista de todos los eventos
-    1. Al hacer click en la vista card me abre detalles del evento
-  
-6. Pagina de eventos - Revision
-
---------------------------------------------------------------
-
---------------------------------------------------------------
-
---------------------------------------------------------------
-
---------------------------------------------------------------
-
---------------------------------------------------------------
-
---------------------------------------------------------------
+PUBLICO:
+    Puede ver los proximos eventos
+    Puede ver detalle de eventos

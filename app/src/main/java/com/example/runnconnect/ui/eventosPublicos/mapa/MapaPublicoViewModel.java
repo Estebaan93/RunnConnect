@@ -33,7 +33,7 @@ public class MapaPublicoViewModel extends AndroidViewModel {
   private final MutableLiveData<String> mensajeError = new MutableLiveData<>();
   private final MutableLiveData<Integer> tipoMapa = new MutableLiveData<>(GoogleMap.MAP_TYPE_NORMAL);
 
-  // Acciones de Cámara (Zoom automático)
+  // Acciones de Camara (Zoom automatico)
   private final MutableLiveData<LatLngBounds> ordenHacerZoomRuta = new MutableLiveData<>();
   private final MutableLiveData<LatLng> ordenCentrarCamara = new MutableLiveData<>();
   public MapaPublicoViewModel(@NonNull Application application) {
@@ -77,7 +77,7 @@ public class MapaPublicoViewModel extends AndroidViewModel {
           puntosRuta.setValue(puntos);
           calcularDistancia(puntos);
 
-          // Lógica de Zoom
+          // Zoom
           if (hayPuntos) {
             try {
               ordenHacerZoomRuta.setValue(builder.build());
@@ -102,7 +102,7 @@ public class MapaPublicoViewModel extends AndroidViewModel {
     });
   }
 
-  // Cálculo matemático de distancia (igual al Organizador)
+  // Calculo matematico de distancia (igual al Organizador)
   private void calcularDistancia(List<LatLng> puntos) {
     if (puntos == null || puntos.size() < 2) return;
 
@@ -118,7 +118,7 @@ public class MapaPublicoViewModel extends AndroidViewModel {
     textoDistancia.setValue(String.format("%.2f km", distancia / 1000.0));
   }
 
-  //capa de mapa
+  //Capa de mapa
   public void alternarTipoMapa() {
     Integer actual = tipoMapa.getValue();
     if (actual != null && actual == GoogleMap.MAP_TYPE_NORMAL) {

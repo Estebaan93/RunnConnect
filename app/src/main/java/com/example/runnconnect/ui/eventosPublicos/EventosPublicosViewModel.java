@@ -28,7 +28,7 @@ public class EventosPublicosViewModel extends AndroidViewModel {
   private final MutableLiveData<Boolean> isLoading = new MutableLiveData<>(false);
   private final MutableLiveData<Boolean> isVacio = new MutableLiveData<>(false);
 
-  // Eventos (Usamos MutableLiveData estándar)
+  // Eventos MutableLiveData
   // Inicializamos sin valor para que sea null al principio
   private final MutableLiveData<String> mostrarToast = new MutableLiveData<>();
   private final MutableLiveData<Integer> navegarADetalle = new MutableLiveData<>();
@@ -46,7 +46,7 @@ public class EventosPublicosViewModel extends AndroidViewModel {
   public LiveData<String> getMostrarToast() { return mostrarToast; }
   public LiveData<Integer> getNavegarADetalle() { return navegarADetalle; }
 
-  // --- MÉTODOS DE RESET (Obligatorios con MutableLiveData estándar) ---
+  // --- METODOS DE RESET MUTABLELIVEDATA
   public void resetToast() { mostrarToast.setValue(null); }
   public void resetNavegacion() { navegarADetalle.setValue(null); }
 

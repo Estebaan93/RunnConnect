@@ -59,7 +59,7 @@ public class MapaPublicoActivity extends AppCompatActivity implements OnMapReady
   }
 
   private void setupObservers() {
-    // 1. Dibujar Ruta
+    //Dibujar Ruta
     viewModel.getPuntosRuta().observe(this, this::dibujarRutaEnMapa);
 
     viewModel.getTipoMapa().observe(this, tipo -> {
@@ -68,7 +68,7 @@ public class MapaPublicoActivity extends AppCompatActivity implements OnMapReady
       }
     });
 
-    // 2. Hacer Zoom Automático
+    //Hacer Zoom Automatico
     viewModel.getOrdenHacerZoomRuta().observe(this, bounds -> {
       if (mMap != null && bounds != null) {
         try {
@@ -80,21 +80,21 @@ public class MapaPublicoActivity extends AppCompatActivity implements OnMapReady
       }
     });
 
-    // 3. Fallback Centrar
+    //Fallback Centrar
     viewModel.getOrdenCentrarCamara().observe(this, latLng -> {
       if (mMap != null && latLng != null) {
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15));
       }
     });
 
-    // 4. Mostrar Distancia en el subtítulo
+    //Mostrar Distancia en el subtitulo
     viewModel.getTextoDistancia().observe(this, dist -> {
       if (!dist.isEmpty() && getSupportActionBar() != null) {
         getSupportActionBar().setSubtitle("Distancia total: " + dist);
       }
     });
 
-    // 5. Errores
+    //Errores
     viewModel.getMensajeError().observe(this, msg -> {
       if (msg != null) Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
     });
@@ -104,7 +104,7 @@ public class MapaPublicoActivity extends AppCompatActivity implements OnMapReady
   public void onMapReady(GoogleMap googleMap) {
     mMap = googleMap;
     mMap.getUiSettings().setZoomControlsEnabled(true);
-    mMap.setMapType(GoogleMap.MAP_TYPE_NORMAL); // Mapa ligero
+    mMap.setMapType(GoogleMap.MAP_TYPE_NORMAL); // Mapa ligero no satelital
 
     if (idEvento != 0) {
       viewModel.cargarRuta(idEvento);
@@ -122,11 +122,11 @@ public class MapaPublicoActivity extends AppCompatActivity implements OnMapReady
 
     mMap.clear();
 
-    // Línea Poligonal
+    // Linea Poligonal
     PolylineOptions poly = new PolylineOptions()
       .addAll(puntos)
       .width(12)
-      .color(Color.BLUE) // Azul clásico de rutas
+      .color(Color.BLUE) // Azul clasico de rutas
       .geodesic(true);
     mMap.addPolyline(poly);
 
@@ -136,7 +136,7 @@ public class MapaPublicoActivity extends AppCompatActivity implements OnMapReady
       .title("Largada")
       .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)));
 
-    // Marcador Fin (Solo si hay más de 1 punto)
+    // Marcador Fin (Solo si hay mas de 1 punto)
     if (puntos.size() > 1) {
       mMap.addMarker(new MarkerOptions()
         .position(puntos.get(puntos.size() - 1))

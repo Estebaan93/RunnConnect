@@ -74,8 +74,7 @@ public class EventosPublicosAdapter extends RecyclerView.Adapter<EventosPublicos
 
         for (CategoriaResponse cat : item.getCategorias()) {
 
-          // --- AQUÍ ESTÁ EL CAMBIO CLAVE ---
-          // En lugar de "new Chip()", inflamos el archivo XML que creaste
+          // inflamos el archivo XML
           Chip chip = (Chip) LayoutInflater.from(context)
             .inflate(R.layout.item_chip_categoria, binding.chipGroupCategorias, false);
 
