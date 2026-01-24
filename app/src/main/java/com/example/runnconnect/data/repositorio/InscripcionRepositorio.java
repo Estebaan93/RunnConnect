@@ -6,6 +6,7 @@ import com.example.runnconnect.data.conexion.ApiClient;
 import com.example.runnconnect.data.conexion.ApiService;
 import com.example.runnconnect.data.preferencias.SessionManager;
 import com.example.runnconnect.data.request.CambiarEstadoPagoRequest;
+import com.example.runnconnect.data.request.MotivoBajaRequest;
 import com.example.runnconnect.data.response.ListaInscriptosResponse;
 
 import okhttp3.ResponseBody;
@@ -44,5 +45,18 @@ public class InscripcionRepositorio {
       callback.onFailure(null, new Throwable("No hay sesión activa."));
     }
   }
+
+  //dar de baja un runner
+  public void darDeBajaRunner(int idInscripcion, String motivo, Callback<ResponseBody> callback){
+    String token= sessionManager.leerToken();
+    if(token != null){
+      MotivoBajaRequest request= new MotivoBajaRequest(motivo);
+      apiService.darDeBajaRunner("Bearer "+token, idInscripcion, request).enqueue(callback);
+    }else{
+      callback.onFailure(null, new Throwable("No hay sesion activa"));
+    }
+
+  }
+
 
 }

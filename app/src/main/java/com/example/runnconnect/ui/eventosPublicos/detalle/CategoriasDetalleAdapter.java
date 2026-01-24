@@ -1,6 +1,7 @@
 package com.example.runnconnect.ui.eventosPublicos.detalle;
 
 import android.view.LayoutInflater;
+import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
@@ -33,11 +34,14 @@ public class CategoriasDetalleAdapter extends RecyclerView.Adapter<CategoriasDet
 
     // Nombre y Edad
     String info = item.getNombre() + " (" + item.getEdadMinima() + "-" + item.getEdadMaxima() + " años)";
-    holder.binding.tvNombreEdad.setText(info);
+    holder.binding.tvCatNombre.setText(info);
 
     // Precio (Usamos getPrecio() del modelo CategoriaResponse)
     String precio = "$ " + item.getPrecio().toString();
-    holder.binding.tvPrecio.setText(precio);
+    holder.binding.tvCatPrecio.setText(precio);
+
+    //ocultamos el btn eliminar
+    holder.binding.btnEliminar.setVisibility(View.GONE);
   }
 
   @Override

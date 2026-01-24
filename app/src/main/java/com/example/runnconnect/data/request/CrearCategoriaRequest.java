@@ -20,6 +20,15 @@ public class CrearCategoriaRequest {
     this.genero = "X";
   }
 
+  //getters
+  public String getNombre() {
+    return nombre;
+  }
+
+  public BigDecimal getCostoInscripcion() {
+    return costoInscripcion;
+  }
+
   // Setters necesarios para el ViewModel
   public void setEdadMinima(Integer edadMinima) {
     this.edadMinima = edadMinima;

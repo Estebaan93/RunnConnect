@@ -15,6 +15,7 @@ public class InscriptoEventoResponse {
   public String getEstadoPago() { return estadoPago; }
   public String getComprobantePagoURL() { return comprobantePagoURL; }
   public String getNombreCategoria() { return nombreCategoria; }
+  public int getIdCategoria() { return idCategoria; }
   public RunnerInscriptoInfo getRunner() { return runner; }
 
   public String getTalleRemera() {
@@ -35,6 +36,8 @@ public class InscriptoEventoResponse {
     private String telefonoEmergencia;
 
     // Helper para nombre completo
+    public String getNombre () { return nombre; }
+    public String getApellido () { return apellido; }
     public String getNombreCompleto() { return nombre + " " + (apellido != null ? apellido : ""); }
     public String getDni() { return String.valueOf(dni); }
     public String getEmail() { return email; }

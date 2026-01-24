@@ -1,258 +1,288 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#FFFFFF"
-    android:padding="24dp">
+    android:fillViewport="true"
+    android:background="#FFFFFF">
 
-  <TextView
-      android:id="@+id/tvTituloDetalle"
-      android:layout_width="0dp"
-      android:layout_height="wrap_content"
-      android:layout_marginEnd="8dp"
-      android:text="Título del Evento"
-      android:textColor="@android:color/black"
-      android:textSize="22sp"
-      android:textStyle="bold"
-      app:layout_constraintEnd_toStartOf="@+id/tvEstadoDetalle"
-      app:layout_constraintStart_toStartOf="parent"
-      app:layout_constraintTop_toTopOf="parent" />
-
-  <TextView
-      android:id="@+id/tvEstadoDetalle"
-      android:layout_width="wrap_content"
-      android:layout_height="wrap_content"
-      android:background="@drawable/bg_spinner_border"
-      android:paddingHorizontal="12dp"
-      android:paddingVertical="6dp"
-      android:text="ESTADO"
-      android:textSize="12sp"
-      android:textStyle="bold"
-      app:layout_constraintBottom_toBottomOf="@id/tvTituloDetalle"
-      app:layout_constraintEnd_toEndOf="parent"
-      app:layout_constraintTop_toTopOf="@id/tvTituloDetalle" />
-
-  <TextView
-      android:id="@+id/tvFechaDetalle"
-      android:layout_width="0dp"
-      android:layout_height="wrap_content"
-      android:layout_marginTop="12dp"
-      android:drawablePadding="8dp"
-      android:text="--/--/----"
-      android:textSize="16sp"
-      app:drawableStartCompat="@android:drawable/ic_menu_my_calendar"
-      app:layout_constraintEnd_toEndOf="parent"
-      app:layout_constraintStart_toStartOf="parent"
-      app:layout_constraintTop_toBottomOf="@id/tvTituloDetalle" />
-
-  <TextView
-      android:id="@+id/tvLugarDetalle"
-      android:layout_width="0dp"
-      android:layout_height="wrap_content"
-      android:layout_marginTop="8dp"
-      android:drawablePadding="8dp"
-      android:text="Ubicación"
-      android:textSize="16sp"
-      app:drawableStartCompat="@android:drawable/ic_menu_mylocation"
-      app:layout_constraintEnd_toEndOf="parent"
-      app:layout_constraintStart_toStartOf="parent"
-      app:layout_constraintTop_toBottomOf="@id/tvFechaDetalle" />
-
-  <TextView
-      android:id="@+id/tvDistanciaTipo"
-      android:layout_width="0dp"
-      android:layout_height="wrap_content"
-      android:layout_marginTop="12dp"
-      android:drawablePadding="8dp"
-      android:text="Distancia - Modalidad"
-      android:textColor="#424242"
-      android:textSize="15sp"
-      android:textStyle="bold"
-      app:drawableStartCompat="@android:drawable/ic_menu_directions"
-      app:layout_constraintEnd_toEndOf="parent"
-      app:layout_constraintStart_toStartOf="parent"
-      app:layout_constraintTop_toBottomOf="@id/tvLugarDetalle" />
-
-  <TextView
-      android:id="@+id/tvGeneroPrecio"
-      android:layout_width="0dp"
-      android:layout_height="wrap_content"
-      android:layout_marginTop="8dp"
-      android:drawablePadding="8dp"
-      android:text="Género - Precio"
-      android:textAlignment="textStart"
-      android:textColor="#424242"
-      android:textSize="15sp"
-      app:drawableStartCompat="@android:drawable/ic_menu_info_details"
-      app:flow_horizontalAlign="start"
-      app:flow_verticalAlign="bottom"
-      app:layout_constraintEnd_toEndOf="parent"
-      app:layout_constraintStart_toStartOf="parent"
-      app:layout_constraintTop_toBottomOf="@id/tvDistanciaTipo" />
-
-  <View
-      android:id="@+id/divider1"
-      android:layout_width="match_parent"
-      android:layout_height="1dp"
-      android:layout_marginTop="20dp"
-      android:background="#E0E0E0"
-      app:layout_constraintTop_toBottomOf="@id/tvGeneroPrecio" />
-
-  <TextView
-      android:id="@+id/lblInscriptos"
-      android:layout_width="wrap_content"
-      android:layout_height="wrap_content"
-      android:layout_marginTop="16dp"
-      android:text="INSCRIPTOS"
-      android:textColor="#757575"
-      android:textSize="12sp"
-      app:layout_constraintEnd_toStartOf="@id/lblCupo"
-      app:layout_constraintHorizontal_chainStyle="spread"
-      app:layout_constraintStart_toStartOf="parent"
-      app:layout_constraintTop_toBottomOf="@id/divider1" />
-
-  <TextView
-      android:id="@+id/lblCupo"
-      android:layout_width="wrap_content"
-      android:layout_height="wrap_content"
-      android:layout_marginTop="16dp"
-      android:text="CUPO TOTAL"
-      android:textColor="#757575"
-      android:textSize="12sp"
-      app:layout_constraintEnd_toEndOf="parent"
-      app:layout_constraintStart_toEndOf="@id/lblInscriptos"
-      app:layout_constraintTop_toBottomOf="@id/divider1" />
-
-  <TextView
-      android:id="@+id/tvInscriptosCount"
-      android:layout_width="wrap_content"
-      android:layout_height="wrap_content"
-      android:text="0"
-      android:textColor="@android:color/black"
-      android:textSize="28sp"
-      android:textStyle="bold"
-      app:layout_constraintEnd_toEndOf="@id/lblInscriptos"
-      app:layout_constraintStart_toStartOf="@id/lblInscriptos"
-      app:layout_constraintTop_toBottomOf="@id/lblInscriptos" />
-
-  <TextView
-      android:id="@+id/tvCupoTotal"
-      android:layout_width="wrap_content"
-      android:layout_height="wrap_content"
-      android:text="0"
-      android:textColor="@android:color/black"
-      android:textSize="28sp"
-      android:textStyle="bold"
-      app:layout_constraintEnd_toEndOf="@id/lblCupo"
-      app:layout_constraintStart_toStartOf="@id/lblCupo"
-      app:layout_constraintTop_toBottomOf="@id/lblCupo" />
-
-  <TextView
-      android:id="@+id/lblDesc"
-      android:layout_width="wrap_content"
-      android:layout_height="wrap_content"
-      android:layout_marginTop="32dp"
-      android:text="Descripción"
-      android:textStyle="bold"
-      app:layout_constraintStart_toStartOf="parent"
-      app:layout_constraintTop_toBottomOf="@id/tvInscriptosCount" />
-
-  <TextView
-      android:id="@+id/tvDescripcion"
-      android:layout_width="0dp"
-      android:layout_height="0dp"
-      android:layout_marginTop="8dp"
-      android:layout_marginBottom="16dp"
-      android:ellipsize="end"
-      android:text="..."
-      app:layout_constraintBottom_toTopOf="@id/tvMensajeGlobal"
-      app:layout_constraintEnd_toEndOf="parent"
-      app:layout_constraintStart_toStartOf="parent"
-      app:layout_constraintTop_toBottomOf="@id/lblDesc" />
-
-  <TextView
-      android:id="@+id/tvMensajeGlobal"
-      android:layout_width="0dp"
-      android:layout_height="wrap_content"
-      android:layout_marginBottom="12dp"
-      android:background="#FFEBEE"
-      android:gravity="center"
-      android:padding="10dp"
-      android:textColor="#D32F2F"
-      android:textSize="14sp"
-      android:textStyle="bold"
-      android:visibility="gone"
-      app:layout_constraintBottom_toTopOf="@id/layoutBotones"
-      app:layout_constraintEnd_toEndOf="parent"
-      app:layout_constraintStart_toStartOf="parent" />
-
-  <LinearLayout
-      android:id="@+id/layoutBotones"
+  <androidx.constraintlayout.widget.ConstraintLayout
       android:layout_width="match_parent"
       android:layout_height="wrap_content"
-      android:layout_marginBottom="8dp"
-      android:orientation="horizontal"
-      app:layout_constraintBottom_toTopOf="@id/btnGestionInscriptos"
-      app:layout_constraintEnd_toEndOf="parent"
-      app:layout_constraintStart_toStartOf="parent">
+      android:padding="24dp">
 
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/btnCambiarEstado"
+    <TextView
+        android:id="@+id/tvTituloDetalle"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="4dp"
-        android:layout_weight="1"
-        android:backgroundTint="#FF9800"
-        android:text="Estado"
-        app:icon="@android:drawable/ic_menu_edit"
-        app:iconGravity="textStart" />
+        android:layout_marginEnd="8dp"
+        android:text="Título del Evento"
+        android:textColor="@android:color/black"
+        android:textSize="22sp"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toStartOf="@+id/tvEstadoDetalle"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/btnEditarInfo"
+    <TextView
+        android:id="@+id/tvEstadoDetalle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@drawable/bg_spinner_border"
+        android:paddingHorizontal="12dp"
+        android:paddingVertical="6dp"
+        android:text="ESTADO"
+        android:textSize="12sp"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toBottomOf="@id/tvTituloDetalle"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@id/tvTituloDetalle" />
+
+    <TextView
+        android:id="@+id/tvFechaDetalle"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="4dp"
-        android:layout_weight="1"
-        android:backgroundTint="#2196F3"
-        android:text="Editar Info"
-        app:icon="@android:drawable/ic_menu_agenda"
-        app:iconGravity="textStart" />
-  </LinearLayout>
+        android:layout_marginTop="12dp"
+        android:drawablePadding="8dp"
+        android:text="--/--/----"
+        android:textSize="16sp"
+        app:drawableStartCompat="@android:drawable/ic_menu_my_calendar"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tvTituloDetalle" />
 
-  <com.google.android.material.button.MaterialButton
-      android:id="@+id/btnGestionInscriptos"
-      android:layout_width="match_parent"
-      android:layout_height="wrap_content"
-      android:layout_marginBottom="8dp"
-      android:backgroundTint="#2E7D32"
-      android:text="Gestionar Inscriptos"
-      app:icon="@android:drawable/ic_menu_my_calendar"
-      app:iconGravity="textStart"
-      app:layout_constraintBottom_toTopOf="@id/btnVerMapa"
-      app:layout_constraintEnd_toEndOf="parent"
-      app:layout_constraintStart_toStartOf="parent" />
+    <TextView
+        android:id="@+id/tvLugarDetalle"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:drawablePadding="8dp"
+        android:text="Ubicación"
+        android:textSize="16sp"
+        app:drawableStartCompat="@android:drawable/ic_menu_mylocation"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tvFechaDetalle" />
 
-  <com.google.android.material.button.MaterialButton
-      android:id="@+id/btnVerMapa"
-      android:layout_width="match_parent"
-      android:layout_height="wrap_content"
-      android:text="Ver / Editar Ruta"
-      app:icon="@android:drawable/ic_dialog_map"
-      app:iconGravity="textStart"
-      app:layout_constraintBottom_toBottomOf="parent"
-      app:layout_constraintEnd_toEndOf="parent"
-      app:layout_constraintStart_toStartOf="parent" />
+    <TextView
+        android:id="@+id/tvDistanciaTipo"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:drawablePadding="8dp"
+        android:text="Distancia - Modalidad"
+        android:textColor="#424242"
+        android:textSize="15sp"
+        android:textStyle="bold"
+        app:drawableStartCompat="@android:drawable/ic_menu_directions"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tvLugarDetalle" />
 
-  <ProgressBar
-      android:id="@+id/progressBar"
-      android:layout_width="wrap_content"
-      android:layout_height="wrap_content"
-      android:visibility="gone"
-      app:layout_constraintBottom_toBottomOf="parent"
-      app:layout_constraintEnd_toEndOf="parent"
-      app:layout_constraintStart_toStartOf="parent"
-      app:layout_constraintTop_toTopOf="parent" />
+    <TextView
+        android:id="@+id/tvGeneroPrecio"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:drawablePadding="8dp"
+        android:text="Género - Precio"
+        android:textAlignment="textStart"
+        android:textColor="#424242"
+        android:textSize="15sp"
+        app:drawableStartCompat="@android:drawable/ic_menu_info_details"
+        app:flow_horizontalAlign="start"
+        app:flow_verticalAlign="bottom"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tvDistanciaTipo" />
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+    <View
+        android:id="@+id/divider1"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginTop="20dp"
+        android:background="#E0E0E0"
+        app:layout_constraintTop_toBottomOf="@id/tvGeneroPrecio" />
+
+    <TextView
+        android:id="@+id/lblInscriptos"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="INSCRIPTOS"
+        android:textColor="#757575"
+        android:textSize="12sp"
+        app:layout_constraintEnd_toStartOf="@id/lblCupo"
+        app:layout_constraintHorizontal_chainStyle="spread"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/divider1" />
+
+    <TextView
+        android:id="@+id/lblCupo"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="CUPO TOTAL"
+        android:textColor="#757575"
+        android:textSize="12sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/lblInscriptos"
+        app:layout_constraintTop_toBottomOf="@id/divider1" />
+
+    <TextView
+        android:id="@+id/tvInscriptosCount"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="0"
+        android:textColor="@android:color/black"
+        android:textSize="28sp"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toEndOf="@id/lblInscriptos"
+        app:layout_constraintStart_toStartOf="@id/lblInscriptos"
+        app:layout_constraintTop_toBottomOf="@id/lblInscriptos" />
+
+    <TextView
+        android:id="@+id/tvCupoTotal"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="0"
+        android:textColor="@android:color/black"
+        android:textSize="28sp"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toEndOf="@id/lblCupo"
+        app:layout_constraintStart_toStartOf="@id/lblCupo"
+        app:layout_constraintTop_toBottomOf="@id/lblCupo" />
+
+    <TextView
+        android:id="@+id/lblDesc"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="32dp"
+        android:text="Descripción"
+        android:textStyle="bold"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tvInscriptosCount" />
+
+    <TextView
+        android:id="@+id/tvDescripcion"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="16dp"
+        android:ellipsize="end"
+        android:text="..."
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/lblDesc" />
+
+    <TextView
+        android:id="@+id/tvTituloCategorias"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Categorías"
+        android:textStyle="bold"
+        android:layout_marginTop="16dp"
+        app:layout_constraintTop_toBottomOf="@id/tvDescripcion"
+        app:layout_constraintStart_toStartOf="parent"/>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvCategoriasDetalle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:nestedScrollingEnabled="false"
+        app:layout_constraintTop_toBottomOf="@id/tvTituloCategorias"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
+
+    <TextView
+        android:id="@+id/tvMensajeGlobal"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="12dp"
+        android:background="#FFEBEE"
+        android:gravity="center"
+        android:padding="10dp"
+        android:textColor="#D32F2F"
+        android:textSize="14sp"
+        android:textStyle="bold"
+        android:visibility="gone"
+        app:layout_constraintTop_toBottomOf="@id/rvCategoriasDetalle"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <LinearLayout
+        android:id="@+id/layoutBotones"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="8dp"
+        android:orientation="horizontal"
+        app:layout_constraintTop_toBottomOf="@id/tvMensajeGlobal"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
+
+      <com.google.android.material.button.MaterialButton
+          android:id="@+id/btnCambiarEstado"
+          android:layout_width="0dp"
+          android:layout_height="wrap_content"
+          android:layout_marginEnd="4dp"
+          android:layout_weight="1"
+          android:backgroundTint="#FF9800"
+          android:text="Estado"
+          app:icon="@android:drawable/ic_menu_edit"
+          app:iconGravity="textStart" />
+
+      <com.google.android.material.button.MaterialButton
+          android:id="@+id/btnEditarInfo"
+          android:layout_width="0dp"
+          android:layout_height="wrap_content"
+          android:layout_marginStart="4dp"
+          android:layout_weight="1"
+          android:backgroundTint="#2196F3"
+          android:text="Editar Info"
+          app:icon="@android:drawable/ic_menu_agenda"
+          app:iconGravity="textStart" />
+    </LinearLayout>
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnGestionInscriptos"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:backgroundTint="#2E7D32"
+        android:text="Gestionar Inscriptos"
+        app:icon="@android:drawable/ic_menu_my_calendar"
+        app:iconGravity="textStart"
+        app:layout_constraintTop_toBottomOf="@id/layoutBotones"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnVerMapa"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="24dp"
+        android:text="Ver / Editar Ruta"
+        app:icon="@android:drawable/ic_dialog_map"
+        app:iconGravity="textStart"
+        app:layout_constraintTop_toBottomOf="@id/btnGestionInscriptos"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <ProgressBar
+        android:id="@+id/progressBar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+  </androidx.constraintlayout.widget.ConstraintLayout>
+</androidx.core.widget.NestedScrollView>

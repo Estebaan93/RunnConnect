@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="horizontal"
+    android:padding="8dp"
+    android:gravity="center_vertical"
+    android:background="@drawable/bg_spinner_border"
+    android:layout_marginBottom="4dp">
+
+  <LinearLayout
+      android:layout_width="0dp"
+      android:layout_height="wrap_content"
+      android:layout_weight="1"
+      android:orientation="vertical">
+
+    <TextView
+        android:id="@+id/tvRunnerNombre"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Juan Perez"
+        android:textStyle="bold"
+        android:textColor="#000"/>
+
+    <TextView
+        android:id="@+id/tvRunnerDni"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="DNI: 12345678"
+        android:textSize="12sp"/>
+
+    <TextView
+        android:id="@+id/tvRunnerEstado"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="PAGADO"
+        android:textSize="10sp"
+        android:textStyle="bold"/>
+  </LinearLayout>
+
+  <ImageView
+      android:id="@+id/btnDarBaja"
+      android:layout_width="32dp"
+      android:layout_height="32dp"
+      android:src="@android:drawable/ic_delete"
+      android:padding="4dp"
+      android:background="?attr/selectableItemBackgroundBorderless"
+      app:tint="#D32F2F"/>
+
+</LinearLayout>

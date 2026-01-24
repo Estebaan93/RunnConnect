@@ -68,6 +68,9 @@ public class CrearEventoViewModel extends AndroidViewModel {
   private final MutableLiveData<Integer> uiVisibilidadChips = new MutableLiveData<>();
   private final MutableLiveData<Boolean> uiCamposHabilitados = new MutableLiveData<>();
   private final MutableLiveData<Integer> navegacionExito = new MutableLiveData<>(0);
+  private final List<CrearCategoriaRequest> categoriasTemporales= new ArrayList<>();
+  private final MutableLiveData<List<CrearCategoriaRequest>> categoriasLive = new MutableLiveData<>(new ArrayList<>());
+
 
   // Estado Interno
   private boolean esEdicion = false;
@@ -116,25 +119,88 @@ public class CrearEventoViewModel extends AndroidViewModel {
   public LiveData<Boolean> getUiCamposHabilitados() { return uiCamposHabilitados; }
   public LiveData<Integer> getNavegacionExito() { return navegacionExito; }
 
+  //Getter de categoria
+  public LiveData<List<CrearCategoriaRequest>> getCategoriasLive() { return categoriasLive; }
+
+  //agregar categoria
+  public boolean agregarCategoriaLocal(String distanciaIn, String modalidadIn, String generoIn,
+                                    String edadMinIn, String edadMaxIn, String precioIn, String cupoEvento) {
+    // 1. Validaciones básicas de la categoría
+    if (distanciaIn.trim().isEmpty()) {
+      errorDistancia.setValue("Indica la distancia");
+      return false;
+    }
+    if (precioIn.trim().isEmpty()) {
+      errorPrecio.setValue("Indica el precio");
+      return false;
+    }
+
+    BigDecimal precioDec;
+    try {
+      precioDec = new BigDecimal(precioIn.trim());
+    } catch (Exception e) {
+      errorPrecio.setValue("Precio inválido");
+      return false;
+    }
+
+    // 2. Construir Nombre y Datos
+    String nombreDistancia = distanciaIn.toUpperCase().contains("K") ? distanciaIn : distanciaIn + "K";
+
+    // Mapeo Género
+    String generoApi = "X";
+    String generoNombre = "";
+    if (generoIn.contains("Femenino")) { generoApi = "F"; generoNombre = "(Fem)"; }
+    else if (generoIn.contains("Masculino")) { generoApi = "M"; generoNombre = "(Masc)"; }
+
+    // Construir Nombre: "10K Calle (Fem)"
+    String nombreFinal = nombreDistancia + " " + modalidadIn + " " + generoNombre;
+
+    // Cupo: Usamos el cupo total del evento como límite individual (según tu requerimiento)
+    Integer cupoInt = null;
+    try { cupoInt = Integer.parseInt(cupoEvento); } catch(Exception e){}
+
+    // 3. Crear Objeto Request
+    CrearCategoriaRequest nuevaCat = new CrearCategoriaRequest(
+      nombreFinal.trim(),
+      precioDec,
+      cupoInt // <--- El mismo cupo del evento
+    );
+    nuevaCat.setGenero(generoApi);
+    try { nuevaCat.setEdadMinima(Integer.parseInt(edadMinIn)); } catch(Exception e) {}
+    try { nuevaCat.setEdadMaxima(Integer.parseInt(edadMaxIn)); } catch(Exception e) {}
+
+    // 4. Agregar a la lista y notificar
+    categoriasTemporales.add(nuevaCat);
+    categoriasLive.setValue(new ArrayList<>(categoriasTemporales)); // Copia nueva para activar observer
+
+    // 5. Limpiar errores (Éxito)
+    errorDistancia.setValue(null);
+    errorPrecio.setValue(null);
+    return true;
+  }
+
+  public void eliminarCategoriaLocal(int posicion) {
+    if (posicion >= 0 && posicion < categoriasTemporales.size()) {
+      categoriasTemporales.remove(posicion);
+      categoriasLive.setValue(new ArrayList<>(categoriasTemporales));
+    }
+  }
+
   public void resetearNavegacion() { navegacionExito.setValue(0); }
 
   // --- LOGICA DE VALIDACION Y GUARDADO ---
 
-  public void guardarEvento(String tituloIn, String descripcionIn, String lugarIn, String datosPagoIn,
-                            String distanciaIn, String modalidadIn, String generoIn,
-                            String edadMinIn, String edadMaxIn, String precioIn, String cupoIn) {
+  public void guardarEvento(String tituloIn, String descripcionIn, String lugarIn, String datosPagoIn, String cupoIn) {
 
-    // 1. Limpiar errores previos
+    // 1. Limpiar errores previos (Solo los del evento)
     mensajeGlobal.setValue(null);
     errorTitulo.setValue(null);
     errorUbicacion.setValue(null);
-    errorDistancia.setValue(null);
-    errorPrecio.setValue(null);
     errorCupo.setValue(null);
 
     boolean hayError = false;
 
-    // 2. Validaciones Granulares (Setear error y cortar flujo si es necesario)
+    // 2. Validaciones del Evento
     if (tituloIn.trim().isEmpty()) {
       errorTitulo.setValue("El título es obligatorio");
       hayError = true;
@@ -145,7 +211,6 @@ public class CrearEventoViewModel extends AndroidViewModel {
       hayError = true;
     }
 
-    // Si hay errores basicos, paramos aqui para que la UI haga foco en el primero
     if (hayError) return;
 
     // Validaciones de fecha
@@ -154,7 +219,7 @@ public class CrearEventoViewModel extends AndroidViewModel {
       return;
     }
 
-    // Validacion Cupo (Numerico)
+    // Validación Cupo Total del Evento
     Integer cupoInt = null;
     try {
       if (cupoIn != null && !cupoIn.trim().isEmpty()) {
@@ -167,7 +232,8 @@ public class CrearEventoViewModel extends AndroidViewModel {
 
     String fechaHoraFinal = fechaIso + "T" + horaIso + ":00";
 
-    // --- RAMA EDICION ---
+    // --- RAMA EDICIÓN ---
+    // (Nota: En edición no tocamos categorías según tu regla de negocio)
     if (esEdicion) {
       ActualizarEventoRequest request = new ActualizarEventoRequest();
       request.setNombre(tituloIn);
@@ -181,44 +247,25 @@ public class CrearEventoViewModel extends AndroidViewModel {
       return;
     }
 
-    // --- RAMA CREACION (Validaciones extra) ---
-    if (distanciaIn.trim().isEmpty()) {
-      errorDistancia.setValue("Indica la distancia (ej: 10)");
-      return;
-    }
-    if (precioIn.trim().isEmpty()) {
-      errorPrecio.setValue("Indica el precio");
-      return;
-    }
+    // --- RAMA CREACIÓN (Aquí usamos tu modelo CrearCategoriaRequest) ---
 
-    BigDecimal precioDec;
-    try {
-      precioDec = new BigDecimal(precioIn.trim());
-    } catch (Exception e) {
-      errorPrecio.setValue("Precio inválido");
+    // VALIDACIÓN CLAVE: ¿La lista tiene datos?
+    if (categoriasTemporales.isEmpty()) {
+      mensajeGlobal.setValue("Debes agregar al menos una categoría con el botón '+'.");
       return;
     }
 
-    // Armado del objeto
-    String nombreDistancia = distanciaIn.toUpperCase().contains("K") ? distanciaIn : distanciaIn + "K";
-
-    String generoApi = "X";
-    if (generoIn.contains("Femenino")) generoApi = "F";
-    else if (generoIn.contains("Masculino")) generoApi = "M";
-
-    CrearCategoriaRequest cat = new CrearCategoriaRequest(
-      nombreDistancia + " " + modalidadIn + (generoApi.equals("X") ? "" : " (" + generoIn + ")"),
-      precioDec, cupoInt
-    );
-    cat.setGenero(generoApi);
-    try { cat.setEdadMinima(Integer.parseInt(edadMinIn)); } catch(Exception e) {}
-    try { cat.setEdadMaxima(Integer.parseInt(edadMaxIn)); } catch(Exception e) {}
-
-    List<CrearCategoriaRequest> lista = new ArrayList<>();
-    lista.add(cat);
-
+    // Creamos el request usando la lista de objetos CrearCategoriaRequest que fuimos llenando
+    // Nota: Asegúrate que tu CrearEventoRequest tenga un constructor que acepte la lista
     CrearEventoRequest request = new CrearEventoRequest(
-      tituloIn, descripcionIn, fechaHoraFinal, lugarIn, cupoInt, null, datosPagoIn, lista
+      tituloIn,
+      descripcionIn,
+      fechaHoraFinal,
+      lugarIn,
+      cupoInt,
+      null,
+      datosPagoIn,
+      new ArrayList<>(categoriasTemporales) // Pasamos la lista acumulada
     );
 
     ejecutarCreacion(request);
@@ -305,7 +352,7 @@ public class CrearEventoViewModel extends AndroidViewModel {
     uiTituloPagina.setValue("Editar Evento");
     uiTextoBoton.setValue("Guardar Cambios");
     uiTextoAviso.setValue("Nota: Precio, Distancia y Lugar no se editan.");
-    uiVisibilidadCamposExtra.setValue(View.VISIBLE);
+    uiVisibilidadCamposExtra.setValue(View.GONE);
     uiVisibilidadChips.setValue(View.GONE);
     uiCamposHabilitados.setValue(false);
   }

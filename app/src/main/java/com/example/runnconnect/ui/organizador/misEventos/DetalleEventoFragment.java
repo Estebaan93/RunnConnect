@@ -8,19 +8,30 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.Navigation;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.runnconnect.R;
+import com.example.runnconnect.data.response.CategoriaResponse;
+import com.example.runnconnect.data.response.InscriptoEventoResponse;
 import com.example.runnconnect.databinding.FragmentDetalleEventoBinding;
 
 public class DetalleEventoFragment extends Fragment {
   private FragmentDetalleEventoBinding binding;
   private DetalleEventoViewModel viewModel;
+
+  //adapter
+  private CategoriasInfoAdapter categoriasInfoAdapter;
+  private RunnerSimpleAdapter runnersAdapterDialog; // EL NUEVO ADAPTER
+  private AlertDialog dialogRunners;
+
   private int idEvento = 0;
 
   private AlertDialog dialogEstado;
@@ -85,7 +96,83 @@ public class DetalleEventoFragment extends Fragment {
         dialogEstado.dismiss();
       }
     });
+
+    // CONFIGURAR RECYCLERVIEW
+    categoriasInfoAdapter = new CategoriasInfoAdapter();
+    binding.rvCategoriasDetalle.setLayoutManager(new androidx.recyclerview.widget.LinearLayoutManager(getContext()));
+    binding.rvCategoriasDetalle.setAdapter(categoriasInfoAdapter);
+
+    // OBSERVAR LA LISTA
+    viewModel.getListaCategorias().observe(getViewLifecycleOwner(), lista -> {
+      if (lista != null) {
+        categoriasInfoAdapter.setLista(lista);
+        // Si la lista está vacía, ocultamos el título "Categorías"
+        binding.tvTituloCategorias.setVisibility(lista.isEmpty() ? View.GONE : View.VISIBLE);
+      }
+    });
+
+    categoriasInfoAdapter = new CategoriasInfoAdapter();
+    // ASIGNAR LISTENER:
+    categoriasInfoAdapter.setOnCategoriaClickListener(categoria -> {
+      mostrarDialogoRunners(categoria);
+    });
+
+    binding.rvCategoriasDetalle.setLayoutManager(new LinearLayoutManager(getContext()));
+    binding.rvCategoriasDetalle.setAdapter(categoriasInfoAdapter);
+
+    // 2. Observer para la lista del Dialog
+    viewModel.getListaRunnersDialog().observe(getViewLifecycleOwner(), runners -> {
+      if (runnersAdapterDialog != null) {
+        runnersAdapterDialog.setLista(runners);
+        if (dialogRunners != null && dialogRunners.isShowing()) {
+          dialogRunners.setTitle("Inscriptos: " + runners.size());
+        }
+      }
+    });
+
+
+
   }
+
+  private void mostrarDialogoRunners(CategoriaResponse categoria) {
+    // A. Pedir datos al VM
+    viewModel.cargarRunnersDeCategoria(idEvento, categoria.getIdCategoria());
+
+    // B. Construir Dialog
+    AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
+    builder.setTitle("Cargando inscriptos...");
+
+    // Inflar layout personalizado
+    View view = getLayoutInflater().inflate(R.layout.dialog_lista_runners, null);
+    RecyclerView rv = view.findViewById(R.id.rvRunnersDialog);
+    TextView tvVacio = view.findViewById(R.id.tvSinInscriptos); // Opcional
+
+    // C. Configurar Adapter del Dialog
+    runnersAdapterDialog = new RunnerSimpleAdapter(runner -> {
+      // Click en botón "Dar de Baja"
+      confirmarBajaRunner(runner, categoria.getIdCategoria());
+    });
+
+    rv.setLayoutManager(new LinearLayoutManager(getContext()));
+    rv.setAdapter(runnersAdapterDialog);
+
+    builder.setView(view);
+    builder.setPositiveButton("Cerrar", null);
+
+    dialogRunners = builder.create();
+    dialogRunners.show();
+  }
+  private void confirmarBajaRunner(InscriptoEventoResponse runner, int idCat) {
+    new AlertDialog.Builder(requireContext())
+      .setTitle("Dar de baja")
+      .setMessage("¿Estás seguro de cancelar la inscripción de " + runner.getRunner().getNombre() + "?\nEsta acción es irreversible.")
+      .setPositiveButton("Sí, dar de baja", (d, w) -> {
+        viewModel.darDeBajaRunner(runner.getIdInscripcion(), "Baja por Organizador", idEvento, idCat);
+      })
+      .setNegativeButton("Cancelar", null)
+      .show();
+  }
+
 
   private void setupListeners() {
     binding.btnCambiarEstado.setOnClickListener(v -> mostrarDialogoEstado());

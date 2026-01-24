@@ -12,6 +12,7 @@ import com.example.runnconnect.data.request.CambiarPasswordRequest;
 import com.example.runnconnect.data.request.CrearEventoRequest;
 import com.example.runnconnect.data.request.GuardarRutaRequest;
 import com.example.runnconnect.data.request.LoginRequest;
+import com.example.runnconnect.data.request.MotivoBajaRequest;
 import com.example.runnconnect.data.response.EventoDetalleResponse;
 import com.example.runnconnect.data.response.EventoResumenResponse;
 import com.example.runnconnect.data.response.EventosPaginadosResponse;
@@ -186,5 +187,14 @@ public interface ApiService {
     @Path("id") int idInscripcion,
     @Body CambiarEstadoPagoRequest request
   );
+
+  //dar de baja runner
+  @PUT("Inscripciones/{id}/bajaRunner")
+  Call<ResponseBody> darDeBajaRunner(
+    @Header("Authorization") String token,
+    @Path("id") int idInscripcion,
+    @Body MotivoBajaRequest request // clase simple en Java
+  );
+
 
 }

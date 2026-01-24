@@ -184,205 +184,16 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"/>
 
-    <View
-        android:id="@+id/divider"
-        android:layout_width="0dp"
-        android:layout_height="1dp"
-        android:background="#CCCCCC"
-        android:layout_marginTop="20dp"
-        app:layout_constraintTop_toBottomOf="@id/etDatosPago"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"/>
-
-    <TextView
-        android:id="@+id/tvTituloCat"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Categoría Principal"
-        android:textStyle="bold"
-        android:textColor="#424242"
-        android:layout_marginTop="12dp"
-        app:layout_constraintTop_toBottomOf="@id/divider"
-        app:layout_constraintStart_toStartOf="parent"/>
-
-    <TextView
-        android:id="@+id/lblDistancia"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Distancia (Km)"
-        android:textSize="12sp"
-        android:layout_marginTop="12dp"
-        app:layout_constraintTop_toBottomOf="@id/tvTituloCat"
-        app:layout_constraintStart_toStartOf="parent"/>
-
-    <EditText
-        android:id="@+id/etDistanciaValor"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:inputType="numberDecimal"
-        android:hint="Ej: 10, 42.195, 7.5"
-        android:background="@android:drawable/edit_text"
-        android:paddingVertical="12dp"
-        app:layout_constraintTop_toBottomOf="@id/lblDistancia"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"/>
-
-    <HorizontalScrollView
-        android:id="@+id/scrollChips"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:scrollbars="none"
-        app:layout_constraintTop_toBottomOf="@id/etDistanciaValor"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
-
-      <com.google.android.material.chip.ChipGroup
-          android:id="@+id/chipGroupDistancias"
-          android:layout_width="wrap_content"
-          android:layout_height="wrap_content"
-          app:singleSelection="true"
-          app:selectionRequired="false">
-
-        <com.google.android.material.chip.Chip
-            android:id="@+id/chip3k"
-            style="@style/Widget.MaterialComponents.Chip.Choice"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="3K"/>
-        <com.google.android.material.chip.Chip
-            android:id="@+id/chip5k"
-            style="@style/Widget.MaterialComponents.Chip.Choice"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="5K"/>
-        <com.google.android.material.chip.Chip
-            android:id="@+id/chip10k"
-            style="@style/Widget.MaterialComponents.Chip.Choice"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="10K"/>
-        <com.google.android.material.chip.Chip
-            android:id="@+id/chip21k"
-            style="@style/Widget.MaterialComponents.Chip.Choice"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="21K"/>
-        <com.google.android.material.chip.Chip
-            android:id="@+id/chip42k"
-            style="@style/Widget.MaterialComponents.Chip.Choice"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="42K"/>
-      </com.google.android.material.chip.ChipGroup>
-    </HorizontalScrollView>
-
-    <TextView
-        android:id="@+id/lblModalidad"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Modalidad"
-        android:textSize="12sp"
-        android:layout_marginTop="12dp"
-        app:layout_constraintTop_toBottomOf="@id/scrollChips"
-        app:layout_constraintStart_toStartOf="parent"/>
-
-    <Spinner
-        android:id="@+id/spModalidad"
-        android:layout_width="0dp"
-        android:layout_height="48dp"
-        android:background="@drawable/bg_spinner_border"
-        app:layout_constraintTop_toBottomOf="@id/lblModalidad"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"/>
-
-    <TextView
-        android:id="@+id/lblGenero"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Género"
-        android:textSize="12sp"
-        android:layout_marginTop="12dp"
-        app:layout_constraintTop_toBottomOf="@id/spModalidad"
-        app:layout_constraintStart_toStartOf="parent"/>
-
-    <Spinner
-        android:id="@+id/spGeneroCat"
-        android:layout_width="0dp"
-        android:layout_height="48dp"
-        android:background="@drawable/bg_spinner_border"
-        app:layout_constraintTop_toBottomOf="@id/lblGenero"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"/>
-
-    <TextView
-        android:id="@+id/lblEdad"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Rango de Edad (Años)"
-        android:textSize="12sp"
-        android:layout_marginTop="12dp"
-        app:layout_constraintTop_toBottomOf="@id/spGeneroCat"
-        app:layout_constraintStart_toStartOf="parent"/>
-
-    <EditText
-        android:id="@+id/etEdadMin"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:hint="Mín (Ej: 18)"
-        android:inputType="number"
-        android:background="@android:drawable/edit_text"
-        android:paddingVertical="12dp"
-        android:layout_marginEnd="8dp"
-        app:layout_constraintTop_toBottomOf="@id/lblEdad"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/etEdadMax"/>
-
-    <EditText
-        android:id="@+id/etEdadMax"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:hint="Máx (Ej: 99)"
-        android:inputType="number"
-        android:background="@android:drawable/edit_text"
-        android:paddingVertical="12dp"
-        android:layout_marginStart="8dp"
-        app:layout_constraintTop_toBottomOf="@id/lblEdad"
-        app:layout_constraintStart_toEndOf="@+id/etEdadMin"
-        app:layout_constraintEnd_toEndOf="parent"/>
-
-    <TextView
-        android:id="@+id/lblCatPrecio"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Precio ($)"
-        android:textSize="12sp"
-        android:layout_marginTop="12dp"
-        app:layout_constraintTop_toBottomOf="@id/etEdadMin"
-        app:layout_constraintStart_toStartOf="parent"/>
-
-    <EditText
-        android:id="@+id/etCatPrecio"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:inputType="numberDecimal"
-        android:background="@android:drawable/edit_text"
-        android:paddingVertical="12dp"
-        android:layout_marginEnd="8dp"
-        app:layout_constraintTop_toBottomOf="@id/lblCatPrecio"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/etCupo"/>
-
     <TextView
         android:id="@+id/lblCupo"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Cupo Total"
+        android:text="Cupo Total del Evento"
+        android:textColor="#616161"
         android:textSize="12sp"
         android:layout_marginTop="12dp"
-        android:layout_marginStart="8dp"
-        app:layout_constraintTop_toBottomOf="@id/etEdadMin"
-        app:layout_constraintStart_toStartOf="@+id/etCupo"/>
+        app:layout_constraintTop_toBottomOf="@id/etDatosPago"
+        app:layout_constraintStart_toStartOf="parent"/>
 
     <EditText
         android:id="@+id/etCupo"
@@ -391,10 +202,203 @@
         android:inputType="number"
         android:background="@android:drawable/edit_text"
         android:paddingVertical="12dp"
-        android:layout_marginStart="8dp"
         app:layout_constraintTop_toBottomOf="@id/lblCupo"
-        app:layout_constraintStart_toEndOf="@+id/etCatPrecio"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"/>
+
+    <View
+        android:id="@+id/divider"
+        android:layout_width="0dp"
+        android:layout_height="1dp"
+        android:background="#CCCCCC"
+        android:layout_marginTop="24dp"
+        app:layout_constraintTop_toBottomOf="@id/etCupo"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
+
+    <TextView
+        android:id="@+id/tvTituloSeccionCat"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Definir Categorías"
+        android:textStyle="bold"
+        android:textSize="18sp"
+        android:textColor="#1565C0"
+        android:layout_marginTop="16dp"
+        app:layout_constraintTop_toBottomOf="@id/divider"
+        app:layout_constraintStart_toStartOf="parent"/>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvCategoriasAgregadas"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:nestedScrollingEnabled="false"
+        app:layout_constraintTop_toBottomOf="@id/tvTituloSeccionCat"/>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/containerFormCategoria"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:background="#F9F9F9"
+        android:padding="12dp"
+        app:layout_constraintTop_toBottomOf="@id/rvCategoriasAgregadas">
+
+      <TextView
+          android:id="@+id/lblNuevaCat"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:text="Nueva Categoría"
+          android:textStyle="bold"
+          app:layout_constraintStart_toStartOf="parent"
+          app:layout_constraintTop_toTopOf="parent"/>
+
+      <TextView
+          android:id="@+id/lblDistancia"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:text="Distancia (Km)"
+          android:textSize="12sp"
+          android:layout_marginTop="8dp"
+          app:layout_constraintTop_toBottomOf="@id/lblNuevaCat"
+          app:layout_constraintStart_toStartOf="parent"/>
+
+      <EditText
+          android:id="@+id/etDistanciaValor"
+          android:layout_width="0dp"
+          android:layout_height="wrap_content"
+          android:inputType="numberDecimal"
+          android:hint="Ej: 10"
+          android:background="@android:drawable/edit_text"
+          android:paddingVertical="12dp"
+          app:layout_constraintTop_toBottomOf="@id/lblDistancia"
+          app:layout_constraintStart_toStartOf="parent"
+          app:layout_constraintEnd_toEndOf="parent"/>
+
+      <HorizontalScrollView
+          android:id="@+id/scrollChips"
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:layout_marginTop="4dp"
+          android:scrollbars="none"
+          app:layout_constraintTop_toBottomOf="@id/etDistanciaValor">
+
+        <com.google.android.material.chip.ChipGroup
+            android:id="@+id/chipGroupDistancias"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:singleSelection="true">
+
+          <com.google.android.material.chip.Chip
+              android:id="@+id/chip3k"
+              style="@style/Widget.MaterialComponents.Chip.Choice"
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content"
+              android:text="3K"/>
+
+          <com.google.android.material.chip.Chip
+              android:id="@+id/chip5k"
+              style="@style/Widget.MaterialComponents.Chip.Choice"
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content"
+              android:text="5K"/>
+
+          <com.google.android.material.chip.Chip
+              android:id="@+id/chip10k"
+              style="@style/Widget.MaterialComponents.Chip.Choice"
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content"
+              android:text="10K"/>
+
+          <com.google.android.material.chip.Chip
+              android:id="@+id/chip21k"
+              style="@style/Widget.MaterialComponents.Chip.Choice"
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content"
+              android:text="21K"/>
+
+          <com.google.android.material.chip.Chip
+              android:id="@+id/chip42k"
+              style="@style/Widget.MaterialComponents.Chip.Choice"
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content"
+              android:text="42K"/>
+        </com.google.android.material.chip.ChipGroup>
+      </HorizontalScrollView>>
+
+      <Spinner
+          android:id="@+id/spModalidad"
+          android:layout_width="0dp"
+          android:layout_height="48dp"
+          android:background="@drawable/bg_spinner_border"
+          android:layout_marginTop="8dp"
+          app:layout_constraintTop_toBottomOf="@id/scrollChips"
+          app:layout_constraintStart_toStartOf="parent"
+          app:layout_constraintEnd_toEndOf="parent"/>
+
+      <Spinner
+          android:id="@+id/spGeneroCat"
+          android:layout_width="0dp"
+          android:layout_height="48dp"
+          android:background="@drawable/bg_spinner_border"
+          android:layout_marginTop="8dp"
+          app:layout_constraintTop_toBottomOf="@id/spModalidad"
+          app:layout_constraintStart_toStartOf="parent"
+          app:layout_constraintEnd_toEndOf="parent"/>
+
+      <LinearLayout
+          android:id="@+id/layoutEdades"
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:orientation="horizontal"
+          android:layout_marginTop="8dp"
+          app:layout_constraintTop_toBottomOf="@id/spGeneroCat">
+
+        <EditText
+            android:id="@+id/etEdadMin"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:hint="Edad Mín"
+            android:inputType="number"
+            android:background="@android:drawable/edit_text"
+            android:paddingVertical="12dp"
+            android:layout_marginEnd="4dp"/>
+
+        <EditText
+            android:id="@+id/etEdadMax"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:hint="Edad Máx"
+            android:inputType="number"
+            android:background="@android:drawable/edit_text"
+            android:paddingVertical="12dp"
+            android:layout_marginStart="4dp"/>
+      </LinearLayout>
+
+      <EditText
+          android:id="@+id/etCatPrecio"
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:inputType="numberDecimal"
+          android:hint="Precio ($)"
+          android:background="@android:drawable/edit_text"
+          android:paddingVertical="12dp"
+          android:layout_marginTop="8dp"
+          app:layout_constraintTop_toBottomOf="@id/layoutEdades"/>
+
+      <com.google.android.material.button.MaterialButton
+          android:id="@+id/btnAgregarCategoria"
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:text="+ Agregar esta categoría"
+          android:layout_marginTop="12dp"
+          style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+          app:layout_constraintTop_toBottomOf="@id/etCatPrecio"/>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
     <TextView
         android:id="@+id/tvAvisoMapa"
@@ -408,7 +412,7 @@
         android:textStyle="bold"
         android:gravity="center"
         android:layout_marginTop="24dp"
-        app:layout_constraintTop_toBottomOf="@id/etCupo"
+        app:layout_constraintTop_toBottomOf="@id/containerFormCategoria"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"/>
 

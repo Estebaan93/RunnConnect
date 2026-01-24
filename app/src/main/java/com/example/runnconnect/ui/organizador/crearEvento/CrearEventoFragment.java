@@ -8,11 +8,13 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.Spinner;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.Navigation;
+import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.example.runnconnect.R;
 import com.example.runnconnect.databinding.FragmentCrearEventoBinding;
@@ -24,6 +26,7 @@ public class CrearEventoFragment extends Fragment {
 
   private FragmentCrearEventoBinding binding;
   private CrearEventoViewModel viewModel;
+  private CategoriasTemporalAdapter categoriasAdapter;
 
   public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
     binding = FragmentCrearEventoBinding.inflate(inflater, container, false);
@@ -48,15 +51,58 @@ public class CrearEventoFragment extends Fragment {
     String[] generosVisual = {"Mixto / General", "Femenino", "Masculino"};
     ArrayAdapter<String> adapterGen = new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_dropdown_item, generosVisual);
     binding.spGeneroCat.setAdapter(adapterGen);
+
+    //recycler categorias
+    categoriasAdapter = new CategoriasTemporalAdapter(pos -> viewModel.eliminarCategoriaLocal(pos));
+    binding.rvCategoriasAgregadas.setLayoutManager(new LinearLayoutManager(requireContext()));
+    binding.rvCategoriasAgregadas.setAdapter(categoriasAdapter);
+
   }
 
   private void setupObservers() {
-    // --- TEXTOS ESTATICOS ---
+    // 1. Lista de categorías (RecyclerView)
+    viewModel.getCategoriasLive().observe(getViewLifecycleOwner(), lista -> {
+      categoriasAdapter.setLista(lista);
+      binding.rvCategoriasAgregadas.setVisibility(lista.isEmpty() ? View.GONE : View.VISIBLE);
+    });
+
+    // 2. Visibilidad del formulario de categorías (Se oculta al Editar)
+    viewModel.getUiVisibilidadCamposExtra().observe(getViewLifecycleOwner(), visibility -> {
+      binding.containerFormCategoria.setVisibility(visibility);
+      binding.tvTituloSeccionCat.setVisibility(visibility);
+    });
+
+    // 3. NUEVO: Bloqueo de campos en modo Edición
+    // Esto es lo que te faltaba para cumplir el punto 1
+    viewModel.getUiCamposHabilitados().observe(getViewLifecycleOwner(), habilitado -> {
+      // Campos que NO se pueden editar si el evento ya existe
+      binding.etTitulo.setEnabled(habilitado);
+      binding.etUbicacion.setEnabled(habilitado);
+      binding.etCupo.setEnabled(habilitado);
+
+      // Efecto visual (grisáceo) para indicar que están bloqueados
+      float alpha = habilitado ? 1.0f : 0.5f;
+      binding.etTitulo.setAlpha(alpha);
+      binding.etUbicacion.setAlpha(alpha);
+      binding.etCupo.setAlpha(alpha);
+
+      // Campos que SIEMPRE se pueden editar
+      binding.etDescripcion.setEnabled(true);
+      binding.etDatosPago.setEnabled(true);
+
+      // Fecha y Hora siempre habilitadas (manejan su propio click listener)
+      binding.etFecha.setEnabled(true);
+      binding.etHora.setEnabled(true);
+      binding.etFecha.setClickable(true);
+      binding.etHora.setClickable(true);
+    });
+
+    // 4. Textos estáticos
     viewModel.getUiTituloPagina().observe(getViewLifecycleOwner(), binding.tvTituloPagina::setText);
     viewModel.getUiTextoBoton().observe(getViewLifecycleOwner(), binding.btnContinuarMapa::setText);
     viewModel.getUiTextoAviso().observe(getViewLifecycleOwner(), binding.tvAvisoMapa::setText);
 
-    // --- CAMPOS DE TEXTO (Binding) ---
+    // 5. Data Binding (Llenado de campos desde el ViewModel)
     viewModel.getTitulo().observe(getViewLifecycleOwner(), s -> binding.etTitulo.setText(s));
     viewModel.getDescripcion().observe(getViewLifecycleOwner(), s -> binding.etDescripcion.setText(s));
     viewModel.getUbicacion().observe(getViewLifecycleOwner(), s -> binding.etUbicacion.setText(s));
@@ -65,80 +111,33 @@ public class CrearEventoFragment extends Fragment {
     viewModel.getDatosPago().observe(getViewLifecycleOwner(), s -> binding.etDatosPago.setText(s));
     viewModel.getCupo().observe(getViewLifecycleOwner(), s -> binding.etCupo.setText(s));
 
+    // Formulario de Categoría
     viewModel.getDistancia().observe(getViewLifecycleOwner(), s -> binding.etDistanciaValor.setText(s));
     viewModel.getPrecio().observe(getViewLifecycleOwner(), s -> binding.etCatPrecio.setText(s));
-    viewModel.getEdadMin().observe(getViewLifecycleOwner(), s -> binding.etEdadMin.setText(s));
-    viewModel.getEdadMax().observe(getViewLifecycleOwner(), s -> binding.etEdadMax.setText(s));
 
-    viewModel.getSeleccionModalidad().observe(getViewLifecycleOwner(), val -> setSpinnerSelection(binding.spModalidad, val));
-    viewModel.getSeleccionGenero().observe(getViewLifecycleOwner(), val -> setSpinnerSelection(binding.spGeneroCat, val));
-
-    // --- VISIBILIDAD ---
-    viewModel.getUiVisibilidadChips().observe(getViewLifecycleOwner(), binding.scrollChips::setVisibility);
-    viewModel.getUiVisibilidadCamposExtra().observe(getViewLifecycleOwner(), visibility -> {
-      binding.tvTituloCat.setVisibility(visibility);
-      binding.lblDistancia.setVisibility(visibility);
-      binding.etDistanciaValor.setVisibility(visibility);
-      binding.lblModalidad.setVisibility(visibility);
-      binding.spModalidad.setVisibility(visibility);
-      binding.lblGenero.setVisibility(visibility);
-      binding.spGeneroCat.setVisibility(visibility);
-      binding.lblEdad.setVisibility(visibility);
-      binding.etEdadMin.setVisibility(visibility);
-      binding.etEdadMax.setVisibility(visibility);
-      binding.lblCatPrecio.setVisibility(visibility);
-      binding.etCatPrecio.setVisibility(visibility);
+    // 6. Manejo de Errores en Inputs
+    viewModel.getErrorTitulo().observe(getViewLifecycleOwner(), e -> {
+      if(e!=null) { binding.etTitulo.setError(e); binding.etTitulo.requestFocus(); }
+    });
+    viewModel.getErrorUbicacion().observe(getViewLifecycleOwner(), e -> {
+      if(e!=null) { binding.etUbicacion.setError(e); binding.etUbicacion.requestFocus(); }
+    });
+    viewModel.getErrorDistancia().observe(getViewLifecycleOwner(), e -> {
+      if(e!=null) { binding.etDistanciaValor.setError(e); binding.etDistanciaValor.requestFocus(); }
+    });
+    viewModel.getErrorPrecio().observe(getViewLifecycleOwner(), e -> {
+      if(e!=null) { binding.etCatPrecio.setError(e); binding.etCatPrecio.requestFocus(); }
     });
 
-    // --- HABILITACION ---
-    viewModel.getUiCamposHabilitados().observe(getViewLifecycleOwner(), habilitado -> {
-      binding.etTitulo.setEnabled(habilitado);
-      binding.etUbicacion.setEnabled(habilitado);
-      // Estos siempre deben coincidir
-      binding.etDistanciaValor.setEnabled(habilitado);
-      binding.spModalidad.setEnabled(habilitado);
-      binding.spGeneroCat.setEnabled(habilitado);
-      binding.etCatPrecio.setEnabled(habilitado);
-      binding.etEdadMin.setEnabled(habilitado);
-      binding.etEdadMax.setEnabled(habilitado);
-    });
-
-    // --- MANEJO DE ERRORES VISUALES-
-
-    // 1. Errores en Inputs (setError + RequestFocus)
-    viewModel.getErrorTitulo().observe(getViewLifecycleOwner(), error -> {
-      if (error != null) { binding.etTitulo.setError(error); binding.etTitulo.requestFocus(); }
-    });
-
-    viewModel.getErrorUbicacion().observe(getViewLifecycleOwner(), error -> {
-      if (error != null) { binding.etUbicacion.setError(error); binding.etUbicacion.requestFocus(); }
-    });
-
-    viewModel.getErrorDistancia().observe(getViewLifecycleOwner(), error -> {
-      if (error != null) { binding.etDistanciaValor.setError(error); binding.etDistanciaValor.requestFocus(); }
-    });
-
-    viewModel.getErrorPrecio().observe(getViewLifecycleOwner(), error -> {
-      if (error != null) { binding.etCatPrecio.setError(error); binding.etCatPrecio.requestFocus(); }
-    });
-
-    viewModel.getErrorCupo().observe(getViewLifecycleOwner(), error -> {
-      if (error != null) { binding.etCupo.setError(error); binding.etCupo.requestFocus(); }
-    });
-
-    // 2. Mensajes Globales (Exito, Fallo API, Fecha invalida)
+    // 7. Mensajes Globales y Loading
     viewModel.getMensajeGlobal().observe(getViewLifecycleOwner(), msg -> {
       if (msg != null && !msg.isEmpty()) {
         binding.tvMensajeGlobal.setText(msg);
         binding.tvMensajeGlobal.setVisibility(View.VISIBLE);
-
-        // Colorizacion
         if (msg.contains("!") || msg.toLowerCase().contains("exito") || msg.toLowerCase().contains("mapa")) {
           binding.tvMensajeGlobal.setTextColor(getResources().getColor(android.R.color.holo_green_dark));
-          binding.tvMensajeGlobal.setBackgroundColor(getResources().getColor(R.color.white)); // O un verde
         } else {
           binding.tvMensajeGlobal.setTextColor(getResources().getColor(android.R.color.holo_red_dark));
-          binding.tvMensajeGlobal.setBackgroundColor(getResources().getColor(R.color.white)); // O un rojo
         }
       } else {
         binding.tvMensajeGlobal.setVisibility(View.GONE);
@@ -150,12 +149,12 @@ public class CrearEventoFragment extends Fragment {
       binding.btnContinuarMapa.setEnabled(!loading);
     });
 
-    // --- NAVEGACION ---
+    // 8. Navegación tras éxito
     viewModel.getNavegacionExito().observe(getViewLifecycleOwner(), code -> {
       if (code == 0) return;
-      if (code == 2) {
+      if (code == 2) { // Edición exitosa -> Volver atrás
         Navigation.findNavController(requireView()).popBackStack();
-      } else {
+      } else { // Creación exitosa -> Ir a mapa (code es el ID del nuevo evento)
         Bundle args = new Bundle();
         args.putInt("idEvento", code);
         try {
@@ -167,12 +166,9 @@ public class CrearEventoFragment extends Fragment {
   }
 
   private void setupListeners() {
-    binding.btnContinuarMapa.setOnClickListener(v -> {
-      viewModel.guardarEvento(
-        binding.etTitulo.getText().toString(),
-        binding.etDescripcion.getText().toString(),
-        binding.etUbicacion.getText().toString(),
-        binding.etDatosPago.getText().toString(),
+    // --- BOTÓN AGREGAR CATEGORÍA A LA LISTA ---
+    binding.btnAgregarCategoria.setOnClickListener(v -> {
+      boolean exito = viewModel.agregarCategoriaLocal(
         binding.etDistanciaValor.getText().toString(),
         binding.spModalidad.getSelectedItem().toString(),
         binding.spGeneroCat.getSelectedItem().toString(),
@@ -181,8 +177,28 @@ public class CrearEventoFragment extends Fragment {
         binding.etCatPrecio.getText().toString(),
         binding.etCupo.getText().toString()
       );
+
+      if (exito) {
+        // Limpiar campos para cargar otra
+        binding.etDistanciaValor.setText("");
+        binding.etCatPrecio.setText("");
+        binding.chipGroupDistancias.clearCheck();
+        Toast.makeText(getContext(), "Categoría agregada", Toast.LENGTH_SHORT).show();
+      }
     });
 
+    // --- BOTÓN FINAL (GUARDAR TODO) ---
+    binding.btnContinuarMapa.setOnClickListener(v -> {
+      viewModel.guardarEvento(
+        binding.etTitulo.getText().toString(),
+        binding.etDescripcion.getText().toString(),
+        binding.etUbicacion.getText().toString(),
+        binding.etDatosPago.getText().toString(),
+        binding.etCupo.getText().toString()
+      );
+    });
+
+    // --- CHIPS Y FECHAS ---
     binding.chipGroupDistancias.setOnCheckedStateChangeListener((group, checkedIds) -> {
       if (!checkedIds.isEmpty()) {
         Chip chip = group.findViewById(checkedIds.get(0));

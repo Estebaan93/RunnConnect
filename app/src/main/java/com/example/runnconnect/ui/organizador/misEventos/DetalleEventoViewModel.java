@@ -14,11 +14,17 @@ import androidx.lifecycle.MutableLiveData;
 
 import com.example.runnconnect.R;
 import com.example.runnconnect.data.repositorio.EventoRepositorio;
+import com.example.runnconnect.data.repositorio.InscripcionRepositorio;
 import com.example.runnconnect.data.request.CambiarEstadoRequest;
 import com.example.runnconnect.data.response.CategoriaResponse;
 import com.example.runnconnect.data.response.EventoDetalleResponse;
+import com.example.runnconnect.data.response.InscriptoEventoResponse;
+import com.example.runnconnect.data.response.ListaInscriptosResponse;
 
 import org.json.JSONObject;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import okhttp3.ResponseBody;
 import retrofit2.Call;
@@ -27,6 +33,7 @@ import retrofit2.Response;
 
 public class DetalleEventoViewModel extends AndroidViewModel {
   private final EventoRepositorio repositorio;
+  private final InscripcionRepositorio inscripcionRepositorio;
   private final MutableLiveData<EventoDetalleResponse> eventoRaw = new MutableLiveData<>();
 
   // --- ESTADOS DE UI ---
@@ -53,10 +60,15 @@ public class DetalleEventoViewModel extends AndroidViewModel {
   // Control del Dialogo
   private final MutableLiveData<String> dialogError = new MutableLiveData<>();
   private final MutableLiveData<Boolean> dialogDismiss = new MutableLiveData<>();
+  private final MutableLiveData<List<CategoriaResponse>> listaCategorias = new MutableLiveData<>();
+
+  //dialog
+  private final MutableLiveData<List<InscriptoEventoResponse>> listaRunnerDialog = new MutableLiveData<>();
 
   public DetalleEventoViewModel(@NonNull Application application) {
     super(application);
     repositorio = new EventoRepositorio(application);
+    inscripcionRepositorio= new InscripcionRepositorio(application);
   }
 
   // --- GETTERS ---
@@ -76,12 +88,74 @@ public class DetalleEventoViewModel extends AndroidViewModel {
   public LiveData<String> getDialogError() { return dialogError; }
   public LiveData<Boolean> getDialogDismiss() { return dialogDismiss; }
   public LiveData<EventoDetalleResponse> getEventoRaw() { return eventoRaw; }
+  public LiveData<List<CategoriaResponse>> getListaCategorias() { return listaCategorias; }
+  public LiveData<List<InscriptoEventoResponse>> getListaRunnersDialog() { return listaRunnerDialog; }
 
   /*public void limpiarMensajes() {
     mensajeGlobal.setValue(null);
     dialogError.setValue(null);
     dialogDismiss.setValue(false);
   }*/
+
+  //cargar runner de una categoria especifica
+  public void cargarRunnersDeCategoria(int idEvento, int idCategoria) {
+    // isLoading.setValue(true); // Opcional
+
+    // CORRECCIÓN: Usar Callback<ListaInscriptosResponse> en lugar de InscriptoEventoResponse
+    inscripcionRepositorio.obtenerInscriptos(idEvento, null, 1, 100 , new Callback<ListaInscriptosResponse>() {
+      @Override
+      public void onResponse(Call<ListaInscriptosResponse> call, Response<ListaInscriptosResponse> response) {
+        // isLoading.setValue(false);
+        if (response.isSuccessful() && response.body() != null) {
+
+          List<InscriptoEventoResponse> filtrados = new ArrayList<>();
+
+          // Ahora sí existe el método getInscripciones() porque response.body() es ListaInscriptosResponse
+          if(response.body().getInscripciones() != null){
+            for(InscriptoEventoResponse ins : response.body().getInscripciones()){
+              // Ahora sí existe getIdCategoria()
+              if(ins.getIdCategoria() == idCategoria){
+                filtrados.add(ins);
+              }
+            }
+          }
+          listaRunnerDialog.setValue(filtrados);
+        } else {
+          listaRunnerDialog.setValue(new ArrayList<>());
+        }
+      }
+
+      @Override
+      public void onFailure(Call<ListaInscriptosResponse> call, Throwable t) {
+        // isLoading.setValue(false);
+        mensajeGlobal.setValue("Error de conexión");
+        listaRunnerDialog.setValue(new ArrayList<>());
+      }
+    });
+  }
+  public void darDeBajaRunner(int idInscripcion, String motivo, int idEvento, int idCatActual) {
+    // isLoading.setValue(true);
+    inscripcionRepositorio.darDeBajaRunner(idInscripcion, motivo, new Callback<ResponseBody>() {
+      @Override
+      public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+        // isLoading.setValue(false);
+        if (response.isSuccessful()) {
+          mostrarMensajeExito("Runner dado de baja.");
+          // 1. Recargar la lista del dialogo para que desaparezca (o cambie estado)
+          cargarRunnersDeCategoria(idEvento, idCatActual);
+          // 2. Recargar el detalle general para actualizar contadores
+          cargarDetalle(idEvento);
+        } else {
+          mostrarMensajeExito("Error al dar de baja: " + response.code());
+        }
+      }
+      @Override public void onFailure(Call<ResponseBody> call, Throwable t) {
+        // isLoading.setValue(false);
+        mostrarMensajeExito("Error de conexión.");
+      }
+    });
+  }
+
   // NUEVO: para mostrar mensaje temporalmente
   private void mostrarMensajeExito(String msg) {
     mensajeGlobal.setValue(msg);
@@ -153,6 +227,10 @@ public class DetalleEventoViewModel extends AndroidViewModel {
     } else {
       uiVisibilidadDatosCategoria.setValue(View.GONE);
     }
+    if (evento.getCategorias() != null) {
+      listaCategorias.setValue(evento.getCategorias());
+    }
+
   }
 
   // --- LÓGICA DEL DIÁLOGO ---
