@@ -1,0 +1,1578 @@
+{
+  "yaakVersion": "2025.8.2",
+  "yaakSchema": 4,
+  "timestamp": "2025-12-07T22:55:56.910006200",
+  "resources": {
+    "workspaces": [
+      {
+        "model": "workspace",
+        "id": "wk_CQuNzrVf9q",
+        "createdAt": "2025-12-06T05:38:38.032519100",
+        "updatedAt": "2025-12-06T05:38:38.032520600",
+        "authentication": {},
+        "authenticationType": null,
+        "description": "",
+        "headers": [],
+        "name": "Organizador",
+        "encryptionKeyChallenge": null,
+        "settingValidateCertificates": true,
+        "settingFollowRedirects": true,
+        "settingRequestTimeout": 0
+      },
+      {
+        "model": "workspace",
+        "id": "wk_pMSzWZauTp",
+        "createdAt": "2025-11-23T10:26:30.249183800",
+        "updatedAt": "2025-11-23T10:26:30.249185300",
+        "authentication": {},
+        "authenticationType": null,
+        "description": "",
+        "headers": [],
+        "name": "API RUNNER",
+        "encryptionKeyChallenge": null,
+        "settingValidateCertificates": true,
+        "settingFollowRedirects": true,
+        "settingRequestTimeout": 0
+      },
+      {
+        "model": "workspace",
+        "id": "wk_6LjaGPYUei",
+        "createdAt": "2025-11-23T10:14:19.339824500",
+        "updatedAt": "2025-12-06T05:37:42.862107100",
+        "authentication": {},
+        "authenticationType": null,
+        "description": "",
+        "headers": [],
+        "name": "Runner",
+        "encryptionKeyChallenge": null,
+        "settingValidateCertificates": true,
+        "settingFollowRedirects": true,
+        "settingRequestTimeout": 0
+      }
+    ],
+    "environments": [],
+    "folders": [],
+    "httpRequests": [
+      {
+        "model": "http_request",
+        "id": "rq_W2RDXcWyoG",
+        "createdAt": "2025-12-07T05:47:30.505001600",
+        "updatedAt": "2025-12-07T06:01:19.213972400",
+        "workspaceId": "wk_CQuNzrVf9q",
+        "folderId": null,
+        "authentication": {
+          "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjUiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9lbWFpbGFkZHJlc3MiOiJ0ZXN0QG9yZ2FjbHViLmNvbSIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL25hbWUiOiJDRCBMYSBQdW50YSIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6Im9yZ2FuaXphZG9yIiwiVGlwb1VzdWFyaW8iOiJvcmdhbml6YWRvciIsImV4cCI6MTc2NTA4OTk2MywiaXNzIjoicnVubkNvbm5lY3RhcGkiLCJhdWQiOiJhbmRyb2lkQXBwIn0.Cwa8pPtxQgPN1vjaO2ziTxMbKyn08pyVNI2OBiT_aBM"
+        },
+        "authenticationType": "bearer",
+        "body": {
+          "text": "{\n    \"tipo\": \"hidratacion\",\n    \"nombre\": \"Agua e Isotónica (Km 0.5)\",\n    \"latitud\": -33.303200,\n    \"longitud\": -66.338000\n}"
+        },
+        "bodyType": "application/json",
+        "description": "El organizador marca un punto de interes en el evento (ruta) hidratacion, meta etc\nRequiere token\nJSON\n\n\nNOTA: Para cada punto es un JSON, hay que probar si se puede enviar multiples jsons y cargar varios puntos a la vez\n",
+        "headers": [
+          {
+            "enabled": true,
+            "name": "Content-Type",
+            "value": "application/json",
+            "id": "GinyUXuQ6T"
+          }
+        ],
+        "method": "POST",
+        "name": "",
+        "sortPriority": 11000.0,
+        "url": "http://localhost:5213/api/Evento/2/PuntoSInteres",
+        "urlParameters": []
+      },
+      {
+        "model": "http_request",
+        "id": "rq_UePZidiw6D",
+        "createdAt": "2025-12-07T05:35:57.257723600",
+        "updatedAt": "2025-12-07T05:47:32.670874700",
+        "workspaceId": "wk_CQuNzrVf9q",
+        "folderId": null,
+        "authentication": {
+          "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjUiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9lbWFpbGFkZHJlc3MiOiJ0ZXN0QG9yZ2FjbHViLmNvbSIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL25hbWUiOiJDRCBMYSBQdW50YSIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6Im9yZ2FuaXphZG9yIiwiVGlwb1VzdWFyaW8iOiJvcmdhbml6YWRvciIsImV4cCI6MTc2NTA4OTA4MCwiaXNzIjoicnVubkNvbm5lY3RhcGkiLCJhdWQiOiJhbmRyb2lkQXBwIn0.6oU836-aB8nBf84U1Pz38BS81q_KC9JfnYCp83_ogiM"
+        },
+        "authenticationType": "bearer",
+        "body": {
+          "text": "{\n  \"nombre\": \"Maratón Independencia San Luis 2026\",\n  \"descripcion\": \"Carrera de 10K por las calles de San Luis\",\n  \"fechaHora\": \"2026-01-15T08:00:00\",\n  \"lugar\": \"Av España - Av La Finur, San Luis\",\n  \"cupoTotal\": 1000,\n  \"urlPronosticoClima\": \"https://www.weather.com/sanluisargentina\",\n  \"datosPago\": \"CBU: 0000003100012345678901 - Alias: RUNNERS.SL - Titular: Runners Club San Luis S.A\"\n}"
+        },
+        "bodyType": "application/json",
+        "description": "Crear evento",
+        "headers": [
+          {
+            "enabled": true,
+            "name": "Content-Type",
+            "value": "application/json",
+            "id": "3bmGvMNPKp"
+          }
+        ],
+        "method": "POST",
+        "name": "",
+        "sortPriority": 3000.0,
+        "url": "http://localhost:5213/api/Evento/",
+        "urlParameters": []
+      },
+      {
+        "model": "http_request",
+        "id": "rq_sDt72xCen7",
+        "createdAt": "2025-12-07T05:31:34.123419300",
+        "updatedAt": "2025-12-07T05:47:32.834283600",
+        "workspaceId": "wk_CQuNzrVf9q",
+        "folderId": null,
+        "authentication": {
+          "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjUiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9lbWFpbGFkZHJlc3MiOiJ0ZXN0QG9yZ2FjbHViLmNvbSIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL25hbWUiOiJDRCBMYSBQdW50YSIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6Im9yZ2FuaXphZG9yIiwiVGlwb1VzdWFyaW8iOiJvcmdhbml6YWRvciIsImV4cCI6MTc2NTA4OTk2MywiaXNzIjoicnVubkNvbm5lY3RhcGkiLCJhdWQiOiJhbmRyb2lkQXBwIn0.Cwa8pPtxQgPN1vjaO2ziTxMbKyn08pyVNI2OBiT_aBM"
+        },
+        "authenticationType": "bearer",
+        "body": {
+          "text": "{\n     \"idEvento\": 1,\n     \"puntos\": [\n    {\n      \"latitud\": -33.302150,\n      \"longitud\": -66.336800,\n      \"orden\": 1\n    },\n    {\n      \"latitud\": -33.302150,\n      \"longitud\": -66.338000,\n      \"orden\": 2\n    },\n    {\n      \"latitud\": -33.303200,\n      \"longitud\": -66.338000,\n      \"orden\": 3\n    },\n    {\n      \"latitud\": -33.303200,\n      \"longitud\": -66.336800,\n      \"orden\": 4\n    },\n    {\n      \"latitud\": -33.302150,\n      \"longitud\": -66.336800,\n      \"orden\": 5\n    }\n  ]\n}"
+        },
+        "bodyType": "application/json",
+        "description": "Cargar el mapa del evento\nDesde la app android se dibuja en fragment haciendo uso del SDK de Google Maps\nRequiere token\nJson\nPost carga del mapa, debemos cargar los puntos de interes (meta, largada, hidratacion etc)\n",
+        "headers": [
+          {
+            "enabled": true,
+            "name": "Content-Type",
+            "value": "application/json",
+            "id": "98IzYgFUN4"
+          }
+        ],
+        "method": "PUT",
+        "name": "",
+        "sortPriority": 10000.0,
+        "url": "http://localhost:5213/api/Evento/2/Ruta",
+        "urlParameters": []
+      },
+      {
+        "model": "http_request",
+        "id": "rq_rWCZ932xc6",
+        "createdAt": "2025-12-06T06:38:38.754047600",
+        "updatedAt": "2025-12-07T05:47:32.692358400",
+        "workspaceId": "wk_CQuNzrVf9q",
+        "folderId": null,
+        "authentication": {
+          "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjUiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9lbWFpbGFkZHJlc3MiOiJ0ZXN0QG9yZ2FjbHViLmNvbSIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL25hbWUiOiJDRCBMYSBQdW50YSIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6Im9yZ2FuaXphZG9yIiwiVGlwb1VzdWFyaW8iOiJvcmdhbml6YWRvciIsImV4cCI6MTc2NTAwNjczMSwiaXNzIjoicnVubkNvbm5lY3RhcGkiLCJhdWQiOiJhbmRyb2lkQXBwIn0.QP6e3BTxMRX6inf1Pn-IlUGyXBxXQJHVtYYxbeAGBDw"
+        },
+        "authenticationType": "bearer",
+        "body": {},
+        "bodyType": null,
+        "description": "Consultar lista de inscriptos a un evento (ORGANIZADOR)\nRequiere token bearer\nSe guarda el lugar si el pago aun esta pendiente",
+        "headers": [],
+        "method": "GET",
+        "name": "",
+        "sortPriority": 6000.0,
+        "url": "http://localhost:5213/api/Evento/1/Inscripciones",
+        "urlParameters": []
+      },
+      {
+        "model": "http_request",
+        "id": "rq_G3KbNBzyvg",
+        "createdAt": "2025-12-06T05:58:19.538110300",
+        "updatedAt": "2025-12-07T05:47:32.796890700",
+        "workspaceId": "wk_CQuNzrVf9q",
+        "folderId": null,
+        "authentication": {},
+        "authenticationType": null,
+        "body": {},
+        "bodyType": null,
+        "description": "",
+        "headers": [],
+        "method": "GET",
+        "name": "",
+        "sortPriority": 9000.0,
+        "url": "http://localhost:5213/api/Resultado/Evento/1",
+        "urlParameters": []
+      },
+      {
+        "model": "http_request",
+        "id": "rq_ovkrmFCeHV",
+        "createdAt": "2025-12-06T05:56:59.808188700",
+        "updatedAt": "2025-12-07T05:47:32.755514100",
+        "workspaceId": "wk_CQuNzrVf9q",
+        "folderId": null,
+        "authentication": {},
+        "authenticationType": null,
+        "body": {},
+        "bodyType": null,
+        "description": "Resultados publicos de una posicion",
+        "headers": [],
+        "method": "GET",
+        "name": "",
+        "sortPriority": 8000.0,
+        "url": "http://localhost:5213/api/Resultado/2",
+        "urlParameters": []
+      },
+      {
+        "model": "http_request",
+        "id": "rq_dj6LCoeDAL",
+        "createdAt": "2025-12-06T05:51:15.066559800",
+        "updatedAt": "2025-12-07T05:47:32.685840700",
+        "workspaceId": "wk_CQuNzrVf9q",
+        "folderId": null,
+        "authentication": {
+          "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjUiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9lbWFpbGFkZHJlc3MiOiJ0ZXN0QG9yZ2FjbHViLmNvbSIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL25hbWUiOiJDRCBMYSBQdW50YSIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6Im9yZ2FuaXphZG9yIiwiVGlwb1VzdWFyaW8iOiJvcmdhbml6YWRvciIsImV4cCI6MTc2NTAwMzc1NiwiaXNzIjoicnVubkNvbm5lY3RhcGkiLCJhdWQiOiJhbmRyb2lkQXBwIn0.131ahVR1W24a1rMSu1x21BWJeZvPt_UT8eUA-cPKPTk"
+        },
+        "authenticationType": "bearer",
+        "body": {
+          "text": "{\n  \"nuevoEstado\": \"finalizado\",\n  \"motivo\": \"Evento de prueba - cancelacion para testing\" \n}"
+        },
+        "bodyType": "application/json",
+        "description": "(publicado/cancelado/finalizado)",
+        "headers": [
+          {
+            "enabled": true,
+            "name": "Content-Type",
+            "value": "application/json",
+            "id": "PSeJDgBDBs"
+          }
+        ],
+        "method": "PUT",
+        "name": "",
+        "sortPriority": 5000.0,
+        "url": "http://localhost:5213/api/Evento/1/CambiarEstado",
+        "urlParameters": []
+      },
+      {
+        "model": "http_request",
+        "id": "rq_B7hzTJo5zb",
+        "createdAt": "2025-12-06T05:47:45.630184100",
+        "updatedAt": "2025-12-07T05:47:32.678623900",
+        "workspaceId": "wk_CQuNzrVf9q",
+        "folderId": null,
+        "authentication": {
+          "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjUiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9lbWFpbGFkZHJlc3MiOiJ0ZXN0QG9yZ2FjbHViLmNvbSIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL25hbWUiOiJDRCBMYSBQdW50YSIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6Im9yZ2FuaXphZG9yIiwiVGlwb1VzdWFyaW8iOiJvcmdhbml6YWRvciIsImV4cCI6MTc2NTAwMzc1NiwiaXNzIjoicnVubkNvbm5lY3RhcGkiLCJhdWQiOiJhbmRyb2lkQXBwIn0.131ahVR1W24a1rMSu1x21BWJeZvPt_UT8eUA-cPKPTk"
+        },
+        "authenticationType": "bearer",
+        "body": {
+          "text": "{\n  \"nombre\": \"Maratón San Luis 2025 - ACTUALIZADO\",\n  \"descripcion\": \"Carrera de 10K y 5K - Descripción actualizada\",\n  \"fechaHora\": \"2025-12-05T09:00:00\",\n  \"lugar\": \"Plaza Pringles, San Luis Capital\",\n  \"cupoTotal\": 600,\n  \"urlPronosticoClima\": \"https://www.weather.com/sanluisargentina\",\n  \"datosPago\": \"CBU: 0000003100012345678901 - Alias: RUNNERS.SL.2025\"\n}"
+        },
+        "bodyType": "application/json",
+        "description": "Actualizar evento",
+        "headers": [
+          {
+            "enabled": true,
+            "name": "Content-Type",
+            "value": "application/json",
+            "id": "6SBEtzqJbw"
+          }
+        ],
+        "method": "PUT",
+        "name": "",
+        "sortPriority": 4000.0,
+        "url": "http://localhost:5213/api/Evento/1",
+        "urlParameters": []
+      },
+      {
+        "model": "http_request",
+        "id": "rq_7nhpeTfTUJ",
+        "createdAt": "2025-12-06T05:43:24.350140100",
+        "updatedAt": "2025-12-07T05:47:32.707069300",
+        "workspaceId": "wk_CQuNzrVf9q",
+        "folderId": null,
+        "authentication": {
+          "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjUiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9lbWFpbGFkZHJlc3MiOiJ0ZXN0QG9yZ2FjbHViLmNvbSIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL25hbWUiOiJDRCBMYSBQdW50YSIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6Im9yZ2FuaXphZG9yIiwiVGlwb1VzdWFyaW8iOiJvcmdhbml6YWRvciIsImV4cCI6MTc2NTAwMzE2MiwiaXNzIjoicnVubkNvbm5lY3RhcGkiLCJhdWQiOiJhbmRyb2lkQXBwIn0.F0jW8KeoqkeZ5L1rHsEPZAVG_AxbNT1LTJ2Y84CQnC4"
+        },
+        "authenticationType": "bearer",
+        "body": {
+          "form": [
+            {
+              "enabled": true,
+              "id": "cmIIe53F2h",
+              "name": "IdEvento",
+              "value": "1"
+            },
+            {
+              "enabled": true,
+              "file": "C:\\Users\\Esteban\\Documents\\GitHub\\RunnConnectAPI\\Controllers\\Resultadoscsv.csv",
+              "id": "hujx72sCMC",
+              "name": "Archivo"
+            },
+            {
+              "enabled": true,
+              "id": "GWjniw4a3T",
+              "name": "",
+              "value": ""
+            }
+          ]
+        },
+        "bodyType": "multipart/form-data",
+        "description": "Cargar resultados finales masivo con archivo .csv (Organizador)\nSe carga post evento.\nTipo form-data\nRequiere token\nIdEvento - id del evento \nArchivo - archivo que se obtiene por fuera de la app, lo provee una entidad encargada de cronometraje con chip NFC",
+        "headers": [
+          {
+            "enabled": true,
+            "name": "Content-Type",
+            "value": "multipart/form-data",
+            "id": "riSAt7hwyi"
+          }
+        ],
+        "method": "POST",
+        "name": "",
+        "sortPriority": 7000.0,
+        "url": "http://localhost:5213/api/Resultado/CargarArchivo",
+        "urlParameters": []
+      },
+      {
+        "model": "http_request",
+        "id": "rq_pj5rPwxtm7",
+        "createdAt": "2025-12-06T05:40:19.757753",
+        "updatedAt": "2025-12-07T05:47:32.662276900",
+        "workspaceId": "wk_CQuNzrVf9q",
+        "folderId": null,
+        "authentication": {
+          "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjUiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9lbWFpbGFkZHJlc3MiOiJ0ZXN0QG9yZ2FjbHViLmNvbSIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL25hbWUiOiJDRCBMYSBQdW50YSIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6Im9yZ2FuaXphZG9yIiwiVGlwb1VzdWFyaW8iOiJvcmdhbml6YWRvciIsImV4cCI6MTc2NTAwMzE2MiwiaXNzIjoicnVubkNvbm5lY3RhcGkiLCJhdWQiOiJhbmRyb2lkQXBwIn0.F0jW8KeoqkeZ5L1rHsEPZAVG_AxbNT1LTJ2Y84CQnC4"
+        },
+        "authenticationType": "bearer",
+        "body": {},
+        "bodyType": null,
+        "description": "",
+        "headers": [],
+        "method": "GET",
+        "name": "",
+        "sortPriority": 2000.0,
+        "url": "http://localhost:5213/api/Evento/1/Inscripciones",
+        "urlParameters": []
+      },
+      {
+        "model": "http_request",
+        "id": "rq_NZxUVzDVH4",
+        "createdAt": "2025-12-06T05:39:38.401819200",
+        "updatedAt": "2025-12-07T05:47:32.653514900",
+        "workspaceId": "wk_CQuNzrVf9q",
+        "folderId": null,
+        "authentication": {
+          "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjUiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9lbWFpbGFkZHJlc3MiOiJ0ZXN0QG9yZ2FjbHViLmNvbSIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL25hbWUiOiJDRCBMYSBQdW50YSIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6Im9yZ2FuaXphZG9yIiwiVGlwb1VzdWFyaW8iOiJvcmdhbml6YWRvciIsImV4cCI6MTc2NTA4OTA4MCwiaXNzIjoicnVubkNvbm5lY3RhcGkiLCJhdWQiOiJhbmRyb2lkQXBwIn0.6oU836-aB8nBf84U1Pz38BS81q_KC9JfnYCp83_ogiM"
+        },
+        "authenticationType": "bearer",
+        "body": {},
+        "bodyType": null,
+        "description": "",
+        "headers": [],
+        "method": "GET",
+        "name": "",
+        "sortPriority": 1000.0,
+        "url": "http://localhost:5213/api/Evento/MisEventos",
+        "urlParameters": []
+      },
+      {
+        "model": "http_request",
+        "id": "rq_dxuB7GrCPy",
+        "createdAt": "2025-12-06T05:38:41.488925900",
+        "updatedAt": "2025-12-07T05:47:32.638376200",
+        "workspaceId": "wk_CQuNzrVf9q",
+        "folderId": null,
+        "authentication": {},
+        "authenticationType": null,
+        "body": {
+          "text": "{\n  \"email\":\"test@orgaclub.com\",\n  \"password\":\"123456\"\n}"
+        },
+        "bodyType": "application/json",
+        "description": "",
+        "headers": [
+          {
+            "enabled": true,
+            "name": "Content-Type",
+            "value": "application/json",
+            "id": "skbfyUfnkd"
+          }
+        ],
+        "method": "POST",
+        "name": "",
+        "sortPriority": 0.0,
+        "url": "http://localhost:5213/api/Usuario/Login",
+        "urlParameters": []
+      },
+      {
+        "model": "http_request",
+        "id": "rq_xepaJc9V9g",
+        "createdAt": "2025-12-05T04:53:01.954411800",
+        "updatedAt": "2025-12-05T04:54:15.496521",
+        "workspaceId": "wk_pMSzWZauTp",
+        "folderId": null,
+        "authentication": {
+          "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjUiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9lbWFpbGFkZHJlc3MiOiJ0ZXN0QG9yZ2FjbHViLmNvbSIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL25hbWUiOiJDRCBMYSBQdW50YSIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6Im9yZ2FuaXphZG9yIiwiVGlwb1VzdWFyaW8iOiJvcmdhbml6YWRvciIsImV4cCI6MTc2NDkxNDAyOCwiaXNzIjoicnVubkNvbm5lY3RhcGkiLCJhdWQiOiJhbmRyb2lkQXBwIn0.UOEHKM8jI9HakGcRnEX9jonJfOvYcMUovO5qHY64nxA"
+        },
+        "authenticationType": "bearer",
+        "body": {},
+        "bodyType": null,
+        "description": "",
+        "headers": [],
+        "method": "PUT",
+        "name": "",
+        "sortPriority": -707271142.1487739,
+        "url": "http://localhost:5213/api/Inscripcion/3/Reembolsar",
+        "urlParameters": []
+      },
+      {
+        "model": "http_request",
+        "id": "rq_GST4UhEJue",
+        "createdAt": "2025-12-01T23:43:28.976800600",
+        "updatedAt": "2025-12-06T05:00:07.742209700",
+        "workspaceId": "wk_pMSzWZauTp",
+        "folderId": null,
+        "authentication": {
+          "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjUiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9lbWFpbGFkZHJlc3MiOiJ0ZXN0QG9yZ2FjbHViLmNvbSIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL25hbWUiOiJDRCBMYSBQdW50YSIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6Im9yZ2FuaXphZG9yIiwiVGlwb1VzdWFyaW8iOiJvcmdhbml6YWRvciIsImV4cCI6MTc2NTAwMDM3NCwiaXNzIjoicnVubkNvbm5lY3RhcGkiLCJhdWQiOiJhbmRyb2lkQXBwIn0.bnYX1LRherld-XYHRVGV_CEqzdyrSq3iplNa7X75xjc"
+        },
+        "authenticationType": "bearer",
+        "body": {
+          "text": "{\n  \"nuevoEstado\": \"pagado\",\n  \"motivo\": \"Transferencia OK\"\n}"
+        },
+        "bodyType": "application/json",
+        "description": "",
+        "headers": [
+          {
+            "enabled": true,
+            "name": "Content-Type",
+            "value": "application/json",
+            "id": "JdWEFWFVqi"
+          }
+        ],
+        "method": "PUT",
+        "name": "",
+        "sortPriority": -1060906713.2231607,
+        "url": "http://localhost:5213/api/Inscripcion/3/EstadoPago",
+        "urlParameters": []
+      },
+      {
+        "model": "http_request",
+        "id": "rq_ZRLXrAUAWh",
+        "createdAt": "2025-12-01T23:38:09.545627100",
+        "updatedAt": "2025-12-03T18:38:22.132285200",
+        "workspaceId": "wk_pMSzWZauTp",
+        "folderId": null,
+        "authentication": {
+          "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjUiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9lbWFpbGFkZHJlc3MiOiJ0ZXN0QG9yZ2FjbHViLmNvbSIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL25hbWUiOiJDRCBMYSBQdW50YSIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6Im9yZ2FuaXphZG9yIiwiVGlwb1VzdWFyaW8iOiJvcmdhbml6YWRvciIsImV4cCI6MTc2NDc5MDE0OCwiaXNzIjoicnVubkNvbm5lY3RhcGkiLCJhdWQiOiJhbmRyb2lkQXBwIn0.LQinqqLg1nfOX1-R5h0wXrQaGk9_YnEjGS6gzCRxLkA"
+        },
+        "authenticationType": "bearer",
+        "body": {
+          "form": [
+            {
+              "enabled": true,
+              "file": "C:\\Users\\Esteban\\Downloads\\CIERRE_LABORATORIO_3_20-11-2025.pdf",
+              "id": "8v5huFv6iI",
+              "name": "Comprobante"
+            },
+            {
+              "enabled": true,
+              "id": "7h03VAE5hZ",
+              "name": "",
+              "value": ""
+            }
+          ]
+        },
+        "bodyType": "multipart/form-data",
+        "description": "El pago se procesa por fuera de la app\nEl runner sube el comprobante (runner)\nRequiere token bearer\nmultiform\n\"Comprobante\" - pdf, png, jpg, jpeg - hasta 20 MB",
+        "headers": [
+          {
+            "enabled": true,
+            "name": "Content-Type",
+            "value": "multipart/form-data",
+            "id": "TDbhJAi5VQ"
+          }
+        ],
+        "method": "PUT",
+        "name": "",
+        "sortPriority": -1591360069.834741,
+        "url": "http://localhost:5213/api/Inscripcion/2/Comprobante",
+        "urlParameters": []
+      },
+      {
+        "model": "http_request",
+        "id": "rq_oR92PTSYBW",
+        "createdAt": "2025-12-01T22:29:51.655937300",
+        "updatedAt": "2025-12-05T02:18:57.690805700",
+        "workspaceId": "wk_pMSzWZauTp",
+        "folderId": null,
+        "authentication": {
+          "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjUiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9lbWFpbGFkZHJlc3MiOiJ0ZXN0QG9yZ2FjbHViLmNvbSIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL25hbWUiOiJDRCBMYSBQdW50YSIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6Im9yZ2FuaXphZG9yIiwiVGlwb1VzdWFyaW8iOiJvcmdhbml6YWRvciIsImV4cCI6MTc2NDkwNDY4OCwiaXNzIjoicnVubkNvbm5lY3RhcGkiLCJhdWQiOiJhbmRyb2lkQXBwIn0.coX7ZLyxjgiIKotNCcC8mTrbUzstwUJaItxXlBTZitA"
+        },
+        "authenticationType": "bearer",
+        "body": {},
+        "bodyType": null,
+        "description": "Consultar lista de inscriptos a un evento (ORGANIZADOR)\nRequiere token bearer\nSe guarda el lugar si el pago aun esta pendiente",
+        "headers": [],
+        "method": "GET",
+        "name": "",
+        "sortPriority": -2387040104.7521114,
+        "url": "http://localhost:5213/api/Evento/1/Inscripciones",
+        "urlParameters": []
+      },
+      {
+        "model": "http_request",
+        "id": "rq_zE3bVjQZpf",
+        "createdAt": "2025-11-30T23:48:34.208833900",
+        "updatedAt": "2025-11-30T23:50:57.630424400",
+        "workspaceId": "wk_pMSzWZauTp",
+        "folderId": null,
+        "authentication": {
+          "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjIiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9lbWFpbGFkZHJlc3MiOiJjYXJsb3NAdGVzdC5jb20iLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1lIjoiQ2FybG9zIEFuZ2VsIEdvbnrDoWxleiBQw6lyZXoiLCJodHRwOi8vc2NoZW1hcy5taWNyb3NvZnQuY29tL3dzLzIwMDgvMDYvaWRlbnRpdHkvY2xhaW1zL3JvbGUiOiJydW5uZXIiLCJUaXBvVXN1YXJpbyI6InJ1bm5lciIsImV4cCI6MTc2NDU1MDIzOCwiaXNzIjoicnVubkNvbm5lY3RhcGkiLCJhdWQiOiJhbmRyb2lkQXBwIn0.qKCiqDHGn7DwUYLVmFwZoAGxnrEykHPwAL-1OcFuyTA"
+        },
+        "authenticationType": "bearer",
+        "body": {
+          "text": "{\n  \"idCategoria\": 1, \n  \"talleRemera\": \"L\",\n  \"aceptoDeslinde\": true \n}"
+        },
+        "bodyType": "application/json",
+        "description": "Inscribirse a un evento (runner) - \nDebe completar su perfil para poder inscribirse\nRequiere token\n",
+        "headers": [
+          {
+            "enabled": true,
+            "name": "Content-Type",
+            "value": "application/json",
+            "id": "I6Ac0NIuE9"
+          }
+        ],
+        "method": "POST",
+        "name": "",
+        "sortPriority": -3580560157.128167,
+        "url": "http://localhost:5213/api/Inscripcion",
+        "urlParameters": []
+      },
+      {
+        "model": "http_request",
+        "id": "rq_zbY6CiqPNg",
+        "createdAt": "2025-11-30T22:17:40.448584400",
+        "updatedAt": "2025-11-30T22:18:16.888424",
+        "workspaceId": "wk_pMSzWZauTp",
+        "folderId": null,
+        "authentication": {},
+        "authenticationType": null,
+        "body": {},
+        "bodyType": null,
+        "description": "Ver categorias del evento - publico",
+        "headers": [],
+        "method": "GET",
+        "name": "",
+        "sortPriority": -5370840235.692351,
+        "url": "http://localhost:5213/api/Evento/1/Categorias",
+        "urlParameters": []
+      },
+      {
+        "model": "http_request",
+        "id": "rq_e5pByGQBV5",
+        "createdAt": "2025-11-30T22:14:44.200788800",
+        "updatedAt": "2025-11-30T22:17:24.064501100",
+        "workspaceId": "wk_pMSzWZauTp",
+        "folderId": null,
+        "authentication": {
+          "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjUiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9lbWFpbGFkZHJlc3MiOiJ0ZXN0QG9yZ2FjbHViLmNvbSIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL25hbWUiOiJDRCBMYSBQdW50YSIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6Im9yZ2FuaXphZG9yIiwiVGlwb1VzdWFyaW8iOiJvcmdhbml6YWRvciIsImV4cCI6MTc2NDU0NDUzNywiaXNzIjoicnVubkNvbm5lY3RhcGkiLCJhdWQiOiJhbmRyb2lkQXBwIn0.c-2jRFYRDNeJWQOPOMF_2SaWMtoQXLHZDTuDhrquWuo"
+        },
+        "authenticationType": "bearer",
+        "body": {
+          "text": "{\n    \"nombre\": \"10K Competitiva\",\n    \"costoInscripcion\": 5000.00,\n    \"cupoCategoria\": 200,\n    \"edadMinima\": 18,\n    \"edadMaxima\": 90,\n    \"genero\": \"X\"\n}"
+        },
+        "bodyType": "application/json",
+        "description": "Crear categorias para el evento-\nToma el idEvento y el idOrganizador desde el token ",
+        "headers": [
+          {
+            "enabled": true,
+            "name": "Content-Type",
+            "value": "application/json",
+            "id": "bqm646kPpU"
+          }
+        ],
+        "method": "POST",
+        "name": "",
+        "sortPriority": -5370840235.692251,
+        "url": "http://localhost:5213/api/Evento/1/Categorias",
+        "urlParameters": []
+      },
+      {
+        "model": "http_request",
+        "id": "rq_buiVfTkwvG",
+        "createdAt": "2025-11-30T22:05:06.195046",
+        "updatedAt": "2025-11-30T22:07:37.336810",
+        "workspaceId": "wk_pMSzWZauTp",
+        "folderId": null,
+        "authentication": {},
+        "authenticationType": null,
+        "body": {},
+        "bodyType": null,
+        "description": " Buscar eventos con filtros y paginacion - Publico",
+        "headers": [],
+        "method": "GET",
+        "name": "",
+        "sortPriority": -8056260353.538378,
+        "url": "http://localhost:5213/api/Evento/Buscar?nombre=Maraton&pagina=1&tamanioPagina=10",
+        "urlParameters": []
+      },
+      {
+        "model": "http_request",
+        "id": "rq_3mCG3gmpVE",
+        "createdAt": "2025-11-30T21:37:50.773328800",
+        "updatedAt": "2025-12-03T18:30:40.201479500",
+        "workspaceId": "wk_pMSzWZauTp",
+        "folderId": null,
+        "authentication": {},
+        "authenticationType": null,
+        "body": {},
+        "bodyType": null,
+        "description": "Listar eventos publicos y futuros - \nEn una seccion del login se debe mostrar un boton para que un visitante no logueado y/o no registrado pueda ver los eventos \n\nNOTA:\nSolo figuran los runners con pagos CONFIRMADO en inscriptosActuales\n\n\nERROR: CantidadCategorias: 0, El evento tiene una categoria en 10k.\n",
+        "headers": [],
+        "method": "GET",
+        "name": "",
+        "sortPriority": -18126585795.46135,
+        "url": "http://localhost:5213/api/Evento/Publicados",
+        "urlParameters": []
+      },
+      {
+        "model": "http_request",
+        "id": "rq_uBRr3RxW3M",
+        "createdAt": "2025-11-30T19:26:30.425563400",
+        "updatedAt": "2025-11-30T19:38:23.599497600",
+        "workspaceId": "wk_pMSzWZauTp",
+        "folderId": null,
+        "authentication": {
+          "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjUiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9lbWFpbGFkZHJlc3MiOiJ0ZXN0QG9yZ2FjbHViLmNvbSIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL25hbWUiOiJDRCBMYSBQdW50YSIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6Im9yZ2FuaXphZG9yIiwiVGlwb1VzdWFyaW8iOiJvcmdhbml6YWRvciIsImV4cCI6MTc2NDUzMTQ5MCwiaXNzIjoicnVubkNvbm5lY3RhcGkiLCJhdWQiOiJhbmRyb2lkQXBwIn0.lh7zSYALMSh4Tt5FZ_P70sCjpiuTso_nG1-aEteYseA"
+        },
+        "authenticationType": "bearer",
+        "body": {
+          "text": "{\n  \"nuevoEstado\": \"cancelado\",\n  \"motivo\": \"Evento de prueba - cancelacion para testing\"\n}"
+        },
+        "bodyType": "application/json",
+        "description": "Cambiar estado de un evento a (publicado, cancelado y finalizado). \nSi el evento es cancelado y/o finalizado ya no se puede cambiar de estado. En caso de cancelado se programa una nueva fecha ",
+        "headers": [
+          {
+            "enabled": true,
+            "name": "Content-Type",
+            "value": "application/json",
+            "id": "QMW8hVEKRj"
+          }
+        ],
+        "method": "PUT",
+        "name": "",
+        "sortPriority": -40784818039.78804,
+        "url": "http://localhost:5213/api/Evento/1/CambiarEstado",
+        "urlParameters": []
+      },
+      {
+        "model": "http_request",
+        "id": "rq_Tu5Q8Wd3zv",
+        "createdAt": "2025-11-30T18:31:07.202822800",
+        "updatedAt": "2025-12-06T05:02:37.367611500",
+        "workspaceId": "wk_pMSzWZauTp",
+        "folderId": null,
+        "authentication": {
+          "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjUiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9lbWFpbGFkZHJlc3MiOiJ0ZXN0QG9yZ2FjbHViLmNvbSIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL25hbWUiOiJDRCBMYSBQdW50YSIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6Im9yZ2FuaXphZG9yIiwiVGlwb1VzdWFyaW8iOiJvcmdhbml6YWRvciIsImV4cCI6MTc2NTAwMDM3NCwiaXNzIjoicnVubkNvbm5lY3RhcGkiLCJhdWQiOiJhbmRyb2lkQXBwIn0.bnYX1LRherld-XYHRVGV_CEqzdyrSq3iplNa7X75xjc"
+        },
+        "authenticationType": "bearer",
+        "body": {
+          "text": "{\n  \"nombre\": \"Maratón San Luis 2026 - ACTUALIZADO\",\n  \"descripcion\": \"Carrera de 10K y 5K - Descripción actualizada\",\n  \"fechaHora\": \"2026-03-15T09:00:00\",\n  \"lugar\": \"Plaza Pringles, San Luis Capital\",\n  \"cupoTotal\": 600,\n  \"urlPronosticoClima\": \"https://www.weather.com/sanluisargentina\",\n  \"datosPago\": \"CBU: 0000003100012345678901 - Alias: RUNNERS.SL.2025\"\n}"
+        },
+        "bodyType": "application/json",
+        "description": "Actualizar un evento - requiere token para validar el organizador \nSi el evento esta cancelado y/o finalizado ya no se puede actualizar",
+        "headers": [
+          {
+            "enabled": true,
+            "name": "Content-Type",
+            "value": "application/json",
+            "id": "5eySMYkqrf"
+          }
+        ],
+        "method": "PUT",
+        "name": "",
+        "sortPriority": -61177227059.68207,
+        "url": "http://localhost:5213/api/Evento/1",
+        "urlParameters": []
+      },
+      {
+        "model": "http_request",
+        "id": "rq_vQLocfjTsd",
+        "createdAt": "2025-11-30T18:13:02.573852700",
+        "updatedAt": "2025-12-01T23:01:10.133956900",
+        "workspaceId": "wk_pMSzWZauTp",
+        "folderId": null,
+        "authentication": {
+          "token": ""
+        },
+        "authenticationType": "bearer",
+        "body": {},
+        "bodyType": null,
+        "description": "Obtener detalles de un evento especifico - publico\n\n\nNOTA:\n\"inscriptosActuales\": SE VA ACTUALIZAR UNA VEZ CONFIRMADO EL PAGO DEL RUNNER ",
+        "headers": [],
+        "method": "GET",
+        "name": "",
+        "sortPriority": -12084390530.307568,
+        "url": "http://localhost:5213/api/Evento/1",
+        "urlParameters": []
+      },
+      {
+        "model": "http_request",
+        "id": "rq_sybhHENAQy",
+        "createdAt": "2025-11-30T18:11:14.339119700",
+        "updatedAt": "2025-12-05T01:47:53.534614100",
+        "workspaceId": "wk_pMSzWZauTp",
+        "folderId": null,
+        "authentication": {
+          "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjUiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9lbWFpbGFkZHJlc3MiOiJ0ZXN0QG9yZ2FjbHViLmNvbSIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL25hbWUiOiJDRCBMYSBQdW50YSIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6Im9yZ2FuaXphZG9yIiwiVGlwb1VzdWFyaW8iOiJvcmdhbml6YWRvciIsImV4cCI6MTc2NDkwMjg2NSwiaXNzIjoicnVubkNvbm5lY3RhcGkiLCJhdWQiOiJhbmRyb2lkQXBwIn0.Ys46kHkpbcnch0bV8L8tIOEU5hsdRSWlrQ1ovxmEZys"
+        },
+        "authenticationType": "bearer",
+        "body": {},
+        "bodyType": null,
+        "description": "Ver eventos del organizador - todos los estados\n\n\nNOTA:\nSi hay inscriptos, pero aun no pagan (pago confirmado) entonces no figuran en \"inscriptosActuales\". Se reserva el lugar ",
+        "headers": [],
+        "method": "GET",
+        "name": "",
+        "sortPriority": -137648760884.28467,
+        "url": "http://localhost:5213/api/Evento/MisEventos",
+        "urlParameters": []
+      },
+      {
+        "model": "http_request",
+        "id": "rq_pzZc4Dz84h",
+        "createdAt": "2025-11-30T13:46:53.090847700",
+        "updatedAt": "2025-11-30T18:17:33.733184400",
+        "workspaceId": "wk_pMSzWZauTp",
+        "folderId": null,
+        "authentication": {
+          "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjUiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9lbWFpbGFkZHJlc3MiOiJ0ZXN0QG9yZ2FjbHViLmNvbSIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL25hbWUiOiJDRCBMYSBQdW50YSIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6Im9yZ2FuaXphZG9yIiwiVGlwb1VzdWFyaW8iOiJvcmdhbml6YWRvciIsImV4cCI6MTc2NDUxNDI2MywiaXNzIjoicnVubkNvbm5lY3RhcGkiLCJhdWQiOiJhbmRyb2lkQXBwIn0.EuwUu8u48VZhZxK-VMO50NsnceCNUsUiL1PUvr_rmBo"
+        },
+        "authenticationType": "bearer",
+        "body": {
+          "text": "{\n  \"nombre\": \"Maratón San Luis 2025\",\n  \"descripcion\": \"Carrera de 10K y 5K por las calles de San Luis\",\n  \"fechaHora\": \"2026-01-15T08:00:00\",\n  \"lugar\": \"Plaza Pringles, San Luis\",\n  \"cupoTotal\": 500,\n  \"urlPronosticoClima\": \"https://www.weather.com/sanluisargentina\",\n  \"datosPago\": \"CBU: 0000003100012345678901 - Alias: RUNNERS.SL - Titular: Runners Club San Luis S.A\"\n}"
+        },
+        "bodyType": "application/json",
+        "description": "Crear evento por organizador- \n  Su perfil debe estar completo para poder crear dicho evento",
+        "headers": [
+          {
+            "enabled": true,
+            "name": "Content-Type",
+            "value": "application/json",
+            "id": "a87Qf76V90"
+          }
+        ],
+        "method": "POST",
+        "name": "",
+        "sortPriority": -206473141326.427,
+        "url": "http://localhost:5213/api/Evento/",
+        "urlParameters": []
+      },
+      {
+        "model": "http_request",
+        "id": "rq_cs4MB7775p",
+        "createdAt": "2025-11-27T12:53:07.505311900",
+        "updatedAt": "2025-11-30T23:56:48.813941800",
+        "workspaceId": "wk_pMSzWZauTp",
+        "folderId": null,
+        "authentication": {
+          "disabled": false,
+          "token": "566866dc43ef43d59222003acddd2c31"
+        },
+        "authenticationType": "bearer",
+        "body": {
+          "text": "{\n  \"token\":\"566866dc43ef43d59222003acddd2c31\"\n}"
+        },
+        "bodyType": "application/json",
+        "description": "aplica a ambos runn/orga",
+        "headers": [
+          {
+            "enabled": true,
+            "name": "Content-Type",
+            "value": "application/json",
+            "id": "NxssNCbvia"
+          }
+        ],
+        "method": "POST",
+        "name": "",
+        "sortPriority": -309709711989.6405,
+        "url": "http://localhost:5213/api/Usuario/ReactivarCuenta",
+        "urlParameters": []
+      },
+      {
+        "model": "http_request",
+        "id": "rq_2svYf7qKjH",
+        "createdAt": "2025-11-27T12:49:58.142051600",
+        "updatedAt": "2025-11-30T23:56:32.844329300",
+        "workspaceId": "wk_pMSzWZauTp",
+        "folderId": null,
+        "authentication": {},
+        "authenticationType": null,
+        "body": {
+          "text": "{\n  \"email\":\"esteban.dev22@gmail.com\",\n  \"password\":\"123456\"\n}"
+        },
+        "bodyType": "application/json",
+        "description": "aplica a ambos runn/orga",
+        "headers": [
+          {
+            "enabled": true,
+            "name": "Content-Type",
+            "value": "application/json",
+            "id": "fYCPY3FI3P"
+          }
+        ],
+        "method": "POST",
+        "name": "",
+        "sortPriority": -464564567984.4608,
+        "url": "http://localhost:5213/api/Usuario/SolicitarReactivacion",
+        "urlParameters": []
+      },
+      {
+        "model": "http_request",
+        "id": "rq_SbnAdN47Ke",
+        "createdAt": "2025-11-26T01:38:42.552008100",
+        "updatedAt": "2025-11-30T23:56:17.084286100",
+        "workspaceId": "wk_pMSzWZauTp",
+        "folderId": null,
+        "authentication": {
+          "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjQiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9lbWFpbGFkZHJlc3MiOiJlc3RlYmFuLmRldjIyQGdtYWlsLmNvbSIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL25hbWUiOiJUZXN0MSBSdW5uZXIgTm9tYnJlIFRlc3QgUnVubmVyIEFwZWxsaWRvIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjoicnVubmVyIiwiVGlwb1VzdWFyaW8iOiJydW5uZXIiLCJleHAiOjE3NjQyNTA3ODksImlzcyI6InJ1bm5Db25uZWN0YXBpIiwiYXVkIjoiYW5kcm9pZEFwcCJ9.02uEoCutBINbK9tm7FJ92bNQzjWZNIvTw1rVoaLWfdU"
+        },
+        "authenticationType": "bearer",
+        "body": {},
+        "bodyType": null,
+        "description": "aplica a ambos runn/orga",
+        "headers": [],
+        "method": "DELETE",
+        "name": "",
+        "sortPriority": -696846851976.6912,
+        "url": "http://localhost:5213/api/Usuario/Perfil",
+        "urlParameters": []
+      },
+      {
+        "model": "http_request",
+        "id": "rq_KFLWawZzkR",
+        "createdAt": "2025-11-26T01:24:34.763276100",
+        "updatedAt": "2025-11-30T23:55:58.817046900",
+        "workspaceId": "wk_pMSzWZauTp",
+        "folderId": null,
+        "authentication": {},
+        "authenticationType": null,
+        "body": {
+          "text": "{\n  \"token\": \"252701acb2af470eb213e038a907e310\",\n  \"passwordNueva\": \"123456\",\n  \"confirmarPassword\": \"123456\"\n}"
+        },
+        "bodyType": "application/json",
+        "description": "aplica a ambos runn/org",
+        "headers": [
+          {
+            "enabled": true,
+            "name": "Content-Type",
+            "value": "application/json",
+            "id": "BF0y80dZhJ"
+          }
+        ],
+        "method": "POST",
+        "name": "",
+        "sortPriority": -929129135968.9216,
+        "url": "http://localhost:5213/api/Usuario/RestablecerPassword",
+        "urlParameters": []
+      },
+      {
+        "model": "http_request",
+        "id": "rq_LGRo75YKoK",
+        "createdAt": "2025-11-25T21:01:37.164844200",
+        "updatedAt": "2025-11-30T23:57:47.454951400",
+        "workspaceId": "wk_pMSzWZauTp",
+        "folderId": null,
+        "authentication": {},
+        "authenticationType": null,
+        "body": {
+          "text": "{\n  \"email\":\"esteban.dev22@gmail.com\"\n}"
+        },
+        "bodyType": "application/json",
+        "description": "aplica a ambos runn/orga",
+        "headers": [
+          {
+            "enabled": true,
+            "name": "Content-Type",
+            "value": "application/json",
+            "id": "b4V3uV2z8g"
+          }
+        ],
+        "method": "POST",
+        "name": "localhost:5213/api/Usuario/RecuperarPassword",
+        "sortPriority": -1045270277965.0367,
+        "url": "http://localhost:5213/api/Usuario/RecuperarPassword",
+        "urlParameters": []
+      },
+      {
+        "model": "http_request",
+        "id": "rq_zKV4UwQooJ",
+        "createdAt": "2025-11-25T20:57:01.844619900",
+        "updatedAt": "2025-11-30T23:55:38.343345300",
+        "workspaceId": "wk_pMSzWZauTp",
+        "folderId": null,
+        "authentication": {
+          "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjUiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9lbWFpbGFkZHJlc3MiOiJ0ZXN0QG9yZ2FjbHViLmNvbSIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL25hbWUiOiJDRCBMYSBQdW50YSIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6Im9yZ2FuaXphZG9yIiwiVGlwb1VzdWFyaW8iOiJvcmdhbml6YWRvciIsImV4cCI6MTc2NDEwNjY1OSwiaXNzIjoicnVubkNvbm5lY3RhcGkiLCJhdWQiOiJhbmRyb2lkQXBwIn0.KPlFKAFVEmM92UWby0cewScgHzWbNjiKPP5i83zbluU"
+        },
+        "authenticationType": "bearer",
+        "body": {
+          "text": "{\n  \"PasswordActual\": \"nuevapass123\",\n  \"NuevaPassword\": \"123456\",\n  \"ConfirmarPassword\": \"123456\"\n}"
+        },
+        "bodyType": "application/json",
+        "description": "Aplica a ambos runn/orga",
+        "headers": [
+          {
+            "enabled": true,
+            "name": "Content-Type",
+            "value": "application/json",
+            "id": "CvV2xNcCjT"
+          }
+        ],
+        "method": "PUT",
+        "name": "",
+        "sortPriority": -1045270277965.0367,
+        "url": "http://localhost:5213/api/Usuario/CambiarPassword",
+        "urlParameters": []
+      },
+      {
+        "model": "http_request",
+        "id": "rq_tMVbFJTG6E",
+        "createdAt": "2025-11-25T20:34:21.432558400",
+        "updatedAt": "2025-11-30T23:55:26.287538",
+        "workspaceId": "wk_pMSzWZauTp",
+        "folderId": null,
+        "authentication": {
+          "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjUiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9lbWFpbGFkZHJlc3MiOiJ0ZXN0QG9yZ2FjbHViLmNvbSIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL25hbWUiOiJDRCBMYSBQdW50YSIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6Im9yZ2FuaXphZG9yIiwiVGlwb1VzdWFyaW8iOiJvcmdhbml6YWRvciIsImV4cCI6MTc2NDEwNjY1OSwiaXNzIjoicnVubkNvbm5lY3RhcGkiLCJhdWQiOiJhbmRyb2lkQXBwIn0.KPlFKAFVEmM92UWby0cewScgHzWbNjiKPP5i83zbluU"
+        },
+        "authenticationType": "bearer",
+        "body": {},
+        "bodyType": null,
+        "description": "Eliminar el avatar y dejar el por defecto\nAplica a ambos runn/org",
+        "headers": [],
+        "method": "DELETE",
+        "name": "",
+        "sortPriority": -1567905416947.5554,
+        "url": "http://localhost:5213/api/Usuario/Avatar",
+        "urlParameters": []
+      },
+      {
+        "model": "http_request",
+        "id": "rq_d8WqbhqTwz",
+        "createdAt": "2025-11-25T19:37:49.166868700",
+        "updatedAt": "2025-11-25T20:32:43.164735700",
+        "workspaceId": "wk_pMSzWZauTp",
+        "folderId": null,
+        "authentication": {
+          "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjIiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9lbWFpbGFkZHJlc3MiOiJjYXJsb3NAdGVzdC5jb20iLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1lIjoiQ2FybG9zIEFuZ2VsIEdvbnrDoWxleiBQw6lyZXoiLCJodHRwOi8vc2NoZW1hcy5taWNyb3NvZnQuY29tL3dzLzIwMDgvMDYvaWRlbnRpdHkvY2xhaW1zL3JvbGUiOiJydW5uZXIiLCJUaXBvVXN1YXJpbyI6InJ1bm5lciIsImV4cCI6MTc2NDEwNjIzNSwiaXNzIjoicnVubkNvbm5lY3RhcGkiLCJhdWQiOiJhbmRyb2lkQXBwIn0.pHBdOf2n7coMBIyiM9Z08uvfJBGDLapoVtLoXsugH3A"
+        },
+        "authenticationType": "bearer",
+        "body": {
+          "form": [
+            {
+              "enabled": true,
+              "file": "C:\\Users\\Esteban\\Downloads\\pexels-runffwpu-2982100.jpg",
+              "id": "gNxPxJsNuj",
+              "name": "Imagen"
+            },
+            {
+              "enabled": true,
+              "id": "qk8CUknppr",
+              "name": "",
+              "value": ""
+            }
+          ]
+        },
+        "bodyType": "multipart/form-data",
+        "description": "Aplica a ambos perfiles\nTipos de archivos admitidos .jpg, .jpeg, .png, .gif, .webp\nHasta 20 MB ",
+        "headers": [
+          {
+            "enabled": true,
+            "name": "Content-Type",
+            "value": "multipart/form-data",
+            "id": "uiDGDjrCVF"
+          }
+        ],
+        "method": "PUT",
+        "name": "",
+        "sortPriority": -1567905416947.5554,
+        "url": "http://localhost:5213/api/Usuario/Avatar",
+        "urlParameters": []
+      },
+      {
+        "model": "http_request",
+        "id": "rq_kQrUsdKLvc",
+        "createdAt": "2025-11-25T18:18:48.985840100",
+        "updatedAt": "2025-11-30T13:52:34.775085700",
+        "workspaceId": "wk_pMSzWZauTp",
+        "folderId": null,
+        "authentication": {
+          "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjUiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9lbWFpbGFkZHJlc3MiOiJ0ZXN0QG9yZ2FjbHViLmNvbSIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL25hbWUiOiJDRCBMYSBQdW50YSIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6Im9yZ2FuaXphZG9yIiwiVGlwb1VzdWFyaW8iOiJvcmdhbml6YWRvciIsImV4cCI6MTc2NDUxNDI2MywiaXNzIjoicnVubkNvbm5lY3RhcGkiLCJhdWQiOiJhbmRyb2lkQXBwIn0.EuwUu8u48VZhZxK-VMO50NsnceCNUsUiL1PUvr_rmBo"
+        },
+        "authenticationType": "bearer",
+        "body": {
+          "text": "{\n  \"nombre\": \"CD La Punta\",\n  \"telefono\": \"2664555888\",\n  \"razonSocial\": \"Club Deportivo La Punta\",\n  \"nombreComercial\": \"CD La Punta\",\n  \"cuitTaxid\": \"20-55667788-3\",\n  \"direccionLegal\": \"Av. Costanera s/n, La Punta, San Luis\"\n}"
+        },
+        "bodyType": "application/json",
+        "description": "",
+        "headers": [
+          {
+            "enabled": true,
+            "name": "Content-Type",
+            "value": "application/json",
+            "id": "dUGSqq9gQF"
+          }
+        ],
+        "method": "PUT",
+        "name": "",
+        "sortPriority": -1567905416947.5554,
+        "url": "http://localhost:5213/api/Usuario/ActualizarPerfilOrganizador",
+        "urlParameters": []
+      },
+      {
+        "model": "http_request",
+        "id": "rq_mrFyKuqB7b",
+        "createdAt": "2025-11-23T15:33:25.968032100",
+        "updatedAt": "2025-11-25T19:25:38.265134900",
+        "workspaceId": "wk_pMSzWZauTp",
+        "folderId": null,
+        "authentication": {
+          "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjQiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9lbWFpbGFkZHJlc3MiOiJydW5uZXJAdGVzdC5jb20iLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1lIjoiVGVzdFJ1bm5lciBSZWdpc3RybyBzaW1wbGUiLCJodHRwOi8vc2NoZW1hcy5taWNyb3NvZnQuY29tL3dzLzIwMDgvMDYvaWRlbnRpdHkvY2xhaW1zL3JvbGUiOiJydW5uZXIiLCJUaXBvVXN1YXJpbyI6InJ1bm5lciIsImV4cCI6MTc2NDA5ODcxOSwiaXNzIjoicnVubkNvbm5lY3RhcGkiLCJhdWQiOiJhbmRyb2lkQXBwIn0.itluVoaBRhbp8b-q61omQbRtSOxt1IEOwoqCNHL1Epw"
+        },
+        "authenticationType": "bearer",
+        "body": {
+          "text": "{\n  \"nombre\": \"Test1 Runner Nombre\",\n  \"apellido\": \"Test Runner Apellido\",\n  \"telefono\": \"2664222222\",\n  \"fechaNacimiento\": \"2012-03-20\",\n  \"genero\": \"M\",\n  \"dni\":\"22222222\",\n  \"localidad\": \"Juana Koslay\",\n  \"agrupacion\": \"Equipo Trail Running SL\",\n  \"nombreContactoEmergencia\":\"Pareja\",\n  \"telefonoEmergencia\": \"2664888999\"\n}"
+        },
+        "bodyType": "application/json",
+        "description": "",
+        "headers": [
+          {
+            "enabled": true,
+            "name": "Content-Type",
+            "value": "application/json",
+            "id": "IFA80d6REB"
+          }
+        ],
+        "method": "PUT",
+        "name": "",
+        "sortPriority": -1593714559613.359,
+        "url": "http://localhost:5213/api/Usuario/ActualizarPerfilRunner",
+        "urlParameters": []
+      },
+      {
+        "model": "http_request",
+        "id": "rq_vqY8R8MSNw",
+        "createdAt": "2025-11-23T11:57:18.288628700",
+        "updatedAt": "2025-11-25T19:19:57.548417400",
+        "workspaceId": "wk_pMSzWZauTp",
+        "folderId": null,
+        "authentication": {},
+        "authenticationType": null,
+        "body": {},
+        "bodyType": null,
+        "description": "endpoint publico para ver datos de organizador - ",
+        "headers": [],
+        "method": "GET",
+        "name": "",
+        "sortPriority": -1606619130946.2605,
+        "url": "http://localhost:5213/api/Usuario/Organizador/3",
+        "urlParameters": []
+      },
+      {
+        "model": "http_request",
+        "id": "rq_GRXADe8dPQ",
+        "createdAt": "2025-11-23T11:56:24.805317500",
+        "updatedAt": "2025-11-25T19:19:55.660853800",
+        "workspaceId": "wk_pMSzWZauTp",
+        "folderId": null,
+        "authentication": {},
+        "authenticationType": null,
+        "body": {},
+        "bodyType": null,
+        "description": "endpoint publico para ver datos de runner -",
+        "headers": [],
+        "method": "GET",
+        "name": "",
+        "sortPriority": -1625975987945.613,
+        "url": "http://localhost:5213/api/Usuario/Runner/4",
+        "urlParameters": []
+      },
+      {
+        "model": "http_request",
+        "id": "rq_PRMw5XfS6V",
+        "createdAt": "2025-11-23T11:35:51.255353300",
+        "updatedAt": "2025-12-01T21:36:13.892579800",
+        "workspaceId": "wk_pMSzWZauTp",
+        "folderId": null,
+        "authentication": {},
+        "authenticationType": null,
+        "body": {
+          "text": "{\n  \"email\":\"test@orgaclub.com\",\n  \"password\":\"123456\"\n}\n"
+        },
+        "bodyType": "application/json",
+        "description": "Devuelve el token - Valido para ambos usuarios (runner/organizador)",
+        "headers": [
+          {
+            "enabled": true,
+            "name": "Content-Type",
+            "value": "application/json",
+            "id": "Bu3bdzNFUS"
+          }
+        ],
+        "method": "POST",
+        "name": "",
+        "sortPriority": -1698564201693.185,
+        "url": "http://localhost:5213/api/Usuario/Login",
+        "urlParameters": []
+      },
+      {
+        "model": "http_request",
+        "id": "rq_QnUT8VYxvh",
+        "createdAt": "2025-11-23T11:30:01.401012100",
+        "updatedAt": "2025-11-24T23:16:23.299322800",
+        "workspaceId": "wk_pMSzWZauTp",
+        "folderId": null,
+        "authentication": {},
+        "authenticationType": null,
+        "body": {
+          "form": [
+            {
+              "enabled": true,
+              "id": "wI47up8mmc",
+              "name": "NombreComercial",
+              "value": "Test Organizador"
+            },
+            {
+              "enabled": true,
+              "id": "6hf0z2EYXm",
+              "name": "Email",
+              "value": "test@orgaclub.com"
+            },
+            {
+              "enabled": true,
+              "id": "kFvbMM25gG",
+              "name": "Password",
+              "value": "123456"
+            },
+            {
+              "enabled": true,
+              "id": "bQqM5nwg7T",
+              "name": "ConfirmPassword",
+              "value": "123456"
+            },
+            {
+              "enabled": true,
+              "id": "6zVvNhVi9z",
+              "name": "RazonSocial",
+              "value": "Organizador Test San Luis S.A"
+            },
+            {
+              "enabled": true,
+              "id": "Aq2kKnCfzg",
+              "name": "",
+              "value": ""
+            }
+          ]
+        },
+        "bodyType": "multipart/form-data",
+        "description": "Todos los campos son obligatorios, excepto el avatar. Devuelve el token al crear el organizadro",
+        "headers": [
+          {
+            "enabled": true,
+            "name": "Content-Type",
+            "value": "multipart/form-data",
+            "id": "NIJXZ2mhcv"
+          }
+        ],
+        "method": "POST",
+        "name": "",
+        "sortPriority": -1763893594066.0,
+        "url": "http://localhost:5213/api/Usuario/RegisterOrganizador",
+        "urlParameters": []
+      },
+      {
+        "model": "http_request",
+        "id": "rq_cwmpFqrvAK",
+        "createdAt": "2025-11-23T11:14:36.257320800",
+        "updatedAt": "2025-12-06T08:18:26.296306200",
+        "workspaceId": "wk_pMSzWZauTp",
+        "folderId": null,
+        "authentication": {
+          "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjUiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9lbWFpbGFkZHJlc3MiOiJ0ZXN0QG9yZ2FjbHViLmNvbSIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL25hbWUiOiJDRCBMYSBQdW50YSIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6Im9yZ2FuaXphZG9yIiwiVGlwb1VzdWFyaW8iOiJvcmdhbml6YWRvciIsImV4cCI6MTc2NTAxMjE5OCwiaXNzIjoicnVubkNvbm5lY3RhcGkiLCJhdWQiOiJhbmRyb2lkQXBwIn0.Mbs-nrLeQMyjIfFx9xUp2D5YPzo0fZlueazB3-KLhxQ"
+        },
+        "authenticationType": "bearer",
+        "body": {},
+        "bodyType": null,
+        "description": "Devuelve datos del perfil - requiere token bearer como autenticacion - Valido para ambos perfiles (runner/organizador)",
+        "headers": [],
+        "method": "GET",
+        "name": "",
+        "sortPriority": -1655011273444.6418,
+        "url": "http://localhost:5213/api/Usuario/Perfil",
+        "urlParameters": []
+      },
+      {
+        "model": "http_request",
+        "id": "rq_pNaaGonXPn",
+        "createdAt": "2025-11-23T10:26:34.071470500",
+        "updatedAt": "2025-12-01T21:24:27.115605700",
+        "workspaceId": "wk_pMSzWZauTp",
+        "folderId": null,
+        "authentication": {},
+        "authenticationType": null,
+        "body": {
+          "form": [
+            {
+              "enabled": true,
+              "id": "tbrsGG2K6X",
+              "name": "Nombre",
+              "value": "Test Runner Nombre"
+            },
+            {
+              "enabled": true,
+              "id": "TgSgUuUBvJ",
+              "name": "Apellido",
+              "value": "Test Runner Apellido"
+            },
+            {
+              "enabled": true,
+              "id": "3r3RT0THTc",
+              "name": "Email",
+              "value": "runner@test.com"
+            },
+            {
+              "enabled": true,
+              "id": "sju92IqArV",
+              "name": "Password",
+              "value": "123456"
+            },
+            {
+              "enabled": true,
+              "id": "CN7GfnQ5wQ",
+              "name": "ConfirmPassword",
+              "value": "123456"
+            },
+            {
+              "enabled": true,
+              "id": "wdjc23Zjwc",
+              "name": "",
+              "value": ""
+            }
+          ]
+        },
+        "bodyType": "multipart/form-data",
+        "description": "Todos los campos son obligatorios, excepto el avatar. \nDevuelve el token al crear el runner\nmultipart",
+        "headers": [
+          {
+            "enabled": true,
+            "name": "Content-Type",
+            "value": "multipart/form-data",
+            "id": "k4eb9psX5x"
+          }
+        ],
+        "method": "POST",
+        "name": "",
+        "sortPriority": -1763893594066.0,
+        "url": "http://localhost:5213/api/Usuario/RegisterRunner",
+        "urlParameters": []
+      },
+      {
+        "model": "http_request",
+        "id": "rq_z66qqRi2po",
+        "createdAt": "2025-12-07T06:29:15.883863500",
+        "updatedAt": "2025-12-07T06:30:36.571367300",
+        "workspaceId": "wk_6LjaGPYUei",
+        "folderId": null,
+        "authentication": {},
+        "authenticationType": null,
+        "body": {},
+        "bodyType": null,
+        "description": "Ver mapa del evento - publico\n",
+        "headers": [],
+        "method": "GET",
+        "name": "",
+        "sortPriority": -218034253498.61224,
+        "url": "http://localhost:5213/api/Evento/2/Mapa",
+        "urlParameters": []
+      },
+      {
+        "model": "http_request",
+        "id": "rq_JmSNDL26Qx",
+        "createdAt": "2025-12-06T07:40:08.176331300",
+        "updatedAt": "2025-12-06T07:55:42.181892600",
+        "workspaceId": "wk_6LjaGPYUei",
+        "folderId": null,
+        "authentication": {
+          "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjQiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9lbWFpbGFkZHJlc3MiOiJlc3RlYmFuLmRldjIyQGdtYWlsLmNvbSIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL25hbWUiOiJUZXN0MSBSdW5uZXIgTm9tYnJlIFRlc3QgUnVubmVyIEFwZWxsaWRvIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjoicnVubmVyIiwiVGlwb1VzdWFyaW8iOiJydW5uZXIiLCJleHAiOjE3NjUwMTExNTYsImlzcyI6InJ1bm5Db25uZWN0YXBpIiwiYXVkIjoiYW5kcm9pZEFwcCJ9.ohPWkWZwt18TBxdtu5IvO2BVsakG_zo7SSDrQQVxSZg"
+        },
+        "authenticationType": "bearer",
+        "body": {
+          "text": "{\n  \"tiempoSmartwatch\": \"00:48:15\",\n  \"distanciaKm\": 10.52,\n  \"ritmoPromedio\": \"04:35 min/km\",\n  \"velocidadPromedio\": \"13.1 km/h\",\n  \"caloriasQuemadas\": 850,\n  \"pulsacionesPromedio\": 160,\n  \"pulsacionesMax\": 185\n}"
+        },
+        "bodyType": "application/json",
+        "description": "Cargar resultados del smartWatch para un evento (idResultado)\ntoken bearer\nJSON\n  \"distanciaKm\": 10.5,\n  \"tiempoSmartwatch\": \"00:45:05\",\n  \"ritmoPromedio\": \"4:30 min/km\",\n  \"caloriasQuemadas\": 850,\n  \"pulsacionesPromedio\": 165,\n  \"pulsacionesMax\": 180\n\n\n\nNOTA: Es opcional, y se anexaria con Google Fit/Health Connect. Cargar datos de Smartwatch se realiza a traves de Google Fit/Health Connect, bien ahora vamos a simular que cargamos los datos. Pero en la practica seria el runner empieza la carrera, y al momento inicia su smartWatch para que le tome el tiempo, pasa la meta y para el reloj. Post carrera cuando tiene su movil abre Google Fit/Health Connect y sincroniza el reloj. Se loguea en la app RunnConnect y en anexar datos sincroniza directamene con Google Fit/Health Connect que ya obtuvo los datos anteriormente...",
+        "headers": [
+          {
+            "enabled": true,
+            "name": "Content-Type",
+            "value": "application/json",
+            "id": "vEbRs2AXxt"
+          }
+        ],
+        "method": "PUT",
+        "name": "",
+        "sortPriority": -490577070371.87744,
+        "url": "http://localhost:5213/api/Resultado/2/DatosSmartwatch",
+        "urlParameters": []
+      },
+      {
+        "model": "http_request",
+        "id": "rq_C2mNbKQrFU",
+        "createdAt": "2025-12-06T07:39:12.866437300",
+        "updatedAt": "2025-12-06T07:39:25.866789300",
+        "workspaceId": "wk_6LjaGPYUei",
+        "folderId": null,
+        "authentication": {},
+        "authenticationType": null,
+        "body": {},
+        "bodyType": null,
+        "description": "Resultados del evento - publico",
+        "headers": [],
+        "method": "GET",
+        "name": "",
+        "sortPriority": -735865605557.8163,
+        "url": "http://localhost:5213/api/Resultado/Evento/1",
+        "urlParameters": []
+      },
+      {
+        "model": "http_request",
+        "id": "rq_F4aVuqNZ2d",
+        "createdAt": "2025-12-06T07:38:27.686780900",
+        "updatedAt": "2025-12-06T07:56:21.915751200",
+        "workspaceId": "wk_6LjaGPYUei",
+        "folderId": null,
+        "authentication": {},
+        "authenticationType": null,
+        "body": {},
+        "bodyType": null,
+        "description": "Resultado especifico de una posicion",
+        "headers": [],
+        "method": "GET",
+        "name": "",
+        "sortPriority": -327051380247.91833,
+        "url": "http://localhost:5213/api/Resultado/2",
+        "urlParameters": []
+      },
+      {
+        "model": "http_request",
+        "id": "rq_sHfjonzUQ6",
+        "createdAt": "2025-12-06T06:08:35.785894500",
+        "updatedAt": "2025-12-06T07:53:04.496407300",
+        "workspaceId": "wk_6LjaGPYUei",
+        "folderId": null,
+        "authentication": {
+          "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjQiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9lbWFpbGFkZHJlc3MiOiJlc3RlYmFuLmRldjIyQGdtYWlsLmNvbSIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL25hbWUiOiJUZXN0MSBSdW5uZXIgTm9tYnJlIFRlc3QgUnVubmVyIEFwZWxsaWRvIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjoicnVubmVyIiwiVGlwb1VzdWFyaW8iOiJydW5uZXIiLCJleHAiOjE3NjUwMTExNTYsImlzcyI6InJ1bm5Db25uZWN0YXBpIiwiYXVkIjoiYW5kcm9pZEFwcCJ9.ohPWkWZwt18TBxdtu5IvO2BVsakG_zo7SSDrQQVxSZg"
+        },
+        "authenticationType": "bearer",
+        "body": {},
+        "bodyType": null,
+        "description": "Consultar el historial de resultados \ntoken bearer\n\n\nNOTA: Datos SmartWatch es opcional anexar",
+        "headers": [],
+        "method": "GET",
+        "name": "",
+        "sortPriority": -1103798408336.724,
+        "url": "http://localhost:5213/api/Resultado/MisResultados",
+        "urlParameters": []
+      },
+      {
+        "model": "http_request",
+        "id": "rq_VMbm54Wud3",
+        "createdAt": "2025-12-05T02:13:52.629718100",
+        "updatedAt": "2025-12-05T03:19:36.177878700",
+        "workspaceId": "wk_6LjaGPYUei",
+        "folderId": null,
+        "authentication": {
+          "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjQiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9lbWFpbGFkZHJlc3MiOiJlc3RlYmFuLmRldjIyQGdtYWlsLmNvbSIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL25hbWUiOiJUZXN0MSBSdW5uZXIgTm9tYnJlIFRlc3QgUnVubmVyIEFwZWxsaWRvIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjoicnVubmVyIiwiVGlwb1VzdWFyaW8iOiJydW5uZXIiLCJleHAiOjE3NjQ5MDgzNjksImlzcyI6InJ1bm5Db25uZWN0YXBpIiwiYXVkIjoiYW5kcm9pZEFwcCJ9.Bg_LmbaXe4b8Csuc_rx4PS491kIrXy-LctUmO_c7ckM"
+        },
+        "authenticationType": "bearer",
+        "body": {},
+        "bodyType": null,
+        "description": "",
+        "headers": [],
+        "method": "PUT",
+        "name": "",
+        "sortPriority": -1103798408336.724,
+        "url": "http://localhost:5213/api/Inscripcion/3/Cancelar",
+        "urlParameters": []
+      },
+      {
+        "model": "http_request",
+        "id": "rq_njjFqEkcek",
+        "createdAt": "2025-12-04T21:00:12.329400400",
+        "updatedAt": "2025-12-04T21:00:16.820651600",
+        "workspaceId": "wk_6LjaGPYUei",
+        "folderId": null,
+        "authentication": {},
+        "authenticationType": null,
+        "body": {},
+        "bodyType": null,
+        "description": "",
+        "headers": [],
+        "method": "GET",
+        "name": "",
+        "sortPriority": -1751625511865.0842,
+        "url": "http://localhost:5213/api/Evento/1",
+        "urlParameters": []
+      },
+      {
+        "model": "http_request",
+        "id": "rq_85c6v3x2xo",
+        "createdAt": "2025-12-04T19:54:12.846387700",
+        "updatedAt": "2025-12-04T19:55:24.765596",
+        "workspaceId": "wk_6LjaGPYUei",
+        "folderId": null,
+        "authentication": {
+          "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjQiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9lbWFpbGFkZHJlc3MiOiJlc3RlYmFuLmRldjIyQGdtYWlsLmNvbSIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL25hbWUiOiJUZXN0MSBSdW5uZXIgTm9tYnJlIFRlc3QgUnVubmVyIEFwZWxsaWRvIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjoicnVubmVyIiwiVGlwb1VzdWFyaW8iOiJydW5uZXIiLCJleHAiOjE3NjQ4ODE0OTcsImlzcyI6InJ1bm5Db25uZWN0YXBpIiwiYXVkIjoiYW5kcm9pZEFwcCJ9.9yFNicDL3k8OGIY6JQjrSfyBJpoQxBmicczqWahtVo4"
+        },
+        "authenticationType": "bearer",
+        "body": {
+          "text": "{\n  \"nombre\": \"Test1 Runner Nombre\",\n  \"apellido\": \"Test Runner Apellido\",\n  \"telefono\": \"2664222222\",\n  \"fechaNacimiento\": \"2000-03-20\",\n  \"genero\": \"M\",\n  \"dni\":\"22222222\",\n  \"localidad\": \"Juana Koslay\",\n  \"agrupacion\": \"Equipo Trail Running SL\",\n  \"nombreContactoEmergencia\":\"Pareja\",\n  \"telefonoEmergencia\": \"2664888999\"\n}"
+        },
+        "bodyType": "application/json",
+        "description": "",
+        "headers": [
+          {
+            "enabled": true,
+            "name": "Content-Type",
+            "value": "application/json",
+            "id": "69Gj4VBv7H"
+          }
+        ],
+        "method": "PUT",
+        "name": "",
+        "sortPriority": -1749832467017.234,
+        "url": "http://localhost:5213/api/Usuario/ActualizarPerfilRunner",
+        "urlParameters": []
+      },
+      {
+        "model": "http_request",
+        "id": "rq_xJvthAqf6A",
+        "createdAt": "2025-12-04T19:52:04.202517200",
+        "updatedAt": "2025-12-06T07:00:30.391789500",
+        "workspaceId": "wk_6LjaGPYUei",
+        "folderId": null,
+        "authentication": {},
+        "authenticationType": null,
+        "body": {},
+        "bodyType": null,
+        "description": "Eventos publicos y futuros",
+        "headers": [],
+        "method": "GET",
+        "name": "",
+        "sortPriority": -1752522034289.0095,
+        "url": "http://localhost:5213/api/Evento/Publicados",
+        "urlParameters": []
+      },
+      {
+        "model": "http_request",
+        "id": "rq_5cyhV9AhdX",
+        "createdAt": "2025-12-03T18:35:33.882245200",
+        "updatedAt": "2025-12-04T19:53:23.169312700",
+        "workspaceId": "wk_6LjaGPYUei",
+        "folderId": null,
+        "authentication": {
+          "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjQiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9lbWFpbGFkZHJlc3MiOiJlc3RlYmFuLmRldjIyQGdtYWlsLmNvbSIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL25hbWUiOiJUZXN0MSBSdW5uZXIgTm9tYnJlIFRlc3QgUnVubmVyIEFwZWxsaWRvIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjoicnVubmVyIiwiVGlwb1VzdWFyaW8iOiJydW5uZXIiLCJleHAiOjE3NjQ4ODE0OTcsImlzcyI6InJ1bm5Db25uZWN0YXBpIiwiYXVkIjoiYW5kcm9pZEFwcCJ9.9yFNicDL3k8OGIY6JQjrSfyBJpoQxBmicczqWahtVo4"
+        },
+        "authenticationType": "bearer",
+        "body": {
+          "text": "{\n  \"idCategoria\": 1, \n  \"talleRemera\": \"M\",\n  \"aceptoDeslinde\": true \n}"
+        },
+        "bodyType": "application/json",
+        "description": "Inscribirse a un evento (runner) - \nDebe completar su perfil para poder inscribirse\nRequiere token",
+        "headers": [
+          {
+            "enabled": true,
+            "name": "Content-Type",
+            "value": "application/json",
+            "id": "6uCyyTTVJw"
+          }
+        ],
+        "method": "POST",
+        "name": "",
+        "sortPriority": -1744453332473.6826,
+        "url": "http://localhost:5213/api/Inscripcion",
+        "urlParameters": []
+      },
+      {
+        "model": "http_request",
+        "id": "rq_jgUzZfTBNX",
+        "createdAt": "2025-12-03T18:33:43.069866900",
+        "updatedAt": "2025-12-04T19:57:57.373599200",
+        "workspaceId": "wk_6LjaGPYUei",
+        "folderId": null,
+        "authentication": {
+          "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjQiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9lbWFpbGFkZHJlc3MiOiJlc3RlYmFuLmRldjIyQGdtYWlsLmNvbSIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL25hbWUiOiJUZXN0MSBSdW5uZXIgTm9tYnJlIFRlc3QgUnVubmVyIEFwZWxsaWRvIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjoicnVubmVyIiwiVGlwb1VzdWFyaW8iOiJydW5uZXIiLCJleHAiOjE3NjQ4ODE0OTcsImlzcyI6InJ1bm5Db25uZWN0YXBpIiwiYXVkIjoiYW5kcm9pZEFwcCJ9.9yFNicDL3k8OGIY6JQjrSfyBJpoQxBmicczqWahtVo4"
+        },
+        "authenticationType": "bearer",
+        "body": {
+          "form": [
+            {
+              "enabled": true,
+              "file": "C:\\Users\\Esteban\\Downloads\\Horarios_De_Consultas.pdf",
+              "id": "sN6danBJsS",
+              "name": "Comprobante"
+            },
+            {
+              "enabled": true,
+              "id": "JSmkUKbGmh",
+              "name": "",
+              "value": ""
+            }
+          ]
+        },
+        "bodyType": "multipart/form-data",
+        "description": "El pago se procesa por fuera de la app\nEl runner sube el comprobante (runner)\nRequiere token bearer\nmultiform\n\"Comprobante\" - pdf, png, jpg, jpeg - hasta 10 MB",
+        "headers": [
+          {
+            "enabled": true,
+            "name": "Content-Type",
+            "value": "multipart/form-data",
+            "id": "2Z4G8X8BEJ"
+          }
+        ],
+        "method": "PUT",
+        "name": "",
+        "sortPriority": -1728315928843.0288,
+        "url": "http://localhost:5213/api/Inscripcion/3/Comprobante",
+        "urlParameters": []
+      },
+      {
+        "model": "http_request",
+        "id": "rq_6zaNAk99RK",
+        "createdAt": "2025-12-01T21:38:55.749005900",
+        "updatedAt": "2025-12-06T06:59:35.096506400",
+        "workspaceId": "wk_6LjaGPYUei",
+        "folderId": null,
+        "authentication": {
+          "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjQiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9lbWFpbGFkZHJlc3MiOiJlc3RlYmFuLmRldjIyQGdtYWlsLmNvbSIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL25hbWUiOiJUZXN0MSBSdW5uZXIgTm9tYnJlIFRlc3QgUnVubmVyIEFwZWxsaWRvIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjoicnVubmVyIiwiVGlwb1VzdWFyaW8iOiJydW5uZXIiLCJleHAiOjE3NjUwMDc5NjQsImlzcyI6InJ1bm5Db25uZWN0YXBpIiwiYXVkIjoiYW5kcm9pZEFwcCJ9.p0LiYR7cCZ-n_nWYUb7KyAtCe_pT-6HLuU2OcGpWgM8"
+        },
+        "authenticationType": "bearer",
+        "body": {},
+        "bodyType": null,
+        "description": "",
+        "headers": [],
+        "method": "GET",
+        "name": "",
+        "sortPriority": -1655697612505.0864,
+        "url": "http://localhost:5213/api/Inscripcion/MisInscripciones",
+        "urlParameters": []
+      },
+      {
+        "model": "http_request",
+        "id": "rq_xLGxRCjtJ3",
+        "createdAt": "2025-12-01T21:38:07.016794800",
+        "updatedAt": "2025-12-04T19:51:34.733186500",
+        "workspaceId": "wk_6LjaGPYUei",
+        "folderId": null,
+        "authentication": {},
+        "authenticationType": null,
+        "body": {
+          "text": "{\n  \"email\":\"esteban.dev22@gmail.com\",\n  \"password\":\"123456\"\n}"
+        },
+        "bodyType": "application/json",
+        "description": "",
+        "headers": [
+          {
+            "enabled": true,
+            "name": "Content-Type",
+            "value": "application/json",
+            "id": "gtMbnPtWdN"
+          }
+        ],
+        "method": "POST",
+        "name": "",
+        "sortPriority": -1764625087012.0,
+        "url": "http://localhost:5213/api/Usuario/Login",
+        "urlParameters": []
+      }
+    ],
+    "grpcRequests": [],
+    "websocketRequests": []
+  }
+}

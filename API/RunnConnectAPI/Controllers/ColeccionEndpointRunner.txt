@@ -1,0 +1,85 @@
+COLECCION PERFIL RUNNER
+http://localhost:5213/api
+
+Inscripcion: (1)
+POST /Inscripcion - Inscribirse a un evento requiere perfil completo
+Authorizacion: token bearer
+Content-Type: application/json
+Body:
+  json
+    {
+    "idCategoria": 1,  
+    "talleRemera": "L",
+    "aceptoDeslinde": true 
+    }
+
+
+Ver mis inscripciones: (1)
+GET /Inscripcion/MisInscripciones - Request: Devuelve las inscripciones del runner
+Authorizacion: token bearer
+Content-Type: 
+Body: 
+
+
+Subir comprobante pago: (1)
+PUT /Inscripcion/{id}/Comprobante
+Authorizacion: token bearer
+Content-Type: multipart/form-data
+Form
+  "Comprobante": "File archivo" - ".jpg", ".jpeg", ".png", ".pdf" - hasta 20 MB
+
+
+Cancelar Inscripcion (1) - Cancelar una inscripcion (solo si esta pendiente)
+PUT /Inscripcion/{id}/Cancelar
+Authorizacion: token bearer
+Content-Type: 
+
+
+Mis Resultado (1)
+1. GET /Resultado/MisResultados
+Authorizacion: token bearer
+
+
+Resultados publicos (2)
+1. GET /Resultado/{id}
+Authorizacion: publico
+Content-Type:
+
+
+2. /Resultado/Evento/{}
+Authorizacion: publico
+
+
+
+Anexar Datos con el SmartWatch (1)
+
+1. PUT /Resultado/{idResultado}/DatosSmartwatch   - [idResultadp]
+Authorizacion: token bearer
+Content-Type: application/json
+Body:
+  JSON  
+    {
+  "tiempoSmartwatch": "00:48:15",
+  "distanciaKm": 10.52,
+  "ritmoPromedio": "04:35 min/km",
+  "velocidadPromedio": "13.1 km/h",
+  "caloriasQuemadas": 850,
+  "pulsacionesPromedio": 160,
+  "pulsacionesMax": 185
+  }
+
+
+NOTA: cargar datos de Smartwatch se realiza a traves de Google Fit/Health Connect, 
+bien ahora vamos a simular que cargamos los datos. Pero en la practica seria el runner empieza la carrera, 
+y al momento inicia su smartWatch para que le tome el tiempo, pasa la meta y para el reloj. 
+Post carrera cuando tiene su movil abre Google Fit/Health Connect y sincroniza el reloj. 
+Se loguea en la app RunnConnect y en anexar datos sincroniza directamene con Google Fit/Health Connect 
+que ya obtuvo los datos anteriormente...
+
+
+
+VER MAPA COMPLETO (1)
+NOTA: El runner entra en detalle del evento y la app abre un fragment que consume un SDK de Google Maps para poder
+ visulizar en mapa del evento. Es decir el runner nunca sale de la app
+1. GET /Evento/{id}/Mapa
+Authorizacion: publico
