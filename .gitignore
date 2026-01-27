@@ -1,15 +1,26 @@
-*.iml
-.gradle
+# --- Android (Los que ya tenías y algunos extra) ---
+.gradle/
+/build/
 /local.properties
-/.idea/caches
-/.idea/libraries
-/.idea/modules.xml
-/.idea/workspace.xml
-/.idea/navEditor.xml
-/.idea/assetWizardSettings.xml
-.DS_Store
-/build
+/.idea/
+*.iml
 /captures
 .externalNativeBuild
 .cxx
-local.properties
+
+# --- C# / .NET (Agregá estos) ---
+[Bb]in/
+[Oo]bj/
+.vs/
+*.user
+*.userosscache
+*.sln.docstates
+
+# --- Entorno IDX / DB ---
+.idx/
+.mysql_data/
+*.log
+
+# --- Otros ---
+.DS_Store
+Thumbs.db
