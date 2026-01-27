@@ -5,9 +5,12 @@ import android.app.Application;
 import com.example.runnconnect.data.conexion.ApiClient;
 import com.example.runnconnect.data.conexion.ApiService;
 import com.example.runnconnect.data.preferencias.SessionManager;
+import com.example.runnconnect.data.request.BusquedaInscripcionResponse;
 import com.example.runnconnect.data.request.CambiarEstadoPagoRequest;
 import com.example.runnconnect.data.request.MotivoBajaRequest;
 import com.example.runnconnect.data.response.ListaInscriptosResponse;
+
+import java.util.List;
 
 import okhttp3.ResponseBody;
 import retrofit2.Callback;
@@ -55,7 +58,16 @@ public class InscripcionRepositorio {
     }else{
       callback.onFailure(null, new Throwable("No hay sesion activa"));
     }
+  }
 
+  //buscar inscripcion
+  public void buscarIncripcion(String termino, Callback<List<BusquedaInscripcionResponse>> callback) {
+    String token = sessionManager.leerToken();
+    if (token != null) {
+      apiService.buscarInscriptos("Bearer " + token, termino).enqueue(callback);
+    } else {
+      callback.onFailure(null, new Throwable("Sin sesión"));
+    }
   }
 
 

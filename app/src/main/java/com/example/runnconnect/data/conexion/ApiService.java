@@ -6,6 +6,7 @@ package com.example.runnconnect.data.conexion;
 import com.example.runnconnect.data.request.ActualizarEventoRequest;
 import com.example.runnconnect.data.request.ActualizarPerfilOrganizadorRequest;
 import com.example.runnconnect.data.request.ActualizarPerfilRunnerRequest;
+import com.example.runnconnect.data.request.BusquedaInscripcionResponse;
 import com.example.runnconnect.data.request.CambiarEstadoPagoRequest;
 import com.example.runnconnect.data.request.CambiarEstadoRequest;
 import com.example.runnconnect.data.request.CambiarPasswordRequest;
@@ -189,12 +190,18 @@ public interface ApiService {
   );
 
   //dar de baja runner
-  @PUT("Inscripciones/{id}/bajaRunner")
+  @PUT("Inscripcion/{id}/bajaRunner")
   Call<ResponseBody> darDeBajaRunner(
     @Header("Authorization") String token,
     @Path("id") int idInscripcion,
     @Body MotivoBajaRequest request // clase simple en Java
   );
 
+  //buscar inscripcion
+  @GET("Inscripcion/BuscarInscriptos")
+  Call<List<BusquedaInscripcionResponse>> buscarInscriptos(
+    @Header("Authorization") String token,
+    @Query("busqueda") String termino
+  );
 
 }
