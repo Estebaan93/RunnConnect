@@ -1,4 +1,4 @@
-package com.example.runnconnect.data.request;
+package com.example.runnconnect.data.response;
 
 import com.google.gson.annotations.SerializedName;
 

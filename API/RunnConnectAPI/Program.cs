@@ -21,7 +21,43 @@ builder.Services.AddControllers();
 // Habilitar Swagger
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+//builder.Services.AddSwaggerGen();
+
+// Configuración de Swagger con soporte para JWT
+builder.Services.AddSwaggerGen(options =>
+{
+  options.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
+  {
+    Title = "RunnConnectAPI",
+    Version = "v1"
+  });
+
+  // 1. Definir el esquema de seguridad (Bearer JWT)
+  options.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+  {
+    In = Microsoft.OpenApi.Models.ParameterLocation.Header,
+    Description = "Ingrese 'Bearer' [espacio] y su token.\n\nEjemplo: \"Bearer eyJhbGciOiJIUzI1NiIsInR5c...\"",
+    Name = "Authorization",
+    Type = Microsoft.OpenApi.Models.SecuritySchemeType.ApiKey,
+    Scheme = "Bearer"
+  });
+
+  // 2. Requisito de seguridad global
+  options.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
+    {
+        {
+            new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+            {
+                Reference = new Microsoft.OpenApi.Models.OpenApiReference
+                {
+                    Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            new string[]{}
+        }
+    });
+});
 
 //CONEXION A MySQL
 builder.Services.AddDbContext<RunnersContext>(options =>
@@ -82,9 +118,9 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(config["Jwt:Key"]))
       };
     });
-  
+
 //Configurar autorizacion
-builder.Services.AddAuthorization();  
+builder.Services.AddAuthorization();
 
 
 //Construccion de la app y config del Pipeline HTTP

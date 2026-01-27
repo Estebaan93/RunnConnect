@@ -16,6 +16,11 @@
       android:name="com.example.runnconnect.ui.cerrarSesion.LogoutFragment"
       android:label="Cerrar Sesión"
       tools:layout="@layout/fragment_logout" />
+  <fragment
+    android:id="@+id/nav_buscar_inscripciones"
+    android:name="com.example.runnconnect.ui.organizador.buscarInscripciones.BuscarInscripcionesFragment"
+    android:label="Buscar Inscriptos"
+    tools:layout="@layout/fragment_buscar_inscripciones" />
 
   <fragment
       android:id="@+id/nav_perfil"
