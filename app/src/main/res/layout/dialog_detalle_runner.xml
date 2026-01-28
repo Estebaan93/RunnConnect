@@ -148,6 +148,30 @@
           android:layout_height="wrap_content"
           android:layout_marginTop="4dp"
           tools:text="Tel: +54 266 4111222"/>
+        
+      <TextView
+        android:id="@+id/tvMensajeBaja"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:padding="8dp"
+        android:textSize="14sp"
+        android:textStyle="bold"
+        android:textColor="@android:color/holo_red_dark"
+        android:visibility="gone"
+        android:layout_marginBottom="8dp"
+        tools:text="Inscripción dada de baja correctamente"
+        tools:visibility="visible"/>
+
+      <Button
+          android:id="@+id/btnDarDeBaja"
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:layout_marginTop="24dp"
+          android:text="Dar de Baja"
+          android:textColor="#D32F2F"
+          style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+          app:strokeColor="#D32F2F" />
 
       <Button
           android:id="@+id/btnCerrarDetalle"

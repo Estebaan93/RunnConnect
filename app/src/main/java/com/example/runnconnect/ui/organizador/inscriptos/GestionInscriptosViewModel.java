@@ -2,6 +2,8 @@ package com.example.runnconnect.ui.organizador.inscriptos;
 
 import android.app.Application;
 
+import android.util.Log;
+
 import androidx.annotation.NonNull;
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
@@ -144,4 +146,40 @@ public class GestionInscriptosViewModel extends AndroidViewModel {
       }
     });
   }
+
+  //Dar de baja
+  public void darDeBajaRunner(int idInscripcion) {
+    isLoading.setValue(true);
+
+    //motivo generico
+    String motivo= "Baja solicitada por el organizador en gestion de inscripciones";
+
+    //lamamos al repo
+    repositorio.darDeBajaRunner(idInscripcion, motivo, new Callback<ResponseBody>(){
+      @Override
+      public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+        isLoading.setValue(false);
+        
+        if(response.isSuccessful()){
+          mensajeToast.setValue("Runner dado de baja exitosamente");
+          ejecutarConsulta(); //Recarga la lista para ver cambios
+
+        }else{
+          mensajeToast.setValue("Error al dar de baja:");
+          Log.d("GestionInscriptosVM", "Error al dar de baja: " + response.code());
+        }
+      
+      }
+      @Override
+      public void onFailure(Call<ResponseBody> call, Throwable t) {
+        isLoading.setValue(false);
+        mensajeToast.setValue("Error de conexión");
+      }
+    });
+    
+
+
+  }
+
+
 }
