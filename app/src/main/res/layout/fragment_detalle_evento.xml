@@ -253,7 +253,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
         android:backgroundTint="#2E7D32"
-        android:text="Gestionar Inscriptos"
+        android:text="Gestionar Pagos"
         app:icon="@android:drawable/ic_menu_my_calendar"
         app:iconGravity="textStart"
         app:layout_constraintTop_toBottomOf="@id/layoutBotones"
