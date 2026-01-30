@@ -106,6 +106,7 @@ public class MainActivity extends AppCompatActivity {
             R.id.nav_crear_evento, //organizador
             R.id.nav_perfil, //runner
             R.id.nav_perfil_organizador, //organizador
+            R.id.nav_buscar_inscripciones, //organizador
             R.id.nav_cerrar_sesion) //runner/orga
             .setOpenableLayout(drawer)
             .build();

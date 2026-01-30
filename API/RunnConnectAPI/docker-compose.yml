@@ -1,0 +1,19 @@
+services:
+  mysql-db:
+    image: mysql:latest
+    environment:
+      MYSQL_ALLOW_EMPTY_PASSWORD: 'yes'
+    ports:
+      - "3306:3306" # Mapeo del puerto para asegurar compatibilidad local
+    volumes:
+      - ./mysql-data:/var/lib/mysql          # Persistir los datos en los reinicios mysql-data
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    ports:
+      - "8080:80"
+    environment:
+      PMA_HOST: mysql-db # Nombre host
+      PMA_PORT: 3306    # Puerto del servicio de mysql
+    depends_on:
+      - mysql-db  # Se asegura que Mysql se levante antes que phpMyAdmin

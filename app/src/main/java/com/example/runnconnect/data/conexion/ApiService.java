@@ -6,7 +6,7 @@ package com.example.runnconnect.data.conexion;
 import com.example.runnconnect.data.request.ActualizarEventoRequest;
 import com.example.runnconnect.data.request.ActualizarPerfilOrganizadorRequest;
 import com.example.runnconnect.data.request.ActualizarPerfilRunnerRequest;
-import com.example.runnconnect.data.request.BusquedaInscripcionResponse;
+import com.example.runnconnect.data.response.BusquedaInscripcionResponse;
 import com.example.runnconnect.data.request.CambiarEstadoPagoRequest;
 import com.example.runnconnect.data.request.CambiarEstadoRequest;
 import com.example.runnconnect.data.request.CambiarPasswordRequest;

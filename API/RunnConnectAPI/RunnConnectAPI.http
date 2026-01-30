@@ -1,0 +1,6 @@
+@RunnConnectAPI_HostAddress = http://localhost:5213
+
+GET {{RunnConnectAPI_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

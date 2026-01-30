@@ -1,0 +1,157 @@
+COLECCION USUARIO (RUNNER/ORGANIZADOR)
+TOTAL 15
+http://localhost:5000/api/Usuario
+RESGISTRO (2):
+1. POST /RegisterRunner - Registro de corredor simple - Para INSCRIBIRSE a eventos su perfil dede estar completo
+  autorizacion: publico
+  content-type: multipart/form-data
+  request: token bearer para login automatico
+  Form Data:
+    Nombre: Juan
+    Apellido: Pérez
+    Email: juan@example.com
+    Password: 123456
+    ConfirmPassword: 123456  
+    imgAvatar: [archivo.jpg]           [OPCIONAL: max 20MB - default si no se carga]
+  
+2. POST /RegisterOrganizador - Registro de organizador simple - Para CREAR eventos su perfil debe estar completo
+  autorizacion: publico
+  content-type: multipart/form-data
+  request: token bearer para login automatico
+  Form Data:
+    NombreComercial: Juan Carlos
+    Email: eventos@runnersclub.com
+    Password: 123456
+    ConfirmPassword: 123456
+    RazonSocial: Runners Club San Luis S.A
+    imgAvatar: [archivo.png, jpg]     [OPCIONAL: max 20MB - default si no se carga]
+
+AUTENTICACION (1)
+1. POST /Login - Login unificado
+  autorizacion: publico
+  content-type: application/json
+  request: token bearer
+  body:
+    json
+    {
+      "email":"test@test.com",
+      "password":"123456"
+    }
+
+PUBLICO (2)
+1. GET /Organizador/{id} - Endpoint publico para ver perfil de un organizador - no requiere autenticacion
+
+2. GET /Runner/{id} - Endpoint publico para ver perfil de un runner - no requiere autenticacion
+
+GESTION DE PERFIL (3)
+1. GET /Perfil - Ver perfil propio - requiere token bearer como autenticacion- valido para runner/organizador
+
+2. PUT /ActualizarPerfilRunner - Actualizar perfil corredor 
+   autorizacion: token bearer
+   content-type: application/json
+   body:
+    json
+      {
+        "nombre": "Carlos Augusto",
+        "apellido": "González Pérez",
+        "telefono": "2664222333",
+        "fechaNacimiento": "1990-03-20", // Al menos 14 años
+        "genero": "M",
+        "dni":"22222222",
+        "localidad": "Juana Koslay",
+        "agrupacion": "Equipo Trail Running SL" / "Libre si no tiene agrupacion",
+        "nombreContactoEmergencia":"Pareja",
+        "telefonoEmergencia": "2664888999"   
+      }
+   
+3. PUT /ActualizarPerfilOrganizador - Actualizar perfil organizador
+  autenticacion: token bearer
+  content-type: application/json
+  body:
+    json
+    {
+      "nombre": "CD La Punta",
+      "telefono": "2664555888",
+      "razonSocial": "Club Deportivo La Punta",
+      "nombreComercial": "CD La Punta",
+      "cuitTaxid": "20-55667788-3",
+      "direccionLegal": "Av. Costanera s/n, La Punta, San Luis"
+    }
+
+GESTION DE AVATAR (2)
+1. PUT /Avatar - Subir/cambiar avatar - Aplica a ambos perfiles runner/organizador
+   autenticacion: token bearer
+   content-type: multipart/form-data
+   form:
+     Imagen: [archivo imagen] - hasta 20 MB - ".jpg", ".jpeg", ".png", ".gif", ".webp"
+
+
+2. DELETE /Avatar - Restaurar avatar por defecto - Eliminar el avatarImg
+    autenticacion: token bearer
+    content-type:
+
+
+GESTION DE CONTRASEÑA (3)
+Para el AppSetting contraseña de recuperacion: nodl kkvx mfmm nevk
+
+1. PUT /CambiarPassword - Cambiar contraseña - 
+    autenticacion: token bearer
+    content-type: application/json
+    body:
+      json
+      {
+        "PasswordActual": "123456", 
+        "NuevaPassword": "nuevapass123", - Mayor a 6 caracteres
+        "ConfirmarPassword": "nuevapass123" - Mayor a 6 caracteres
+      }
+
+2. POST / RecuperarPassword - Recuperamos el Password (envia token a mail) - "PASO 1"
+   autenticacion:
+   content-type: application/json
+   request: token para resetear password (1 hora)
+   body:
+    json
+    {
+      "email","esteban.dev22@gmail.com"
+    } 
+
+
+
+3. POST / RestablecerPassword - Restablece el password a uno nuevo - "PASO 2"
+   autenticacion: token de RecuperarPassword
+   content-type: application/json
+   body:
+    json
+    {
+      "token": "TOKEN QUE RECIBIMOS DEL EMAIL",
+      "passwordNueva": "nuevapass2024",
+      "confirmarPassword": "nuevapass2024"
+    } 
+
+
+
+GESTION DE CUENTA (3)
+1. DELETE /Perfil - Eliminar cuenta (borrado logico)
+   autenticacion: token bearer
+   content-type: application/json
+
+
+2. POST /SolicitarReactivacion - Solicita reactivacion via email (enviando un token valido por 1 hora, unico uso y valido solo para reactivacion) - PASO 1
+    autenticacion: 
+    content-type: application/json
+    body:
+     json
+      {
+        "email":"esteban.dev22@gmail.com", // Cuenta desactivada
+        "password":"123456"                // Contraseña de la cuenta desactivada
+     }
+
+
+3. POST /ReactivarCuenta - Reactiva la cuenta con el token que se recibe via email - PASO 2
+    autenticacion:
+    content-type: application/json
+    body:
+     json
+      {
+        "token":"TOKEN QUE SE RECIBE AL EMAIL REACTIVACION"
+      }

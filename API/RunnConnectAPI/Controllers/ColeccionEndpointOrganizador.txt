@@ -1,0 +1,268 @@
+COLECCION PERFIL ORGANIZADOR
+Post Login - http://localhost:5213/api
+
+ORGANIZADOR (4):
+1. POST  /Evento/ - Crea un evento, el perfil del orga debe estar completo para crear el evento
+Authorizacion: token bearer (organizador) evalua que sea token de organizador
+Content-Type: application/json
+  Body:
+    json
+      {
+        "nombre": "Maratón San Luis 2025",
+        "descripcion": "Carrera de 10K y 5K por las calles de San Luis",
+        "fechaHora": "2026-01-15T08:00:00",
+        "lugar": "Plaza Pringles, San Luis",
+        "cupoTotal": 500,
+        "urlPronosticoClima": "https://www.weather.com/sanluisargentina",
+        "datosPago": "CBU: 0000003100012345678901 - Alias: RUNNERS.SL - Titular: Runners Club San Luis S.A"
+      }
+
+2. GET /Evento/MisEventos - Ver mis eventos (todos los estados) de un organizador
+Authorizacion: token bearer (organizador) evalua que sea token de organizador
+Content-Type: application/json
+Request: 
+  json 
+    {
+  "total": 1,
+  "eventos": [
+    {
+      "idEvento": 1,
+      "nombre": "Maratón San Luis 2025",
+      "fechaHora": "2026-01-15T08:00:00",
+      "lugar": "Plaza Pringles, San Luis",
+      "estado": "publicado",
+      "cupoTotal": 500,
+      "inscriptosActuales": 0,
+      "cantidadCategorias": 0,
+      "nombreOrganizador": "" --- Revisar no me trae el nombre y/o razon social organizador
+    }
+  ]
+}
+
+
+3. PUT /Evento/{id} - Actualizar un evento - Si esta cancelado y/o finalizado no se puede editar
+Authorizacion: token bearer (organizador) evalua que sea token de organizador
+Content-Type: application/json
+Body:
+  json
+    {
+      "nombre": "Maratón San Luis 2025 - ACTUALIZADO",
+      "descripcion": "Carrera de 10K y 5K - Descripción actualizada",
+      "fechaHora": "2025-03-15T09:00:00",
+      "lugar": "Plaza Pringles, San Luis Capital",
+      "cupoTotal": 600,
+      "urlPronosticoClima": "https://www.weather.com/sanluisargentina",
+      "datosPago": "CBU: 0000003100012345678901 - Alias: RUNNERS.SL.2025"  
+    }
+
+4. PUT /Evento/{id}/CambiarEstado - Cambiar estado a (publicado/cancelado/finalizado)
+Authorizacion: token bearer (organizador) evalua que sea token de organizador
+Content-Type: application/json
+Body:
+  json
+    {
+      "nuevoEstado": "cancelado",
+      "motivo": "Evento de prueba - cancelacion para testing"  
+    }
+
+
+
+PUBLICOS(3):
+1. GET /Evento/Publicados - Listar eventos publicados y futuros para los runners (en la app una seccion del login se puede mostrar los proximos eventos sin loguearse y/o registrarse)
+Authorizacion: publico
+Request:
+  json
+    {
+  "eventos": [
+    {
+      "idEvento": 1,
+      "nombre": "Maratón San Luis 2025 - ACTUALIZADO",
+      "fechaHora": "2026-03-15T09:00:00",
+      "lugar": "Plaza Pringles, San Luis Capital",
+      "estado": "publicado",
+      "cupoTotal": 600,
+      "inscriptosActuales": 0,
+      "cantidadCategorias": 0,
+      "nombreOrganizador": "CD La Punta"
+    }
+  ],
+  "paginaActual": 1,
+  "totalPaginas": 1,
+  "totalEventos": 1,
+  "tamanioPagina": 1,
+  "tienePaginaAnterior": false,
+  "tienePaginaSiguiente": false
+}
+
+
+2. GET /Evento/Buscar - Buscar eventos con filtros y paginacion
+Authorizacion: publico
+query params: 
+     ?nombre=Maraton
+     &lugar=San Luis
+     &fechaDesde=2025-01-01
+     &fechaHasta=2025-12-31
+     &estado=publicado
+     &idOrganizador=3
+     &pagina=1
+     &tamanioPagina=10
+
+3. GET /Evento/{id} - Ver detalle de un evento
+Authorizacion: publico
+Request:
+  json
+    {
+  "idEvento": 1,
+  "nombre": "Maratón San Luis 2025 - ACTUALIZADO",
+  "descripcion": "Carrera de 10K y 5K - Descripción actualizada",
+  "fechaHora": "2026-03-15T09:00:00",
+  "lugar": "Plaza Pringles, San Luis Capital",
+  "cupoTotal": 600,
+  "inscriptosActuales": 0,
+  "cuposDisponibles": 600,
+  "estado": "publicado",
+  "urlPronosticoClima": "https://www.weather.com/sanluisargentina",
+  "datosPago": "CBU: 0000003100012345678901 - Alias: RUNNERS.SL.2025",
+  "organizador": {
+    "idUsuario": 5,
+    "nombre": "CD La Punta",
+    "nombreComercial": "CD La Punta",
+    "telefono": "2664555888",
+    "email": "test@orgaclub.com"
+  },
+  "categorias": [] -----------------Sin categorias
+}
+
+
+CREAR CATEGORIAS PARA EVENTO (1,2,3)
+1. POST /Evento/{id}/Categorias - {idEvento}
+Authorizacion: token bearer (organizador) - Verificar si es valido el token y si es del organizador
+Content-Type: application/json
+Body:
+  json
+  {
+    "nombre": "10K Competitiva",
+    "costoInscripcion": 5000.00,
+    "cupoCategoria": 200,
+    "edadMinima": 18,
+    "edadMaxima": 99,
+    "genero": "X" 
+  }
+
+CAMBIAR ESTADO DE INSCRIPCION (2):
+1. POST /Inscripcion/{idInscripcion}/EstadoPago - Del lado del runner envia el comprobante (estadoPago procesando), el organizador espera el impacto
+del pago. (pagado, rechazado) 
+Authorizacion: token bearer (organizador) - 
+Content-Type: application/json
+Body:
+  json
+    {
+      "nuevoEstado": "pagado",
+      "motivo": "Transferencia OK"
+    }
+
+2. PUT /Inscripcion/{id}/Reembolsar - Una vez pagado se puede reembolsar si el runner le pide al organizador
+Authorizacion: token bearer (organizador)
+Content-Type: application/json
+Body:
+
+
+
+NOTA: 
+Debemos corregir el endpoint para la carga del modelo CargarResultadoRequest -> CargarResultadosBatch (espera un JSON), en la documentacion dice que me espera
+un CSV, que la da la empresa que cronometra los datos con el chip NFC etc
+
+Vamos a eliminar los metodos que reciban carga tipo JSON. Solo vamos a recibir .csv ya sea en forma masiva o 1 por 1 (manual).
+
+http://localhost:5213/api
+
+Cargar Resultados (2) NOTA: Para poder cargar los resultado el evento tiene que haber finalizado
+1. POST /Resultado/CargarArchivo
+Authorizacion: token bearer
+Content-Type: multipart/form-data
+Form Data:
+  IdEvento: [idEvento] tipo int 1, 2, 3... 
+  Archivo: [Tipo File] - .csv el formato es DNI,Tiempo,PosGeneral,PosCategoria
+
+
+2. POST / - Carga individual de un resultado con json
+
+
+Obtener resultados (2)
+1. GET /Resultado/Evento/{id} - Resultados de un evento, endpoint publico
+Authorizacion: publico
+Content-Type:
+
+
+2. GET /Resultado/{id} - Resultado especifico de una posicion - publico
+Authorizacion: publico
+
+
+
+TRAZADO DE RUTA (1)
+NOTA: Desde la app el organizador traza la ruta en una vista de mapas haciendo uso del SDK de Google Maps.
+  Es decir el organizador nunca sale de la app
+1. PUT /Evento/{}/Ruta - 
+Authorizacion: token bearer
+Content-Type: json
+Body:
+  JSON
+    {
+     "idEvento": 1,
+     "puntos": [
+    {
+      "latitud": -33.302150,
+      "longitud": -66.336800,
+      "orden": 1
+    },
+    {
+      "latitud": -33.302150,
+      "longitud": -66.338000,
+      "orden": 2
+    },
+    {
+      "latitud": -33.303200,
+      "longitud": -66.338000,
+      "orden": 3
+    },
+    {
+      "latitud": -33.303200,
+      "longitud": -66.336800,
+      "orden": 4
+    },
+    {
+      "latitud": -33.302150,
+      "longitud": -66.336800,
+      "orden": 5
+    }
+  ]
+}
+
+
+AGREGAR PUNTOS DE INTERES (1,2,3...)
+NOTA: El organizador marca un punto de interes en el evento (ruta) hidratacion, meta etc
+1. POST /Evento/{}/PuntosInteres - Meta/Largada
+Authorizacion: token bearer
+Content-Type: application/json
+Body:
+  JSON
+    {
+    "tipo": "largada",
+    "nombre": "Arco de Largada/Llegada",
+    "latitud": -33.302150,
+    "longitud": -66.336800
+    }
+
+
+2. POST /Evento/{}/PuntosInteres - Puesto de Hidratacion
+Authorizacion: token bearer
+Content-Type: application/json
+Body:
+    {
+    "tipo": "hidratacion",
+    "nombre": "Agua e Isotónica (Km 0.5)",
+    "latitud": -33.303200,
+    "longitud": -66.338000
+    }
+        
+    

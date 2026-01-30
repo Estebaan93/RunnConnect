@@ -24,6 +24,11 @@
         android:title="Mi Perfil Comercial" />
   </group>
 
+    <item
+    android:id="@+id/nav_buscar_inscripciones"
+    android:icon="@drawable/loupe"
+    android:title="Buscar Inscriptos" />
+
   <item android:title="Cuenta">
     <menu>
       <item

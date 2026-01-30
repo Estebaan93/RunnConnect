@@ -5,7 +5,7 @@ import android.app.Application;
 import com.example.runnconnect.data.conexion.ApiClient;
 import com.example.runnconnect.data.conexion.ApiService;
 import com.example.runnconnect.data.preferencias.SessionManager;
-import com.example.runnconnect.data.request.BusquedaInscripcionResponse;
+import com.example.runnconnect.data.response.BusquedaInscripcionResponse;
 import com.example.runnconnect.data.request.CambiarEstadoPagoRequest;
 import com.example.runnconnect.data.request.MotivoBajaRequest;
 import com.example.runnconnect.data.response.ListaInscriptosResponse;

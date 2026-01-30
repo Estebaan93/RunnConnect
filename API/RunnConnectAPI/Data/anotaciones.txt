@@ -1,0 +1,33 @@
+En Usuarios:
+Campos compartidos para runner/organizador, en la BD esta comentado en la tabla.
+
+Perfiles_runners:
+Al registrar un nuevo usuario runner completar campos esenciales solo para registro, post registro 
+para inscribirse a un evento todos los campos deben ser completados.
+
+Perfiles_organizadores:
+Al registrar un nuevo usuario organizador completar campos esenciales solo para registro, post registro 
+para crear un evento todos los campos deben ser completados.
+
+
+categoria_evento:
+costoInscripcion - No puede ser nulo, debe si o si tener un costo la inscripcion
+
+
+
+puntointeres:
+El nombre debe ser required - cambiar en la BD a no null
+
+
+
+resultado:
+tiempoOficial puede ser nulo porque el organizador carga los resultados post evento o en tiempo resultado
+
+eventos:
+Se agrega el campo estado como "enum" para el evento (publicado, cancelado, finalizado)
+El runner puede ver eventos proximos sin estar logueado, imaginemos que el descarga la app pero no se registra... Desde la pantalla de logueo puede ver 
+de alguna forma proximos eventos, si le interes puede inscribirse...
+
+
+inscripcion:
+acepto deslinde debe ser no nulo y falso - para que el runner me acepte el deslinde a true (1)

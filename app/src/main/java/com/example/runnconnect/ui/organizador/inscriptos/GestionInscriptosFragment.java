@@ -1,7 +1,10 @@
 package com.example.runnconnect.ui.organizador.inscriptos;
 
 import android.app.Dialog;
+import android.graphics.Color;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -27,6 +30,10 @@ public class GestionInscriptosFragment extends Fragment {
   private GestionInscriptosViewModel viewModel;
   private InscriptosAdapter adapter;
   private int idEvento = 0;
+
+  // Referencias a los diálogos activos para el Observer
+  private Dialog dialogValidacionActual;
+  private Dialog dialogDetalleActual;
 
   public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
     binding = FragmentGestionInscriptosBinding.inflate(inflater, container, false);
@@ -58,27 +65,73 @@ public class GestionInscriptosFragment extends Fragment {
   }
 
   private void setupObservers() {
-    // UI States
-    viewModel.getIsLoading().observe(getViewLifecycleOwner(), loading ->
-      binding.progressBar.setVisibility(loading ? View.VISIBLE : View.GONE));
+    // UI States: Loading
+    viewModel.getIsLoading().observe(getViewLifecycleOwner(),
+      loading -> binding.progressBar.setVisibility(loading ? View.VISIBLE : View.GONE));
 
+    // UI States: Mensajes (Toast o Feedback en Diálogo)
     viewModel.getMensajeToast().observe(getViewLifecycleOwner(), msg -> {
       if (msg != null) {
-        Toast.makeText(getContext(), msg, Toast.LENGTH_SHORT).show();
+        boolean mensajeManejado = false;
+
+        // 1. Validar si hay diálogo de PAGO abierto
+        if (dialogValidacionActual != null && dialogValidacionActual.isShowing()) {
+          TextView tvFeedback = dialogValidacionActual.findViewById(R.id.tvMensajePago);
+          if (tvFeedback != null) {
+            tvFeedback.setText(msg);
+            tvFeedback.setVisibility(View.VISIBLE);
+
+            // Color según el mensaje
+            if (msg.toLowerCase().contains("rechazado") || msg.toLowerCase().contains("error")) {
+              tvFeedback.setTextColor(Color.RED);
+            } else {
+              tvFeedback.setTextColor(Color.parseColor("#388E3C")); // Verde
+            }
+
+            mensajeManejado = true;
+            cerrarDialogoConDelay(dialogValidacionActual);
+          }
+        }
+
+        // 2. Validar si hay diálogo de DETALLE abierto (Baja)
+        if (!mensajeManejado && dialogDetalleActual != null && dialogDetalleActual.isShowing()) {
+          TextView tvFeedback = dialogDetalleActual.findViewById(R.id.tvMensajeBaja);
+          if (tvFeedback != null) {
+            tvFeedback.setText(msg);
+            tvFeedback.setVisibility(View.VISIBLE);
+
+            if (msg.toLowerCase().contains("error")) {
+              tvFeedback.setTextColor(Color.RED);
+            } else {
+              tvFeedback.setTextColor(Color.parseColor("#388E3C")); // Verde
+            }
+
+            mensajeManejado = true;
+            cerrarDialogoConDelay(dialogDetalleActual);
+          }
+        }
+
+        // 3. Fallback: Toast si no hay diálogos
+        if (!mensajeManejado) {
+          Toast.makeText(getContext(), msg, Toast.LENGTH_SHORT).show();
+        }
+
         viewModel.limpiarMensaje();
       }
     });
 
+    // Lista de datos
     viewModel.getListaInscriptos().observe(getViewLifecycleOwner(), lista -> {
       if (lista != null) adapter.setLista(lista);
     });
 
+    // Estado Vacío
     viewModel.getEsListaVacia().observe(getViewLifecycleOwner(), vacio -> {
       binding.tvVacio.setVisibility(vacio ? View.VISIBLE : View.GONE);
       binding.recyclerInscriptos.setVisibility(vacio ? View.GONE : View.VISIBLE);
     });
 
-    // ordenes de dialogos
+    // Órdenes de navegación (Abrir diálogos)
     viewModel.getOrdenMostrarValidacion().observe(getViewLifecycleOwner(), item -> {
       if (item != null) {
         mostrarDialogoValidacion(item);
@@ -94,32 +147,47 @@ public class GestionInscriptosFragment extends Fragment {
     });
   }
 
+  private void cerrarDialogoConDelay(Dialog dialog) {
+    new Handler(Looper.getMainLooper()).postDelayed(() -> {
+      if (dialog != null && dialog.isShowing()) {
+        dialog.dismiss();
+      }
+    }, 1500); // 1.5 seg de espera para leer
+  }
+
   private void setupRecyclerView() {
-
     adapter = new InscriptosAdapter(item -> viewModel.onInscriptoSeleccionado(item));
-
     binding.recyclerInscriptos.setLayoutManager(new LinearLayoutManager(getContext()));
     binding.recyclerInscriptos.setAdapter(adapter);
   }
 
-  // --- VISUALIZACION (Pura UI: Inflar Layouts y Pintar Datos) ---
+  // --- DIÁLOGOS ---
 
   private void mostrarDetalleRunner(InscriptoEventoResponse item) {
-    final Dialog dialog = new Dialog(requireContext());
-    dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
-    dialog.setContentView(R.layout.dialog_detalle_runner);
-    dialog.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+    // CORRECCIÓN: Asignar a la variable global 'dialogDetalleActual'
+    dialogDetalleActual = new Dialog(requireContext());
+    dialogDetalleActual.requestWindowFeature(Window.FEATURE_NO_TITLE);
+    dialogDetalleActual.setContentView(R.layout.dialog_detalle_runner);
+    dialogDetalleActual.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
 
-    // Bindings manuales
-    TextView tvNombre = dialog.findViewById(R.id.tvNombreCompleto);
-    TextView tvDniSexo = dialog.findViewById(R.id.tvDniSexoEdad);
-    TextView tvLocalidad = dialog.findViewById(R.id.tvLocalidad);
-    TextView tvCatTalle = dialog.findViewById(R.id.tvCategoriaTalle);
-    TextView tvEmail = dialog.findViewById(R.id.tvEmail);
-    TextView tvTel = dialog.findViewById(R.id.tvTelefono);
-    TextView tvEmergencia = dialog.findViewById(R.id.tvContactoEmergencia);
-    TextView tvTelEmergencia = dialog.findViewById(R.id.tvTelEmergencia);
-    Button btnCerrar = dialog.findViewById(R.id.btnCerrarDetalle);
+    // Limpiar referencia al cerrar manualmente
+    dialogDetalleActual.setOnDismissListener(d -> dialogDetalleActual = null);
+
+    // Bindings
+    TextView tvNombre = dialogDetalleActual.findViewById(R.id.tvNombreCompleto);
+    TextView tvDniSexo = dialogDetalleActual.findViewById(R.id.tvDniSexoEdad);
+    TextView tvLocalidad = dialogDetalleActual.findViewById(R.id.tvLocalidad);
+    TextView tvCatTalle = dialogDetalleActual.findViewById(R.id.tvCategoriaTalle);
+    TextView tvEmail = dialogDetalleActual.findViewById(R.id.tvEmail);
+    TextView tvTel = dialogDetalleActual.findViewById(R.id.tvTelefono);
+    TextView tvEmergencia = dialogDetalleActual.findViewById(R.id.tvContactoEmergencia);
+    TextView tvTelEmergencia = dialogDetalleActual.findViewById(R.id.tvTelEmergencia);
+    Button btnCerrar = dialogDetalleActual.findViewById(R.id.btnCerrarDetalle);
+    Button btnDarDeBaja = dialogDetalleActual.findViewById(R.id.btnDarDeBaja);
+
+    // Inicializar el TextView de mensaje oculto
+    TextView tvFeedback = dialogDetalleActual.findViewById(R.id.tvMensajeBaja);
+    tvFeedback.setVisibility(View.GONE);
 
     InscriptoEventoResponse.RunnerInscriptoInfo r = item.getRunner();
 
@@ -140,21 +208,42 @@ public class GestionInscriptosFragment extends Fragment {
     String talle = item.getTalleRemera() != null ? item.getTalleRemera() : "-";
     tvCatTalle.setText("Categoría: " + item.getNombreCategoria() + " | Talle: " + talle);
 
-    btnCerrar.setOnClickListener(v -> dialog.dismiss());
-    dialog.show();
+    // Listener Dar de Baja
+    btnDarDeBaja.setOnClickListener(v -> {
+      new androidx.appcompat.app.AlertDialog.Builder(requireContext())
+        .setTitle("Confirmar baja")
+        .setMessage("¿Estás seguro de que deseas eliminar la inscripción de este corredor?")
+        .setPositiveButton("Sí", (d, w) -> {
+          // Llamamos al ViewModel. NO cerramos el diálogo aquí.
+          // Esperamos a que el Observer reciba el mensaje de éxito/error.
+          viewModel.darDeBajaRunner(item.getIdInscripcion());
+        })
+        .setNegativeButton("No", null)
+        .show();
+    });
+
+    btnCerrar.setOnClickListener(v -> dialogDetalleActual.dismiss());
+    dialogDetalleActual.show();
   }
 
   private void mostrarDialogoValidacion(InscriptoEventoResponse item) {
-    final Dialog dialog = new Dialog(requireContext());
-    dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
-    dialog.setContentView(R.layout.dialog_validar_pago);
-    dialog.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+    dialogValidacionActual = new Dialog(requireContext());
+    dialogValidacionActual.requestWindowFeature(Window.FEATURE_NO_TITLE);
+    dialogValidacionActual.setContentView(R.layout.dialog_validar_pago);
+    dialogValidacionActual.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
 
-    ImageView imgComprobante = dialog.findViewById(R.id.imgComprobante);
-    Button btnAceptar = dialog.findViewById(R.id.btnAceptarPago);
-    Button btnRechazar = dialog.findViewById(R.id.btnRechazarPago);
-    TextView tvNombre = dialog.findViewById(R.id.tvNombreRunner);
-    TextView tvDni = dialog.findViewById(R.id.tvDniRunner);
+    // Limpiar referencia al cerrar
+    dialogValidacionActual.setOnDismissListener(d -> dialogValidacionActual = null);
+
+    ImageView imgComprobante = dialogValidacionActual.findViewById(R.id.imgComprobante);
+    Button btnAceptar = dialogValidacionActual.findViewById(R.id.btnAceptarPago);
+    Button btnRechazar = dialogValidacionActual.findViewById(R.id.btnRechazarPago);
+    TextView tvNombre = dialogValidacionActual.findViewById(R.id.tvNombreRunner);
+    TextView tvDni = dialogValidacionActual.findViewById(R.id.tvDniRunner);
+
+    // Inicializar feedback oculto
+    TextView tvFeedback = dialogValidacionActual.findViewById(R.id.tvMensajePago);
+    tvFeedback.setVisibility(View.GONE);
 
     if (item.getRunner() != null) {
       tvNombre.setText(item.getRunner().getNombreCompleto());
@@ -169,17 +258,20 @@ public class GestionInscriptosFragment extends Fragment {
       imgComprobante.setImageResource(R.drawable.ic_launcher_foreground);
     }
 
-    // CORRECCION: Delegamos la acción al VM sin pasar strings de negocio
     btnAceptar.setOnClickListener(v -> {
       viewModel.aprobarPago(item.getIdInscripcion());
-      dialog.dismiss();
+      // Deshabilitar botones para evitar doble click
+      btnAceptar.setEnabled(false);
+      btnRechazar.setEnabled(false);
+      // NO cerramos aquí, el observer lo hará
     });
 
     btnRechazar.setOnClickListener(v -> {
       viewModel.rechazarPago(item.getIdInscripcion());
-      dialog.dismiss();
+      btnAceptar.setEnabled(false);
+      btnRechazar.setEnabled(false);
     });
 
-    dialog.show();
+    dialogValidacionActual.show();
   }
 }

@@ -16,6 +16,11 @@
       android:name="com.example.runnconnect.ui.cerrarSesion.LogoutFragment"
       android:label="Cerrar Sesión"
       tools:layout="@layout/fragment_logout" />
+  <fragment
+    android:id="@+id/nav_buscar_inscripciones"
+    android:name="com.example.runnconnect.ui.organizador.buscarInscripciones.BuscarInscripcionesFragment"
+    android:label="Buscar Inscriptos"
+    tools:layout="@layout/fragment_buscar_inscripciones" />
 
   <fragment
       android:id="@+id/nav_perfil"
@@ -118,7 +123,8 @@
   <fragment
       android:id="@+id/nav_gestion_inscriptos"
       android:name="com.example.runnconnect.ui.organizador.inscriptos.GestionInscriptosFragment"
-      android:label="Gestión de Inscriptos">
+      android:label="Gestión de Pagos"
+      tools:layout="@layout/fragment_gestion_inscriptos">
     <argument
         android:name="idEvento"
         app:argType="integer" />
