@@ -8,7 +8,7 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
 import com.example.runnconnect.data.repositorio.InscripcionRepositorio;
-import com.example.runnconnect.data.request.BusquedaInscripcionResponse;
+import com.example.runnconnect.data.response.BusquedaInscripcionResponse;
 
 import java.util.ArrayList;
 import java.util.List;
