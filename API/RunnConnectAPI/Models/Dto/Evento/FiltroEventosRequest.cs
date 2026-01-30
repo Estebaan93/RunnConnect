@@ -3,9 +3,8 @@ using System.ComponentModel.DataAnnotations;
 
 namespace RunnConnectAPI.Models.Dto.Evento
 {
-  /// DTO para filtrar eventos en la búsqueda
-  /// GET: api/Evento/Buscar
-
+  // DTO para filtrar eventos en la busqueda
+  // GET: api/Evento/Buscar
   public class FiltroEventosRequest
   {
     public string? Nombre { get; set; }
@@ -16,14 +15,12 @@ namespace RunnConnectAPI.Models.Dto.Evento
     public int? IdOrganizador { get; set; }
 
   
-    /// Página actual (para paginación)
-   
+    // Pagina actual (para paginacion)
     [Range(1, int.MaxValue, ErrorMessage = "La página debe ser mayor a 0")]
     public int Pagina { get; set; } = 1;
 
   
-    /// Cantidad de resultados por página
-   
+    // Cantidad de resultados por pagina
     [Range(1, 50, ErrorMessage = "El tamaño de página debe estar entre 1 y 50")]
     public int TamanioPagina { get; set; } = 10;
   }

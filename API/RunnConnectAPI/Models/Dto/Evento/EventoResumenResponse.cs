@@ -5,8 +5,8 @@ using RunnConnectAPI.Models.Dto.Categoria;
 namespace RunnConnectAPI.Models.Dto.Evento
 {
  
-  /// DTO de respuesta con información básica del evento (para listados)
-  
+  /// DTO de respuesta con información basica del evento (para listados)
+
   public class EventoResumenResponse
   {
     public int IdEvento { get; set; }

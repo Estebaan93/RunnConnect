@@ -5,8 +5,7 @@ using RunnConnectAPI.Models.Dto.Categoria;
 namespace RunnConnectAPI.Models.Dto.Evento
 {
 
-  /// DTO de respuesta con información completa del evento (para detalle)
-
+  // DTO de respuesta con informacion completa del evento (para detalle)
   public class EventoDetalleResponse
   {
     public int IdEvento { get; set; }
@@ -22,12 +21,12 @@ namespace RunnConnectAPI.Models.Dto.Evento
     public string? DatosPago { get; set; }
 
    
-    /// Información del organizador
+    // Informacin del organizador
   
     public OrganizadorEventoResponse? Organizador { get; set; }
 
    
-    /// Categorías disponibles en el evento
+    // Categoras disponibles en el evento
    
     public List<CategoriaEventoResponse>? Categorias { get; set; }
   }

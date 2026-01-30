@@ -8,11 +8,10 @@ using System.Security.Claims;
 
 namespace RunnConnectAPI.Controllers
 {
-  /// <summary>
-  /// Controller para gestión de categorías de eventos
-  /// Las categorías definen las divisiones de un evento (10K, 5K, etc.)
-  /// con sus respectivos costos, cupos, rangos de edad y género
-  /// </summary>
+  /* Controller para gestion de categorias de eventos
+  Las categorias definen las divisiones de un evento (10K, 5K, etc.)
+  con sus respectivos costos, cupos, rangos de edad y genero*/
+
   [ApiController]
   [Route("api/Evento/{idEvento}/Categorias")]
   public class CategoriaController : ControllerBase
@@ -26,15 +25,10 @@ namespace RunnConnectAPI.Controllers
       _eventoRepo = eventoRepo;
     }
 
-    #region ═══════════════════ ENDPOINTS PÚBLICOS ═══════════════════
-
-    /// <summary>
-    /// Obtiene todas las categorías de un evento
-    /// </summary>
-    /// <remarks>
-    /// Endpoint público - cualquiera puede ver las categorías
-    /// Incluye información de cupos disponibles
-    /// </remarks>
+      //ENDPOINTS PUBLICOS 
+    /* Obtiene todas las categorias de un evento
+     Endpoint publico - cualquiera puede ver las categorias
+     Incluye informacion de cupos disponibles*/
     [HttpGet]
     [AllowAnonymous]
     public async Task<IActionResult> ObtenerCategorias(int idEvento)
@@ -48,7 +42,7 @@ namespace RunnConnectAPI.Controllers
 
         var categorias = await _categoriaRepo.ObtenerPorEventoAsync(idEvento);
 
-        // Agregar info de inscriptos a cada categoría
+        // Agregar info de inscriptos a cada categoria
         var categoriasResponse = new List<CategoriaEventoResponse>();
         foreach (var cat in categorias)
         {
@@ -65,7 +59,7 @@ namespace RunnConnectAPI.Controllers
             EdadMaxima = cat.EdadMaxima,
             Genero = cat.Genero,
             InscriptosActuales = inscriptos
-            // CuposDisponibles y TieneCupo se calculan automáticamente en el DTO
+            // CuposDisponibles y TieneCupo se calculan automaticamente en el DTO
           });
         }
 
@@ -83,9 +77,7 @@ namespace RunnConnectAPI.Controllers
       }
     }
 
-    /// <summary>
-    /// Obtiene una categoría específica por ID
-    /// </summary>
+    // Obtiene una categoria especifica por ID
     [HttpGet("{idCategoria}")]
     [AllowAnonymous]
     public async Task<IActionResult> ObtenerCategoria(int idEvento, int idCategoria)
@@ -114,7 +106,7 @@ namespace RunnConnectAPI.Controllers
           EdadMaxima = categoria.EdadMaxima,
           Genero = categoria.Genero,
           InscriptosActuales = inscriptos
-          // CuposDisponibles y TieneCupo se calculan automáticamente en el DTO
+          // CuposDisponibles y TieneCupo se calculan automaticamente en el DTO
         });
       }
       catch (Exception ex)
@@ -123,13 +115,9 @@ namespace RunnConnectAPI.Controllers
       }
     }
 
-    /// <summary>
-    /// Obtiene categorías disponibles para un runner según su edad y género
-    /// </summary>
-    /// <remarks>
-    /// Endpoint público - el runner puede ver en qué categorías puede inscribirse
-    /// Filtra por edad, género y cupo disponible
-    /// </remarks>
+    /*Obtiene categorias disponibles para un runner segun su edad y genero
+     Endpoint publico - el runner puede ver en qu categorias puede inscribirse
+     Filtra por edad, genero y cupo disponible*/
     [HttpGet("Disponibles")]
     [AllowAnonymous]
     public async Task<IActionResult> ObtenerCategoriasDisponibles(
@@ -143,7 +131,7 @@ namespace RunnConnectAPI.Controllers
         if (evento == null)
           return NotFound(new { message = "Evento no encontrado" });
 
-        // Validar género
+        // Validar genero
         genero = genero?.ToUpper() ?? "X";
         if (genero != "F" && genero != "M" && genero != "X")
           return BadRequest(new { message = "Género debe ser F, M o X" });
@@ -158,7 +146,7 @@ namespace RunnConnectAPI.Controllers
           if (edad < cat.EdadMinima || edad > cat.EdadMaxima)
             continue;
 
-          // Verificar género (X = mixto/todos)
+          // Verificar genero (X = mixto/todos)
           if (cat.Genero != "X" && cat.Genero != genero)
             continue;
 
@@ -180,7 +168,7 @@ namespace RunnConnectAPI.Controllers
             EdadMaxima = cat.EdadMaxima,
             Genero = cat.Genero,
             InscriptosActuales = inscriptos
-            // CuposDisponibles y TieneCupo se calculan automáticamente en el DTO
+            // CuposDisponibles y TieneCupo se calculan automaticamente en el DTO
           });
         }
 
@@ -200,17 +188,11 @@ namespace RunnConnectAPI.Controllers
       }
     }
 
-    #endregion
 
-    #region ═══════════════════ ENDPOINTS ORGANIZADOR ═══════════════════
-
-    /// <summary>
-    /// Crea una nueva categoría en un evento
-    /// </summary>
-    /// <remarks>
-    /// Requiere: Token JWT de Organizador (dueño del evento)
-    /// No permite crear si el evento está cancelado o finalizado
-    /// </remarks>
+    //ENDPOINTS ORGANIZADOR 
+    /* Crea una nueva categoria en un evento
+    Requiere: Token JWT de Organizador (dueño del evento)
+    No permite crear si el evento está cancelado o finalizado */
     [HttpPost]
     [Authorize]
     public async Task<IActionResult> CrearCategoria(int idEvento, [FromBody] CrearCategoriaRequest request)
@@ -244,7 +226,7 @@ namespace RunnConnectAPI.Controllers
         if (!await _categoriaRepo.ValidarCupoContraEventoAsync(idEvento, request.CupoCategoria))
           return BadRequest(new { message = "El cupo de la categoría no puede exceder el cupo total del evento" });
 
-        // Crear categoría
+        // Crear categoria
         var categoria = new CategoriaEvento
         {
           IdEvento = idEvento,
@@ -282,13 +264,10 @@ namespace RunnConnectAPI.Controllers
       }
     }
 
-    /// <summary>
-    /// Actualiza una categoría existente
-    /// </summary>
-    /// <remarks>
-    /// Requiere: Token JWT de Organizador (dueño del evento)
-    /// No permite reducir cupo por debajo de inscriptos actuales
-    /// </remarks>
+    /* Actualiza una categoria existente
+     Requiere: Token JWT de Organizador (dueño del evento)
+     No permite reducir cupo por debajo de inscriptos actuales */
+
     [HttpPut("{idCategoria}")]
     [Authorize]
     public async Task<IActionResult> ActualizarCategoria(
@@ -313,7 +292,7 @@ namespace RunnConnectAPI.Controllers
         if (evento.Estado == "cancelado" || evento.Estado == "finalizado")
           return BadRequest(new { message = $"No se pueden modificar categorías de un evento {evento.Estado}" });
 
-        // Verificar que la categoría existe y pertenece al evento
+        // Verificar que la categoria existe y pertenece al evento
         var categoria = await _categoriaRepo.ObtenerPorIdYEventoAsync(idCategoria, idEvento);
         if (categoria == null)
           return NotFound(new { message = "Categoría no encontrada en este evento" });
@@ -322,7 +301,7 @@ namespace RunnConnectAPI.Controllers
         if (!_categoriaRepo.ValidarRangoEdades(request.EdadMinima, request.EdadMaxima))
           return BadRequest(new { message = "La edad mínima no puede ser mayor que la edad máxima" });
 
-        // Verificar nombre único (si cambió)
+        // Verificar nombre unico (si cambio)
         if (request.Nombre.ToLower().Trim() != categoria.Nombre.ToLower() &&
             await _categoriaRepo.ExisteNombreEnEventoAsync(idEvento, request.Nombre, idCategoria))
           return Conflict(new { message = "Ya existe otra categoría con este nombre en el evento" });
@@ -353,13 +332,10 @@ namespace RunnConnectAPI.Controllers
       }
     }
 
-    /// <summary>
-    /// Elimina una categoría
-    /// </summary>
-    /// <remarks>
-    /// Requiere: Token JWT de Organizador (dueño del evento)
-    /// No permite eliminar si tiene inscripciones
-    /// </remarks>
+    /* Elimina una categoria
+      Requiere: Token JWT de Organizador(dueño del evento)
+     No permite eliminar si tiene inscripciones */
+
     [HttpDelete("{idCategoria}")]
     [Authorize]
     public async Task<IActionResult> EliminarCategoria(int idEvento, int idCategoria)
@@ -377,7 +353,7 @@ namespace RunnConnectAPI.Controllers
         if (evento.IdOrganizador != userId)
           return StatusCode(403, new { message = "No tienes permiso para modificar este evento" });
 
-        // Verificar categoría
+        // Verificar categoria
         var categoria = await _categoriaRepo.ObtenerPorIdYEventoAsync(idCategoria, idEvento);
         if (categoria == null)
           return NotFound(new { message = "Categoría no encontrada en este evento" });
@@ -396,9 +372,7 @@ namespace RunnConnectAPI.Controllers
       }
     }
 
-    /// <summary>
-    /// Obtiene estadísticas de inscriptos por categoría (para el organizador)
-    /// </summary>
+    // Obtiene estadisticas de inscriptos por categoria (para el organizador)
     [HttpGet("Estadisticas")]
     [Authorize]
     public async Task<IActionResult> ObtenerEstadisticas(int idEvento)
@@ -447,10 +421,8 @@ namespace RunnConnectAPI.Controllers
       }
     }
 
-    #endregion
 
-    #region ═══════════════════ HELPERS PRIVADOS ═══════════════════
-
+     // HELPERS PRIVADOS 
     private (int userId, IActionResult? error) ValidarOrganizador()
     {
       var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
@@ -466,6 +438,5 @@ namespace RunnConnectAPI.Controllers
       return (userId, null);
     }
 
-    #endregion
   }
 }

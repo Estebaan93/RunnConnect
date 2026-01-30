@@ -4,7 +4,6 @@ namespace RunnConnectAPI.Models.Dto.Inscripcion
 {
 
   /// DTO para que el organizador vea los inscriptos a su evento
-
   public class InscriptoEventoResponse
   {
     public int IdInscripcion { get; set; }
@@ -14,20 +13,17 @@ namespace RunnConnectAPI.Models.Dto.Inscripcion
     public string? ComprobantePagoURL { get; set; }
 
  
-    /// Información del runner inscripto
- 
+    /// Informacion del runner inscripto
     public RunnerInscriptoInfo? Runner { get; set; }
 
 
-    /// Nombre de la categoría a la que se inscribió
-
+    // Nombre de la categoría a la que se inscribió
     public string NombreCategoria { get; set; } = string.Empty;
     public int IdCategoria { get; set; }
   }
 
 
-  /// Información del runner para el organizador
-
+  // Informacion del runner para el organizador
   public class RunnerInscriptoInfo
   {
     public int IdUsuario { get; set; }
@@ -43,8 +39,7 @@ namespace RunnConnectAPI.Models.Dto.Inscripcion
     public string? TelefonoEmergencia { get; set; }
 
 
-    /// Edad calculada del runner
-
+    // Edad calculada del runner
     public int? Edad => FechaNacimiento.HasValue
         ? (int)((DateTime.Now - FechaNacimiento.Value).TotalDays / 365.25)
         : null;

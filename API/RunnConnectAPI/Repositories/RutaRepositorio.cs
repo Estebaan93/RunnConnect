@@ -7,7 +7,7 @@ using RunnConnectAPI.Models.Dto.PuntoInteres;
 
 namespace RunnConnectAPI.Repositories
 {
-  /// Repositorio para gestion de Rutas y Puntos de Interés de eventos
+  /// Repositorio para gestion de Rutas y Puntos de Interes de eventos
   public class RutaRepositorio
   {
     private readonly RunnersContext _context;
@@ -17,7 +17,7 @@ namespace RunnConnectAPI.Repositories
       _context = context;
     }
 
-    // ═══════════════════ RUTAS ═══════════════════
+    //  RUTAS 
 
     /// Obtiene la ruta completa de un evento
     public async Task<RutaResponse?> ObtenerRutaEventoAsync(int idEvento)
@@ -63,7 +63,7 @@ namespace RunnConnectAPI.Repositories
       if (evento.IdOrganizador != idOrganizador)
         return (false, "No tienes permiso para modificar la ruta de este evento");
 
-      // Verificar que el evento no esté cancelado
+      // Verificar que el evento no este cancelado
       if (evento.Estado == "cancelado")
         return (false, "No se puede modificar la ruta de un evento cancelado");
 
@@ -77,7 +77,7 @@ namespace RunnConnectAPI.Repositories
         _context.Rutas.RemoveRange(rutaExistente);
       }
 
-      // Crear nuevos puntos con orden automático
+      // Crear nuevos puntos con orden automatico
       var orden = 1;
       foreach (var punto in request.Puntos)
       {
@@ -127,9 +127,9 @@ namespace RunnConnectAPI.Repositories
     }
 
 
-    // ═══════════════════ PUNTOS DE INTERÉS ═══════════════════
+    //  PUNTOS DE INTERES 
 
-    /// Obtiene todos los puntos de interés de un evento
+    /// Obtiene todos los puntos de interes de un evento
     public async Task<PuntosInteresEventoResponse?> ObtenerPuntosInteresEventoAsync(int idEvento)
     {
       var evento = await _context.Eventos
@@ -165,7 +165,7 @@ namespace RunnConnectAPI.Repositories
       };
     }
 
-    /// Obtiene un punto de interés por ID
+    /// Obtiene un punto de interes por ID
     public async Task<PuntoInteresResponse?> ObtenerPuntoInteresPorIdAsync(int idPuntoInteres)
     {
       var punto = await _context.PuntosInteres
@@ -184,7 +184,7 @@ namespace RunnConnectAPI.Repositories
       };
     }
 
-    /// Crea un nuevo punto de interés
+    /// Crea un nuevo punto de interes
     public async Task<(PuntoInteres? punto, string? error)> CrearPuntoInteresAsync(
       int idEvento, CrearPuntoInteresRequest request, int idOrganizador)
     {
@@ -215,7 +215,7 @@ namespace RunnConnectAPI.Repositories
       return (punto, null);
     }
 
-    /// Actualiza un punto de interés existente
+    /// Actualiza un punto de interes existente
     public async Task<(bool exito, string? error)> ActualizarPuntoInteresAsync(
       int idPuntoInteres, ActualizarPuntoInteresRequest request, int idOrganizador)
     {
@@ -238,7 +238,7 @@ namespace RunnConnectAPI.Repositories
       return (true, null);
     }
 
-    /// Elimina un punto de interés
+    /// Elimina un punto de interes
     public async Task<(bool exito, string? error)> EliminarPuntoInteresAsync(
       int idPuntoInteres, int idOrganizador)
     {
@@ -258,7 +258,7 @@ namespace RunnConnectAPI.Repositories
       return (true, null);
     }
 
-    /// Crea múltiples puntos de interés a la vez
+    /// Crea multiples puntos de interes a la vez
     public async Task<(int creados, string? error)> CrearPuntosInteresMultiplesAsync(
       int idEvento, List<CrearPuntoInteresRequest> puntos, int idOrganizador)
     {
@@ -286,7 +286,7 @@ namespace RunnConnectAPI.Repositories
       return (nuevoPuntos.Count, null);
     }
 
-    /// Elimina todos los puntos de interés de un evento
+    /// Elimina todos los puntos de interes de un evento
     public async Task<(bool exito, string? error)> EliminarTodosPuntosInteresAsync(
       int idEvento, int idOrganizador)
     {
@@ -314,10 +314,10 @@ namespace RunnConnectAPI.Repositories
 
   
 
-    // ═══════════════════ MAPA COMPLETO ═══════════════════
+    // MAPA COMPLETO 
 
-    /// Obtiene el mapa completo del evento (ruta + puntos de interés)
-    /// Útil para la app Android
+    /// Obtiene el mapa completo del evento (ruta + puntos de interes)
+    /// Util para la app Android
     public async Task<MapaEventoResponse?> ObtenerMapaCompletoAsync(int idEvento)
     {
       var evento = await _context.Eventos

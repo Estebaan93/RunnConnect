@@ -2,8 +2,8 @@
 
 namespace RunnConnectAPI.Models.Dto.Resultado
 {
-  /// Respuesta con los resultados del runner autenticado
-  /// GET: api/Resultado/MisResultados
+  // Respuesta con los resultados del runner autenticado
+  // GET: api/Resultado/MisResultados
   public class MisResultadosResponse
   {
     public int TotalCarreras { get; set; }
@@ -24,7 +24,7 @@ namespace RunnConnectAPI.Models.Dto.Resultado
     public DateTime FechaEvento { get; set; }
     public string LugarEvento { get; set; } = string.Empty;
 
-    // Categoría
+    // Categoria
     public string NombreCategoria { get; set; } = string.Empty;
 
     // Resultados oficiales
@@ -37,7 +37,7 @@ namespace RunnConnectAPI.Models.Dto.Resultado
     public DatosSmartwatchInfo? DatosSmartwatch { get; set; }
   }
 
-  /// Estadisticas acumuladas del runner
+  // Estadisticas acumuladas del runner
   public class EstadisticasRunner
   {
     public int CarrerasCompletadas { get; set; }

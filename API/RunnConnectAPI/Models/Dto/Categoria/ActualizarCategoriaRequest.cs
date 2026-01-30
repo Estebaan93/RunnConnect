@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations;
 namespace RunnConnectAPI.Models.Dto.Categoria
 {
 
-  /// DTO para actualizar una categoría existente
+  /// DTO para actualizar una categoria existente
   /// PUT: api/Evento/{idEvento}/Categorias/{idCategoria}
 
   public class ActualizarCategoriaRequest

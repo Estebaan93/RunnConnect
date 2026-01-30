@@ -24,7 +24,7 @@ namespace RunnConnectAPI.Models.Dto.Inscripcion
     public string Dni { get; set; } = string.Empty;
     public string Email { get; set; } = string.Empty;
 
-    // Propiedad calculada útil para mostrar en listas
+    // Propiedad calculada util para mostrar en listas
     public string NombreCompleto => $"{Nombre} {Apellido}".Trim();
 
 

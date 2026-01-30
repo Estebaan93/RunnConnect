@@ -15,7 +15,7 @@ namespace RunnConnectAPI.Repositories
       _context = context;
     }
 
-    // ═══════════════════ LECTURA ═══════════════════
+    // LECTURA 
 
     public async Task<ResultadoResponse?> ObtenerPorIdAsync(int idResultado)
     {
@@ -186,7 +186,7 @@ namespace RunnConnectAPI.Repositories
       };
     }
 
-    // ═══════════════════ CARGA (ORGANIZADOR) ═══════════════════
+    // CARGA (ORGANIZADOR) 
 
     public async Task<(Resultado? resultado, string? error)> CargarResultadoAsync(
         CargarResultadoRequest request,
@@ -226,7 +226,7 @@ namespace RunnConnectAPI.Repositories
       return (resultado, null);
     }
 
-    /// Carga masiva de resultados en batch (llamado por el Controller que leyó el CSV)
+    /// Carga masiva de resultados en batch (llamado por el Controller que leyo el CSV)
     public async Task<ResultadosResponse> CargarResultadosBatchAsync(
         CargarResultadosRequest request,
         int idOrganizador)
@@ -285,7 +285,7 @@ namespace RunnConnectAPI.Repositories
           continue;
         }
 
-        // Lógica Upsert
+        // Logica Upsert
         if (inscripcion.Resultado != null)
         {
           inscripcion.Resultado.TiempoOficial = item.TiempoOficial;
@@ -311,7 +311,7 @@ namespace RunnConnectAPI.Repositories
       return response;
     }
 
-    // ═══════════════════ EDICIÓN Y OTROS ═══════════════════
+    //  EDICION Y OTROS 
 
     public async Task<(bool exito, string? error)> ActualizarTiempoOficialAsync(
         int idResultado,

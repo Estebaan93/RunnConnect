@@ -25,8 +25,8 @@ namespace RunnConnectAPI.Services
         var fromEmail = _configuration["Email:FromEmail"];
         var fromName = _configuration["Email:FromName"];
 
-        // Construir URL de recuperación
-        var baseUrl = _configuration["App:BaseUrl"]; // http://localhost:5213 o tu dominio
+        // Construir URL de recuperacion
+        var baseUrl = _configuration["App:BaseUrl"]; // http://localhost:5213 o mi dominio
         var resetUrl = $"{baseUrl}/reset-password?token={token}";
 
         // Crear mensaje
@@ -52,7 +52,7 @@ namespace RunnConnectAPI.Services
       }
       catch (Exception ex)
       {
-        // Log error (usa un logger en producción)
+        // Log error 
         Console.WriteLine($"Error al enviar email: {ex.Message}");
         return false;
       }
@@ -116,7 +116,7 @@ namespace RunnConnectAPI.Services
     {
       try
       {
-        // Configuración SMTP (usa appsettings.json)
+        // Configuracion SMTP (usa appsettings.json)
         var smtpHost = _configuration["Email:SmtpHost"];
         var smtpPort = int.Parse(_configuration["Email:SmtpPort"]);
         var smtpUser = _configuration["Email:SmtpUser"];
@@ -124,7 +124,7 @@ namespace RunnConnectAPI.Services
         var fromEmail = _configuration["Email:FromEmail"];
         var fromName = _configuration["Email:FromName"];
 
-        // Construir URL de reactivación
+        // Construir URL de reactivacion
         var baseUrl = _configuration["App:BaseUrl"];
         var reactivateUrl = $"{baseUrl}/reactivate-account?token={token}";
 

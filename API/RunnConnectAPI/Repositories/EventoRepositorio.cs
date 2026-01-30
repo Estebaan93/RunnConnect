@@ -136,7 +136,7 @@ namespace RunnConnectAPI.Repositories
 
     // Operaciones CRUD
 
-    /// Crea un nuevo evento con estado "publicado"
+    // Crea un nuevo evento con estado "publicado"
     public async Task<Evento> CrearAsync(Evento evento)
     {
       // Normalizar datos
@@ -152,7 +152,7 @@ namespace RunnConnectAPI.Repositories
       return evento;
     }
 
-    /// Actualiza un evento existente
+    // Actualiza un evento existente
     public async Task ActualizarAsync(Evento evento)
     {
       // Normalizar datos antes de actualizar
@@ -166,7 +166,7 @@ namespace RunnConnectAPI.Repositories
     }
 
     /// Cambia el estado de un evento con validaciones de negocio
-    /// <exception cref="InvalidOperationException">Si la transicion de estado no es valida</exception>
+    
     public async Task CambiarEstadoAsync(int idEvento, string nuevoEstado)
     {
       var evento = await _context.Eventos.FindAsync(idEvento);
@@ -210,7 +210,7 @@ namespace RunnConnectAPI.Repositories
     {
       var estadoActual = evento.Estado;
 
-      // No permitir cambios si ya está cancelado
+      // No permitir cambios si ya esta cancelado
       if (estadoActual == "cancelado")
         throw new InvalidOperationException("No se puede cambiar el estado de un evento cancelado");
 
@@ -289,7 +289,7 @@ namespace RunnConnectAPI.Repositories
           .Select(c => c.IdCategoria)
           .ToListAsync();
 
-      // Contar inscripciones confirmadas en esas categorías
+      // Contar inscripciones confirmadas en esas categorias
       return await _context.Inscripciones
           .CountAsync(i => categoriasIds.Contains(i.IdCategoria)
               && i.EstadoPago == "pagado");

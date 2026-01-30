@@ -41,7 +41,7 @@ namespace RunnConnectAPI.Controllers
     {
       try
       {
-        // Ahora este método requiere paginación obligatoria
+        // Ahora este metodo requiere paginacion obligatoria
         var (eventos, totalCount) = await _eventoRepositorio.ObtenerEventosPublicadosAsync(pagina, tamanioPagina);
 
         var totalPaginas = (int)Math.Ceiling(totalCount / (double)tamanioPagina);
@@ -63,9 +63,8 @@ namespace RunnConnectAPI.Controllers
           Categorias = e.Categorias?.Select(c => new CategoriaEventoResponse
           {
               IdCategoria = c.IdCategoria,
-              Nombre = c.Nombre, // ¡Esto es lo que necesitamos para el Chip!
+              Nombre = c.Nombre, //Esto es lo que necesitamos para el Chip!
               CostoInscripcion = c.CostoInscripcion,
-              // Puedes mapear el resto si quieres, pero con Nombre alcanza para la UI
               Genero = c.Genero
           }).ToList()
 
@@ -206,14 +205,9 @@ namespace RunnConnectAPI.Controllers
 
 
 
-
-
-
-
-
     /*Endpoints para organizadores (requiere autenticacion)*/
     /*GET: api/Evento/MisEventos - Obtenemos los eventos de un organizador autenticado
-      vamos hacer una paginacion cada 10 elementos*/
+     paginacion cada 10 elementos*/
     [Authorize]
     [HttpGet("MisEventos")]
     public async Task<IActionResult> ObtenerMisEventos([FromQuery] int pagina = 1, [FromQuery] int tamanioPagina = 10)
@@ -223,7 +217,6 @@ namespace RunnConnectAPI.Controllers
         var validacion = ValidarOrganizador();
         if (validacion.error != null) return validacion.error;
 
-        // Ahora este método requiere paginación obligatoria
         var (eventos, totalCount) = await _eventoRepositorio.ObtenerTodosPorOrganizadorAsync(validacion.userId, pagina, tamanioPagina);
 
         var totalPaginas = (int)Math.Ceiling(totalCount / (double)tamanioPagina);
@@ -322,7 +315,7 @@ namespace RunnConnectAPI.Controllers
               EdadMaxima = catDto.EdadMaxima,
               Genero = catDto.Genero
             };
-            // Usamos el repositorio de categorías existente
+            // Usamos el repositorio de categorias existente
             await _categoriaRepositorio.CrearAsync(nuevaCategoria);
           }
         }

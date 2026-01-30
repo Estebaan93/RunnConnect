@@ -20,8 +20,7 @@ namespace RunnConnectAPI.Controllers
       _notificacionRepo = notificacionRepo;
     }
 
-    // ═══════════════════ ENDPOINTS PÚBLICOS ═══════════════════
-
+    // ENDPOINTS PUBLICOS 
     /// Obtiene una notificacion por ID
     /// Endpoint publico - cualquiera puede ver una notificacion específica
     [HttpGet("{id}")]
@@ -66,13 +65,11 @@ namespace RunnConnectAPI.Controllers
     }
 
 
-    // ═══════════════════ ENDPOINTS RUNNER ═══════════════════
-
+    // ENDPOINTS RUNNER 
     /// Obtiene las notificaciones del runner autenticado
     /// Requiere: Token JWT de Runner
     /// Retorna notificaciones de eventos donde está inscripto (pago confirmado)
     /// Ordenadas por fecha (más recientes primero)
-    /// 
     /// Este es el endpoint principal para el "buzon" de notificaciones en la app
     [HttpGet("MisNotificaciones")]
     [Authorize]
@@ -94,7 +91,7 @@ namespace RunnConnectAPI.Controllers
 
     /// Obtiene el contador de notificaciones recientes (ultimas 24h)
     /// Requiere: Token JWT de Runner
-    /// Útil para mostrar badge/contador en la app
+    /// Util para mostrar badge/contador en la app
     [HttpGet("ContadorRecientes")]
     [Authorize]
     public async Task<IActionResult> ContadorRecientes()
@@ -148,8 +145,7 @@ namespace RunnConnectAPI.Controllers
     }
 
 
-    // ═══════════════════ ENDPOINTS ORGANIZADOR ═══════════════════
-
+    // ENDPOINTS ORGANIZADOR 
     /// Crea una nueva notificacion para un evento
     /// Requiere: Token JWT de Organizador (dueño del evento)
     /// La notificacion queda disponible inmediatamente para los runners inscriptos
@@ -194,7 +190,7 @@ namespace RunnConnectAPI.Controllers
 
     /// Actualiza una notificacion existente
     /// Requiere: Token JWT de Organizador (dueño del evento)
-    /// No modifica la fecha de envío original
+    /// No modifica la fecha de envio original
     [HttpPut("{id}")]
     [Authorize]
     public async Task<IActionResult> ActualizarNotificacion(int id, [FromBody] ActualizarNotificacionRequest request)
@@ -222,7 +218,7 @@ namespace RunnConnectAPI.Controllers
 
     /// Elimina una notificacion
     /// Requiere: Token JWT de Organizador (dueño del evento)
-    /// Eliminación física de la BD
+    /// Eliminacion física de la BD
     [HttpDelete("{id}")]
     [Authorize]
     public async Task<IActionResult> EliminarNotificacion(int id)
@@ -246,8 +242,7 @@ namespace RunnConnectAPI.Controllers
     }
 
 
-    // ═══════════════════ HELPERS PRIVADOS ═══════════════════
-
+    // HELPERS PRIVADOS 
     private (int userId, IActionResult? error) ValidarRunner()
     {
       var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);

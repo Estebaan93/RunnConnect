@@ -2,11 +2,11 @@
 
 namespace RunnConnectAPI.Models.Dto.Notificacion
 {
-   /// DTO de respuesta con las notificaciones del runner
-  /// GET: api/Notificacion/MisNotificaciones
+  // DTO de respuesta con las notificaciones del runner
+  // GET: api/Notificacion/MisNotificaciones
   public class MisNotificacionesResponse
   {
-    /// Total de notificaciones encontradas
+    // Total de notificaciones encontradas
 
     public int TotalNotificaciones { get; set; }
 
@@ -14,8 +14,8 @@ namespace RunnConnectAPI.Models.Dto.Notificacion
     public List<NotificacionRunnerItem> Notificaciones { get; set; } = new();
   }
 
-  /// Item de notificación para el runner
-  /// Incluye info del evento para contexto
+  // Item de notificacion para el runner
+  // Incluye info del evento para contexto
   public class NotificacionRunnerItem
   {
     public int IdNotificacion { get; set; }
@@ -23,16 +23,16 @@ namespace RunnConnectAPI.Models.Dto.Notificacion
     public string? Mensaje { get; set; }
     public DateTime FechaEnvio { get; set; }
 
-    // Información del evento
+    // Informacion del evento
     public int IdEvento { get; set; }
     public string NombreEvento { get; set; } = string.Empty;
     public DateTime FechaEvento { get; set; }
     public string EstadoEvento { get; set; } = string.Empty;
 
-    /// Tiempo transcurrido legible
+    // Tiempo transcurrido legible
     public string TiempoTranscurrido => CalcularTiempoTranscurrido();
 
-    /// Indica si es una notificación reciente (últimas 24 horas)
+    // Indica si es una notificacin reciente (ultimas 24 horas)
     public bool EsReciente => (DateTime.Now - FechaEnvio).TotalHours < 24;
 
     private string CalcularTiempoTranscurrido()

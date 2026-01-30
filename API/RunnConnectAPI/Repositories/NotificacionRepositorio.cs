@@ -16,8 +16,6 @@ namespace RunnConnectAPI.Repositories
       _context = context;
     }
 
-    // ═══════════════════ QUERIES ═══════════════════
-
     /// Obtiene una notificacion por ID
     public async Task<NotificacionResponse?> ObtenerPorIdAsync(int idNotificacion)
     {
@@ -90,8 +88,8 @@ namespace RunnConnectAPI.Repositories
       };
     }
 
-    /// Obtiene notificaciones recientes (últimas 24 horas) para el runner
-    /// Útil para mostrar badge/contador en la app
+    /// Obtiene notificaciones recientes (ultimas 24 horas) para el runner
+    /// util para mostrar badge/contador en la app
     public async Task<int> ContarNotificacionesRecientesAsync(int idUsuario)
     {
       //Fecha ultima lectura del runner
@@ -117,7 +115,7 @@ namespace RunnConnectAPI.Repositories
         .CountAsync(n => eventosInscripto.Contains(n.IdEvento) && n.FechaEnvio >= ultimaLectura);
     }
 
-    /// METODO NUEVO: MARCAR TODO COMO LEÍDO
+    /// METODO NUEVO: MARCAR TODO COMO LEIDO
     /// Se llama cuando el usuario abre la pantalla de notificaciones
     public async Task MarcarTodasComoLeidasAsync(int idUsuario)
     {
@@ -138,9 +136,7 @@ namespace RunnConnectAPI.Repositories
       return await _context.NotificacionesEvento
         .CountAsync(n => n.IdEvento == idEvento);
     }
-
-
-    // ═══════════════════ COMMANDS ═══════════════════
+ 
 
     /// Crea una nueva notificacion (Organizador)
     public async Task<(NotificacionEvento? notificacion, string? error)> CrearAsync(
@@ -157,7 +153,7 @@ namespace RunnConnectAPI.Repositories
       if (evento.IdOrganizador != idOrganizador)
         return (null, "No tienes permiso para crear notificaciones en este evento");
 
-      // Verificar que el evento no este cancelado (opcional, podrías permitirlo)
+      // Verificar que el evento no este cancelado 
       // if (evento.Estado == "cancelado")
       //   return (null, "No se pueden crear notificaciones en eventos cancelados");
 
@@ -219,7 +215,7 @@ namespace RunnConnectAPI.Repositories
     }
 
 
-    // ═══════════════════ HELPERS ═══════════════════
+    //  HELPERS 
 
     /// Verifica si existe una notificacion
     public async Task<bool> ExisteAsync(int idNotificacion)

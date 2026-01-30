@@ -8,7 +8,6 @@ namespace RunnConnectAPI.Repositories
 {
 
   // Repositorio para gestion de inscripciones
-
   public class InscripcionRepositorio
   {
     private readonly RunnersContext _context;
@@ -43,7 +42,7 @@ namespace RunnConnectAPI.Repositories
           .ToListAsync();
     }
 
-    // Obtiene una inscripción por ID con todas sus relaciones
+    // Obtiene una inscripcion por ID con todas sus relaciones
     public async Task<Inscripcion?> ObtenerPorIdAsync(int idInscripcion)
     {
       return await _context.Inscripciones
@@ -111,7 +110,7 @@ namespace RunnConnectAPI.Repositories
           .Where(i => i.Categoria != null && i.Categoria.IdEvento == idEvento)
           .AsQueryable();
 
-      // Filtrar por categoría
+      // Filtrar por categoria
       if (idCategoria.HasValue)
         query = query.Where(i => i.IdCategoria == idCategoria.Value);
 
@@ -144,7 +143,7 @@ namespace RunnConnectAPI.Repositories
     }
 
 
-    // Obtiene inscripciones de una categoría especifica
+    // Obtiene inscripciones de una categoria especifica
     public async Task<List<Inscripcion>> ObtenerPorCategoriaAsync(int idCategoria)
     {
       return await _context.Inscripciones
@@ -211,7 +210,7 @@ namespace RunnConnectAPI.Repositories
       nuevoEstado = nuevoEstado.ToLower().Trim();
 
 
-      // Validar transición: Solo se puede pasar a 'procesando' desde 'pendiente'
+      // Validar transicion: Solo se puede pasar a 'procesando' desde 'pendiente'
       if (inscripcion.EstadoPago != "pendiente" && nuevoEstado == "procesando")
         throw new InvalidOperationException("Solo se puede pasar a procesamiento de pago desde el estado pendiente");
 
@@ -236,28 +235,28 @@ namespace RunnConnectAPI.Repositories
           throw new InvalidOperationException("No se puede cancelar una inscripcion que ya esta PAGADA. Comunicate con el Organizador");
       }
 
-      // 2. Lógica para CANCELADO (Runner)
+      // 2. Logica para CANCELADO (Runner)
       if (nuevoEstado == "cancelado")
       {
         if (estadoActual != "pendiente")
           throw new InvalidOperationException("Solo se pueden cancelar inscripciones pendientes. Si ya enviaste el comprobante, debes esperar la respuesta del organizador");
       }
 
-      // 3. Lógica para RECHAZADO (Organizador - Pago fallido)
+      // 3. Logica para RECHAZADO (Organizador - Pago fallido)
       if (nuevoEstado == "rechazado")
       {
         if (estadoActual != "pendiente" && estadoActual != "procesando")
           throw new InvalidOperationException("Solo se pueden rechazar inscripciones pendientes o en procesamiento.");
       }
 
-      // 4. Lógica para PAGADO (Organizador - Éxito)
+      // 4. Logica para PAGADO (Organizador - Exito)
       if (nuevoEstado == "pagado")
       {
         if (estadoActual != "procesando")
           throw new InvalidOperationException("El pago debe estar en PROCESANDO para ser marcado como PAGADO.");
       }
 
-      // 5. Lógica para REEMBOLSO
+      // 5. Logica para REEMBOLSO
       if (nuevoEstado == "reembolsado" && estadoActual != "pagado")
         throw new InvalidOperationException("Solo se pueden reembolsar inscripciones que ya están pagadas.");
     }
@@ -373,8 +372,8 @@ namespace RunnConnectAPI.Repositories
     }
 
 
-    /* Permite al organizador forzar la baja de un runner, sin importar si ya pagó.
-      Salta las validaciones de transición de pago normales.*/
+    /* Permite al organizador forzar la baja de un runner, sin importar si ya pago.
+      Salta las validaciones de transicion de pago normales.*/
     public async Task DarBajaPorOrganizadorAsync(int idInscripcion)
     {
       var inscripcion = await _context.Inscripciones.FindAsync(idInscripcion);
@@ -382,16 +381,13 @@ namespace RunnConnectAPI.Repositories
       if (inscripcion == null)
         throw new KeyNotFoundException("Inscripción no encontrada");
 
-      // Si ya está cancelada, no hacemos nada o lanzamos error (opcional)
+      // Si ya esta cancelada, no hacemos nada o lanzamos error (opcional)
       if (inscripcion.EstadoPago == "cancelado")
         throw new ArgumentException("La inscripción ya se encuentra cancelada.");
 
       // FORZAMOS el estado a cancelado directamente
-      // NO llamamos a ValidarTransicionEstado() porque es una acción administrativa
+      // NO llamamos a ValidarTransicionEstado() porque es una accion administrativa
       inscripcion.EstadoPago = "cancelado";
-
-      // Opcional: Podrías guardar la fecha de baja o quién lo hizo si tuvieras esos campos
-      // inscripcion.FechaBaja = DateTime.Now; 
 
       await _context.SaveChangesAsync();
     }
@@ -404,7 +400,7 @@ namespace RunnConnectAPI.Repositories
       termino = termino.ToLower().Trim();
 
       return await _context.Inscripciones
-          // Incluir datos del Evento para saber de cuál se trata
+          // Incluir datos del Evento para saber de cual se trata
           .Include(i => i.Categoria).ThenInclude(c => c.Evento)
           // Incluir datos del Usuario y Perfil para buscar por nombre/DNI
           .Include(i => i.Usuario).ThenInclude(u => u.PerfilRunner)
@@ -419,7 +415,7 @@ namespace RunnConnectAPI.Repositories
               (i.Usuario.PerfilRunner != null && i.Usuario.PerfilRunner.Dni.ToString().Contains(termino))
           )
           .OrderByDescending(i => i.FechaInscripcion) // Más recientes primero
-          .Take(50) // Límite por rendimiento
+          .Take(50) // Limite por rendimiento
           .ToListAsync();
     }
 

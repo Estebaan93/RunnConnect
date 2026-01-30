@@ -4,7 +4,6 @@ namespace RunnConnectAPI.Models.Dto.Inscripcion
 {
 
   // DTO de respuesta con informacion completa de inscripcion (incluye evento y categoria)
-
   public class InscripcionDetalleResponse
   {
     public int IdInscripcion { get; set; }
@@ -15,18 +14,13 @@ namespace RunnConnectAPI.Models.Dto.Inscripcion
     public string? ComprobantePagoURL { get; set; }
 
     
-    /// Informacion del evento
-
+    // Informacion del evento
     public EventoInscripcionInfo? Evento { get; set; }
 
-
-    /// Informacion de la categoria
-
+    // Informacion de la categoria
     public CategoriaInscripcionInfo? Categoria { get; set; }
 
-
-    /// Descripcion legible del estado
-
+    // Descripcion legible del estado
     public string EstadoDescripcion => EstadoPago switch
     {
       "pendiente" => "Pendiente de pago",
@@ -42,8 +36,7 @@ namespace RunnConnectAPI.Models.Dto.Inscripcion
   }
 
 
-  /// Informacion resumida del evento para mostrar en inscripcion
-
+  // Informacion resumida del evento para mostrar en inscripcion
   public class EventoInscripcionInfo
   {
     public int IdEvento { get; set; }

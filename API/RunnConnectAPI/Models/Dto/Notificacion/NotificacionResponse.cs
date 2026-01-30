@@ -2,7 +2,7 @@
 
 namespace RunnConnectAPI.Models.Dto.Notificacion
 {
-  /// DTO de respuesta con información de una notificacion
+  // DTO de respuesta con informacion de una notificacion
   public class NotificacionResponse
   {
     public int IdNotificacion { get; set; }
@@ -11,10 +11,10 @@ namespace RunnConnectAPI.Models.Dto.Notificacion
     public string? Mensaje { get; set; }
     public DateTime FechaEnvio { get; set; }
 
-    /// Informacion basica del evento asociado
+    // Informacion basica del evento asociado
     public EventoNotificacionInfo? Evento { get; set; }
 
-    /// Tiempo transcurrido desde el envio (para mostrar "hace 2 horas", etc.)
+    // Tiempo transcurrido desde el envio (para mostrar "hace 2 horas", etc.)
     public string TiempoTranscurrido => CalcularTiempoTranscurrido();
 
     private string CalcularTiempoTranscurrido()
@@ -37,7 +37,7 @@ namespace RunnConnectAPI.Models.Dto.Notificacion
   }
 
 
-  /// Informacion basica del evento para mostrar junto a la notificacion
+  // Informacion basica del evento para mostrar junto a la notificacion
   public class EventoNotificacionInfo
   {
     public int IdEvento { get; set; }

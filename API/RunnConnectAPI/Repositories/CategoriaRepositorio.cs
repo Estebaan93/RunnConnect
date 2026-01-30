@@ -15,7 +15,7 @@ namespace RunnConnectAPI.Repositories
       _context = context;
     }
 
-    /// Obtiene todas las categorías de un evento
+    /// Obtiene todas las categorias de un evento
     public async Task<List<CategoriaEvento>> ObtenerPorEventoAsync(int idEvento)
     {
       return await _context.CategoriasEvento
@@ -24,7 +24,7 @@ namespace RunnConnectAPI.Repositories
           .ToListAsync();
     }
 
-    /// Obtiene una categoría por su ID
+    /// Obtiene una categoria por su ID
     public async Task<CategoriaEvento?> ObtenerPorIdAsync(int idCategoria)
     {
       return await _context.CategoriasEvento
@@ -33,7 +33,7 @@ namespace RunnConnectAPI.Repositories
     }
 
 
-    /// Obtiene una categoría verificando que pertenezca al evento especificado
+    /// Obtiene una categoria verificando que pertenezca al evento especificado
     public async Task<CategoriaEvento?> ObtenerPorIdYEventoAsync(int idCategoria, int idEvento)
     {
       return await _context.CategoriasEvento
@@ -41,13 +41,13 @@ namespace RunnConnectAPI.Repositories
     }
 
 
-    /// Verifica si existe una categoría con el mismo nombre en el evento
+    /// Verifica si existe una categoria con el mismo nombre en el evento
     public async Task<bool> ExisteNombreEnEventoAsync(int idEvento, string nombre, int? excluirIdCategoria = null)
     {
       var query = _context.CategoriasEvento
           .Where(c => c.IdEvento == idEvento && c.Nombre.ToLower() == nombre.ToLower().Trim());
 
-      // Si estamos actualizando, excluir la categoría actual
+      // Si estamos actualizando, excluir la categoria actual
       if (excluirIdCategoria.HasValue)
         query = query.Where(c => c.IdCategoria != excluirIdCategoria.Value);
 
@@ -55,7 +55,7 @@ namespace RunnConnectAPI.Repositories
     }
 
 
-    /// Cuenta las categorías de un evento
+    /// Cuenta las categorias de un evento
     public async Task<int> ContarPorEventoAsync(int idEvento)
     {
       return await _context.CategoriasEvento
@@ -65,7 +65,7 @@ namespace RunnConnectAPI.Repositories
 
 
     // Operaciones CRUD
-    /// Crea una nueva categoría
+    /// Crea una nueva categoria
     public async Task<CategoriaEvento> CrearAsync(CategoriaEvento categoria)
     {
       // Normalizar datos
@@ -79,7 +79,7 @@ namespace RunnConnectAPI.Repositories
     }
 
 
-    /// Crea múltiples categorías para un evento (usado al crear evento con categorías)
+    /// Crea multiples categorias para un evento (usado al crear evento con categorias)
     public async Task<List<CategoriaEvento>> CrearVariasAsync(List<CategoriaEvento> categorias)
     {
       foreach (var categoria in categorias)
@@ -95,7 +95,7 @@ namespace RunnConnectAPI.Repositories
     }
 
 
-    /// Actualiza una categoría existente
+    /// Actualiza una categoria existente
     public async Task ActualizarAsync(CategoriaEvento categoria)
     {
       // Normalizar datos
@@ -107,7 +107,7 @@ namespace RunnConnectAPI.Repositories
     }
 
 
-    /// Elimina una categoría (eliminación física)
+    /// Elimina una categoria (eliminación física)
     public async Task EliminarAsync(CategoriaEvento categoria)
     {
       _context.CategoriasEvento.Remove(categoria);
@@ -117,7 +117,7 @@ namespace RunnConnectAPI.Repositories
 
 
     // Validaciones
-    /// Verifica si una categoría tiene inscripciones
+    /// Verifica si una categoria tiene inscripciones
     public async Task<bool> TieneInscripcionesAsync(int idCategoria)
     {
       return await _context.Inscripciones
@@ -125,14 +125,14 @@ namespace RunnConnectAPI.Repositories
     }
 
 
-    /// Cuenta inscriptos confirmados en una categoría
+    /// Cuenta inscriptos confirmados en una categoria
     public async Task<int> ContarInscriptosAsync(int idCategoria)
     {
       return await _context.Inscripciones
           .CountAsync(i => i.IdCategoria == idCategoria && i.EstadoPago == "pagado");
     }
 
-    /// Verifica si hay cupo disponible en la categoría
+    /// Verifica si hay cupo disponible en la categoria
     public async Task<bool> TieneCupoDisponibleAsync(int idCategoria)
     {
       var categoria = await _context.CategoriasEvento.FindAsync(idCategoria);
@@ -140,7 +140,7 @@ namespace RunnConnectAPI.Repositories
       if (categoria == null)
         return false;
 
-      // Si no tiene límite de cupo, siempre hay disponible
+      // Si no tiene limite de cupo, siempre hay disponible
       if (!categoria.CupoCategoria.HasValue)
         return true;
 
@@ -149,13 +149,13 @@ namespace RunnConnectAPI.Repositories
     }
 
 
-    /// Valida que la edad mínima sea menor o igual a la máxima
+    /// Valida que la edad minima sea menor o igual a la maxima
     public bool ValidarRangoEdades(int edadMinima, int edadMaxima)
     {
       return edadMinima <= edadMaxima;
     }
 
-    /// Valida que el cupo de la categoría no exceda el cupo total del evento
+    /// Valida que el cupo de la categoria no exceda el cupo total del evento
     public async Task<bool> ValidarCupoContraEventoAsync(int idEvento, int? cupoCategoria)
     {
       if (!cupoCategoria.HasValue)
@@ -166,7 +166,7 @@ namespace RunnConnectAPI.Repositories
       if (evento == null)
         return false;
 
-      // Si el evento no tiene límite, cualquier cupo de categoría es válido
+      // Si el evento no tiene límite, cualquier cupo de categoria es valido
       if (!evento.CupoTotal.HasValue)
         return true;
 
@@ -175,8 +175,8 @@ namespace RunnConnectAPI.Repositories
 
 
 
-    // Estadísticas
-    /// Obtiene el resumen de inscriptos por categoría de un evento
+    // Estadisticas
+    /// Obtiene el resumen de inscriptos por categoria de un evento
     public async Task<Dictionary<int, int>> ObtenerInscriptosPorCategoriaAsync(int idEvento)
     {
       var categorias = await _context.CategoriasEvento

@@ -201,7 +201,7 @@ namespace RunnConnectAPI.Services
       if (!extensionesPermitidas.Contains(extension))
         throw new Exception("Formato no permitido. Use: jpg, jpeg, png o pdf");
 
-      // Validar tamaño (máximo 5MB)
+      // Validar tamaño (maximo 5MB)
       if (archivo.Length > 5 * 1024 * 1024)
         throw new Exception("El archivo no puede superar 5MB");
 

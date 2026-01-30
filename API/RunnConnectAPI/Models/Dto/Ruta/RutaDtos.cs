@@ -8,7 +8,7 @@ namespace RunnConnectAPI.Models.Dto.Ruta
   public class GuardarRutaRequest
   {
     /// Lista de puntos GPS que forman el trazado
-    /// Deben estar ordenados (el orden se asigna automáticamente)
+    /// Deben estar ordenados (el orden se asigna automaticamente)
     [Required(ErrorMessage = "Debe incluir al menos un punto en la ruta")]
     [MinLength(2, ErrorMessage = "La ruta debe tener al menos 2 puntos")]
     public List<PuntoRutaRequest> Puntos { get; set; } = new();

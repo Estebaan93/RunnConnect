@@ -2,7 +2,7 @@
 
 namespace RunnConnectAPI.Models.Dto.Resultado
 {
-  /// Respuesta con datos del resultado
+  // Respuesta con datos del resultado
   public class ResultadoResponse
   {
     public int IdResultado { get; set; }
@@ -50,7 +50,7 @@ namespace RunnConnectAPI.Models.Dto.Resultado
     public int? PulsacionesPromedio { get; set; }
     public int? PulsacionesMax { get; set; }
     
-    /// Indica si hay datos de smartwatch cargados
+    // Indica si hay datos de smartwatch cargados
     public bool TieneDatos => 
       !string.IsNullOrEmpty(TiempoSmartwatch) ||
       DistanciaKm.HasValue ||

@@ -19,7 +19,7 @@ namespace RunnConnectAPI.Controllers
       _resultadoRepo = resultadoRepo;
     }
 
-    // ═══════════════════ LECTURA (PUBLICO & RUNNER) ═══════════════════
+    // LECTURA (PUBLICO & RUNNER) 
     [HttpGet("{id}")]
     public async Task<IActionResult> ObtenerPorId(int id)
     {
@@ -132,8 +132,8 @@ namespace RunnConnectAPI.Controllers
       }
     }
 
-    // ═══════════════════ GESTION (ORGANIZADOR) ═══════════════════
-    /// CARGA MANUAL (1 a 1) -> Recibe JSON
+    // GESTION (ORGANIZADOR)
+    // CARGA MANUAL (1 a 1) -> Recibe JSON
     [HttpPost("Cargar")]
     [Authorize]
     public async Task<IActionResult> CargarResultado([FromBody] CargarResultadoRequest request)
@@ -168,8 +168,8 @@ namespace RunnConnectAPI.Controllers
       }
     }
 
-    /// CARGA MASIVA (Batch) -> Recibe Archivo CSV
-    /// Formato CSV esperado: DNI,TiempoOficial,PosGeneral,PosCategoria
+    // CARGA MASIVA (Batch) -> Recibe Archivo CSV
+    // Formato CSV esperado: DNI,TiempoOficial,PosGeneral,PosCategoria
     [HttpPost("CargarArchivo")]
     [Authorize]
     [Consumes("multipart/form-data")]
@@ -340,7 +340,7 @@ namespace RunnConnectAPI.Controllers
       }
     }
 
-    // ═══════════════════ HELPERS ═══════════════════
+    // HELPERS 
     private (int userId, IActionResult? error) ValidarRunner()
     {
       var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);

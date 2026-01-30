@@ -21,11 +21,11 @@ namespace RunnConnectAPI.Controllers
       _rutaRepo = rutaRepo;
     }
 
-    // ----------- MAPA COMPLETO --------------
-
-    /// Obtiene el mapa completo del evento (ruta + puntos de interés)
-    /// Endpoint público - ideal para la app Android
-    /// Retorna toda la información necesaria para mostrar el mapa
+    // MAPA COMPLETO 
+    /* Obtiene el mapa completo del evento (ruta + puntos de interes)
+    Endpoint publico - ideal para la app Android
+    Retorna toda la información necesaria para mostrar el mapa */
+    
     [HttpGet("Mapa")]
     public async Task<IActionResult> ObtenerMapaCompleto(int idEvento)
     {
@@ -45,11 +45,10 @@ namespace RunnConnectAPI.Controllers
     }
 
 
-    // -------------RUTAS--------------- 
-
-    /// Obtiene la ruta (trazado GPS) de un evento
-    /// Endpoint publico
-    /// Retorna los puntos ordenados que forman el recorrido
+    //RUTAS 
+    /* Obtiene la ruta (trazado GPS) de un evento
+    Endpoint publico
+    Retorna los puntos ordenados que forman el recorrido */
     [HttpGet("Ruta")]
     public async Task<IActionResult> ObtenerRuta(int idEvento)
     {
@@ -71,7 +70,7 @@ namespace RunnConnectAPI.Controllers
     /// Guarda la ruta completa de un evento (reemplaza la existente)
     /// Requiere: Token JWT de Organizador (dueño del evento)
     /// Si ya existe una ruta, la reemplaza completamente
-    /// Los puntos deben venir en orden (el sistema asigna el número de orden automáticamente)
+    /// Los puntos deben venir en orden (el sistema asigna el número de orden automaticamente)
     [HttpPut("Ruta")]
     [Authorize]
     public async Task<IActionResult> GuardarRuta(int idEvento, [FromBody] GuardarRutaRequest request)
@@ -125,11 +124,10 @@ namespace RunnConnectAPI.Controllers
     }
 
 
-    // ------------- PUNTOS DE INTERES -------------
-
+    // PUNTOS DE INTERES 
     /// Obtiene todos los puntos de interes de un evento
-    /// Endpoint público
-    /// Retorna: hidratación, primeros auxilios, meta, largada, etc.
+    /// Endpoint publico
+    /// Retorna: hidratacion, primeros auxilios, meta, largada, etc.
     [HttpGet("PuntosInteres")]
     public async Task<IActionResult> ObtenerPuntosInteres(int idEvento)
     {
@@ -171,9 +169,9 @@ namespace RunnConnectAPI.Controllers
       }
     }
 
-    /// Crea un nuevo punto de interés
+    /// Crea un nuevo punto de interes
     /// Requiere: Token JWT de Organizador (dueño del evento)
-    /// Tipos válidos: hidratacion, primeros_auxilios, meta, largada, otro
+    /// Tipos validos: hidratacion, primeros_auxilios, meta, largada, otro
     [HttpPost("PuntosInteres")]
     [Authorize]
     public async Task<IActionResult> CrearPuntoInteres(int idEvento, [FromBody] CrearPuntoInteresRequest request)
@@ -276,7 +274,7 @@ namespace RunnConnectAPI.Controllers
       }
     }
 
-    /// Elimina un punto de interés
+    /// Elimina un punto de interes
     [HttpDelete("PuntosInteres/{idPunto}")]
     [Authorize]
     public async Task<IActionResult> EliminarPuntoInteres(int idEvento, int idPunto)
@@ -299,7 +297,7 @@ namespace RunnConnectAPI.Controllers
       }
     }
 
-    /// Elimina todos los puntos de interés de un evento
+    /// Elimina todos los puntos de interes de un evento
     [HttpDelete("PuntosInteres")]
     [Authorize]
     public async Task<IActionResult> EliminarTodosPuntosInteres(int idEvento)
@@ -323,8 +321,7 @@ namespace RunnConnectAPI.Controllers
     }
 
 
-    // ------------- HELPERS PRIVADOS --------------
-
+    // HELPERS PRIVADOS 
     private (int userId, IActionResult? error) ValidarOrganizador()
     {
       var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);

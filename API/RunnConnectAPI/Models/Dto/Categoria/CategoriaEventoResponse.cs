@@ -2,8 +2,7 @@
 namespace RunnConnectAPI.Models.Dto.Categoria
 {
 
-  /// DTO de respuesta con información de una categoría
-
+  // DTO de respuesta con informacion de una categoria
   public class CategoriaEventoResponse
   {
     public int IdCategoria { get; set; }
@@ -16,8 +15,7 @@ namespace RunnConnectAPI.Models.Dto.Categoria
     public string Genero { get; set; } = "X";
     
     
-    /// Descripción legible del género
-  
+    // Descripcion legible del género
     public string GeneroDescripcion => Genero switch
     {
       "F" => "Femenino",
@@ -27,20 +25,17 @@ namespace RunnConnectAPI.Models.Dto.Categoria
     };
 
    
-    /// Cantidad de inscriptos en esta categoría
-  
+    // Cantidad de inscriptos en esta categoria
     public int InscriptosActuales { get; set; }
 
 
-    /// Cupos disponibles (null si no hay límite)
-
+    // Cupos disponibles (null si no hay límite)
     public int? CuposDisponibles => CupoCategoria.HasValue
       ? CupoCategoria.Value - InscriptosActuales
       : null;
 
   
-    /// Indica si la categoría tiene cupos disponibles
- 
+    // Indica si la categoría tiene cupos disponibles
     public bool TieneCupo => !CupoCategoria.HasValue || CuposDisponibles > 0;
   }
 }

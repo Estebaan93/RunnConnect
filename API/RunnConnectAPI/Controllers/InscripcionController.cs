@@ -72,7 +72,7 @@ namespace RunnConnectAPI.Controllers
         if (!perfilCompleto)
           return BadRequest(new { message = "Debe completar su perfil antes de inscribirse", camposFaltantes });
 
-        // Verificar requisitos de la categoría (edad y género)
+        // Verificar requisitos de la categoría (edad y genero)
         var (cumpleRequisitos, motivo) = await _inscripcionRepositorio.ValidarRequisitosCategoria(validacion.userId, request.IdCategoria);
         if (!cumpleRequisitos)
           return BadRequest(new { message = motivo });
@@ -403,7 +403,7 @@ namespace RunnConnectAPI.Controllers
           } : null
         }).ToList();
 
-        // Obtener estadísticas
+        // Obtener estadisticas
         var estadisticas = await _inscripcionRepositorio.ContarPorEstadoEnEventoAsync(idEvento);
 
         return Ok(new
@@ -448,7 +448,7 @@ namespace RunnConnectAPI.Controllers
         var estadoAnterior = inscripcion.EstadoPago;
         string estadoFinal = request.NuevoEstado.ToLower();
 
-        // El repositorio validara si 'pagado' o 'rechazado' son transiciones válidas
+        // El repositorio validara si 'pagado' o 'rechazado' son transiciones validas
         await _inscripcionRepositorio.CambiarEstadoPagoAsync(id, estadoFinal);
 
         return Ok(new
@@ -470,7 +470,7 @@ namespace RunnConnectAPI.Controllers
       }
     }
 
-    /// Reembolsar una inscripción (solo confirmadas)
+    /// Reembolsar una inscripcion (solo confirmadas)
     /// PUT: api/Inscripcion/{id}/Reembolsar
     [HttpPut("{id}/Reembolsar")]
     public async Task<IActionResult> ReembolsarInscripcion(int id)
@@ -485,7 +485,7 @@ namespace RunnConnectAPI.Controllers
 
         if (inscripcion.Categoria?.Evento?.IdOrganizador != validacion.userId) return Forbid();
 
-        // La validación estricta (solo si es 'pagado') está en el repositorio
+        // La validacion estricta (solo si es 'pagado') esta en el repositorio
         await _inscripcionRepositorio.CambiarEstadoPagoAsync(id, "reembolsado");
 
         return Ok(new
@@ -524,7 +524,7 @@ namespace RunnConnectAPI.Controllers
 
 
         // Forzar cambio de estado a cancelado
-        // Nota: Podrías querer guardar el motivo en la BD si tienes un campo para eso
+        // Nota: guardar el motivo en la BD si tienes un campo para eso
         await _inscripcionRepositorio.DarBajaPorOrganizadorAsync(id);
 
         //Enviar notificacion al runner avisando que fue dado de baja (TODO)
@@ -541,7 +541,7 @@ namespace RunnConnectAPI.Controllers
         return StatusCode(500, new { message = "Error al dar de baja", error = ex.Message });
       }
     }
-    // DTO simple para recibir el motivo (agrégalo al final del archivo o en su propia clase)
+    // DTO simple para recibir el motivo
     public class MotivoRequest
     {
       public string Motivo { get; set; } = string.Empty;

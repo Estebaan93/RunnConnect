@@ -2,8 +2,8 @@
 
 namespace RunnConnectAPI.Models.Dto.Resultado
 {
-  /// Respuesta con todos los resultados de un evento
-  /// GET: api/Resultado/Evento/{idEvento}
+  // Respuesta con todos los resultados de un evento
+  // GET: api/Resultado/Evento/{idEvento}
   public class ResultadosEventoResponse
   {
     public EventoResultadoInfo Evento { get; set; } = new();
@@ -22,8 +22,8 @@ namespace RunnConnectAPI.Models.Dto.Resultado
     public string Estado { get; set; } = string.Empty;
   }
 
-  /// Item de resultado en el listado del evento
-  /// Ordenado por posición general
+  // Item de resultado en el listado del evento
+  // Ordenado por posición general
   public class ResultadoEventoItem
   {
     public int IdResultado { get; set; }

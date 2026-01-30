@@ -978,9 +978,9 @@ namespace RunnConnectAPI.Controllers
     }
 
 
-    /*SOLICITAR REACTIVACIÓN DE CUENTA (Envía email con token)
+    /*SOLICITAR REACTIVACION DE CUENTA (Envia email con token)
   POST: api/Usuario/SolicitarReactivacion
-  Verifica credenciales y envía email con link de reactivación*/
+  Verifica credenciales y envia email con link de reactivacion*/
     // Controllers/UsuarioController.cs - AGREGAR ESTOS DOS MÉTODOS
 
     [AllowAnonymous]
@@ -1048,7 +1048,7 @@ namespace RunnConnectAPI.Controllers
       }
     }
 
-    /*CONFIRMAR REACTIVACIÓN DE CUENTA (Usa token del email)
+    /*CONFIRMAR REACTIVACION DE CUENTA (Usa token del email)
     POST: api/Usuario/ReactivarCuenta
     Valida token y reactiva la cuenta*/
     [AllowAnonymous]
@@ -1097,7 +1097,7 @@ namespace RunnConnectAPI.Controllers
         var jwtToken = _jwtService.GenerarToken(usuario);
         var avatarUrl = _fileService.ObtenerUrlCompleta(usuario.ImgAvatar, Request);
 
-        // 10. Retornar éxito con token para login automático
+        // 10. Retornar éxito con token para login automatico
         return Ok(new
         {
           message = "¡Cuenta reactivada exitosamente! Bienvenido de nuevo",
