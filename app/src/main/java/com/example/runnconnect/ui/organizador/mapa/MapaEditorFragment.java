@@ -133,7 +133,7 @@ public class MapaEditorFragment extends Fragment implements OnMapReadyCallback {
     viewModel.onMapReady(idEvento);
   }
 
-  // PINTAR (Solo visual, no calcula nada)
+  // PINTAR (Solo visual, solo calcula a modo infomativo)
   private void dibujarEnMapa(List<LatLng> puntos) {
     if (mMap == null) return;
     mMap.clear();

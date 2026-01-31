@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+  android:layout_width="match_parent"
+  android:layout_height="wrap_content"
+  android:orientation="vertical"
+  android:padding="20dp">
+
+  <TextView
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:text="Tipo de Punto"
+    android:textStyle="bold" />
+
+  <Spinner
+    android:id="@+id/spTipoPunto"
+    android:layout_width="match_parent"
+    android:layout_height="48dp"
+    android:layout_marginTop="8dp" />
+
+  <EditText
+    android:id="@+id/etNombrePunto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="16dp"
+    android:hint="Ej: Hidratación KM 5"
+    android:inputType="textCapSentences" />
+
+</LinearLayout>

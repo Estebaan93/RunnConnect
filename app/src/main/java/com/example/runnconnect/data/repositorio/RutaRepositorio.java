@@ -39,4 +39,6 @@ public class RutaRepositorio {
     apiService.obtenerMapaPublico(idEvento).enqueue(callback);
   }
 
+
+
 }

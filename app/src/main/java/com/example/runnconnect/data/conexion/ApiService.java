@@ -6,6 +6,7 @@ package com.example.runnconnect.data.conexion;
 import com.example.runnconnect.data.request.ActualizarEventoRequest;
 import com.example.runnconnect.data.request.ActualizarPerfilOrganizadorRequest;
 import com.example.runnconnect.data.request.ActualizarPerfilRunnerRequest;
+import com.example.runnconnect.data.request.CrearPuntoInteresRequest;
 import com.example.runnconnect.data.response.BusquedaInscripcionResponse;
 import com.example.runnconnect.data.request.CambiarEstadoPagoRequest;
 import com.example.runnconnect.data.request.CambiarEstadoRequest;
@@ -203,5 +204,14 @@ public interface ApiService {
     @Header("Authorization") String token,
     @Query("busqueda") String termino
   );
+
+  //agregar puntos de interes
+  @POST("Evento/{idEvento}/PuntosInteres")
+  Call<ResponseBody> crearPuntoInteres(
+    @Path("idEvento") int idEvento,
+    @Body CrearPuntoInteresRequest request
+    );
+
+
 
 }

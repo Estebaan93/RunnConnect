@@ -16,6 +16,7 @@ import com.example.runnconnect.data.response.RutaPuntoResponse;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
+import com.google.maps.android.PolyUtil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -41,6 +42,7 @@ public class MapaEditorViewModel extends AndroidViewModel {
   private final MutableLiveData<String> ordenMostrarError = new MutableLiveData<>(null);
   private final MutableLiveData<LatLngBounds> ordenHacerZoomRuta = new MutableLiveData<>(null);
   private final MutableLiveData<LatLng> ordenCentrarCamara = new MutableLiveData<>(null);
+  private final MutableLiveData<LatLng> ordenPedirDatosPI = new MutableLiveData<>(null); //puntos interes
 
   // Control interno para no recargar si ya se cargo
   private boolean datosCargados = false;
@@ -60,6 +62,7 @@ public class MapaEditorViewModel extends AndroidViewModel {
   public LiveData<String> getOrdenMostrarError() { return ordenMostrarError; }
   public LiveData<LatLngBounds> getOrdenHacerZoomRuta() { return ordenHacerZoomRuta; }
   public LiveData<LatLng> getOrdenCentrarCamara() { return ordenCentrarCamara; }
+  public LiveData<LatLng> getOrdenPedirDatosPI() { return ordenPedirDatosPI; }
 
   // --- METODOS DE RESET (Para que las ordenes no se repitan) ---
   public void resetOrdenNavegacion() { ordenNavegarSalida.setValue(null); }
@@ -68,6 +71,26 @@ public class MapaEditorViewModel extends AndroidViewModel {
     ordenHacerZoomRuta.setValue(null);
     ordenCentrarCamara.setValue(null);
   }
+
+  //puntos interes
+  public void validarPuntoInteres(LatLng puntoClickeado) {
+    List<LatLng> ruta = puntosRuta.getValue();
+    if (ruta == null || ruta.size() < 2) {
+      ordenMostrarError.setValue("Primero debés guardar el circuito");
+      return;
+    }
+
+    // VALIDACION: esta el clic a menos de 15 metros de la ruta?
+    boolean estaEnRuta = PolyUtil.isLocationOnPath(puntoClickeado, ruta, true, 15);
+
+    if (estaEnRuta) {
+      ordenPedirDatosPI.setValue(puntoClickeado); // Avisamos al Fragment para abrir el Spinner
+    } else {
+      ordenMostrarError.setValue("Los puntos de interés deben marcarse sobre el circuito");
+    }
+  }
+
+  public void resetOrdenDialogo() { ordenPedirDatosPI.setValue(null); }
 
   // --- ENTRADAS (Eventos desde el Fragment) ---
 

@@ -11,6 +11,7 @@ import com.example.runnconnect.data.preferencias.SessionManager;
 import com.example.runnconnect.data.request.ActualizarEventoRequest;
 import com.example.runnconnect.data.request.CambiarEstadoRequest;
 import com.example.runnconnect.data.request.CrearEventoRequest;
+import com.example.runnconnect.data.request.CrearPuntoInteresRequest;
 import com.example.runnconnect.data.response.EventoDetalleResponse;
 import com.example.runnconnect.data.response.EventoResumenResponse;
 import com.example.runnconnect.data.response.EventosPaginadosResponse;
@@ -92,6 +93,18 @@ public class EventoRepositorio {
   //obt circuito de un evento (publico)
   public void obtenerMapaPublico(int idEvento, Callback<MapaEventoResponse> callback) {
     apiService.obtenerMapaPublico(idEvento).enqueue(callback);
+  }
+
+  //puntos interes
+  public void crearPuntoInteres(int idEvento, CrearPuntoInteresRequest request, Callback<ResponseBody> callback) {
+    String token = sessionManager.leerToken();
+    if (token != null && !token.isEmpty()) {
+      // Llamamos al endpoint definido en ApiService
+      apiService.crearPuntoInteres(idEvento, request).enqueue(callback);
+    } else {
+      callback.onFailure(null, new Throwable("Sesión expirada."));
+    }
+
   }
 
 }
