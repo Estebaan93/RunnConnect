@@ -614,6 +614,8 @@ namespace RunnConnectAPI.Controllers
                 IdEvento = i.Categoria.IdEvento,
                 NombreEvento = i.Categoria.Evento.Nombre,
                 NombreCategoria = i.Categoria.Nombre,
+
+                TalleRemera = i.TalleRemera,
                 
                 Runner = new RunnerSimpleDto
                 {
@@ -621,7 +623,12 @@ namespace RunnConnectAPI.Controllers
                     // Manejo seguro de nulos con el operador '?' y '??'
                     Apellido = i.Usuario.PerfilRunner?.Apellido ?? "",
                     Dni = i.Usuario.PerfilRunner?.Dni.ToString() ?? "S/D",
-                    Email = i.Usuario.Email
+                    Email = i.Usuario.Email,
+                    Telefono = i.Usuario.Telefono,
+                    Genero= i.Usuario.PerfilRunner?.Genero,
+                    Localidad = i.Usuario.PerfilRunner?.Localidad,
+                    NombreContactoEmergencia = i.Usuario.PerfilRunner?.NombreContactoEmergencia,
+                    TelefonoEmergencia = i.Usuario.PerfilRunner?.TelefonoEmergencia
                 }
             }).ToList();
 

@@ -73,7 +73,7 @@ public class GestionInscriptosViewModel extends AndroidViewModel {
     ejecutarConsulta();
   }
 
-  // LÓGICA CLAVE: El VM decide qué diálogo mostrar según el estado
+  // LOGICA CLAVE: El VM decide que dialogo mostrar segun el estado
   public void onInscriptoSeleccionado(InscriptoEventoResponse item) {
     if (item == null) return;
 
@@ -84,7 +84,7 @@ public class GestionInscriptosViewModel extends AndroidViewModel {
     }
   }
 
-  // Lógica encapsulada: Aprobar
+  // Logica encapsulada: Aprobar
   public void aprobarPago(int idInscripcion) {
     ejecutarCambioEstado(idInscripcion, "pagado", "Pago confirmado por organizador");
   }
