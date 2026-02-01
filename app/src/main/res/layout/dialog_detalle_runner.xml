@@ -148,7 +148,7 @@
           android:layout_height="wrap_content"
           android:layout_marginTop="4dp"
           tools:text="Tel: +54 266 4111222"/>
-        
+
       <TextView
         android:id="@+id/tvMensajeBaja"
         android:layout_width="match_parent"

@@ -100,9 +100,9 @@ public class EventoRepositorio {
     String token = sessionManager.leerToken();
     if (token != null && !token.isEmpty()) {
       // Llamamos al endpoint definido en ApiService
-      apiService.crearPuntoInteres(idEvento, request).enqueue(callback);
+      apiService.crearPuntoInteres("Bearer " + token, idEvento, request).enqueue(callback);
     } else {
-      callback.onFailure(null, new Throwable("Sesión expirada."));
+      callback.onFailure(null, new Throwable("Sesion expirada."));
     }
 
   }

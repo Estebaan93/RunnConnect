@@ -5,10 +5,14 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ArrayAdapter; // Nuevo
+import android.widget.EditText; // Nuevo
+import android.widget.Spinner; // Nuevo
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog; // Nuevo
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.NavController;
@@ -25,6 +29,7 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
+import com.google.maps.android.SphericalUtil; // Importante para flechas
 
 import java.util.List;
 
@@ -58,34 +63,27 @@ public class MapaEditorFragment extends Fragment implements OnMapReadyCallback {
     return binding.getRoot();
   }
 
-  // --- ENTRADAS (Usuario -> ViewModel) ---
   private void setupListeners() {
     binding.fabUndo.setOnClickListener(v -> viewModel.deshacer());
     binding.fabLayers.setOnClickListener(v -> viewModel.alternarCapas());
     binding.btnGuardarRuta.setOnClickListener(v -> viewModel.guardarRuta(idEvento));
   }
 
-  // --- SALIDAS (ViewModel -> UI) ---
   private void setupObservers() {
-
-    // 1. Mostrar carga
     viewModel.getIsLoading().observe(getViewLifecycleOwner(), loading -> {
       binding.progressBar.setVisibility(loading ? View.VISIBLE : View.GONE);
       binding.btnGuardarRuta.setEnabled(!loading);
     });
 
-    // 2. Actualizar texto distancia
     viewModel.getTextoDistancia().observe(getViewLifecycleOwner(), binding.tvDistanciaReal::setText);
 
-    // 3. Configurar tipo de mapa
     viewModel.getTipoMapa().observe(getViewLifecycleOwner(), tipo -> {
       if (mMap != null) mMap.setMapType(tipo);
     });
 
-    // 4. Dibujar ruta
+    // Dibujar en mapa (Ruta + Flechas)
     viewModel.getPuntosRuta().observe(getViewLifecycleOwner(), this::dibujarEnMapa);
 
-    // 5. Mensajes de Error
     viewModel.getOrdenMostrarError().observe(getViewLifecycleOwner(), msg -> {
       if (msg != null) {
         Toast.makeText(getContext(), msg, Toast.LENGTH_SHORT).show();
@@ -93,7 +91,6 @@ public class MapaEditorFragment extends Fragment implements OnMapReadyCallback {
       }
     });
 
-    // 6. Orden de Zoom (Ruta cargada)
     viewModel.getOrdenHacerZoomRuta().observe(getViewLifecycleOwner(), bounds -> {
       if (bounds != null && mMap != null) {
         mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, 100));
@@ -101,7 +98,6 @@ public class MapaEditorFragment extends Fragment implements OnMapReadyCallback {
       }
     });
 
-    // 7. Orden de Centro (Evento nuevo o fallback)
     viewModel.getOrdenCentrarCamara().observe(getViewLifecycleOwner(), centro -> {
       if (centro != null && mMap != null) {
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(centro, 13));
@@ -109,11 +105,18 @@ public class MapaEditorFragment extends Fragment implements OnMapReadyCallback {
       }
     });
 
-    // 8. ORDEN DE NAVEGACION
     viewModel.getOrdenNavegarSalida().observe(getViewLifecycleOwner(), mensaje -> {
       if (mensaje != null) {
         navegarAlListado(mensaje);
         viewModel.resetOrdenNavegacion();
+      }
+    });
+
+    // NUEVO: Observer para abrir Diálogo de Puntos de Interés
+    viewModel.getOrdenPedirDatosPI().observe(getViewLifecycleOwner(), latLng -> {
+      if (latLng != null) {
+        mostrarDialogoPuntoInteres(latLng);
+        viewModel.resetOrdenDialogo();
       }
     });
   }
@@ -122,28 +125,30 @@ public class MapaEditorFragment extends Fragment implements OnMapReadyCallback {
   public void onMapReady(@NonNull GoogleMap googleMap) {
     mMap = googleMap;
     mMap.getUiSettings().setZoomControlsEnabled(true);
-    mMap.setOnMapClickListener(latLng -> viewModel.agregarPunto(latLng));
 
-    // Sincronizar estado inicial
+    // MODIFICADO: Delegamos la decisión al ViewModel (Dibujar o Validar PI)
+    mMap.setOnMapClickListener(latLng -> viewModel.procesarClickMapa(latLng));
+
     if (viewModel.getTipoMapa().getValue() != null) {
       mMap.setMapType(viewModel.getTipoMapa().getValue());
     }
-
-    // Avisar al VM que estamos listos
     viewModel.onMapReady(idEvento);
   }
 
-  // PINTAR (Solo visual, solo calcula a modo infomativo)
   private void dibujarEnMapa(List<LatLng> puntos) {
     if (mMap == null) return;
     mMap.clear();
-
     if (puntos == null || puntos.isEmpty()) return;
 
+    // 1. Línea Azul
     PolylineOptions poly = new PolylineOptions()
       .addAll(puntos).width(12).color(Color.BLUE).geodesic(true);
     mMap.addPolyline(poly);
 
+    // 2. NUEVO: Flechas de Sentido Dinámicas (cada 150m)
+    dibujarFlechasDinamicas(puntos);
+
+    // 3. Marcadores Inicio/Fin
     mMap.addMarker(new MarkerOptions().position(puntos.get(0))
       .title("Largada").icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)));
 
@@ -153,36 +158,97 @@ public class MapaEditorFragment extends Fragment implements OnMapReadyCallback {
     }
   }
 
-  // NAVEGACION
+  // Metodo Helper para las flechas
+  private void dibujarFlechasDinamicas(List<LatLng> puntos) {
+    if (getContext() == null) return; // Validación de seguridad
+
+    double acumulado = 0;
+    double intervalo = 150; // Metros entre flechas
+
+    for (int i = 0; i < puntos.size() - 1; i++) {
+      LatLng p1 = puntos.get(i);
+      LatLng p2 = puntos.get(i + 1);
+
+      float[] dist = new float[1];
+      android.location.Location.distanceBetween(p1.latitude, p1.longitude, p2.latitude, p2.longitude, dist);
+      acumulado += dist[0];
+
+      if (acumulado >= intervalo) {
+        float heading = (float) SphericalUtil.computeHeading(p1, p2);
+
+        // --- CORRECCIÓN AQUÍ ---
+        mMap.addMarker(new MarkerOptions()
+          .position(p1)
+          // Usamos el helper en lugar de fromResource directo
+          .icon(bitmapDescriptorFromVector(requireContext(), R.drawable.ic_flecha_sentido))
+          .rotation(heading)
+          .anchor(0.5f, 0.5f)
+          .flat(true));
+        // -----------------------
+
+        acumulado = 0;
+      }
+    }
+  }
+
+  private void mostrarDialogoPuntoInteres(LatLng latLng) {
+    AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
+    View v = getLayoutInflater().inflate(R.layout.dialog_crear_punto_interes, null);
+
+    Spinner spTipo = v.findViewById(R.id.spTipoPunto);
+    //EditText etNombre = v.findViewById(R.id.etNombrePunto);
+
+    String[] opcionesVisuales = {"Hidratacion", "Primeros auxilios", "Punto energetico", "Otro"};
+    String[] opcionesApi = {"hidratacion", "primeros_auxilios", "punto_energetico", "otro"};
+
+    ArrayAdapter<String> adapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_dropdown_item, opcionesVisuales);
+    spTipo.setAdapter(adapter);
+
+    builder.setView(v)
+      .setTitle("Nuevo Punto de Interés")
+      .setPositiveButton("Guardar", (d, w) -> {
+        int position= spTipo.getSelectedItemPosition();
+        String tipoEnviar = opcionesApi[position];
+        String nombreAutomatico = opcionesVisuales[position];
+
+        // Enviamos a la API
+        viewModel.guardarPuntoInteresBackend(idEvento, tipoEnviar, latLng);
+      })
+      .setNegativeButton("Cancelar", null)
+      .show();
+  }
+
   private void navegarAlListado(String mensajeExito) {
     NavController navController = Navigation.findNavController(requireView());
-
     try {
-      // CASO A: Venimos del boton (+) de Mis Eventos.
-      // Aqui "Mis Eventos" si existe en el historial.
       androidx.navigation.NavBackStackEntry entry = navController.getBackStackEntry(R.id.nav_mis_eventos);
       entry.getSavedStateHandle().set("mensaje_exito", mensajeExito);
-
-      // Volvemos a la lista eliminando lo del medio.
       navController.popBackStack(R.id.nav_mis_eventos, false);
-
     } catch (IllegalArgumentException e) {
-      // CASO B: Venimos del Menu Hamburguesa.
-      // La pila actual es: Inicio -> CrearEvento -> MapaEditor
-      // "Mis Eventos" NO esta atras.
-
       NavOptions options = new NavOptions.Builder()
-        // Esto borra el Mapa Y TAMBIEN borra el formulario de Crear Evento del historial.
         .setPopUpTo(R.id.nav_crear_evento, true)
-        .setLaunchSingleTop(true)
-        .build();
-
+        .setLaunchSingleTop(true).build();
       Bundle args = new Bundle();
       args.putString("mensaje_arg", mensajeExito);
-
-      // Al navegar, la pila quedara: Inicio -> Mis Eventos
       navController.navigate(R.id.nav_mis_eventos, args, options);
     }
   }
+
+  //transforma el vector en png para el sentido del circuito
+  private com.google.android.gms.maps.model.BitmapDescriptor bitmapDescriptorFromVector(android.content.Context context, int vectorResId) {
+    android.graphics.drawable.Drawable vectorDrawable = androidx.core.content.ContextCompat.getDrawable(context, vectorResId);
+    if (vectorDrawable == null) return null;
+
+    vectorDrawable.setBounds(0, 0, vectorDrawable.getIntrinsicWidth(), vectorDrawable.getIntrinsicHeight());
+    android.graphics.Bitmap bitmap = android.graphics.Bitmap.createBitmap(
+      vectorDrawable.getIntrinsicWidth(),
+      vectorDrawable.getIntrinsicHeight(),
+      android.graphics.Bitmap.Config.ARGB_8888);
+    android.graphics.Canvas canvas = new android.graphics.Canvas(bitmap);
+    vectorDrawable.draw(canvas);
+
+    return com.google.android.gms.maps.model.BitmapDescriptorFactory.fromBitmap(bitmap);
+  }
+
 
 }

@@ -10,15 +10,9 @@ namespace RunnConnectAPI.Models.Dto.PuntoInteres
     // Tipo de punto de interes
     // Valores válidos: hidratacion, primeros_auxilios, meta, largada, otro
     [Required(ErrorMessage = "El tipo es obligatorio")]
-    [RegularExpression("^(hidratacion|primeros_auxilios|meta|largada|otro)$",
-      ErrorMessage = "El tipo debe ser: hidratacion, primeros_auxilios, meta, largada u otro")]
+    [RegularExpression("^(hidratacion|primeros_auxilios|punto_energetico|otro)$",
+      ErrorMessage = "El tipo debe ser: hidratacion, primeros_auxilios, punto_energetico  u otro")]
     public string Tipo { get; set; } = string.Empty;
-
-    // Nombre descriptivo del punto
-    // Ej: "Hidratacion KM 5", "Puesto de Primeros Auxilios", "Meta Principal"
-    [Required(ErrorMessage = "El nombre es obligatorio")]
-    [StringLength(100, MinimumLength = 3, ErrorMessage = "El nombre debe tener entre 3 y 100 caracteres")]
-    public string Nombre { get; set; } = string.Empty;
 
     [Required(ErrorMessage = "La latitud es obligatoria")]
     [Range(-90, 90, ErrorMessage = "La latitud debe estar entre -90 y 90")]
@@ -37,10 +31,6 @@ namespace RunnConnectAPI.Models.Dto.PuntoInteres
     [RegularExpression("^(hidratacion|primeros_auxilios|meta|largada|otro)$",
       ErrorMessage = "El tipo debe ser: hidratacion, primeros_auxilios, meta, largada u otro")]
     public string Tipo { get; set; } = string.Empty;
-
-    [Required(ErrorMessage = "El nombre es obligatorio")]
-    [StringLength(100, MinimumLength = 3, ErrorMessage = "El nombre debe tener entre 3 y 100 caracteres")]
-    public string Nombre { get; set; } = string.Empty;
 
     [Required(ErrorMessage = "La latitud es obligatoria")]
     [Range(-90, 90, ErrorMessage = "La latitud debe estar entre -90 y 90")]
@@ -66,8 +56,7 @@ namespace RunnConnectAPI.Models.Dto.PuntoInteres
     {
       "hidratacion" => "Punto de Hidratación",
       "primeros_auxilios" => "Primeros Auxilios",
-      "meta" => "Meta",
-      "largada" => "Largada",
+      "punto_energetico"=>"Punto energetico",
       "otro" => "Otro",
       _ => Tipo
     };
@@ -77,8 +66,7 @@ namespace RunnConnectAPI.Models.Dto.PuntoInteres
     {
       "hidratacion" => "water_drop",
       "primeros_auxilios" => "medical_services",
-      "meta" => "flag",
-      "largada" => "play_arrow",
+      "punto_energetico" => "bolt",
       "otro" => "location_on",
       _ => "location_on"
     };

@@ -171,7 +171,7 @@ namespace RunnConnectAPI.Controllers
 
     /// Crea un nuevo punto de interes
     /// Requiere: Token JWT de Organizador (dueño del evento)
-    /// Tipos validos: hidratacion, primeros_auxilios, meta, largada, otro
+    /// Tipos validos: hidratacion, primeros auxilios, punto de energia, otro
     [HttpPost("PuntosInteres")]
     [Authorize]
     public async Task<IActionResult> CrearPuntoInteres(int idEvento, [FromBody] CrearPuntoInteresRequest request)

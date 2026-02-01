@@ -208,6 +208,7 @@ public interface ApiService {
   //agregar puntos de interes
   @POST("Evento/{idEvento}/PuntosInteres")
   Call<ResponseBody> crearPuntoInteres(
+    @Header("Authorization") String token,
     @Path("idEvento") int idEvento,
     @Body CrearPuntoInteresRequest request
     );
