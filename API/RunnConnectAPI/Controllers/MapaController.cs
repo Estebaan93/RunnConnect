@@ -127,7 +127,7 @@ namespace RunnConnectAPI.Controllers
     // PUNTOS DE INTERES 
     /// Obtiene todos los puntos de interes de un evento
     /// Endpoint publico
-    /// Retorna: hidratacion, primeros auxilios, meta, largada, etc.
+    /// Retorna: hidratacion, primeros auxilios, etc.
     [HttpGet("PuntosInteres")]
     public async Task<IActionResult> ObtenerPuntosInteres(int idEvento)
     {

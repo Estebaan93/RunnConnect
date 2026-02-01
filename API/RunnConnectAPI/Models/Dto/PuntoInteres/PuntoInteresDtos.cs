@@ -8,7 +8,7 @@ namespace RunnConnectAPI.Models.Dto.PuntoInteres
   public class CrearPuntoInteresRequest
   {
     // Tipo de punto de interes
-    // Valores válidos: hidratacion, primeros_auxilios, meta, largada, otro
+    // Valores válidos: hidratacion, primeros_auxilios, otro
     [Required(ErrorMessage = "El tipo es obligatorio")]
     [RegularExpression("^(hidratacion|primeros_auxilios|punto_energetico|otro)$",
       ErrorMessage = "El tipo debe ser: hidratacion, primeros_auxilios, punto_energetico  u otro")]
@@ -28,8 +28,8 @@ namespace RunnConnectAPI.Models.Dto.PuntoInteres
   public class ActualizarPuntoInteresRequest
   {
     [Required(ErrorMessage = "El tipo es obligatorio")]
-    [RegularExpression("^(hidratacion|primeros_auxilios|meta|largada|otro)$",
-      ErrorMessage = "El tipo debe ser: hidratacion, primeros_auxilios, meta, largada u otro")]
+    [RegularExpression("^(hidratacion|primeros_auxilios|otro)$",
+      ErrorMessage = "El tipo debe ser: hidratacion, primeros_auxilios u otro")]
     public string Tipo { get; set; } = string.Empty;
 
     [Required(ErrorMessage = "La latitud es obligatoria")]

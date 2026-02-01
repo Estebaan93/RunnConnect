@@ -16,6 +16,8 @@ import com.example.runnconnect.data.response.EventoDetalleResponse;
 import com.example.runnconnect.data.response.EventoResumenResponse;
 import com.example.runnconnect.data.response.EventosPaginadosResponse;
 import com.example.runnconnect.data.response.MapaEventoResponse;
+import com.example.runnconnect.data.response.PuntoInteresResponse;
+import com.example.runnconnect.data.response.PuntosInteresEventoResponse;
 
 import java.util.List;
 
@@ -106,5 +108,23 @@ public class EventoRepositorio {
     }
 
   }
+
+  //obtener punto interes
+  public void obtenerPuntosInteres(int idEvento, Callback<PuntosInteresEventoResponse> callback) {
+    // Nota: Aunque el GET suele ser público, a veces Retrofit requiere url completa base
+    // Si tu endpoint es público no hace falta Header, pero no daña enviarlo si el usuario es Orga.
+
+    // Opción A: Si el endpoint valida token (aunque tu C# dice que es público)
+    /*
+    String token = sessionManager.leerToken();
+    if (token != null) {
+         apiService.obtenerPuntosInteres("Bearer " + token, idEvento).enqueue(callback);
+    }
+    */
+
+    // Opción B: Llamada directa (según tu MapaController.cs es público)
+    apiService.obtenerPuntosInteres(idEvento).enqueue(callback);
+  }
+
 
 }

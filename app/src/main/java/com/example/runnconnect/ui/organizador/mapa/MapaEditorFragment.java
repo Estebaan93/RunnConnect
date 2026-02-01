@@ -20,6 +20,7 @@ import androidx.navigation.NavOptions;
 import androidx.navigation.Navigation;
 
 import com.example.runnconnect.R;
+import com.example.runnconnect.data.response.PuntoInteresResponse;
 import com.example.runnconnect.databinding.FragmentEditorMapaBinding;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -119,6 +120,54 @@ public class MapaEditorFragment extends Fragment implements OnMapReadyCallback {
         viewModel.resetOrdenDialogo();
       }
     });
+
+    //observar lista de Punto interes
+    viewModel.getListaPuntosInteres().observe(getViewLifecycleOwner(), puntos -> {
+      if (puntos != null) {
+        dibujarMarcadoresPOI(puntos);
+      }
+    });
+
+  }
+  //dibujar iconos de punto interes
+  private void dibujarMarcadoresPOI(List<PuntoInteresResponse> puntos) {
+    if (mMap == null) return;
+
+    // OJO: No usamos mMap.clear() aquí porque borraría la ruta azul.
+    // Solo limpiamos los marcadores de POI anteriores si es necesario (o dejamos que se acumulen si la lógica lo permite)
+    // Para hacerlo limpio, podrías guardar los marcadores en una lista y borrarlos antes de redibujar,
+    // pero por ahora, simplemente agreguemos los nuevos.
+
+    for (PuntoInteresResponse p : puntos) {
+      LatLng posicion = new LatLng(p.getLatitud().doubleValue(), p.getLongitud().doubleValue());
+
+      // Obtener el icono según el tipo
+      int resourceId = obtenerIconoPorTipo(p.getTipo());
+
+      MarkerOptions markerOpt = new MarkerOptions()
+        .position(posicion)
+        .title(p.getNombre()) // Muestra "Puesto de Hidratación" al tocar
+        .icon(BitmapDescriptorFactory.fromResource(resourceId)); // Carga el PNG
+      // .anchor(0.5f, 0.5f) // Descomentar si el icono debe estar centrado (ej: círculo) o dejar default (pin)
+
+      mMap.addMarker(markerOpt);
+    }
+  }
+
+  // Helper para elegir el icono PNG
+  private int obtenerIconoPorTipo(String tipo) {
+    if (tipo == null) return R.drawable.ic_pin_help; // Default
+
+    switch (tipo.toLowerCase().trim()) {
+      case "hidratacion":
+        return R.drawable.ic_pin_drop; //PNG de agua
+      case "primeros_auxilios":
+        return R.drawable.ic_pin_medical;      //PNG de cruz
+      case "punto_energetico":
+        return R.drawable.ic_pin_thunderbolt;     //PNG de rayo/comida
+      default:
+        return R.drawable.ic_pin_help;        // Default
+    }
   }
 
   @Override
@@ -176,7 +225,6 @@ public class MapaEditorFragment extends Fragment implements OnMapReadyCallback {
       if (acumulado >= intervalo) {
         float heading = (float) SphericalUtil.computeHeading(p1, p2);
 
-        // --- CORRECCIÓN AQUÍ ---
         mMap.addMarker(new MarkerOptions()
           .position(p1)
           // Usamos el helper en lugar de fromResource directo

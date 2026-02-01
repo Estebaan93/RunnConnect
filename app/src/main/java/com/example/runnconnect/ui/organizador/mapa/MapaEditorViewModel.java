@@ -15,6 +15,8 @@ import com.example.runnconnect.data.request.CrearPuntoInteresRequest; // Nuevo
 import com.example.runnconnect.data.request.GuardarRutaRequest;
 import com.example.runnconnect.data.request.RutaPuntoRequest;
 import com.example.runnconnect.data.response.MapaEventoResponse;
+import com.example.runnconnect.data.response.PuntoInteresResponse;
+import com.example.runnconnect.data.response.PuntosInteresEventoResponse;
 import com.example.runnconnect.data.response.RutaPuntoResponse;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.LatLng;
@@ -48,7 +50,7 @@ public class MapaEditorViewModel extends AndroidViewModel {
 
   // NUEVO: Orden para abrir el diálogo de Puntos de Interés
   private final MutableLiveData<LatLng> ordenPedirDatosPI = new MutableLiveData<>(null);
-
+  private final MutableLiveData<List<PuntoInteresResponse>> listaPuntosInteres = new MutableLiveData<>();
   private boolean datosCargados = false;
   private boolean modoPuntosInteres = false; // Flag para controlar el click
 
@@ -68,7 +70,7 @@ public class MapaEditorViewModel extends AndroidViewModel {
   public LiveData<LatLngBounds> getOrdenHacerZoomRuta() { return ordenHacerZoomRuta; }
   public LiveData<LatLng> getOrdenCentrarCamara() { return ordenCentrarCamara; }
   public LiveData<LatLng> getOrdenPedirDatosPI() { return ordenPedirDatosPI; } // Nuevo Getter
-
+  public LiveData<List<PuntoInteresResponse>> getListaPuntosInteres() { return listaPuntosInteres; }
   // --- RESETS ---
   public void resetOrdenNavegacion() { ordenNavegarSalida.setValue(null); }
   public void resetOrdenError() { ordenMostrarError.setValue(null); }
@@ -82,6 +84,7 @@ public class MapaEditorViewModel extends AndroidViewModel {
     datosCargados = true;
     if (idEvento != 0) {
       cargarRutaBackend(idEvento);
+      cargarPuntosInteres(idEvento);
     } else {
       ordenCentrarCamara.setValue(new LatLng(-33.29501, -66.33563));
     }
@@ -140,6 +143,7 @@ public class MapaEditorViewModel extends AndroidViewModel {
         isLoading.setValue(false);
         if (response.isSuccessful()) {
           ordenMostrarError.setValue("¡Punto de interes agregado!"); // Usamos error para mostrar Toast rápido o creamos un LiveData de éxito
+          cargarPuntosInteres(idEvento);
         } else {
           try{
             String errorBody = response.errorBody().string();
@@ -156,6 +160,24 @@ public class MapaEditorViewModel extends AndroidViewModel {
       public void onFailure(Call<ResponseBody> call, Throwable t) {
         isLoading.setValue(false);
         ordenMostrarError.setValue("Error de conexión");
+      }
+    });
+  }
+  //cargar punto interes
+  public void cargarPuntosInteres(int idEvento) {
+    // Usamos el endpoint GET PuntosInteres que ya tienes en tu API
+    // Nota: Asegurate de tener este metodo en tu EventoRepositorio o RutaRepositorio
+    eventoRepositorio.obtenerPuntosInteres(idEvento, new Callback<PuntosInteresEventoResponse>() {
+      @Override
+      public void onResponse(Call<PuntosInteresEventoResponse> call, Response<PuntosInteresEventoResponse> response) {
+        if (response.isSuccessful() && response.body() != null) {
+          // Actualizamos la lista, esto disparará el observer en el Fragment
+          listaPuntosInteres.setValue(response.body().getPuntosInteres());
+        }
+      }
+      @Override
+      public void onFailure(Call<PuntosInteresEventoResponse> call, Throwable t) {
+        // Manejo silencioso o log
       }
     });
   }

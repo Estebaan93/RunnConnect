@@ -22,6 +22,8 @@ import com.example.runnconnect.data.response.ListaInscriptosResponse;
 import com.example.runnconnect.data.response.LoginResponse;
 import com.example.runnconnect.data.response.MapaEventoResponse;
 import com.example.runnconnect.data.response.PerfilUsuarioResponse;
+import com.example.runnconnect.data.response.PuntoInteresResponse;
+import com.example.runnconnect.data.response.PuntosInteresEventoResponse;
 
 import java.util.List;
 
@@ -128,7 +130,9 @@ public interface ApiService {
 
   //mapa publico
   @GET("Evento/{idEvento}/Mapa")
-  Call<MapaEventoResponse> obtenerMapaPublico(@Path("idEvento") int idEvento);
+  Call<MapaEventoResponse> obtenerMapaPublico(
+    @Path("idEvento") int idEvento
+  );
 
   // Actualizar evento (PUT)
   @PUT("Evento/{id}")
@@ -212,6 +216,12 @@ public interface ApiService {
     @Path("idEvento") int idEvento,
     @Body CrearPuntoInteresRequest request
     );
+
+  //obtener puntos de interes
+  @GET("Evento/{idEvento}/PuntosInteres")
+  Call<PuntosInteresEventoResponse> obtenerPuntosInteres(
+    @Path("idEvento") int idEvento
+  );
 
 
 

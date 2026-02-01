@@ -282,7 +282,7 @@ namespace RunnConnectAPI.Repositories
           {
             IdEvento = idEvento,
             Tipo = tipoLimpio,
-            // CORRECCIÓN: Nombre automático
+            // CORRECCION: Nombre automatico
             Nombre = ObtenerNombrePorDefecto(tipoLimpio), 
             Latitud = p.Latitud,
             Longitud = p.Longitud
@@ -348,7 +348,7 @@ namespace RunnConnectAPI.Repositories
       };
     }
 
-    // --- HELPER PRIVADO PARA NOMBRES AUTOMÁTICOS ---
+    // --- HELPER PRIVADO PARA NOMBRES AUTOMATICOS ---
     private string ObtenerNombrePorDefecto(string tipo)
     {
         return tipo switch
@@ -356,8 +356,6 @@ namespace RunnConnectAPI.Repositories
             "hidratacion" => "Puesto de Hidratación",
             "primeros_auxilios" => "Primeros Auxilios",
             "punto_energetico" => "Punto Energético",
-            "meta" => "Meta",
-            "largada" => "Largada",
             _ => "Punto de Interés" // Default para 'otro'
         };
     }
