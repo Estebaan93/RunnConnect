@@ -101,7 +101,7 @@ public class DetalleEventoViewModel extends AndroidViewModel {
   public void cargarRunnersDeCategoria(int idEvento, int idCategoria) {
     // isLoading.setValue(true);
 
-    // CORRECCIÓN: Usar Callback<ListaInscriptosResponse> en lugar de InscriptoEventoResponse
+    // CORRECCION: Usar Callback<ListaInscriptosResponse> en lugar de InscriptoEventoResponse
     inscripcionRepositorio.obtenerInscriptos(idEvento, null, 1, 100 , new Callback<ListaInscriptosResponse>() {
       @Override
       public void onResponse(Call<ListaInscriptosResponse> call, Response<ListaInscriptosResponse> response) {
@@ -110,7 +110,7 @@ public class DetalleEventoViewModel extends AndroidViewModel {
 
           List<InscriptoEventoResponse> filtrados = new ArrayList<>();
 
-          // Ahora sí existe el metodo getInscripciones() porque response.body() es ListaInscriptosResponse
+          // Ahora si existe el metodo getInscripciones() porque response.body() es ListaInscriptosResponse
           if(response.body().getInscripciones() != null){
             for(InscriptoEventoResponse ins : response.body().getInscripciones()){
               //filtrar estado pagado

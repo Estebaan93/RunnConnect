@@ -199,12 +199,14 @@ namespace RunnConnectAPI.Repositories
 
       if (evento.Estado == "cancelado")
         return (null, "No se pueden agregar puntos de interés a un evento cancelado");
+      
+      string tipoLimpio= request.Tipo.ToLower().Trim();
 
       var punto = new PuntoInteres
       {
         IdEvento = idEvento,
         Tipo = request.Tipo.ToLower().Trim(),
-        Nombre = request.Nombre.Trim(),
+        Nombre = ObtenerNombrePorDefecto(tipoLimpio),
         Latitud = request.Latitud,
         Longitud = request.Longitud
       };
@@ -229,8 +231,10 @@ namespace RunnConnectAPI.Repositories
       if (punto.Evento?.IdOrganizador != idOrganizador)
         return (false, "No tienes permiso para modificar este punto de interés");
 
+      string tipoLimpio = request.Tipo.ToLower().Trim();
+
       punto.Tipo = request.Tipo.ToLower().Trim();
-      punto.Nombre = request.Nombre.Trim();
+      punto.Nombre = ObtenerNombrePorDefecto(tipoLimpio);
       punto.Latitud = request.Latitud;
       punto.Longitud = request.Longitud;
 
@@ -271,13 +275,18 @@ namespace RunnConnectAPI.Repositories
       if (evento.IdOrganizador != idOrganizador)
         return (0, "No tienes permiso para modificar este evento");
 
-      var nuevoPuntos = puntos.Select(p => new PuntoInteres
+      var nuevoPuntos = puntos.Select(p => 
       {
-        IdEvento = idEvento,
-        Tipo = p.Tipo.ToLower().Trim(),
-        Nombre = p.Nombre.Trim(),
-        Latitud = p.Latitud,
-        Longitud = p.Longitud
+        string tipoLimpio = p.Tipo.ToLower().Trim();
+          return new PuntoInteres
+          {
+            IdEvento = idEvento,
+            Tipo = tipoLimpio,
+            // CORRECCION: Nombre automatico
+            Nombre = ObtenerNombrePorDefecto(tipoLimpio), 
+            Latitud = p.Latitud,
+            Longitud = p.Longitud
+          };
       }).ToList();
 
       _context.PuntosInteres.AddRange(nuevoPuntos);
@@ -337,6 +346,18 @@ namespace RunnConnectAPI.Repositories
         Ruta = ruta,
         PuntosInteres = puntosInteres
       };
+    }
+
+    // --- HELPER PRIVADO PARA NOMBRES AUTOMATICOS ---
+    private string ObtenerNombrePorDefecto(string tipo)
+    {
+        return tipo switch
+        {
+            "hidratacion" => "Puesto de Hidratación",
+            "primeros_auxilios" => "Primeros Auxilios",
+            "punto_energetico" => "Punto Energético",
+            _ => "Punto de Interés" // Default para 'otro'
+        };
     }
 
   }

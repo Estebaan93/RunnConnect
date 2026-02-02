@@ -127,7 +127,7 @@ namespace RunnConnectAPI.Controllers
     // PUNTOS DE INTERES 
     /// Obtiene todos los puntos de interes de un evento
     /// Endpoint publico
-    /// Retorna: hidratacion, primeros auxilios, meta, largada, etc.
+    /// Retorna: hidratacion, primeros auxilios, etc.
     [HttpGet("PuntosInteres")]
     public async Task<IActionResult> ObtenerPuntosInteres(int idEvento)
     {
@@ -171,7 +171,7 @@ namespace RunnConnectAPI.Controllers
 
     /// Crea un nuevo punto de interes
     /// Requiere: Token JWT de Organizador (dueño del evento)
-    /// Tipos validos: hidratacion, primeros_auxilios, meta, largada, otro
+    /// Tipos validos: hidratacion, primeros auxilios, punto de energia, otro
     [HttpPost("PuntosInteres")]
     [Authorize]
     public async Task<IActionResult> CrearPuntoInteres(int idEvento, [FromBody] CrearPuntoInteresRequest request)

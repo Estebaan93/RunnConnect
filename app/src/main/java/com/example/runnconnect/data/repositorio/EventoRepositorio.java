@@ -11,10 +11,13 @@ import com.example.runnconnect.data.preferencias.SessionManager;
 import com.example.runnconnect.data.request.ActualizarEventoRequest;
 import com.example.runnconnect.data.request.CambiarEstadoRequest;
 import com.example.runnconnect.data.request.CrearEventoRequest;
+import com.example.runnconnect.data.request.CrearPuntoInteresRequest;
 import com.example.runnconnect.data.response.EventoDetalleResponse;
 import com.example.runnconnect.data.response.EventoResumenResponse;
 import com.example.runnconnect.data.response.EventosPaginadosResponse;
 import com.example.runnconnect.data.response.MapaEventoResponse;
+import com.example.runnconnect.data.response.PuntoInteresResponse;
+import com.example.runnconnect.data.response.PuntosInteresEventoResponse;
 
 import java.util.List;
 
@@ -93,5 +96,35 @@ public class EventoRepositorio {
   public void obtenerMapaPublico(int idEvento, Callback<MapaEventoResponse> callback) {
     apiService.obtenerMapaPublico(idEvento).enqueue(callback);
   }
+
+  //puntos interes
+  public void crearPuntoInteres(int idEvento, CrearPuntoInteresRequest request, Callback<ResponseBody> callback) {
+    String token = sessionManager.leerToken();
+    if (token != null && !token.isEmpty()) {
+      // Llamamos al endpoint definido en ApiService
+      apiService.crearPuntoInteres("Bearer " + token, idEvento, request).enqueue(callback);
+    } else {
+      callback.onFailure(null, new Throwable("Sesion expirada."));
+    }
+
+  }
+
+  //obtener punto interes
+  public void obtenerPuntosInteres(int idEvento, Callback<PuntosInteresEventoResponse> callback) {
+    // Nota: Aunque el GET suele ser público, a veces Retrofit requiere url completa base
+    // Si tu endpoint es público no hace falta Header, pero no daña enviarlo si el usuario es Orga.
+
+    // Opción A: Si el endpoint valida token (aunque tu C# dice que es público)
+    /*
+    String token = sessionManager.leerToken();
+    if (token != null) {
+         apiService.obtenerPuntosInteres("Bearer " + token, idEvento).enqueue(callback);
+    }
+    */
+
+    // Opción B: Llamada directa (según tu MapaController.cs es público)
+    apiService.obtenerPuntosInteres(idEvento).enqueue(callback);
+  }
+
 
 }
