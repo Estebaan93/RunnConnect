@@ -9,9 +9,9 @@ import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
-import com.example.runnconnect.data.repositorio.EventoRepositorio; // Nuevo
+import com.example.runnconnect.data.repositorio.EventoRepositorio;
 import com.example.runnconnect.data.repositorio.RutaRepositorio;
-import com.example.runnconnect.data.request.CrearPuntoInteresRequest; // Nuevo
+import com.example.runnconnect.data.request.CrearPuntoInteresRequest;
 import com.example.runnconnect.data.request.GuardarRutaRequest;
 import com.example.runnconnect.data.request.RutaPuntoRequest;
 import com.example.runnconnect.data.response.MapaEventoResponse;
@@ -21,7 +21,8 @@ import com.example.runnconnect.data.response.RutaPuntoResponse;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
-import com.google.maps.android.PolyUtil; // Necesario para el imán
+import com.google.maps.android.PolyUtil;
+import com.google.maps.android.SphericalUtil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -34,25 +35,32 @@ import retrofit2.Response;
 public class MapaEditorViewModel extends AndroidViewModel {
 
   private final RutaRepositorio rutaRepositorio;
-  private final EventoRepositorio eventoRepositorio; // Nuevo Repo para PIs
+  private final EventoRepositorio eventoRepositorio;
 
   // --- ESTADOS DE LA VISTA ---
   private final MutableLiveData<List<LatLng>> puntosRuta = new MutableLiveData<>(new ArrayList<>());
+
+  // lista de flechas calculadas (Posicion + Rotacion)
+  private final MutableLiveData<List<FlechaMapa>> flechasGuias = new MutableLiveData<>(new ArrayList<>());
+
   private final MutableLiveData<String> textoDistancia = new MutableLiveData<>("0.00 km");
   private final MutableLiveData<Boolean> isLoading = new MutableLiveData<>(false);
   private final MutableLiveData<Integer> tipoMapa = new MutableLiveData<>(GoogleMap.MAP_TYPE_NORMAL);
 
-  // --- ORDENES PARA LA VISTA ---
+  // --- ORDENES ---
   private final MutableLiveData<String> ordenNavegarSalida = new MutableLiveData<>(null);
   private final MutableLiveData<String> ordenMostrarError = new MutableLiveData<>(null);
   private final MutableLiveData<LatLngBounds> ordenHacerZoomRuta = new MutableLiveData<>(null);
   private final MutableLiveData<LatLng> ordenCentrarCamara = new MutableLiveData<>(null);
-
-  // NUEVO: Orden para abrir el diálogo de Puntos de Interés
   private final MutableLiveData<LatLng> ordenPedirDatosPI = new MutableLiveData<>(null);
+
   private final MutableLiveData<List<PuntoInteresResponse>> listaPuntosInteres = new MutableLiveData<>();
+
   private boolean datosCargados = false;
-  private boolean modoPuntosInteres = false; // Flag para controlar el click
+  private boolean modoPuntosInteres = false;
+
+  // Mapeo interno: Indices del Spinner -> Strings de la API
+  private final String[] TIPOS_PUNTO_API = {"hidratacion", "primeros_auxilios", "punto_energetico", "otro"};
 
   public MapaEditorViewModel(@NonNull Application application) {
     super(application);
@@ -62,6 +70,7 @@ public class MapaEditorViewModel extends AndroidViewModel {
 
   // --- GETTERS ---
   public LiveData<List<LatLng>> getPuntosRuta() { return puntosRuta; }
+  public LiveData<List<FlechaMapa>> getFlechasGuias() { return flechasGuias; } // Nuevo
   public LiveData<String> getTextoDistancia() { return textoDistancia; }
   public LiveData<Boolean> getIsLoading() { return isLoading; }
   public LiveData<Integer> getTipoMapa() { return tipoMapa; }
@@ -69,15 +78,16 @@ public class MapaEditorViewModel extends AndroidViewModel {
   public LiveData<String> getOrdenMostrarError() { return ordenMostrarError; }
   public LiveData<LatLngBounds> getOrdenHacerZoomRuta() { return ordenHacerZoomRuta; }
   public LiveData<LatLng> getOrdenCentrarCamara() { return ordenCentrarCamara; }
-  public LiveData<LatLng> getOrdenPedirDatosPI() { return ordenPedirDatosPI; } // Nuevo Getter
+  public LiveData<LatLng> getOrdenPedirDatosPI() { return ordenPedirDatosPI; }
   public LiveData<List<PuntoInteresResponse>> getListaPuntosInteres() { return listaPuntosInteres; }
+
   // --- RESETS ---
   public void resetOrdenNavegacion() { ordenNavegarSalida.setValue(null); }
   public void resetOrdenError() { ordenMostrarError.setValue(null); }
   public void resetOrdenCamara() { ordenHacerZoomRuta.setValue(null); ordenCentrarCamara.setValue(null); }
-  public void resetOrdenDialogo() { ordenPedirDatosPI.setValue(null); } // Nuevo Reset
+  public void resetOrdenDialogo() { ordenPedirDatosPI.setValue(null); }
 
-  // --- ENTRADAS (Eventos) ---
+  // --- LOGICA DE NEGOCIO ---
 
   public void onMapReady(int idEvento) {
     if (datosCargados) return;
@@ -90,35 +100,78 @@ public class MapaEditorViewModel extends AndroidViewModel {
     }
   }
 
-  // LÓGICA PRINCIPAL DEL CLICK (Fusionada)
   public void procesarClickMapa(LatLng punto) {
     if (modoPuntosInteres) {
-      // Si la ruta ya está cargada/guardada, intentamos validar un PI
       validarPuntoInteres(punto);
     } else {
-      // Si estamos dibujando, agregamos puntos al trazado
       agregarPuntoRuta(punto);
     }
   }
 
-  // Lógica Original de Dibujo
   private void agregarPuntoRuta(LatLng punto) {
     List<LatLng> lista = puntosRuta.getValue();
     if (lista != null) {
       lista.add(punto);
       puntosRuta.setValue(lista);
-      calcularDistancia(lista);
+      actualizarCalculosRuta(lista); // Centralizamos calculos
     }
   }
 
-  // NUEVA: Lógica del Imán para PIs
+  public void deshacer() {
+    if (modoPuntosInteres) {
+      ordenMostrarError.setValue("No se puede deshacer una ruta ya guardada");
+      return;
+    }
+    List<LatLng> lista = puntosRuta.getValue();
+    if (lista != null && !lista.isEmpty()) {
+      lista.remove(lista.size() - 1);
+      puntosRuta.setValue(lista);
+      actualizarCalculosRuta(lista);
+    }
+  }
+
+  // Metodo centralizado para recalcular distancia y flechas cuando la ruta cambia
+  private void actualizarCalculosRuta(List<LatLng> puntos) {
+    // 1. Calcular Distancia Texto
+    if (puntos == null || puntos.size() < 2) {
+      textoDistancia.setValue("0.00 km");
+      flechasGuias.setValue(new ArrayList<>()); // Limpiar flechas
+      return;
+    }
+
+    double distanciaTotal = 0;
+    double acumuladoFlechas = 0;
+    double intervaloFlechas = 150; // Metros
+    List<FlechaMapa> nuevasFlechas = new ArrayList<>();
+    float[] res = new float[1];
+
+    for (int i = 0; i < puntos.size() - 1; i++) {
+      LatLng p1 = puntos.get(i);
+      LatLng p2 = puntos.get(i + 1);
+
+      Location.distanceBetween(p1.latitude, p1.longitude, p2.latitude, p2.longitude, res);
+      double distSegmento = res[0];
+      distanciaTotal += distSegmento;
+      acumuladoFlechas += distSegmento;
+
+      // logica de calculo de flechas
+      if (acumuladoFlechas >= intervaloFlechas) {
+        float heading = (float) SphericalUtil.computeHeading(p1, p2);
+        nuevasFlechas.add(new FlechaMapa(p1, heading));
+        acumuladoFlechas = 0;
+      }
+    }
+
+    textoDistancia.setValue(String.format("%.2f km", distanciaTotal / 1000.0));
+    flechasGuias.setValue(nuevasFlechas);
+  }
+
   private void validarPuntoInteres(LatLng puntoClickeado) {
     List<LatLng> ruta = puntosRuta.getValue();
     if (ruta == null || ruta.size() < 2) {
       ordenMostrarError.setValue("Primero debés dibujar y guardar el circuito");
       return;
     }
-    // Tolerancia 20 metros
     boolean estaEnRuta = PolyUtil.isLocationOnPath(puntoClickeado, ruta, true, 20);
 
     if (estaEnRuta) {
@@ -128,32 +181,30 @@ public class MapaEditorViewModel extends AndroidViewModel {
     }
   }
 
-  // NUEVA: Guardar PI en Backend
-  public void guardarPuntoInteresBackend(int idEvento, String tipo, LatLng latLng) {
-    isLoading.setValue(true);
-    //CrearPuntoInteresRequest request = new CrearPuntoInteresRequest(tipo, nombre, latLng.latitude, latLng.longitude);
-    String tipoApi= tipo.toLowerCase().trim();
-    //String nombreApi= nombre.trim();
+  // ahora recibe el indice del spinner
+  public void guardarPuntoInteresPorIndice(int idEvento, int indiceSpinner, LatLng latLng) {
+    if (indiceSpinner < 0 || indiceSpinner >= TIPOS_PUNTO_API.length) {
+      ordenMostrarError.setValue("Tipo de punto no válido");
+      return;
+    }
+    String tipoApi = TIPOS_PUNTO_API[indiceSpinner];
+    guardarPuntoInteresBackend(idEvento, tipoApi, latLng);
+  }
 
-    CrearPuntoInteresRequest request= new CrearPuntoInteresRequest(tipoApi, latLng.latitude, latLng.longitude);
+  private void guardarPuntoInteresBackend(int idEvento, String tipo, LatLng latLng) {
+    isLoading.setValue(true);
+    String tipoApi = tipo.toLowerCase().trim();
+    CrearPuntoInteresRequest request = new CrearPuntoInteresRequest(tipoApi, latLng.latitude, latLng.longitude);
 
     eventoRepositorio.crearPuntoInteres(idEvento, request, new Callback<ResponseBody>() {
       @Override
       public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
         isLoading.setValue(false);
         if (response.isSuccessful()) {
-          ordenMostrarError.setValue("¡Punto de interes agregado!"); // Usamos error para mostrar Toast rápido o creamos un LiveData de éxito
+          ordenMostrarError.setValue("¡Punto de interes agregado!");
           cargarPuntosInteres(idEvento);
         } else {
-          try{
-            String errorBody = response.errorBody().string();
-            android.util.Log.e("API_ERROR", "Error 400 Detalle: " + errorBody);
-            ordenMostrarError.setValue("Error de validación: " + errorBody);
-          }catch (Exception e){
-            ordenMostrarError.setValue("Error " + response.code() + " sin detalle.");
-          }
-          ordenMostrarError.setValue("Error al guardar punto");
-          Log.d("ErrorPuntoInteres", "ERROR: " + response.code() + response.toString());
+          ordenMostrarError.setValue("Error al guardar punto: " + response.code());
         }
       }
       @Override
@@ -163,26 +214,20 @@ public class MapaEditorViewModel extends AndroidViewModel {
       }
     });
   }
-  //cargar punto interes
+
   public void cargarPuntosInteres(int idEvento) {
-    // Usamos el endpoint GET PuntosInteres que ya tienes en tu API
-    // Nota: Asegurate de tener este metodo en tu EventoRepositorio o RutaRepositorio
     eventoRepositorio.obtenerPuntosInteres(idEvento, new Callback<PuntosInteresEventoResponse>() {
       @Override
       public void onResponse(Call<PuntosInteresEventoResponse> call, Response<PuntosInteresEventoResponse> response) {
         if (response.isSuccessful() && response.body() != null) {
-          // Actualizamos la lista, esto disparará el observer en el Fragment
           listaPuntosInteres.setValue(response.body().getPuntosInteres());
         }
       }
       @Override
-      public void onFailure(Call<PuntosInteresEventoResponse> call, Throwable t) {
-        // Manejo silencioso o log
-      }
+      public void onFailure(Call<PuntosInteresEventoResponse> call, Throwable t) {}
     });
   }
 
-  // Lógica Original: Guardar Ruta
   public void guardarRuta(int idEvento) {
     if (idEvento == 0) { ordenMostrarError.setValue("Error: No hay evento asociado"); return; }
     List<LatLng> ruta = puntosRuta.getValue();
@@ -201,7 +246,7 @@ public class MapaEditorViewModel extends AndroidViewModel {
         isLoading.setValue(false);
         if (response.isSuccessful()) {
           ordenNavegarSalida.setValue("¡Circuito guardado exitosamente!");
-          modoPuntosInteres = true; // Al guardar, habilitamos modo PIs
+          modoPuntosInteres = true;
         } else {
           ordenMostrarError.setValue("Error al guardar en servidor");
         }
@@ -212,20 +257,6 @@ public class MapaEditorViewModel extends AndroidViewModel {
         ordenMostrarError.setValue("Error de conexión");
       }
     });
-  }
-
-  // Lógica Original: Deshacer
-  public void deshacer() {
-    if (modoPuntosInteres) {
-      ordenMostrarError.setValue("No se puede deshacer una ruta ya guardada");
-      return;
-    }
-    List<LatLng> lista = puntosRuta.getValue();
-    if (lista != null && !lista.isEmpty()) {
-      lista.remove(lista.size() - 1);
-      puntosRuta.setValue(lista);
-      calcularDistancia(lista);
-    }
   }
 
   public void alternarCapas() {
@@ -250,9 +281,8 @@ public class MapaEditorViewModel extends AndroidViewModel {
             }
           }
           puntosRuta.setValue(puntos);
-          calcularDistancia(puntos);
+          actualizarCalculosRuta(puntos);
 
-          // Si cargamos del backend, asumimos que ya existe ruta -> Modo PIs activado
           if (!puntos.isEmpty()) {
             modoPuntosInteres = true;
             try { ordenHacerZoomRuta.setValue(builder.build()); }
@@ -270,14 +300,14 @@ public class MapaEditorViewModel extends AndroidViewModel {
     });
   }
 
-  private void calcularDistancia(List<LatLng> puntos) {
-    if (puntos == null || puntos.size() < 2) { textoDistancia.setValue("0.00 km"); return; }
-    double distancia = 0;
-    float[] res = new float[1];
-    for (int i = 0; i < puntos.size() - 1; i++) {
-      Location.distanceBetween(puntos.get(i).latitude, puntos.get(i).longitude, puntos.get(i+1).latitude, puntos.get(i+1).longitude, res);
-      distancia += res[0];
+  // CLASE INTERNA PARA TRANSPORTAR DATOS DE FLECHAS A LA VISTA
+  public static class FlechaMapa {
+    public final LatLng posicion;
+    public final float rotacion;
+
+    public FlechaMapa(LatLng posicion, float rotacion) {
+      this.posicion = posicion;
+      this.rotacion = rotacion;
     }
-    textoDistancia.setValue(String.format("%.2f km", distancia / 1000.0));
   }
 }

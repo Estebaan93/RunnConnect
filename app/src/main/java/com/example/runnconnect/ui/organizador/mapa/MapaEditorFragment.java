@@ -5,14 +5,13 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter; // Nuevo
-import android.widget.EditText; // Nuevo
-import android.widget.Spinner; // Nuevo
+import android.widget.ArrayAdapter;
+import android.widget.Spinner;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.AlertDialog; // Nuevo
+import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.NavController;
@@ -30,7 +29,6 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
-import com.google.maps.android.SphericalUtil; // Importante para flechas
 
 import java.util.List;
 
@@ -71,6 +69,7 @@ public class MapaEditorFragment extends Fragment implements OnMapReadyCallback {
   }
 
   private void setupObservers() {
+    // ... Observers visuales básicos ...
     viewModel.getIsLoading().observe(getViewLifecycleOwner(), loading -> {
       binding.progressBar.setVisibility(loading ? View.VISIBLE : View.GONE);
       binding.btnGuardarRuta.setEnabled(!loading);
@@ -82,9 +81,16 @@ public class MapaEditorFragment extends Fragment implements OnMapReadyCallback {
       if (mMap != null) mMap.setMapType(tipo);
     });
 
-    // Dibujar en mapa (Ruta + Flechas)
-    viewModel.getPuntosRuta().observe(getViewLifecycleOwner(), this::dibujarEnMapa);
+    // 1. DIBUJAR RUTA (LINEA AZUL)
+    viewModel.getPuntosRuta().observe(getViewLifecycleOwner(), this::dibujarLineaRuta);
 
+    // 2. DIBUJAR FLECHAS DE SENTIDO (Calculadas en VM)
+    viewModel.getFlechasGuias().observe(getViewLifecycleOwner(), this::dibujarFlechasVisuales);
+
+    // 3. DIBUJAR PUNTOS DE INTERES (Iconos)
+    viewModel.getListaPuntosInteres().observe(getViewLifecycleOwner(), this::dibujarMarcadoresPOI);
+
+    // ... observers de navegacion y errores ...
     viewModel.getOrdenMostrarError().observe(getViewLifecycleOwner(), msg -> {
       if (msg != null) {
         Toast.makeText(getContext(), msg, Toast.LENGTH_SHORT).show();
@@ -113,61 +119,12 @@ public class MapaEditorFragment extends Fragment implements OnMapReadyCallback {
       }
     });
 
-    // NUEVO: Observer para abrir Diálogo de Puntos de Interés
     viewModel.getOrdenPedirDatosPI().observe(getViewLifecycleOwner(), latLng -> {
       if (latLng != null) {
         mostrarDialogoPuntoInteres(latLng);
         viewModel.resetOrdenDialogo();
       }
     });
-
-    //observar lista de Punto interes
-    viewModel.getListaPuntosInteres().observe(getViewLifecycleOwner(), puntos -> {
-      if (puntos != null) {
-        dibujarMarcadoresPOI(puntos);
-      }
-    });
-
-  }
-  //dibujar iconos de punto interes
-  private void dibujarMarcadoresPOI(List<PuntoInteresResponse> puntos) {
-    if (mMap == null) return;
-
-    // OJO: No usamos mMap.clear() aquí porque borraría la ruta azul.
-    // Solo limpiamos los marcadores de POI anteriores si es necesario (o dejamos que se acumulen si la lógica lo permite)
-    // Para hacerlo limpio, podrías guardar los marcadores en una lista y borrarlos antes de redibujar,
-    // pero por ahora, simplemente agreguemos los nuevos.
-
-    for (PuntoInteresResponse p : puntos) {
-      LatLng posicion = new LatLng(p.getLatitud().doubleValue(), p.getLongitud().doubleValue());
-
-      // Obtener el icono según el tipo
-      int resourceId = obtenerIconoPorTipo(p.getTipo());
-
-      MarkerOptions markerOpt = new MarkerOptions()
-        .position(posicion)
-        .title(p.getNombre()) // Muestra "Puesto de Hidratación" al tocar
-        .icon(BitmapDescriptorFactory.fromResource(resourceId)); // Carga el PNG
-      // .anchor(0.5f, 0.5f) // Descomentar si el icono debe estar centrado (ej: círculo) o dejar default (pin)
-
-      mMap.addMarker(markerOpt);
-    }
-  }
-
-  // Helper para elegir el icono PNG
-  private int obtenerIconoPorTipo(String tipo) {
-    if (tipo == null) return R.drawable.ic_pin_help; // Default
-
-    switch (tipo.toLowerCase().trim()) {
-      case "hidratacion":
-        return R.drawable.ic_pin_drop; //PNG de agua
-      case "primeros_auxilios":
-        return R.drawable.ic_pin_medical;      //PNG de cruz
-      case "punto_energetico":
-        return R.drawable.ic_pin_thunderbolt;     //PNG de rayo/comida
-      default:
-        return R.drawable.ic_pin_help;        // Default
-    }
   }
 
   @Override
@@ -175,7 +132,6 @@ public class MapaEditorFragment extends Fragment implements OnMapReadyCallback {
     mMap = googleMap;
     mMap.getUiSettings().setZoomControlsEnabled(true);
 
-    // MODIFICADO: Delegamos la decisión al ViewModel (Dibujar o Validar PI)
     mMap.setOnMapClickListener(latLng -> viewModel.procesarClickMapa(latLng));
 
     if (viewModel.getTipoMapa().getValue() != null) {
@@ -184,70 +140,70 @@ public class MapaEditorFragment extends Fragment implements OnMapReadyCallback {
     viewModel.onMapReady(idEvento);
   }
 
-  private void dibujarEnMapa(List<LatLng> puntos) {
+  //  METODOS DE DIBUJADO PURO (Reciben datos listos)
+
+  private void dibujarLineaRuta(List<LatLng> puntos) {
     if (mMap == null) return;
-    mMap.clear();
-    if (puntos == null || puntos.isEmpty()) return;
+    mMap.clear(); // Limpia tod para redibujar
 
-    // 1. Línea Azul
-    PolylineOptions poly = new PolylineOptions()
-      .addAll(puntos).width(12).color(Color.BLUE).geodesic(true);
-    mMap.addPolyline(poly);
+    if (puntos != null && !puntos.isEmpty()) {
+      PolylineOptions poly = new PolylineOptions()
+        .addAll(puntos).width(12).color(Color.BLUE).geodesic(true);
+      mMap.addPolyline(poly);
 
-    // 2. NUEVO: Flechas de Sentido Dinámicas (cada 150m)
-    dibujarFlechasDinamicas(puntos);
-
-    // 3. Marcadores Inicio/Fin
-    mMap.addMarker(new MarkerOptions().position(puntos.get(0))
-      .title("Largada").icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)));
-
-    if (puntos.size() > 1) {
-      mMap.addMarker(new MarkerOptions().position(puntos.get(puntos.size() - 1))
-        .title("Meta").icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)));
-    }
-  }
-
-  // Metodo Helper para las flechas
-  private void dibujarFlechasDinamicas(List<LatLng> puntos) {
-    if (getContext() == null) return; // Validación de seguridad
-
-    double acumulado = 0;
-    double intervalo = 150; // Metros entre flechas
-
-    for (int i = 0; i < puntos.size() - 1; i++) {
-      LatLng p1 = puntos.get(i);
-      LatLng p2 = puntos.get(i + 1);
-
-      float[] dist = new float[1];
-      android.location.Location.distanceBetween(p1.latitude, p1.longitude, p2.latitude, p2.longitude, dist);
-      acumulado += dist[0];
-
-      if (acumulado >= intervalo) {
-        float heading = (float) SphericalUtil.computeHeading(p1, p2);
-
-        mMap.addMarker(new MarkerOptions()
-          .position(p1)
-          // Usamos el helper en lugar de fromResource directo
-          .icon(bitmapDescriptorFromVector(requireContext(), R.drawable.ic_flecha_sentido))
-          .rotation(heading)
-          .anchor(0.5f, 0.5f)
-          .flat(true));
-        // -----------------------
-
-        acumulado = 0;
+      // Marcadores Inicio/Fin
+      mMap.addMarker(new MarkerOptions().position(puntos.get(0))
+        .title("Largada").icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)));
+      if (puntos.size() > 1) {
+        mMap.addMarker(new MarkerOptions().position(puntos.get(puntos.size() - 1))
+          .title("Meta").icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)));
       }
     }
+
+    // Al hacer clear(), debemos redibujar los PI si ya existen en el VM
+    if (viewModel.getListaPuntosInteres().getValue() != null) {
+      dibujarMarcadoresPOI(viewModel.getListaPuntosInteres().getValue());
+    }
   }
+
+  private void dibujarFlechasVisuales(List<MapaEditorViewModel.FlechaMapa> flechas) {
+    if (mMap == null || flechas == null || getContext() == null) return;
+
+    for (MapaEditorViewModel.FlechaMapa flecha : flechas) {
+      mMap.addMarker(new MarkerOptions()
+        .position(flecha.posicion)
+        .icon(bitmapDescriptorFromVector(requireContext(), R.drawable.ic_flecha_sentido))
+        .rotation(flecha.rotacion)
+        .anchor(0.5f, 0.5f)
+        .flat(true));
+    }
+  }
+
+  private void dibujarMarcadoresPOI(List<PuntoInteresResponse> puntos) {
+    if (mMap == null || puntos == null) return;
+
+    for (PuntoInteresResponse p : puntos) {
+      if (p.getLatitud() == null || p.getLongitud() == null) continue;
+      LatLng posicion = new LatLng(p.getLatitud().doubleValue(), p.getLongitud().doubleValue());
+      int resourceId = obtenerIconoPorTipo(p.getTipo());
+
+      mMap.addMarker(new MarkerOptions()
+        .position(posicion)
+        .title(p.getNombre())
+        .icon(BitmapDescriptorFactory.fromResource(resourceId))
+        .anchor(0.5f, 0.5f));
+    }
+  }
+
+  //  UI HELPERS
 
   private void mostrarDialogoPuntoInteres(LatLng latLng) {
     AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
     View v = getLayoutInflater().inflate(R.layout.dialog_crear_punto_interes, null);
-
     Spinner spTipo = v.findViewById(R.id.spTipoPunto);
-    //EditText etNombre = v.findViewById(R.id.etNombrePunto);
 
-    String[] opcionesVisuales = {"Hidratacion", "Primeros auxilios", "Punto energetico", "Otro"};
-    String[] opcionesApi = {"hidratacion", "primeros_auxilios", "punto_energetico", "otro"};
+    // UI: Solo Strings visuales. El fragment no sabe nada de API strings.
+    String[] opcionesVisuales = {"Hidratación", "Primeros Auxilios", "Punto Energético", "Otro"};
 
     ArrayAdapter<String> adapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_dropdown_item, opcionesVisuales);
     spTipo.setAdapter(adapter);
@@ -255,15 +211,23 @@ public class MapaEditorFragment extends Fragment implements OnMapReadyCallback {
     builder.setView(v)
       .setTitle("Nuevo Punto de Interés")
       .setPositiveButton("Guardar", (d, w) -> {
-        int position= spTipo.getSelectedItemPosition();
-        String tipoEnviar = opcionesApi[position];
-        String nombreAutomatico = opcionesVisuales[position];
-
-        // Enviamos a la API
-        viewModel.guardarPuntoInteresBackend(idEvento, tipoEnviar, latLng);
+        // Solo pasamos el índice y la posición. El VM decide qué string usar.
+        int indiceSeleccionado = spTipo.getSelectedItemPosition();
+        viewModel.guardarPuntoInteresPorIndice(idEvento, indiceSeleccionado, latLng);
       })
       .setNegativeButton("Cancelar", null)
       .show();
+  }
+
+  private int obtenerIconoPorTipo(String tipo) {
+    if (tipo == null) return R.drawable.ic_pin_help;
+    switch (tipo.toLowerCase().trim()) {
+      case "hidratacion": return R.drawable.ic_pin_drop;
+      case "primeros_auxilios": return R.drawable.ic_pin_medical;
+      case "punto_energetico":
+      case "punto energetico": return R.drawable.ic_pin_thunderbolt;
+      default: return R.drawable.ic_pin_help;
+    }
   }
 
   private void navegarAlListado(String mensajeExito) {
@@ -282,21 +246,17 @@ public class MapaEditorFragment extends Fragment implements OnMapReadyCallback {
     }
   }
 
-  //transforma el vector en png para el sentido del circuito
   private com.google.android.gms.maps.model.BitmapDescriptor bitmapDescriptorFromVector(android.content.Context context, int vectorResId) {
-    android.graphics.drawable.Drawable vectorDrawable = androidx.core.content.ContextCompat.getDrawable(context, vectorResId);
-    if (vectorDrawable == null) return null;
-
-    vectorDrawable.setBounds(0, 0, vectorDrawable.getIntrinsicWidth(), vectorDrawable.getIntrinsicHeight());
-    android.graphics.Bitmap bitmap = android.graphics.Bitmap.createBitmap(
-      vectorDrawable.getIntrinsicWidth(),
-      vectorDrawable.getIntrinsicHeight(),
-      android.graphics.Bitmap.Config.ARGB_8888);
-    android.graphics.Canvas canvas = new android.graphics.Canvas(bitmap);
-    vectorDrawable.draw(canvas);
-
-    return com.google.android.gms.maps.model.BitmapDescriptorFactory.fromBitmap(bitmap);
+    try {
+      android.graphics.drawable.Drawable vectorDrawable = androidx.core.content.ContextCompat.getDrawable(context, vectorResId);
+      if (vectorDrawable == null) return null;
+      vectorDrawable.setBounds(0, 0, vectorDrawable.getIntrinsicWidth(), vectorDrawable.getIntrinsicHeight());
+      android.graphics.Bitmap bitmap = android.graphics.Bitmap.createBitmap(vectorDrawable.getIntrinsicWidth(), vectorDrawable.getIntrinsicHeight(), android.graphics.Bitmap.Config.ARGB_8888);
+      android.graphics.Canvas canvas = new android.graphics.Canvas(bitmap);
+      vectorDrawable.draw(canvas);
+      return com.google.android.gms.maps.model.BitmapDescriptorFactory.fromBitmap(bitmap);
+    } catch (Exception e) {
+      return com.google.android.gms.maps.model.BitmapDescriptorFactory.defaultMarker();
+    }
   }
-
-
 }
