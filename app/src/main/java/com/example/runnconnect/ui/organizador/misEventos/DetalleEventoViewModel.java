@@ -15,6 +15,7 @@ import androidx.lifecycle.MutableLiveData;
 import com.example.runnconnect.R;
 import com.example.runnconnect.data.repositorio.EventoRepositorio;
 import com.example.runnconnect.data.repositorio.InscripcionRepositorio;
+import com.example.runnconnect.data.repositorio.ResultadoRepositorio;
 import com.example.runnconnect.data.request.CambiarEstadoRequest;
 import com.example.runnconnect.data.response.CategoriaResponse;
 import com.example.runnconnect.data.response.EventoDetalleResponse;
@@ -23,6 +24,7 @@ import com.example.runnconnect.data.response.ListaInscriptosResponse;
 
 import org.json.JSONObject;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -34,6 +36,11 @@ import retrofit2.Response;
 public class DetalleEventoViewModel extends AndroidViewModel {
   private final EventoRepositorio repositorio;
   private final InscripcionRepositorio inscripcionRepositorio;
+  private final ResultadoRepositorio resultadoRepositorio;
+
+
+  private final MutableLiveData<Integer> visibilityBtnResultados = new MutableLiveData<>(View.GONE);
+  private final MutableLiveData<String> mensajeCargaArchivo = new MutableLiveData<>();
   private final MutableLiveData<EventoDetalleResponse> eventoRaw = new MutableLiveData<>();
 
   // --- ESTADOS DE UI ---
@@ -69,9 +76,12 @@ public class DetalleEventoViewModel extends AndroidViewModel {
     super(application);
     repositorio = new EventoRepositorio(application);
     inscripcionRepositorio= new InscripcionRepositorio(application);
+    resultadoRepositorio= new ResultadoRepositorio(application);
   }
 
   // --- GETTERS ---
+  public LiveData<Integer> getVisibilityBtnResultados() { return visibilityBtnResultados; }
+  public LiveData<String> getMensajeCargaArchivo() { return mensajeCargaArchivo; }
   public LiveData<Boolean> getIsLoading() { return isLoading; }
   public LiveData<String> getMensajeGlobal() { return mensajeGlobal; } // Getter actualizado
   public LiveData<String> getUiTitulo() { return uiTitulo; }
@@ -96,6 +106,16 @@ public class DetalleEventoViewModel extends AndroidViewModel {
     dialogError.setValue(null);
     dialogDismiss.setValue(false);
   }*/
+
+  // Llamar esto al cargar el evento
+  /*public void actualizarVisibilidadBotones(String estadoEvento) {
+    if (estadoEvento != null && estadoEvento.equalsIgnoreCase("finalizado")) {
+      visibilityBtnResultados.setValue(View.VISIBLE);
+    } else {
+      visibilityBtnResultados.setValue(View.GONE);
+    }
+  }*/
+
 
   //cargar runner de una categoria especifica
   public void cargarRunnersDeCategoria(int idEvento, int idCategoria) {
@@ -160,7 +180,7 @@ public class DetalleEventoViewModel extends AndroidViewModel {
     });
   }
 
-  // NUEVO: para mostrar mensaje temporalmente
+  // para mostrar mensaje temporalmente
   private void mostrarMensajeExito(String msg) {
     mensajeGlobal.setValue(msg);
     // Borrar automáticamente a los 4 segundos
@@ -191,7 +211,7 @@ public class DetalleEventoViewModel extends AndroidViewModel {
     });
   }
 
-  // Transformación: Modelo -> Vista
+  // Transformacion: Modelo -> Vista
   private void mapearDatosAUI(EventoDetalleResponse evento) {
     uiTitulo.setValue(evento.getNombre());
     uiLugar.setValue(evento.getLugar());
@@ -235,10 +255,47 @@ public class DetalleEventoViewModel extends AndroidViewModel {
       listaCategorias.setValue(evento.getCategorias());
     }
 
+    // LÓGICA RESULTADOS: Solo mostrar si FINALIZADO
+    //String estadoUpper = (evento.getEstado() != null) ? evento.getEstado().toUpperCase() : "";
+    if ("FINALIZADO".equals(estadoUpper)) {
+      visibilityBtnResultados.setValue(View.VISIBLE);
+    } else {
+      visibilityBtnResultados.setValue(View.GONE);
+    }
+
+
   }
 
-  // --- LÓGICA DEL DIÁLOGO ---
+  // Subir CSV
+  public void subirArchivoCsv(int idEvento, File archivo) {
+    isLoading.setValue(true);
+    resultadoRepositorio.subirArchivoResultados(idEvento, archivo, new Callback<ResponseBody>() {
+      @Override
+      public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+        isLoading.setValue(false);
+        if (response.isSuccessful()) {
+          mensajeCargaArchivo.setValue("EXITO");
+        } else {
+          try {
+            String error = response.errorBody() != null ? response.errorBody().string() : "Error desconocido";
+            mensajeCargaArchivo.setValue("Error: " + error);
+          } catch (Exception e) {
+            mensajeCargaArchivo.setValue("Error de respuesta");
+          }
+        }
+      }
+      @Override
+      public void onFailure(Call<ResponseBody> call, Throwable t) {
+        isLoading.setValue(false);
+        mensajeCargaArchivo.setValue("Fallo de conexión");
+      }
+    });
+  }
+  public void resetMensajeCarga() {
+    mensajeCargaArchivo.setValue(null);
+  }
 
+  // --- LOGICA DEL DIALOGO ---
   public int calcularPreseleccionRadio(String estadoActual) {
     if (estadoActual == null) return -1;
     switch (estadoActual.toLowerCase()) {

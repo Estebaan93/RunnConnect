@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="12dp"
+    android:background="?attr/selectableItemBackground">
+
+    <TextView
+        android:id="@+id/tvPosicion"
+        android:layout_width="40dp"
+        android:layout_height="wrap_content"
+        android:text="1"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:gravity="center"
+        android:textColor="@color/black"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"/>
+
+    <TextView
+        android:id="@+id/tvNombreRunner"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="Nombre del Corredor"
+        android:textStyle="bold"
+        android:textSize="14sp"
+        android:textColor="@color/black"
+        android:paddingStart="8dp"
+        android:paddingEnd="8dp"
+        app:layout_constraintStart_toEndOf="@id/tvPosicion"
+        app:layout_constraintEnd_toStartOf="@id/tvTiempoOficial"
+        app:layout_constraintTop_toTopOf="parent"/>
+
+    <TextView
+        android:id="@+id/tvCategoriaRunner"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="Cat: 20-30 Masc"
+        android:textSize="12sp"
+        android:textColor="#757575"
+        android:paddingStart="8dp"
+        android:paddingEnd="8dp"
+        app:layout_constraintStart_toEndOf="@id/tvPosicion"
+        app:layout_constraintEnd_toStartOf="@id/tvTiempoOficial"
+        app:layout_constraintTop_toBottomOf="@id/tvNombreRunner"
+        app:layout_constraintBottom_toBottomOf="parent"/>
+
+    <TextView
+        android:id="@+id/tvTiempoOficial"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="00:45:12"
+        android:textSize="14sp"
+        android:textStyle="bold"
+        android:textColor="#388E3C"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"/>
+</androidx.constraintlayout.widget.ConstraintLayout>

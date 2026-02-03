@@ -61,7 +61,7 @@ public class MapaEditorViewModel extends AndroidViewModel {
 
   // Mapeo interno: Indices del Spinner -> Strings de la API
   private final String[] TIPOS_PUNTO_API = {"hidratacion", "primeros_auxilios", "punto_energetico", "otro"};
-
+  private final String[] NOMBRES_PUNTO_UI = {"Hidratación", "Primeros Auxilios", "Punto Energético", "Otro"};
   public MapaEditorViewModel(@NonNull Application application) {
     super(application);
     rutaRepositorio = new RutaRepositorio(application);
@@ -69,6 +69,7 @@ public class MapaEditorViewModel extends AndroidViewModel {
   }
 
   // --- GETTERS ---
+  public String[] getNombresPuntoUi(){ return NOMBRES_PUNTO_UI; }
   public LiveData<List<LatLng>> getPuntosRuta() { return puntosRuta; }
   public LiveData<List<FlechaMapa>> getFlechasGuias() { return flechasGuias; } // Nuevo
   public LiveData<String> getTextoDistancia() { return textoDistancia; }
@@ -188,23 +189,35 @@ public class MapaEditorViewModel extends AndroidViewModel {
       return;
     }
     String tipoApi = TIPOS_PUNTO_API[indiceSpinner];
-    guardarPuntoInteresBackend(idEvento, tipoApi, latLng);
+    String nombreUi= NOMBRES_PUNTO_UI[indiceSpinner];
+    guardarPuntoInteresBackend(idEvento, tipoApi, nombreUi, latLng);
   }
 
-  private void guardarPuntoInteresBackend(int idEvento, String tipo, LatLng latLng) {
+  private void guardarPuntoInteresBackend(int idEvento, String tipo, String nombre, LatLng latLng) {
     isLoading.setValue(true);
     String tipoApi = tipo.toLowerCase().trim();
-    CrearPuntoInteresRequest request = new CrearPuntoInteresRequest(tipoApi, latLng.latitude, latLng.longitude);
+    CrearPuntoInteresRequest request = new CrearPuntoInteresRequest(tipoApi, nombre,latLng.latitude, latLng.longitude);
 
     eventoRepositorio.crearPuntoInteres(idEvento, request, new Callback<ResponseBody>() {
       @Override
       public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
         isLoading.setValue(false);
         if (response.isSuccessful()) {
-          ordenMostrarError.setValue("¡Punto de interes agregado!");
+          ordenMostrarError.setValue("Punto de interes agregado!");
           cargarPuntosInteres(idEvento);
         } else {
-          ordenMostrarError.setValue("Error al guardar punto: " + response.code());
+          String errorMsg = "Error desconocido";
+          try {
+            // Leemos el stream del error UNA sola vez
+            if (response.errorBody() != null) {
+              errorMsg = response.errorBody().string();
+            }
+          } catch (Exception e) {
+            e.printStackTrace();
+          }
+          String logMsg = "Código: " + response.code() + " | Mensaje: " + errorMsg;
+          Log.e("ERROR_PUNTO", logMsg);
+          ordenMostrarError.setValue("Error al guardar: " + response.code());
         }
       }
       @Override

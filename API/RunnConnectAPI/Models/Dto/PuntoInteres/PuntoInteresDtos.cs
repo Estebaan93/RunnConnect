@@ -14,6 +14,9 @@ namespace RunnConnectAPI.Models.Dto.PuntoInteres
       ErrorMessage = "El tipo debe ser: hidratacion, primeros_auxilios, punto_energetico  u otro")]
     public string Tipo { get; set; } = string.Empty;
 
+    [Required]
+    public string Nombre { get;set; }
+
     [Required(ErrorMessage = "La latitud es obligatoria")]
     [Range(-90, 90, ErrorMessage = "La latitud debe estar entre -90 y 90")]
     public decimal Latitud { get; set; }

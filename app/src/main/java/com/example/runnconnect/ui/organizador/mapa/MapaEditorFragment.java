@@ -202,10 +202,11 @@ public class MapaEditorFragment extends Fragment implements OnMapReadyCallback {
     View v = getLayoutInflater().inflate(R.layout.dialog_crear_punto_interes, null);
     Spinner spTipo = v.findViewById(R.id.spTipoPunto);
 
-    // UI: Solo Strings visuales. El fragment no sabe nada de API strings.
-    String[] opcionesVisuales = {"Hidratación", "Primeros Auxilios", "Punto Energético", "Otro"};
+    ArrayAdapter<String> adapter = new ArrayAdapter<>(
+      requireContext(),
+      android.R.layout.simple_spinner_dropdown_item,
+      viewModel.getNombresPuntoUi());
 
-    ArrayAdapter<String> adapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_dropdown_item, opcionesVisuales);
     spTipo.setAdapter(adapter);
 
     builder.setView(v)

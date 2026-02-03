@@ -24,6 +24,7 @@ import com.example.runnconnect.data.response.MapaEventoResponse;
 import com.example.runnconnect.data.response.PerfilUsuarioResponse;
 import com.example.runnconnect.data.response.PuntoInteresResponse;
 import com.example.runnconnect.data.response.PuntosInteresEventoResponse;
+import com.example.runnconnect.data.response.ResultadosEventoResponse;
 
 import java.util.List;
 
@@ -220,6 +221,22 @@ public interface ApiService {
   //obtener puntos de interes
   @GET("Evento/{idEvento}/PuntosInteres")
   Call<PuntosInteresEventoResponse> obtenerPuntosInteres(
+    @Path("idEvento") int idEvento
+  );
+
+  //resultados
+  //subir archivo de resultados (csv)
+  @Multipart
+  @POST("Resultado/CargarArchivo")
+  Call<ResponseBody> cargarArchivoResultados(
+    @Header("Authorization") String token,
+    @Part("IdEvento") RequestBody idEvento,
+    @Part MultipartBody.Part archivo
+  );
+
+  // Obtener listado de resultados
+  @GET("Resultado/Evento/{idEvento}")
+  Call<ResultadosEventoResponse> obtenerResultadosEvento(
     @Path("idEvento") int idEvento
   );
 

@@ -118,6 +118,11 @@
     <action
         android:id="@+id/action_detalle_to_gestionInscriptos"
         app:destination="@id/nav_gestion_inscriptos" />
+
+      <action
+          android:id="@+id/action_detalle_to_resultados"
+          app:destination="@id/nav_resultados_evento" />
+
   </fragment>
 
   <fragment
@@ -129,5 +134,17 @@
         android:name="idEvento"
         app:argType="integer" />
   </fragment>
+
+    <fragment
+        android:id="@+id/nav_resultados_evento"
+        android:name="com.example.runnconnect.ui.organizador.misEventos.ResultadosEventoFragment"
+        android:label="Resultados del Evento"
+        tools:layout="@layout/fragment_lista_resultados">
+        <argument
+            android:name="idEvento"
+            app:argType="integer" />
+    </fragment>
+
+
 
 </navigation>

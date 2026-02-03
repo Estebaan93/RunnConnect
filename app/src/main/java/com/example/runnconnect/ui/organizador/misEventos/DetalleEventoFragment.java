@@ -8,8 +8,12 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
@@ -23,6 +27,10 @@ import com.example.runnconnect.data.response.CategoriaResponse;
 import com.example.runnconnect.data.response.InscriptoEventoResponse;
 import com.example.runnconnect.databinding.FragmentDetalleEventoBinding;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+
 public class DetalleEventoFragment extends Fragment {
   private FragmentDetalleEventoBinding binding;
   private DetalleEventoViewModel viewModel;
@@ -31,10 +39,53 @@ public class DetalleEventoFragment extends Fragment {
   private CategoriasInfoAdapter categoriasInfoAdapter;
   private RunnerSimpleAdapter runnersAdapterDialog; // EL NUEVO ADAPTER
   private AlertDialog dialogRunners;
+  private AlertDialog dialogEstado;
+  private AlertDialog dialogCarga;
+  private File archivoTemporal;
+  private TextView tvNombreEnDialog;
+  private Button btnSubirEnDialog;
 
   private int idEvento = 0;
 
-  private AlertDialog dialogEstado;
+  // Launcher para buscar archivo
+  private final ActivityResultLauncher<String> selectorArchivo = registerForActivityResult(
+    new ActivityResultContracts.GetContent(),
+    uri -> {
+      if (uri != null) {
+        // Usamos getContext() seguro en lugar de requireContext() para evitar crashes
+        Context context = getContext();
+        if (context == null) return;
+
+        Toast.makeText(context, "Procesando archivo...", Toast.LENGTH_SHORT).show();
+
+        // Bloquear botón mientras procesa
+        if(btnSubirEnDialog != null) btnSubirEnDialog.setEnabled(false);
+
+        new Thread(() -> {
+          // Copia en segundo plano
+          File tempFile = copiarUriAArchivo(context, uri);
+
+          new Handler(Looper.getMainLooper()).post(() -> {
+            // Volvemos al hilo principal
+            archivoTemporal = tempFile;
+
+            if (archivoTemporal != null) {
+              String nombre = archivoTemporal.getName().toLowerCase();
+              if (tvNombreEnDialog != null) tvNombreEnDialog.setText(archivoTemporal.getName());
+
+              if (nombre.endsWith(".csv") || nombre.endsWith(".txt")) {
+                if (btnSubirEnDialog != null) btnSubirEnDialog.setEnabled(true);
+              } else {
+                Toast.makeText(getContext(), "Formato incorrecto (Solo .csv)", Toast.LENGTH_SHORT).show();
+              }
+            } else {
+              Toast.makeText(getContext(), "Error al leer archivo", Toast.LENGTH_SHORT).show();
+            }
+          });
+        }).start();
+      }
+    }
+  );
 
   public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
     binding = FragmentDetalleEventoBinding.inflate(inflater, container, false);
@@ -90,7 +141,7 @@ public class DetalleEventoFragment extends Fragment {
       binding.tvGeneroPrecio.setVisibility(visibility);
     });
 
-    // 4. Control del Diálogo
+    // 4. Control del Dialogo
     viewModel.getDialogDismiss().observe(getViewLifecycleOwner(), shouldDismiss -> {
       if (shouldDismiss && dialogEstado != null && dialogEstado.isShowing()) {
         dialogEstado.dismiss();
@@ -130,6 +181,22 @@ public class DetalleEventoFragment extends Fragment {
       }
     });
 
+    // 1. Mostrar boton "Gestion Resultados" solo si finalizo
+    viewModel.getVisibilityBtnResultados().observe(getViewLifecycleOwner(), v -> {
+      binding.btnResultados.setVisibility(v);
+    });
+
+    /*
+    // 2. Respuesta de la subida del CSV
+    viewModel.getMensajeCargaArchivo().observe(getViewLifecycleOwner(), msg -> {
+      if ("EXITO".equals(msg)) {
+        Toast.makeText(getContext(), "Resultados cargados correctamente", Toast.LENGTH_SHORT).show();
+        if (dialogCarga != null) dialogCarga.dismiss();
+      } else if (msg != null) {
+        Toast.makeText(getContext(), msg, Toast.LENGTH_LONG).show();
+      }
+      viewModel.resetMensajeCarga();
+    });*/
 
 
   }
@@ -177,7 +244,7 @@ public class DetalleEventoFragment extends Fragment {
   private void setupListeners() {
     binding.btnCambiarEstado.setOnClickListener(v -> mostrarDialogoEstado());
 
-    // --- NUEVO: NAVEGAR A GESTIÓN DE INSCRIPTOS ---
+    // NAVEGAR A GESTION DE INSCRIPTOS
     binding.btnGestionInscriptos.setOnClickListener(v -> {
       Bundle args = new Bundle();
       args.putInt("idEvento", idEvento);
@@ -201,7 +268,94 @@ public class DetalleEventoFragment extends Fragment {
         try { Navigation.findNavController(v).navigate(R.id.nav_crear_evento, args); } catch (Exception ex) {}
       }
     });
+
+    // Click en boton (Resultados)
+    binding.btnResultados.setOnClickListener(v -> mostrarOpcionesResultados());
+
   }
+
+  // Menu: Cargar vs Ver
+  private void mostrarOpcionesResultados() {
+    String[] opciones = {"Cargar Resultados (CSV)", "Ver Resultados"};
+    new AlertDialog.Builder(requireContext())
+      .setTitle("Gestión de Resultados")
+      .setItems(opciones, (dialog, which) -> {
+        if (which == 0) {
+          abrirDialogoCarga(); // Usa dialog_carga_resultados.xml
+        } else {
+          navegarAVerResultados(); // Va a fragment_lista_resultados.xml
+        }
+      })
+      .show();
+  }
+
+  // Logica del XML dialog_carga_resultados.xml
+  private void abrirDialogoCarga() {
+    AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
+    View view = getLayoutInflater().inflate(R.layout.dialog_carga_resultados, null);
+
+    Button btnElegir = view.findViewById(R.id.btnSeleccionarArchivo);
+    btnSubirEnDialog = view.findViewById(R.id.btnSubirArchivo);
+    tvNombreEnDialog = view.findViewById(R.id.tvNombreArchivo);
+
+    archivoTemporal = null;
+    if (btnSubirEnDialog != null) btnSubirEnDialog.setEnabled(false);
+
+    btnElegir.setOnClickListener(v -> selectorArchivo.launch("*/*"));
+
+    btnSubirEnDialog.setOnClickListener(v -> {
+      if (archivoTemporal != null) {
+        // A. Cerramos el diálogo PRIMERO para que se vea el ProgressBar del Fragment
+        dialogCarga.dismiss();
+
+        // B. Iniciamos la subida
+        viewModel.subirArchivoCsv(idEvento, archivoTemporal);
+      }
+    });
+
+    builder.setView(view);
+    dialogCarga = builder.create();
+    dialogCarga.show();
+  }
+
+  private void navegarAVerResultados() {
+    Bundle args = new Bundle();
+    args.putInt("idEvento", idEvento);
+    // accion en nav_graph
+    Navigation.findNavController(requireView()).navigate(R.id.action_detalle_to_resultados, args);
+  }
+
+  // Helper: Uri -> File
+  private File copiarUriAArchivo(Context context, android.net.Uri uri) {
+    try {
+      InputStream is = context.getContentResolver().openInputStream(uri);
+      if (is == null) return null;
+
+      // creamos un nombre unico para evitar conflictos de cache
+      String nombreArchivo = "upload_" + System.currentTimeMillis() + ".csv";
+      File temp = new File(context.getCacheDir(), nombreArchivo);
+
+      FileOutputStream out = new FileOutputStream(temp);
+
+      // buffer de 8KB para mayor velocidad
+      byte[] buffer = new byte[8 * 1024];
+      int len;
+      while ((len = is.read(buffer)) != -1) {
+        out.write(buffer, 0, len);
+      }
+
+      out.flush();
+      out.close();
+      is.close();
+
+      return temp;
+    } catch (Exception e) {
+      e.printStackTrace();
+      return null;
+    }
+  }
+
+
 
   private void mostrarDialogoEstado() {
     AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
