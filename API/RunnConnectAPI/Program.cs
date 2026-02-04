@@ -68,11 +68,12 @@ builder.Services.AddDbContext<RunnersContext>(options =>
 );
 
 
-//Registrar JWTService para inyeccion de dependencias
+//Registrar services para inyeccion de dependencias
 builder.Services.AddScoped<JWTService>();
 builder.Services.AddScoped<PasswordService>();
 builder.Services.AddScoped<FileService>();
 builder.Services.AddScoped<EmailService>();
+builder.Services.AddHostedService<RunnConnectAPI.Services.FinalizarEventosWorker>();
 
 
 //Repos

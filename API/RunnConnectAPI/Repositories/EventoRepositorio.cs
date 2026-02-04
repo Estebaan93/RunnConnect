@@ -215,8 +215,8 @@ namespace RunnConnectAPI.Repositories
         throw new InvalidOperationException("No se puede cambiar el estado de un evento cancelado");
 
       // No permitir volver a publicado desde finalizado
-      if (estadoActual == "finalizado" && (nuevoEstado == "publicado" || nuevoEstado=="suspendido"))
-        throw new InvalidOperationException("No se puede publicar o reactivar un evento ya finalizado");
+      if (estadoActual == "finalizado")
+        throw new InvalidOperationException("No se puede modificar un evento ya finalizado (concluido)");
 
       // No se puede finalizar un evento que aun no ocurrio
       if (nuevoEstado == "finalizado" && evento.FechaHora > DateTime.Now)
