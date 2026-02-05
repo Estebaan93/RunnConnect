@@ -614,6 +614,7 @@ namespace RunnConnectAPI.Controllers
                 IdEvento = i.Categoria.IdEvento,
                 NombreEvento = i.Categoria.Evento.Nombre,
                 NombreCategoria = i.Categoria.Nombre,
+                EstadoEvento = i.Categoria.Evento.Estado,
 
                 TalleRemera = i.TalleRemera,
                 

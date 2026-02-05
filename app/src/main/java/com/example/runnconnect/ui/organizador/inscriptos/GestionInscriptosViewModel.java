@@ -31,7 +31,7 @@ public class GestionInscriptosViewModel extends AndroidViewModel {
   private final MutableLiveData<String> mensajeToast = new MutableLiveData<>();
   private final MutableLiveData<Boolean> esListaVacia = new MutableLiveData<>(false);
 
-  // --- ORDENES DE UI (Navegación / Diálogos) ---
+  // --- ORDENES DE UI (Navegacion / Dialogos) ---
   private final MutableLiveData<InscriptoEventoResponse> ordenMostrarValidacion = new MutableLiveData<>();
   private final MutableLiveData<InscriptoEventoResponse> ordenMostrarDetalle = new MutableLiveData<>();
 
@@ -50,11 +50,11 @@ public class GestionInscriptosViewModel extends AndroidViewModel {
   public LiveData<String> getMensajeToast() { return mensajeToast; }
   public LiveData<Boolean> getEsListaVacia() { return esListaVacia; }
 
-  // Getters de Órdenes
+  // Getters de ordenes
   public LiveData<InscriptoEventoResponse> getOrdenMostrarValidacion() { return ordenMostrarValidacion; }
   public LiveData<InscriptoEventoResponse> getOrdenMostrarDetalle() { return ordenMostrarDetalle; }
 
-  // --- CONSUMO DE ÓRDENES ---
+  // --- CONSUMO DE ORDENES ---
   public void limpiarMensaje() { mensajeToast.setValue(null); }
   public void limpiarOrdenesDialogo() {
     ordenMostrarValidacion.setValue(null);
@@ -62,7 +62,6 @@ public class GestionInscriptosViewModel extends AndroidViewModel {
   }
 
   // --- ENTRADAS (Acciones del Usuario) ---
-
   public void cargarInscriptos(int idEvento) {
     this.idEventoActual = idEvento;
     ejecutarConsulta();
@@ -89,13 +88,12 @@ public class GestionInscriptosViewModel extends AndroidViewModel {
     ejecutarCambioEstado(idInscripcion, "pagado", "Pago confirmado por organizador");
   }
 
-  // Lógica encapsulada: Rechazar
+  // Logica encapsulada: Rechazar
   public void rechazarPago(int idInscripcion) {
     ejecutarCambioEstado(idInscripcion, "rechazado", "Comprobante inválido o ilegible");
   }
 
   // --- PRIVADO: API ---
-
   private void ejecutarCambioEstado(int idInscripcion, String nuevoEstado, String motivo) {
     isLoading.setValue(true);
     CambiarEstadoPagoRequest request = new CambiarEstadoPagoRequest(nuevoEstado, motivo);

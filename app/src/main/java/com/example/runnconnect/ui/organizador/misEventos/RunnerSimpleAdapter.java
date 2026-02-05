@@ -17,6 +17,7 @@ public class RunnerSimpleAdapter extends RecyclerView.Adapter<RunnerSimpleAdapte
 
   private List<InscriptoEventoResponse> lista = new ArrayList<>();
   private final OnBajaClickListener listener;
+  private boolean habilitarEliminacion= true; // control post finalizacion evento
 
   public interface OnBajaClickListener {
     void onBaja(InscriptoEventoResponse runner);
@@ -24,6 +25,12 @@ public class RunnerSimpleAdapter extends RecyclerView.Adapter<RunnerSimpleAdapte
 
   public RunnerSimpleAdapter(OnBajaClickListener listener) {
     this.listener = listener;
+  }
+
+  //setter p el fragmnet
+  public void setHabilitarEliminacion(boolean habilitar) {
+    this.habilitarEliminacion = habilitar;
+    notifyDataSetChanged();
   }
 
   public void setLista(List<InscriptoEventoResponse> nuevaLista) {
@@ -51,16 +58,26 @@ public class RunnerSimpleAdapter extends RecyclerView.Adapter<RunnerSimpleAdapte
 
     holder.tvEstado.setText(item.getEstadoPago().toUpperCase());
 
-    // Lógica visual del botón Baja
-    if ("cancelado".equalsIgnoreCase(item.getEstadoPago())) {
-      holder.btnBaja.setVisibility(View.GONE);
+
+    // Logica visual del boton Baja
+    boolean runnerCancelado= "cancelado".equalsIgnoreCase(item.getEstadoPago());
+
+    if (runnerCancelado) {
       holder.tvEstado.setTextColor(Color.RED);
     } else {
-      holder.btnBaja.setVisibility(View.VISIBLE);
       holder.tvEstado.setTextColor(Color.BLACK);
     }
 
-    holder.btnBaja.setOnClickListener(v -> listener.onBaja(item));
+    // El boton solo se muestra si la eliminacion esta habilitada GLOBALMENTE
+    // Y si el runner no esta ya cancelado.
+    if (habilitarEliminacion && !runnerCancelado) {
+      holder.btnBaja.setVisibility(View.VISIBLE);
+      holder.btnBaja.setOnClickListener(v -> listener.onBaja(item));
+    } else {
+      holder.btnBaja.setVisibility(View.GONE);
+      holder.btnBaja.setOnClickListener(null);
+    }
+
   }
 
   @Override

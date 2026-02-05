@@ -4,6 +4,7 @@ public class InscriptoEventoResponse {
   private int idInscripcion;
   private String fechaInscripcion;
   private String estadoPago; // "pendiente", "procesando", "pagado", etc.
+  private String estadoEvento;
   private String talleRemera;
   private String comprobantePagoURL; // Puede venir null
   private String nombreCategoria;
@@ -15,7 +16,9 @@ public class InscriptoEventoResponse {
   public String getEstadoPago() { return estadoPago; }
   public String getComprobantePagoURL() { return comprobantePagoURL; }
   public String getNombreCategoria() { return nombreCategoria; }
+  public String getEstadoEvento() { return estadoEvento; }
   public int getIdCategoria() { return idCategoria; }
+
   public RunnerInscriptoInfo getRunner() { return runner; }
 
   public String getTalleRemera() {

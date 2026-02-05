@@ -17,12 +17,12 @@ public class ApiClient {
 
   public static ApiService getApiService() {
     if (service == null) {
-      // 2. Configurar Gson para manejar las fechas de C# correctamente
+      // Configurar Gson para manejar las fechas de C# correctamente
       Gson gson = new GsonBuilder()
               .setDateFormat("yyyy-MM-dd'T'HH:mm:ss") // Formato estandar de .NET
               .create();
 
-      // 3. Construir Retrofit
+      // Construir Retrofit
       Retrofit retrofit = new Retrofit.Builder()
               .baseUrl(BASE_URL)
               .addConverterFactory(GsonConverterFactory.create(gson)) // Para convertir JSON a Objetos

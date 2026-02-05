@@ -201,7 +201,7 @@ public class BuscarInscripcionesFragment extends Fragment {
       tvNombre.setText("Usuario Desconocido");
     }
 
-    // Datos de Inscripción
+    // Datos de Inscripcion
     String talle = item.getTalleRemera() != null ? item.getTalleRemera() : "-";
     String categoria = item.getNombreCategoria() != null ? item.getNombreCategoria() : "Sin Cat.";
     String evento = item.getNombreEvento();
@@ -209,18 +209,32 @@ public class BuscarInscripcionesFragment extends Fragment {
     // Agregamos el nombre del evento para dar contexto en búsqueda global
     tvCatTalle.setText("Evento: " + evento + "\nCat: " + categoria + " | Talle: " + talle);
 
-    // Botón Baja
-    btnDarDeBaja.setOnClickListener(v -> {
-      new androidx.appcompat.app.AlertDialog.Builder(requireContext())
-        .setTitle("Confirmar baja")
-        .setMessage("¿Estás seguro de eliminar a " + (r != null ? r.getNombreCompleto() : "este usuario") + "?")
-        .setPositiveButton("Sí, eliminar", (d, w) -> {
-          String textoBusqueda = binding.searchViewBusqueda.getQuery().toString();
-          mViewModel.darDeBaja(item.getIdInscripcion(), "Cancelado desde Búsqueda", textoBusqueda);
-        })
-        .setNegativeButton("Cancelar", null)
-        .show();
-    });
+    //logica de btn baja, si el evento esta finalizado se oculta
+    String estadoDelEvento= item.getEstadoEvento();
+
+    //Verificamos si ESTE evento en particular finalizo
+    boolean eventoCerrado = "finalizado".equalsIgnoreCase(estadoDelEvento) || "cancelado".equalsIgnoreCase(estadoDelEvento);
+
+
+    // Boton Baja
+    if (eventoCerrado) {
+      btnDarDeBaja.setVisibility(View.GONE);
+    } else {
+      btnDarDeBaja.setVisibility(View.VISIBLE);
+
+      // Asignamos listener solo si es visible
+      btnDarDeBaja.setOnClickListener(v -> {
+        new androidx.appcompat.app.AlertDialog.Builder(requireContext())
+          .setTitle("Confirmar baja")
+          .setMessage("¿Estás seguro de eliminar a " + (r != null ? r.getNombreCompleto() : "este usuario") + "?")
+          .setPositiveButton("Sí, eliminar", (d, w) -> {
+            String textoBusqueda = binding.searchViewBusqueda.getQuery().toString();
+            mViewModel.darDeBaja(item.getIdInscripcion(), "Cancelado desde Búsqueda", textoBusqueda);
+          })
+          .setNegativeButton("Cancelar", null)
+          .show();
+      });
+    }
 
     btnCerrar.setOnClickListener(v -> dialogDetalleActual.dismiss());
     dialogDetalleActual.show();

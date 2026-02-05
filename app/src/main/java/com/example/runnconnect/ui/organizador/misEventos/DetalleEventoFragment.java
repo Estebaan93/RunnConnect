@@ -184,7 +184,14 @@ public class DetalleEventoFragment extends Fragment {
     binding.btnGestionInscriptos.setOnClickListener(v -> {
       Bundle args = new Bundle();
       args.putInt("idEvento", idEvento);
+
+      //enviamos el estado tambien
+      if (viewModel.getEventoRaw().getValue() != null) {
+        args.putString("estadoEvento", viewModel.getEventoRaw().getValue().getEstado());
+      }
+
       Navigation.findNavController(v).navigate(R.id.action_detalle_to_gestionInscriptos, args);
+
     });
 
     binding.btnVerMapa.setOnClickListener(v -> {
@@ -245,12 +252,27 @@ public class DetalleEventoFragment extends Fragment {
   private void mostrarDialogoRunners(CategoriaResponse categoria) {
     viewModel.cargarRunnersDeCategoria(idEvento, categoria.getIdCategoria());
     AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
-    builder.setTitle("Cargando inscriptos...");
+    builder.setTitle("Inscriptos");
     View view = getLayoutInflater().inflate(R.layout.dialog_lista_runners, null);
     RecyclerView rv = view.findViewById(R.id.rvRunnersDialog);
+
+    //instancia del adapter
     runnersAdapterDialog = new RunnerSimpleAdapter(runner -> confirmarBajaRunner(runner, categoria.getIdCategoria()));
+
+    //verificamos estado del evento
+    if (viewModel.getEventoRaw().getValue() != null) {
+      String estadoActual = viewModel.getEventoRaw().getValue().getEstado();
+
+      // Si es finalizado o cancelado, DESHABILITAR la opcion de borrar runners
+      if ("finalizado".equalsIgnoreCase(estadoActual) || "cancelado".equalsIgnoreCase(estadoActual)) {
+        runnersAdapterDialog.setHabilitarEliminacion(false);
+      } else {
+        runnersAdapterDialog.setHabilitarEliminacion(true);
+      }
+    }
     rv.setLayoutManager(new LinearLayoutManager(getContext()));
     rv.setAdapter(runnersAdapterDialog);
+
     builder.setView(view);
     builder.setPositiveButton("Cerrar", null);
     dialogRunners = builder.create();

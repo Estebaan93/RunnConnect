@@ -6,6 +6,7 @@ public class BusquedaInscripcionResponse {
   private int idInscripcion;
   private String fechaInscripcion;
   private String estadoPago; // "pagado", "pendiente", "cancelado"
+  private String estadoEvento;
   private String talleRemera;
   private int idEvento;
   private String nombreEvento;
@@ -18,6 +19,7 @@ public class BusquedaInscripcionResponse {
   public int getIdInscripcion() { return idInscripcion; }
   public String getEstadoPago() { return estadoPago; }
   public String getNombreEvento() { return nombreEvento; }
+  public String getEstadoEvento() {return estadoEvento; }
   public String getTalleRemera() { return talleRemera; }
   public String getNombreCategoria() { return nombreCategoria; }
 

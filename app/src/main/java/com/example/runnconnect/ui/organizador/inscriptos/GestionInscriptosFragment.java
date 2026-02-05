@@ -30,8 +30,9 @@ public class GestionInscriptosFragment extends Fragment {
   private GestionInscriptosViewModel viewModel;
   private InscriptosAdapter adapter;
   private int idEvento = 0;
+  private String estadoEvento = "";
 
-  // Referencias a los diálogos activos para el Observer
+  // Referencias a los dialogos activos para el Observer
   private Dialog dialogValidacionActual;
   private Dialog dialogDetalleActual;
 
@@ -42,6 +43,9 @@ public class GestionInscriptosFragment extends Fragment {
     if (getArguments() != null) {
       idEvento = getArguments().getInt("idEvento", 0);
     }
+
+    //recuperamos el estado cuando enviamos el bundle, si el estado es finalizado se ocultara el bnt "dar de baja"
+    estadoEvento= getArguments().getString("estadoEvento", "");
 
     setupRecyclerView();
     setupListeners();
@@ -81,7 +85,7 @@ public class GestionInscriptosFragment extends Fragment {
             tvFeedback.setText(msg);
             tvFeedback.setVisibility(View.VISIBLE);
 
-            // Color según el mensaje
+            // Color segun el mensaje
             if (msg.toLowerCase().contains("rechazado") || msg.toLowerCase().contains("error")) {
               tvFeedback.setTextColor(Color.RED);
             } else {
@@ -93,7 +97,7 @@ public class GestionInscriptosFragment extends Fragment {
           }
         }
 
-        // 2. Validar si hay diálogo de DETALLE abierto (Baja)
+        // 2. Validar si hay dialogo de DETALLE abierto (Baja)
         if (!mensajeManejado && dialogDetalleActual != null && dialogDetalleActual.isShowing()) {
           TextView tvFeedback = dialogDetalleActual.findViewById(R.id.tvMensajeBaja);
           if (tvFeedback != null) {
@@ -111,7 +115,7 @@ public class GestionInscriptosFragment extends Fragment {
           }
         }
 
-        // 3. Fallback: Toast si no hay diálogos
+        // 3. Fallback: Toast si no hay dialogos
         if (!mensajeManejado) {
           Toast.makeText(getContext(), msg, Toast.LENGTH_SHORT).show();
         }
@@ -161,10 +165,9 @@ public class GestionInscriptosFragment extends Fragment {
     binding.recyclerInscriptos.setAdapter(adapter);
   }
 
-  // --- DIÁLOGOS ---
-
+  // --- DIALOGOS ---
   private void mostrarDetalleRunner(InscriptoEventoResponse item) {
-    // CORRECCIÓN: Asignar a la variable global 'dialogDetalleActual'
+    // CORRECCION: Asignar a la variable global 'dialogDetalleActual'
     dialogDetalleActual = new Dialog(requireContext());
     dialogDetalleActual.requestWindowFeature(Window.FEATURE_NO_TITLE);
     dialogDetalleActual.setContentView(R.layout.dialog_detalle_runner);
@@ -221,6 +224,26 @@ public class GestionInscriptosFragment extends Fragment {
         .setNegativeButton("No", null)
         .show();
     });
+    boolean eventoCerrado = "finalizado".equalsIgnoreCase(estadoEvento) || "cancelado".equalsIgnoreCase(estadoEvento);
+
+    // Si el evento termino O el runner ya esta dado de baja (opcional esta segunda parte)
+    if (eventoCerrado) {
+      btnDarDeBaja.setVisibility(View.GONE);
+    } else {
+      btnDarDeBaja.setVisibility(View.VISIBLE);
+
+      // Movemos el listener AQUI ADENTRO para que solo funcione si el boton es visible
+      btnDarDeBaja.setOnClickListener(v -> {
+        new androidx.appcompat.app.AlertDialog.Builder(requireContext())
+          .setTitle("Confirmar baja")
+          .setMessage("¿Estás seguro de que deseas eliminar la inscripción de este corredor?")
+          .setPositiveButton("Sí", (d, w) -> {
+            viewModel.darDeBajaRunner(item.getIdInscripcion());
+          })
+          .setNegativeButton("No", null)
+          .show();
+      });
+    }
 
     btnCerrar.setOnClickListener(v -> dialogDetalleActual.dismiss());
     dialogDetalleActual.show();

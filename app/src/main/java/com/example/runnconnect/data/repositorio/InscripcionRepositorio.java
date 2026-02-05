@@ -25,7 +25,7 @@ public class InscripcionRepositorio {
     this.apiService = ApiClient.getApiService();
   }
 
-  // Obtener lista de inscriptos con filtros y paginación
+  // Obtener lista de inscriptos con filtros y paginacion
   // GET api/Evento/{idEvento}/Inscripciones
   public void obtenerInscriptos(int idEvento, String estadoPago, int pagina, int tamanioPagina, Callback<ListaInscriptosResponse> callback) {
     String token = sessionManager.leerToken();
@@ -33,7 +33,7 @@ public class InscripcionRepositorio {
       // El apiService espera @Path("idEvento") y @Query params
       apiService.obtenerInscriptos("Bearer " + token, idEvento, estadoPago, pagina, tamanioPagina).enqueue(callback);
     } else {
-      // Manejo básico de error de sesión
+      // Manejo básico de error de sesiin
       callback.onFailure(null, new Throwable("No hay sesión activa."));
     }
   }

@@ -12,6 +12,7 @@ namespace RunnConnectAPI.Models.Dto.Inscripcion
     public int IdEvento { get; set; }
     public string NombreEvento { get; set; } = string.Empty;
     public string NombreCategoria { get; set; } = string.Empty;
+    public string EstadoEvento { get; set; } //
 
     //talle remera
     public string? TalleRemera { get; set; }
