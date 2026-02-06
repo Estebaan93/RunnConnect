@@ -197,6 +197,10 @@ public class DetalleEventoFragment extends Fragment {
     binding.btnVerMapa.setOnClickListener(v -> {
       Bundle args = new Bundle();
       args.putInt("idEvento", idEvento);
+
+      //enviamos el estado
+      args.putString("estadoEvento", viewModel.getEventoRaw().getValue().getEstado());
+
       Navigation.findNavController(v).navigate(R.id.action_detalle_to_mapaEditor, args);
     });
 

@@ -11,7 +11,7 @@
 # --- C# / .NET (Agregá estos) ---
 [Bb]in/
 [Oo]bj/
-.vs/
+.vscode/
 *.user
 *.userosscache
 *.sln.docstates

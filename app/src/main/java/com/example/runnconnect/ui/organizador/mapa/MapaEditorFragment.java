@@ -39,11 +39,16 @@ public class MapaEditorFragment extends Fragment implements OnMapReadyCallback {
   private GoogleMap mMap;
   private int idEvento = 0;
 
+  private String estadoEvento="";
+
   @Override
   public void onCreate(@Nullable Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     if (getArguments() != null) {
       idEvento = getArguments().getInt("idEvento", 0);
+
+      //recuperamos el estado del bundle
+      estadoEvento= getArguments().getString("estadoEvento");
     }
   }
 
@@ -63,16 +68,35 @@ public class MapaEditorFragment extends Fragment implements OnMapReadyCallback {
   }
 
   private void setupListeners() {
-    binding.fabUndo.setOnClickListener(v -> viewModel.deshacer());
+    boolean esSoloLectura= "finalizado".equalsIgnoreCase(estadoEvento) || "cancelado".equalsIgnoreCase(estadoEvento);
+
+    /*binding.fabUndo.setOnClickListener(v -> viewModel.deshacer());
     binding.fabLayers.setOnClickListener(v -> viewModel.alternarCapas());
     binding.btnGuardarRuta.setOnClickListener(v -> viewModel.guardarRuta(idEvento));
+    */
+    if (esSoloLectura) {
+      // Si es solo lectura, los botones no hacen nada (o muestran un aviso)
+      binding.fabUndo.setOnClickListener(null);
+      binding.btnGuardarRuta.setOnClickListener(null);
+    } else {
+      // Lógica normal
+      binding.fabUndo.setOnClickListener(v -> viewModel.deshacer());
+      binding.btnGuardarRuta.setOnClickListener(v -> viewModel.guardarRuta(idEvento));
+    }
+    // El cambio de capas siempre se permite
+    binding.fabLayers.setOnClickListener(v -> viewModel.alternarCapas());
+ 
   }
 
   private void setupObservers() {
-    // ... Observers visuales básicos ...
+    // ... Observers visuales basicos ...
     viewModel.getIsLoading().observe(getViewLifecycleOwner(), loading -> {
       binding.progressBar.setVisibility(loading ? View.VISIBLE : View.GONE);
+      
+     // Solo habilitamos el boton si NO esta cargando Y si NO es solo lectura
+     if (!esSoloLectura()) {
       binding.btnGuardarRuta.setEnabled(!loading);
+  }
     });
 
     viewModel.getTextoDistancia().observe(getViewLifecycleOwner(), binding.tvDistanciaReal::setText);
@@ -132,16 +156,43 @@ public class MapaEditorFragment extends Fragment implements OnMapReadyCallback {
     mMap = googleMap;
     mMap.getUiSettings().setZoomControlsEnabled(true);
 
-    mMap.setOnMapClickListener(latLng -> viewModel.procesarClickMapa(latLng));
-
     if (viewModel.getTipoMapa().getValue() != null) {
       mMap.setMapType(viewModel.getTipoMapa().getValue());
     }
+    
+    // Carga inicial de datos
     viewModel.onMapReady(idEvento);
+
+    // =================================================================
+    // LÓGICA DE PROTECCIÓN (AL FINAL PARA SOBRESCRIBIR TODO)
+    // =================================================================
+    boolean esSoloLectura = "finalizado".equalsIgnoreCase(estadoEvento) || "cancelado".equalsIgnoreCase(estadoEvento);
+
+    if (esSoloLectura) {
+        // 1. Bloquear interacción con el mapa (Click para crear puntos)
+        mMap.setOnMapClickListener(null); 
+        
+        // 2. Ocultar botones visualmente
+        binding.btnGuardarRuta.setVisibility(View.GONE);
+        binding.fabUndo.setVisibility(View.GONE);
+        
+        // 3. Feedback (Opcional, para debug)
+        // Toast.makeText(getContext(), "Modo Solo Lectura", Toast.LENGTH_SHORT).show();
+    } else {
+        // Modo Edición: Asignar listener
+        mMap.setOnMapClickListener(latLng -> viewModel.procesarClickMapa(latLng));
+        
+        binding.btnGuardarRuta.setVisibility(View.VISIBLE);
+        binding.fabUndo.setVisibility(View.VISIBLE);
+    }
+    // =================================================================
+  }
+  //helper verificar estado
+  private boolean esSoloLectura() {
+    return "finalizdo".equalsIgnoreCase(estadoEvento) || "cancelado".equalsIgnoreCase(estadoEvento);
   }
 
   //  METODOS DE DIBUJADO PURO (Reciben datos listos)
-
   private void dibujarLineaRuta(List<LatLng> puntos) {
     if (mMap == null) return;
     mMap.clear(); // Limpia tod para redibujar
@@ -195,8 +246,7 @@ public class MapaEditorFragment extends Fragment implements OnMapReadyCallback {
     }
   }
 
-  //  UI HELPERS
-
+  //helper
   private void mostrarDialogoPuntoInteres(LatLng latLng) {
     AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
     View v = getLayoutInflater().inflate(R.layout.dialog_crear_punto_interes, null);
