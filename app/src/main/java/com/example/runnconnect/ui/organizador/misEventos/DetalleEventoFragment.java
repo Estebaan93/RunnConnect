@@ -1,6 +1,7 @@
 package com.example.runnconnect.ui.organizador.misEventos;
 
 import android.content.Context;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -83,9 +84,13 @@ public class DetalleEventoFragment extends Fragment {
 
     // 2. Mensajes Globales
     viewModel.getMensajeGlobal().observe(getViewLifecycleOwner(), msg -> {
+      // Solo actuamos si hay mensaje
       if (msg != null && !msg.isEmpty()) {
-        Toast.makeText(getContext(), msg, Toast.LENGTH_SHORT).show();
+        mostrarMensajeEnPantalla(msg);
+        // Limpiamos en el VM inmediatamente para que no se repita
+        viewModel.limpiarMensajeGlobal();
       }
+
     });
 
     // 3. Resultado de subida
@@ -176,6 +181,42 @@ public class DetalleEventoFragment extends Fragment {
     viewModel.getDialogDismiss().observe(getViewLifecycleOwner(), dismiss -> {
       if (dismiss && dialogEstado != null && dialogEstado.isShowing()) dialogEstado.dismiss();
     });
+  }
+  private void mostrarMensajeEnPantalla(String msg) {
+    if (binding == null || binding.tvMensajeGlobal == null) return;
+
+    // 1. Hacer visible INMEDIATAMENTE
+    binding.tvMensajeGlobal.setVisibility(View.VISIBLE);
+    binding.tvMensajeGlobal.bringToFront(); // Asegurar que quede encima si hay solapamiento
+
+    // 2. Logica de colores
+    if (msg.startsWith("EXITO:")) {
+      // Verde
+      String textoLimpio = msg.replace("EXITO:", "").trim();
+      binding.tvMensajeGlobal.setText(textoLimpio);
+      binding.tvMensajeGlobal.setTextColor(Color.parseColor("#1B5E20")); // Verde oscuro
+      binding.tvMensajeGlobal.setBackgroundColor(Color.parseColor("#C8E6C9")); // Verde claro
+    }
+    else if (msg.startsWith("ERROR:")) {
+      // Rojo
+      String textoLimpio = msg.replace("ERROR:", "").trim();
+      binding.tvMensajeGlobal.setText(textoLimpio);
+      binding.tvMensajeGlobal.setTextColor(Color.parseColor("#B71C1C")); // Rojo oscuro
+      binding.tvMensajeGlobal.setBackgroundColor(Color.parseColor("#FFCDD2")); // Rojo claro
+    }
+    else {
+      // Normal (Gris/Negro)
+      binding.tvMensajeGlobal.setText(msg);
+      binding.tvMensajeGlobal.setTextColor(Color.BLACK);
+      binding.tvMensajeGlobal.setBackgroundColor(Color.parseColor("#F5F5F5"));
+    }
+
+    // 3. Auto-ocultar a los 4 segundos
+    new Handler(Looper.getMainLooper()).postDelayed(() -> {
+      if (binding != null && binding.tvMensajeGlobal != null) {
+        binding.tvMensajeGlobal.setVisibility(View.GONE);
+      }
+    }, 4000);
   }
 
   private void setupListeners() {

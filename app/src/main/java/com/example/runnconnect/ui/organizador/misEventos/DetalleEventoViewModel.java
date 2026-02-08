@@ -27,6 +27,8 @@ import com.example.runnconnect.data.response.InscriptoEventoResponse;
 import com.example.runnconnect.data.response.ListaInscriptosResponse;
 import com.example.runnconnect.data.response.ResultadosEventoResponse;
 
+import org.json.JSONObject;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
@@ -350,6 +352,14 @@ public class DetalleEventoViewModel extends AndroidViewModel {
       @Override public void onFailure(Call<ResponseBody> call, Throwable t) { mensajeGlobal.setValue("Error conexión"); }
     });
   }
+  // MeTODO HELPER PARA MENSAJES TEMPORALES
+  private void mostrarMensajeExito(String msg) {
+    mensajeGlobal.setValue(msg);
+    // Borrar automáticamente a los 4 segundos
+    new Handler(Looper.getMainLooper()).postDelayed(() -> {
+      mensajeGlobal.setValue(null);
+    }, 4000);
+  }
 
   public int calcularPreseleccionRadio(String estado) {
     if(estado==null) return -1;
@@ -363,24 +373,51 @@ public class DetalleEventoViewModel extends AndroidViewModel {
   }
 
   public void procesarCambioEstado(int idEvento, int radioId, String motivo) {
-    String nuevo = "";
-    if (radioId == R.id.rbPublicado) nuevo = "publicado";
-    else if (radioId == R.id.rbSuspendido) nuevo = "suspendido";
-    else if (radioId == R.id.rbFinalizado) nuevo = "finalizado";
-    else if (radioId == R.id.rbCancelado) nuevo = "cancelado";
+    String estadoNuevo = "";
+    if (radioId == R.id.rbPublicado) estadoNuevo = "publicado";
+    else if (radioId == R.id.rbSuspendido) estadoNuevo = "suspendido";
+    else if (radioId == R.id.rbFinalizado) estadoNuevo = "finalizado";
+    else if (radioId == R.id.rbCancelado) estadoNuevo = "cancelado";
     else { dialogError.setValue("Seleccione una opción"); return; }
 
     dialogDismiss.setValue(true);
-    CambiarEstadoRequest req = new CambiarEstadoRequest(nuevo, motivo);
+    CambiarEstadoRequest req = new CambiarEstadoRequest(estadoNuevo, motivo);
     isLoading.setValue(true);
+    final String estaParaGuardar= estadoNuevo;
     repositorio.cambiarEstado(idEvento, req, new Callback<ResponseBody>() {
       @Override
       public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
         isLoading.setValue(false);
+
         if (response.isSuccessful()) {
-          mensajeGlobal.setValue("Estado actualizado");
-          cargarDetalle(idEvento);
-        } else mensajeGlobal.setValue("Error al actualizar");
+          // 1. Mensaje de ÉXITO
+          mostrarMensajeExito("EXITO: Estado actualizado correctamente");
+
+          // Actualizar UI localmente
+          EventoDetalleResponse actual = eventoRaw.getValue();
+          if (actual != null) {
+            actual.setEstado(estaParaGuardar);
+            mapearDatosAUI(actual);
+          } else {
+            cargarDetalle(idEvento);
+          }
+        } else {
+          // 2. Mensaje de ERROR (Capturando JSON)
+          String msjError = "No se puede actualizar: " + response.code();
+          try {
+            if (response.errorBody() != null) {
+              String errorJson = response.errorBody().string();
+              JSONObject jsonObject = new JSONObject(errorJson);
+              if (jsonObject.has("message")) {
+                msjError = jsonObject.getString("message");
+              }
+            }
+          } catch (Exception e) {
+            e.printStackTrace();
+          }
+          // IMPORTANTE: Prefijo ERROR
+          mostrarMensajeExito("ERROR: " + msjError);
+        }
       }
       @Override public void onFailure(Call<ResponseBody> call, Throwable t) {
         isLoading.setValue(false);
@@ -388,4 +425,10 @@ public class DetalleEventoViewModel extends AndroidViewModel {
       }
     });
   }
+
+  public void limpiarMensajeGlobal() {
+    mensajeGlobal.setValue(null);
+  }
+
+
 }

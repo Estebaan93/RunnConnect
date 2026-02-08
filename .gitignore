@@ -24,3 +24,5 @@
 # --- Otros ---
 .DS_Store
 Thumbs.db
+
+API/RunnConnectAPI/runnConnect.json
