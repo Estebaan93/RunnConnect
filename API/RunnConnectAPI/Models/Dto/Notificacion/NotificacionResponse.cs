@@ -7,6 +7,8 @@ namespace RunnConnectAPI.Models.Dto.Notificacion
   {
     public int IdNotificacion { get; set; }
     public int IdEvento { get; set; }
+    public int? IdCategoria {get;set;}
+    public string? NombreCategoria {get;set;}
     public string Titulo { get; set; } = string.Empty;
     public string? Mensaje { get; set; }
     public DateTime FechaEnvio { get; set; }

@@ -26,6 +26,8 @@ namespace RunnConnectAPI.Models.Dto.Notificacion
     // Informacion del evento
     public int IdEvento { get; set; }
     public string NombreEvento { get; set; } = string.Empty;
+    public int? IdCategoria {get;set;}
+    public string? NombreCategoria {get;set;}
     public DateTime FechaEvento { get; set; }
     public string EstadoEvento { get; set; } = string.Empty;
 

@@ -33,6 +33,7 @@ namespace RunnConnectAPI.Repositories
     public async Task<List<NotificacionResponse>> ObtenerPorEventoAsync(int idEvento)
     {
       var notificaciones = await _context.NotificacionesEvento
+        .AsNoTracking()
         .Include(n => n.Evento)
         .Where(n => n.IdEvento == idEvento)
         .OrderByDescending(n => n.FechaEnvio)
@@ -78,7 +79,7 @@ namespace RunnConnectAPI.Repositories
         IdEvento = n.IdEvento,
         NombreEvento = n.Evento?.Nombre ?? "",
         FechaEvento = n.Evento?.FechaHora ?? DateTime.MinValue,
-        EstadoEvento = n.Evento?.Estado ?? ""
+        EstadoEvento = n.EstadoEvento?? n.Evento?.Estado ?? ""
       }).ToList();
 
       return new MisNotificacionesResponse
@@ -144,6 +145,7 @@ namespace RunnConnectAPI.Repositories
     {
       // Verificar que el evento existe
       var evento = await _context.Eventos
+        .Include(e=>e.Categorias)
         .FirstOrDefaultAsync(e => e.IdEvento == request.IdEvento);
 
       if (evento == null)
@@ -162,7 +164,8 @@ namespace RunnConnectAPI.Repositories
         IdEvento = request.IdEvento,
         Titulo = request.Titulo.Trim(),
         Mensaje = request.Mensaje?.Trim(),
-        FechaEnvio = DateTime.Now
+        FechaEnvio = DateTime.Now,
+        EstadoEvento= evento.Estado
       };
 
       _context.NotificacionesEvento.Add(notificacion);
@@ -249,7 +252,7 @@ namespace RunnConnectAPI.Repositories
             Nombre = notificacion.Evento.Nombre,
             FechaHora = notificacion.Evento.FechaHora,
             Lugar = notificacion.Evento.Lugar,
-            Estado = notificacion.Evento.Estado
+            Estado = notificacion.EstadoEvento ?? notificacion.Evento?.Estado ?? ""
           }
           : null
       };

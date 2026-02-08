@@ -11,7 +11,11 @@ namespace RunnConnectAPI.Models.Dto.Notificacion
     [Required(ErrorMessage = "El evento es obligatorio")]
     public int IdEvento { get; set; }
 
-    // Titulo de la notificación (obligatorio)
+    //Si es null se cancela todo el evento y sus categorias
+    //si tiene un valor se cancela solo a categoria especifica
+    public int? IdCategoria {get;set;}
+
+    // Titulo de la notificacion (obligatorio)
     // Ej: "Evento Suspendido", "Cambio de Horario", "Recordatorio"
     [Required(ErrorMessage = "El titulo es obligatorio")]
     [StringLength(255, MinimumLength = 3, ErrorMessage = "El título debe tener mas 3 caracteres")]
