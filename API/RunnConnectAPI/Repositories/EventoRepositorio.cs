@@ -177,7 +177,7 @@ namespace RunnConnectAPI.Repositories
       nuevoEstado = nuevoEstado.ToLower().Trim();
 
       // Validar estado valido
-      var estadosValidos = new[] { "publicado", "cancelado", "finalizado", "suspendido" };
+      var estadosValidos = new[] { "publicado", "cancelado", "finalizado", "suspendido", "retrasado" };
       
       if (!estadosValidos.Contains(nuevoEstado))
         throw new ArgumentException($"Estado inválido. Estados válidos: {string.Join(", ", estadosValidos)}");

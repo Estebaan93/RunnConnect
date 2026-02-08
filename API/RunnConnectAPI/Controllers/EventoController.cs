@@ -434,14 +434,20 @@ namespace RunnConnectAPI.Controllers
         await _eventoRepositorio.CambiarEstadoAsync(id, request.NuevoEstado);
 
         //creamos la notificacion
-        // si el estado es cancelado, finalizado o cualquier cambio relevante
+        // si el estado es cancelado, finalizado o cualquier cambio
         if (!string.IsNullOrEmpty(request.Motivo)) 
         {
-            // Preparamos el título automático
+            // Preparamos el título automatico
             string tituloNotif = $"Evento {request.NuevoEstado.ToUpper()}";
-            if(request.NuevoEstado.ToLower() == "cancelado") tituloNotif = "URGENTE: Evento Cancelado";
 
-            var nuevaNotificacion = new CrearNotificacionRequest
+          if (request.NuevoEstado.ToLower() == "cancelado")
+            tituloNotif = "URGENTE: Evento Cancelado";
+          else if (request.NuevoEstado.ToLower() == "retrasado")
+            tituloNotif = "ATENCIÓN: Evento Retrasado"; // <--- Nuevo caso
+          else if (request.NuevoEstado.ToLower() == "suspendido")
+            tituloNotif = "AVISO: Evento Suspendido";
+
+          var nuevaNotificacion = new CrearNotificacionRequest
             {
                 IdEvento = id,
                 Titulo = tituloNotif,
