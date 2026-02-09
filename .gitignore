@@ -18,7 +18,7 @@
 
 # --- Entorno IDX / DB ---
 .idx/
-.mysql_data/
+mysql-data/
 *.log
 
 # --- Otros ---
