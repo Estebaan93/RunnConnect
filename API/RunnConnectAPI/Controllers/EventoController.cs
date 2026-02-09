@@ -415,6 +415,7 @@ namespace RunnConnectAPI.Controllers
       try
       {
         if (!ModelState.IsValid) return BadRequest(ModelState);
+
         var (userId, error) = ValidarOrganizador();
         if (error != null) return error;
 
@@ -422,39 +423,69 @@ namespace RunnConnectAPI.Controllers
         if (evento == null) return NotFound(new { message = "Evento no encontrado" });
         if (evento.IdOrganizador != userId) return Forbid();
 
-        string nuevoEstado = request.NuevoEstado.ToLower();
+        string nuevoEstadoEvento = request.NuevoEstado.ToLower().Trim();
 
-        // 1. Aplicar cambio al Evento Padre
-        await _eventoRepositorio.CambiarEstadoAsync(id, nuevoEstado);
+        // 1. Aplicar cambio al Evento Padre (Siempre masculino: retrasado, cancelado...)
+        await _eventoRepositorio.CambiarEstadoAsync(id, nuevoEstadoEvento);
 
-        // 2. LOGICA CASCADA CORREGIDA (Usando Repositorio)
-        if (nuevoEstado == "suspendido" || nuevoEstado == "cancelado")
+        if (evento.Categorias != null)
         {
-          if (evento.Categorias != null)
+          // CASO A: VAMOS HACIA EL DESASTRE (Bajar estado)
+          if (nuevoEstadoEvento == "suspendido" || nuevoEstadoEvento == "cancelado" || nuevoEstadoEvento == "retrasado")
           {
+            // --- TRADUCCIÓN DE GÉNERO (Evento -> Categoría) ---
+            string estadoParaCategoria = nuevoEstadoEvento; // Valor por defecto
+
+            // Mapeamos explícitamente a lo que TU base de datos acepta en Categorias
+            if (nuevoEstadoEvento == "cancelado") estadoParaCategoria = "cancelada";
+            if (nuevoEstadoEvento == "retrasado") estadoParaCategoria = "retrasada";
+            if (nuevoEstadoEvento == "suspendido") estadoParaCategoria = "suspendido"; // En tu DB quedó como masculino
+            // --------------------------------------------------
+
             foreach (var cat in evento.Categorias)
             {
-              // Solo cambiamos si no estaba ya en un estado final
-              if (cat.Estado != "finalizada" && cat.Estado != "cancelada")
-              {
-                cat.Estado = nuevoEstado;
+              string estadoActual = cat.Estado?.ToLower().Trim() ?? "";
 
-                // --- CORRECCIÓN AQUÍ ---
-                // Usamos el repositorio para guardar, en vez de _context
+              // Solo cambiamos si no estaba ya en un estado final definitivo
+              if (estadoActual != "finalizada" && estadoActual != "cancelada")
+              {
+                cat.Estado = estadoParaCategoria;
                 await _categoriaRepositorio.ActualizarAsync(cat);
               }
             }
-            // Ya no llamamos a _context.SaveChangesAsync() aquí porque
-            // el repositorio guarda los cambios línea por línea arriba.
+          }
+          // CASO B: VOLVEMOS A LA NORMALIDAD (Restaurar)
+          else if (nuevoEstadoEvento == "publicado")
+          {
+            foreach (var cat in evento.Categorias)
+            {
+              // Obtenemos el estado actual seguro (evitando nulos)
+              string estadoCat = cat.Estado?.ToLower().Trim() ?? "";
+
+              // LÓGICA DE REPARACIÓN:
+              // 1. Si está "suspendido" o "retrasada" -> Volver a programada.
+              // 2. Si está "" (BLANCO/VACÍO por error anterior) -> Volver a programada (Reparación).
+              if (estadoCat == "suspendido" ||
+                  estadoCat == "retrasada" ||
+                  estadoCat == "retrasado" || // Por si acaso
+                  string.IsNullOrEmpty(estadoCat)) // <--- ESTO ARREGLA LOS BLANCOS
+              {
+                cat.Estado = "programada"; // Vuelve a la normalidad
+                await _categoriaRepositorio.ActualizarAsync(cat);
+              }
+            }
           }
         }
 
-        // 3. Notificación Masiva (Global)
+        // 3. Notificación
         if (!string.IsNullOrEmpty(request.Motivo))
         {
           string titulo = $"EVENTO {request.NuevoEstado.ToUpper()}";
-          if (nuevoEstado == "cancelado") titulo = "URGENTE: Evento Cancelado";
-          if (nuevoEstado == "suspendido") titulo = "Evento Suspendido (General)";
+
+          if (nuevoEstadoEvento == "cancelado") titulo = "URGENTE: Evento Cancelado";
+          if (nuevoEstadoEvento == "suspendido") titulo = "⚠️ Evento Suspendido";
+          if (nuevoEstadoEvento == "retrasado") titulo = "⚠️ Evento Retrasado";
+          if (nuevoEstadoEvento == "publicado") titulo = "✅ Evento Confirmado / Reanudado";
 
           var notif = new CrearNotificacionRequest
           {
@@ -463,14 +494,15 @@ namespace RunnConnectAPI.Controllers
             Titulo = titulo,
             Mensaje = request.Motivo
           };
+
           await _notificacionRepositorio.CrearAsync(notif, userId);
         }
 
-        return Ok(new { message = $"Evento y categorías actualizados a {nuevoEstado}" });
+        return Ok(new { message = $"Evento actualizado a {nuevoEstadoEvento}. Categorías sincronizadas." });
       }
       catch (Exception ex)
       {
-        return StatusCode(500, new { message = "Error", error = ex.Message });
+        return StatusCode(500, new { message = "Error interno", error = ex.Message });
       }
     }
 
