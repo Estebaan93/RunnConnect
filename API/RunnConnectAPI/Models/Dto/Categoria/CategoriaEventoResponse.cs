@@ -13,8 +13,10 @@ namespace RunnConnectAPI.Models.Dto.Categoria
     public int EdadMinima { get; set; }
     public int EdadMaxima { get; set; }
     public string Genero { get; set; } = "X";
-    
-    
+
+    public string Estado { get; set; } = "programada";
+
+
     // Descripcion legible del género
     public string GeneroDescripcion => Genero switch
     {

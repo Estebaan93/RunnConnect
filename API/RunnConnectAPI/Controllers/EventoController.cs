@@ -24,12 +24,12 @@ namespace RunnConnectAPI.Controllers
     private readonly NotificacionRepositorio _notificacionRepositorio;
 
     //inyectamos en el constructor
-    public EventoController(EventoRepositorio eventoRepositorio, UsuarioRepositorio usuarioRepositorio, CategoriaRepositorio categoriaRepositorio, NotificacionRepositorio notificacionRepositorio) 
+    public EventoController(EventoRepositorio eventoRepositorio, UsuarioRepositorio usuarioRepositorio, CategoriaRepositorio categoriaRepositorio, NotificacionRepositorio notificacionRepositorio)
     {
       _eventoRepositorio = eventoRepositorio; //asignamos
       _usuarioRepositorio = usuarioRepositorio;
       _categoriaRepositorio = categoriaRepositorio;
-      _notificacionRepositorio= notificacionRepositorio; 
+      _notificacionRepositorio = notificacionRepositorio;
     }
 
     /*Endpoint publicos (sin autenticacion) para el usuario nuevo antes de loguearse, pueda ver los proximos eventos, y posterior
@@ -62,10 +62,10 @@ namespace RunnConnectAPI.Controllers
           NombreOrganizador = e.Organizador?.Nombre ?? "Sin informacion",
           Categorias = e.Categorias?.Select(c => new CategoriaEventoResponse
           {
-              IdCategoria = c.IdCategoria,
-              Nombre = c.Nombre, //Esto es lo que necesitamos para el Chip!
-              CostoInscripcion = c.CostoInscripcion,
-              Genero = c.Genero
+            IdCategoria = c.IdCategoria,
+            Nombre = c.Nombre, //Esto es lo que necesitamos para el Chip!
+            CostoInscripcion = c.CostoInscripcion,
+            Genero = c.Genero
           }).ToList()
 
         }).ToList();
@@ -364,7 +364,7 @@ namespace RunnConnectAPI.Controllers
 
         if (evento.IdOrganizador != validacion.userId)
           return Forbid();
-        
+
         /*bloqueo de estados*/
         // si esta cancelado, no se puede editar
         if (evento.Estado == "cancelado")
@@ -414,78 +414,148 @@ namespace RunnConnectAPI.Controllers
     {
       try
       {
-        if (!ModelState.IsValid)
-          return BadRequest(ModelState);
+        if (!ModelState.IsValid) return BadRequest(ModelState);
+        var (userId, error) = ValidarOrganizador();
+        if (error != null) return error;
 
-        var validacion = ValidarOrganizador();
-        if (validacion.error != null)
-          return validacion.error;
+        var evento = await _eventoRepositorio.ObtenerPorIdConDetalleAsync(id);
+        if (evento == null) return NotFound(new { message = "Evento no encontrado" });
+        if (evento.IdOrganizador != userId) return Forbid();
 
-        var evento = await _eventoRepositorio.ObtenerPorIdAsync(id);
-        if (evento == null)
-          return NotFound(new { message = "Evento no encontrado" });
+        string nuevoEstado = request.NuevoEstado.ToLower();
 
-        if (evento.IdOrganizador != validacion.userId)
+        // 1. Aplicar cambio al Evento Padre
+        await _eventoRepositorio.CambiarEstadoAsync(id, nuevoEstado);
+
+        // 2. LOGICA CASCADA CORREGIDA (Usando Repositorio)
+        if (nuevoEstado == "suspendido" || nuevoEstado == "cancelado")
+        {
+          if (evento.Categorias != null)
+          {
+            foreach (var cat in evento.Categorias)
+            {
+              // Solo cambiamos si no estaba ya en un estado final
+              if (cat.Estado != "finalizada" && cat.Estado != "cancelada")
+              {
+                cat.Estado = nuevoEstado;
+
+                // --- CORRECCIÓN AQUÍ ---
+                // Usamos el repositorio para guardar, en vez de _context
+                await _categoriaRepositorio.ActualizarAsync(cat);
+              }
+            }
+            // Ya no llamamos a _context.SaveChangesAsync() aquí porque
+            // el repositorio guarda los cambios línea por línea arriba.
+          }
+        }
+
+        // 3. Notificación Masiva (Global)
+        if (!string.IsNullOrEmpty(request.Motivo))
+        {
+          string titulo = $"EVENTO {request.NuevoEstado.ToUpper()}";
+          if (nuevoEstado == "cancelado") titulo = "URGENTE: Evento Cancelado";
+          if (nuevoEstado == "suspendido") titulo = "Evento Suspendido (General)";
+
+          var notif = new CrearNotificacionRequest
+          {
+            IdEvento = id,
+            IdCategoria = null,
+            Titulo = titulo,
+            Mensaje = request.Motivo
+          };
+          await _notificacionRepositorio.CrearAsync(notif, userId);
+        }
+
+        return Ok(new { message = $"Evento y categorías actualizados a {nuevoEstado}" });
+      }
+      catch (Exception ex)
+      {
+        return StatusCode(500, new { message = "Error", error = ex.Message });
+      }
+    }
+
+    //PUT cambiar estado de una categoria especifica (ej la 10k)
+    //se retrasa 1 hs, pero no afecta a la de 20k, que corre en el mismo circuito
+    //cada categoria tiene su estado
+    [Authorize]
+    [HttpPut("Categoria/{idCategoria}/CambiarEstado")]
+    public async Task<IActionResult> CambiarEstadoCategoria(int idCategoria, [FromBody] CambiarEstadoCategoriaRequest request)
+    {
+      try
+      {
+        if (!ModelState.IsValid) return BadRequest(ModelState);
+
+        var (userId, error) = ValidarOrganizador();
+        if (error != null) return error;
+
+        // 1. Obtener la categoría con el Evento (Usando el método nuevo del Repo)
+        var categoria = await _categoriaRepositorio.ObtenerPorIdConEventoAsync(idCategoria);
+
+        if (categoria == null)
+          return NotFound(new { message = "Categoría no encontrada" });
+
+        // Validar que el evento padre pertenezca al organizador
+        if (categoria.Evento == null || categoria.Evento.IdOrganizador != userId)
           return Forbid();
 
-        var estadoAnterior = evento.Estado;
+        string nuevoEstado = request.NuevoEstado.ToLower();
 
-        //cambiamos el estado en tabla eventos
-        await _eventoRepositorio.CambiarEstadoAsync(id, request.NuevoEstado);
+        // 2. Actualizar el estado de la Categoría (Usando Repo)
+        categoria.Estado = nuevoEstado;
+        await _categoriaRepositorio.ActualizarAsync(categoria);
 
-        //creamos la notificacion
-        // si el estado es cancelado, finalizado o cualquier cambio
-        if (!string.IsNullOrEmpty(request.Motivo)) 
+        // 3. LÓGICA DE VERIFICACIÓN (Bottom-Up)
+        // Si esta categoría finalizó, verificamos si debemos cerrar el evento completo
+        if (nuevoEstado == "finalizada")
         {
-            // Preparamos el título automatico
-            string tituloNotif = $"Evento {request.NuevoEstado.ToUpper()}";
+          // Traemos todas las categorías del evento para ver sus estados
+          var todasLasCategorias = await _categoriaRepositorio.ObtenerPorEventoAsync(categoria.IdEvento);
 
-          if (request.NuevoEstado.ToLower() == "cancelado")
-            tituloNotif = "URGENTE: Evento Cancelado";
-          else if (request.NuevoEstado.ToLower() == "retrasado")
-            tituloNotif = "ATENCIÓN: Evento Retrasado"; // <--- Nuevo caso
-          else if (request.NuevoEstado.ToLower() == "suspendido")
-            tituloNotif = "AVISO: Evento Suspendido";
+          // Verificamos si queda alguna que NO esté finalizada ni cancelada
+          bool quedanActivas = todasLasCategorias
+              .Any(c => c.Estado != "finalizada" && c.Estado != "cancelada");
 
-          var nuevaNotificacion = new CrearNotificacionRequest
-            {
-                IdEvento = id,
-                Titulo = tituloNotif,
-                Mensaje = request.Motivo // aqui va el texto que se ecribio en el Dialog de Android
-            };
+          if (!quedanActivas)
+          {
+            // Si no quedan activas, cerramos el evento padre usando su Repo
+            await _eventoRepositorio.CambiarEstadoAsync(categoria.IdEvento, "finalizado");
+          }
+        }
 
-            // Usamos el repositorio de notificaciones para guardar en 'notificaciones_evento'
-            await _notificacionRepositorio.CrearAsync(nuevaNotificacion, validacion.userId);
+        // 4. Notificación Segmentada (Solo a esta categoría)
+        if (!string.IsNullOrEmpty(request.Motivo))
+        {
+          string titulo = $"AVISO: {categoria.Nombre} {request.NuevoEstado.ToUpper()}";
+
+          if (nuevoEstado == "retrasada") titulo = $"Retraso en {categoria.Nombre}";
+          if (nuevoEstado == "cancelada") titulo = $"{categoria.Nombre} CANCELADA";
+          if (nuevoEstado == "finalizada") titulo = $"{categoria.Nombre} Finalizada";
+
+          var notif = new CrearNotificacionRequest
+          {
+            IdEvento = categoria.IdEvento,
+            IdCategoria = categoria.IdCategoria, // Segmentación: Solo a esta categoría
+            Titulo = titulo,
+            Mensaje = request.Motivo
+          };
+
+          await _notificacionRepositorio.CrearAsync(notif, userId);
         }
 
         return Ok(new
         {
-          message = "Estado del evento cambiado exitosamente",
-          idEvento = id,
-          nombreEvento = evento.Nombre,
-          estadoAnterior,
-          estadoNuevo = request.NuevoEstado.ToLower(),
-          motivo = request.Motivo,
-          fechaCambio = DateTime.Now
+          message = $"Categoría actualizada a {nuevoEstado}",
+          idCategoria = idCategoria,
+          estadoEventoPadre = categoria.Evento.Estado // Para que el front sepa si cambió el padre
         });
-      }
-      catch (KeyNotFoundException ex)
-      {
-        return NotFound(new { message = ex.Message });
-      }
-      catch (InvalidOperationException ex)
-      {
-        return BadRequest(new { message = ex.Message });
-      }
-      catch (ArgumentException ex)
-      {
-        return BadRequest(new { message = ex.Message });
       }
       catch (Exception ex)
       {
-        return StatusCode(500, new { message = "Error al cambiar el estado", error = ex.Message });
+        return StatusCode(500, new { message = "Error interno", error = ex.Message });
       }
     }
+
+
 
     /*Validar que el usuario autenticado sea organizado, retorna el userId si es valido o un ACtionResult con error*/
     private (int userId, IActionResult? error) ValidarOrganizador()

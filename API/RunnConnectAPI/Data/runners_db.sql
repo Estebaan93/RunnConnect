@@ -1,0 +1,397 @@
+-- MySQL dump 10.13  Distrib 8.0.40, for Linux (x86_64)
+--
+-- Host: localhost    Database: runners_db
+-- ------------------------------------------------------
+-- Server version	8.0.40
+
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+/*!50503 SET NAMES utf8mb4 */;
+/*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
+/*!40103 SET TIME_ZONE='+00:00' */;
+/*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
+/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
+/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
+/*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
+
+--
+-- Current Database: `runners_db`
+--
+
+CREATE DATABASE /*!32312 IF NOT EXISTS*/ `runners_db` /*!40100 DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci */ /*!80016 DEFAULT ENCRYPTION='N' */;
+
+USE `runners_db`;
+
+--
+-- Table structure for table `categorias_evento`
+--
+
+DROP TABLE IF EXISTS `categorias_evento`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `categorias_evento` (
+  `idCategoria` int NOT NULL AUTO_INCREMENT,
+  `idEvento` int NOT NULL,
+  `nombre` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Ej: 10k Competitiva, 2k Corre Caminata',
+  `costoInscripcion` decimal(10,2) NOT NULL DEFAULT '0.00',
+  `cupoCategoria` int DEFAULT NULL,
+  `edadMinima` int DEFAULT '0',
+  `edadMaxima` int DEFAULT '99',
+  `genero` enum('F','M','X') COLLATE utf8mb4_unicode_ci DEFAULT 'X' COMMENT 'Categoría aplica a Femenino, Masculino o Mixto/Todos (X)',
+  `estado` enum('programada','retrasada','cancelada','finalizada','suspendido') COLLATE utf8mb4_unicode_ci DEFAULT 'programada',
+  PRIMARY KEY (`idCategoria`),
+  KEY `idEvento` (`idEvento`),
+  CONSTRAINT `categorias_evento_ibfk_1` FOREIGN KEY (`idEvento`) REFERENCES `eventos` (`idEvento`) ON DELETE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=61 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `categorias_evento`
+--
+
+LOCK TABLES `categorias_evento` WRITE;
+/*!40000 ALTER TABLE `categorias_evento` DISABLE KEYS */;
+INSERT INTO `categorias_evento` VALUES (1,1,'10K Competitiva',5000.00,200,18,90,'X','programada'),(3,5,'5K Calle',50000.00,5000,18,85,'X','programada'),(23,26,'7K Calle',1.00,5,18,60,'X','programada'),(47,26,'15K Competitiva',5000.00,3,16,90,'F','programada'),(48,50,'21K Calle',20000.00,10,17,90,'X','programada'),(49,51,'3K Calle',3000.00,10,18,80,'X','programada'),(50,51,'6K Calle',4000.00,10,18,80,'X','programada'),(52,53,'5K Calle',60000.00,500,18,89,'X','programada'),(53,54,'5K Calle',6000.00,600,18,60,'X','programada'),(54,55,'5K Calle',5000.00,500,17,60,'X','programada'),(55,56,'5K Calle',10000.00,500,18,90,'X','programada'),(56,57,'21K Calle',5000.00,10,17,85,'X','programada'),(57,58,'5K Calle (Fem)',5000.00,4000,17,70,'F','programada'),(58,59,'3K Calle',400.00,5000,18,80,'X','programada'),(59,60,'6K Calle',60000.00,5000,17,80,'X','programada'),(60,60,'18K Cross',70000.00,5000,17,80,'X','programada');
+/*!40000 ALTER TABLE `categorias_evento` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `eventos`
+--
+
+DROP TABLE IF EXISTS `eventos`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `eventos` (
+  `idEvento` int NOT NULL AUTO_INCREMENT,
+  `nombre` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `descripcion` text COLLATE utf8mb4_unicode_ci,
+  `fechaHora` datetime NOT NULL,
+  `lugar` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `cupoTotal` int DEFAULT NULL,
+  `idOrganizador` int NOT NULL,
+  `urlPronosticoClima` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `datosPago` text COLLATE utf8mb4_unicode_ci COMMENT 'Datos para transferencia (CBU, Alias, Titular), inicialmente puede ser nulo hasta que el orga cargue datos de alias',
+  `estado` enum('publicado','cancelado','finalizado','suspendido','retrasado') COLLATE utf8mb4_unicode_ci DEFAULT 'publicado',
+  PRIMARY KEY (`idEvento`),
+  KEY `idOrganizador` (`idOrganizador`),
+  CONSTRAINT `eventos_ibfk_1` FOREIGN KEY (`idOrganizador`) REFERENCES `usuarios` (`idUsuario`) ON DELETE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=61 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `eventos`
+--
+
+LOCK TABLES `eventos` WRITE;
+/*!40000 ALTER TABLE `eventos` DISABLE KEYS */;
+INSERT INTO `eventos` VALUES (1,'Maratón San Luis 2025 - ACTUALIZADO','Carrera de 10K y 5K - Descripción actualizada','2025-12-05 09:00:00','Plaza Pringles, San Luis Capital',600,5,'https://www.weather.com/sanluisargentina','CBU: 0000003100012345678901 - Alias: RUNNERS.SL.2025','finalizado'),(2,'Maratón Independencia San Luis 2026','Carrera de 10K por las calles de San Luis','2026-01-15 08:00:00','Av España - Av La Finur, San Luis',1000,5,'https://www.weather.com/sanluisargentina','CBU: 0000003100012345678901 - Alias: RUNNERS.SL - Titular: Runners Club San Luis S.A','finalizado'),(3,'Potrero Corre','Gran premio FEST POTRERO','2026-02-02 12:29:00','Potrero de los Funes',40000,9,NULL,'Costo: $10000','finalizado'),(5,'Corre San Francisco','San Francisco con premio','2026-03-12 12:00:00','San Francisco- San Luis',5000,9,NULL,'trump.maduro','cancelado'),(26,'San valentin','San valentin','2026-02-20 18:04:00','San Luis - Zona Norte',5,9,NULL,'correSanLuis','suspendido'),(50,'San Luis - La Punta','Gran evento San Luis - La Punta','2026-03-19 19:45:00','San Luis - La Punta',10,9,NULL,'teresita.mp','publicado'),(51,'Teresita','1er Rotonda - Teresita','2026-04-16 18:00:00','San Luis',10,9,NULL,'teresita.mp','publicado'),(53,'Test PI','puntos de interes y direccion del circuito','2026-03-31 18:30:00','San Luis',500,9,NULL,'PuntosInteres','publicado'),(54,'Test PI2','Puntos interes y sentido evento','2026-03-21 06:22:00','San Luis',600,9,NULL,'sl.com','publicado'),(55,'Test PI3','puntos interes','2026-03-20 05:27:00','san luis',500,9,NULL,'alias. puntos','publicado'),(56,'Test 4','Ver los puntos de interes','2026-02-24 06:20:00','San Luis',500,9,NULL,'alisa.com','publicado'),(57,'Test 57','descriocion57','2026-04-23 18:00:00','San Luis',10,9,NULL,'descripon57','publicado'),(58,'Test 58','descripcion 58','2026-03-31 18:11:00','San Luis',4000,9,NULL,'test58','publicado'),(59,'CargaResultados','Cargando resultados','2026-02-02 18:29:00','San Luis',5000,9,NULL,'SanLuis.mp','finalizado'),(60,'Potrero Golden Run','Golden Run Potrero - Gran premio','2026-04-30 09:00:00','Potrero - San Luis',5000,9,NULL,'potrero.golden','publicado');
+/*!40000 ALTER TABLE `eventos` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `inscripciones`
+--
+
+DROP TABLE IF EXISTS `inscripciones`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `inscripciones` (
+  `idInscripcion` int NOT NULL AUTO_INCREMENT,
+  `idUsuario` int NOT NULL,
+  `idCategoria` int NOT NULL,
+  `fechaInscripcion` datetime DEFAULT CURRENT_TIMESTAMP,
+  `estadoPago` enum('pendiente','procesando','pagado','rechazado','reembolsado','cancelado') COLLATE utf8mb4_unicode_ci DEFAULT 'pendiente',
+  `talleRemera` enum('XS','S','M','L','XL','XXL') COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `aceptoDeslinde` tinyint(1) NOT NULL DEFAULT '0' COMMENT 'Debe ser true (1) para aceptar el deslinde',
+  `comprobantePagoURL` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'URL o path al comprobante subido',
+  PRIMARY KEY (`idInscripcion`),
+  KEY `idUsuario` (`idUsuario`),
+  KEY `idCategoria` (`idCategoria`),
+  CONSTRAINT `inscripciones_ibfk_1` FOREIGN KEY (`idUsuario`) REFERENCES `usuarios` (`idUsuario`) ON DELETE CASCADE,
+  CONSTRAINT `inscripciones_ibfk_2` FOREIGN KEY (`idCategoria`) REFERENCES `categorias_evento` (`idCategoria`) ON DELETE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=24 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `inscripciones`
+--
+
+LOCK TABLES `inscripciones` WRITE;
+/*!40000 ALTER TABLE `inscripciones` DISABLE KEYS */;
+INSERT INTO `inscripciones` VALUES (2,2,1,'2025-12-03 15:36:12','pagado','L',1,'/uploads/comprobantes/comprobante_2_20251203181006.pdf'),(3,4,1,'2025-12-04 16:55:46','pagado','M',1,'/uploads/comprobantes/comprobante_3_20251204165759.pdf'),(4,4,23,'2026-01-17 14:41:32','cancelado','L',1,'/uploads/comprobantes/comprobante_4_20260117144719.pdf'),(5,8,23,'2026-01-19 01:48:43','cancelado','M',1,'/uploads/comprobantes/comprobante_5_20260119015011.jpeg'),(6,2,23,'2026-01-19 02:47:25','rechazado','M',1,'/uploads/comprobantes/comprobante_6_20260119024909.png'),(7,2,23,'2026-01-19 02:49:54','rechazado','M',1,'/uploads/comprobantes/comprobante_7_20260119025044.pdf'),(8,2,23,'2026-01-19 02:51:06','pagado','M',1,'/uploads/comprobantes/comprobante_8_20260119025243.jpg'),(10,10,23,'2026-01-28 01:14:18','rechazado','S',1,'/uploads/comprobantes/comprobante_10_20260128011455.png'),(11,10,23,'2026-01-29 04:00:28','cancelado','S',1,'/uploads/comprobantes/comprobante_11_20260129043548.png'),(12,10,23,'2026-01-30 19:02:22','rechazado','M',1,'/uploads/comprobantes/comprobante_12_20260130190456.jpg'),(13,10,23,'2026-01-30 19:34:29','rechazado','M',1,'/uploads/comprobantes/comprobante_13_20260130193439.jpg'),(14,10,23,'2026-01-30 19:35:29','cancelado','M',1,'/uploads/comprobantes/comprobante_14_20260130193537.jpg'),(15,10,23,'2026-01-30 19:51:25','cancelado','M',1,'/uploads/comprobantes/comprobante_15_20260130211237.jpg'),(16,10,23,'2026-02-02 00:30:23','rechazado','M',1,'/uploads/comprobantes/comprobante_16_20260202003207.jpg'),(17,10,23,'2026-02-02 00:33:24','cancelado','M',1,'/uploads/comprobantes/comprobante_17_20260202003333.jpg'),(18,10,47,'2026-02-02 00:36:08','cancelado','M',1,NULL),(19,2,58,'2026-02-03 10:16:50','pagado','M',1,'/uploads/comprobantes/comprobante_19_20260203101735.jpg'),(20,4,58,'2026-02-03 10:19:36','pagado','M',1,'/uploads/comprobantes/comprobante_20_20260203101946.jpg'),(21,8,58,'2026-02-03 10:20:19','pagado','M',1,'/uploads/comprobantes/comprobante_21_20260203102026.jpg'),(22,10,58,'2026-02-03 10:21:21','pagado','M',1,'/uploads/comprobantes/comprobante_22_20260203102130.jpg'),(23,10,47,'2026-02-06 13:05:50','pagado','M',1,'/uploads/comprobantes/comprobante_23_20260206130611.jpg');
+/*!40000 ALTER TABLE `inscripciones` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `notificaciones_evento`
+--
+
+DROP TABLE IF EXISTS `notificaciones_evento`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `notificaciones_evento` (
+  `idNotificacion` int NOT NULL AUTO_INCREMENT,
+  `idEvento` int NOT NULL COMMENT 'Evento al que se asocia',
+  `idCategoria` int DEFAULT NULL,
+  `titulo` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Ej: Evento Suspendido',
+  `mensaje` text COLLATE utf8mb4_unicode_ci COMMENT 'Ej: La carrera se pasa al próximo domingo...',
+  `fechaEnvio` datetime DEFAULT CURRENT_TIMESTAMP,
+  `estadoEvento` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Estado del evento al momento de crear la notificacion',
+  PRIMARY KEY (`idNotificacion`),
+  KEY `idEvento` (`idEvento`),
+  KEY `fk_notificaciones_categorias` (`idCategoria`),
+  CONSTRAINT `fk_notificaciones_categorias` FOREIGN KEY (`idCategoria`) REFERENCES `categorias_evento` (`idCategoria`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `notificaciones_evento_ibfk_1` FOREIGN KEY (`idEvento`) REFERENCES `eventos` (`idEvento`) ON DELETE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=62 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `notificaciones_evento`
+--
+
+LOCK TABLES `notificaciones_evento` WRITE;
+/*!40000 ALTER TABLE `notificaciones_evento` DISABLE KEYS */;
+INSERT INTO `notificaciones_evento` VALUES (1,1,NULL,'Retiro de Kits','Recuerden que el retiro de kits es hoy hasta las 18hs en el Centro Cultural.','2025-12-07 20:08:00','finalizado'),(2,1,NULL,'Cambio de Horario','La largada se retrasa 30 minutos por clima.','2025-12-07 20:56:48','finalizado'),(50,59,NULL,'Evento FINALIZADO','Evento finalizado','2026-02-03 10:23:19','finalizado'),(51,59,NULL,'URGENTE: Evento Cancelado','Adadads','2026-02-03 19:46:25','finalizado'),(61,26,NULL,'Evento SUSPENDIDO','Evento de prueba - cancelacion para testing','2026-02-07 23:48:31','suspendido');
+/*!40000 ALTER TABLE `notificaciones_evento` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `perfiles_organizadores`
+--
+
+DROP TABLE IF EXISTS `perfiles_organizadores`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `perfiles_organizadores` (
+  `idPerfilOrganizador` int NOT NULL AUTO_INCREMENT,
+  `idUsuario` int NOT NULL COMMENT 'FK a la tabla usuarios',
+  `razonSocial` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Nombre Legal y Oficial de la entidad',
+  `nombreComercial` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Nombre de marca que se usa públicamente (puede ser igual al campo nombre en usuarios)',
+  `cuit_taxid` varchar(30) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'CUIT/ID Fiscal de la organizacion. Requisito para crear evento',
+  `direccionLegal` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Requisito para crear evento',
+  PRIMARY KEY (`idPerfilOrganizador`),
+  UNIQUE KEY `razonSocial` (`razonSocial`),
+  UNIQUE KEY `idUsuario_UNIQUE` (`idUsuario`),
+  UNIQUE KEY `cuit_taxid` (`cuit_taxid`),
+  CONSTRAINT `fk_perfiles_organizadores_usuarios` FOREIGN KEY (`idUsuario`) REFERENCES `usuarios` (`idUsuario`) ON DELETE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `perfiles_organizadores`
+--
+
+LOCK TABLES `perfiles_organizadores` WRITE;
+/*!40000 ALTER TABLE `perfiles_organizadores` DISABLE KEYS */;
+INSERT INTO `perfiles_organizadores` VALUES (1,3,'Runners Club San Luis S.A','Runners Club SL','30-12345678-9','Av Illia 435, San Luis'),(2,5,'Club Deportivo La Punta','CLUB La Punta','13231331112','Av. Costanera s/n, La Punta, San Luis'),(3,9,'RUNNER ORGANIZACION S.A','RUNNER San Luis','20331231234','Av Sarmiento 100');
+/*!40000 ALTER TABLE `perfiles_organizadores` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `perfiles_runners`
+--
+
+DROP TABLE IF EXISTS `perfiles_runners`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `perfiles_runners` (
+  `idPerfilRunner` int NOT NULL AUTO_INCREMENT,
+  `idUsuario` int NOT NULL COMMENT 'FK a la tabla usuarios',
+  `nombre` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Nombre de Pila del Runner',
+  `apellido` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Apellido del Runner',
+  `fechaNacimiento` datetime DEFAULT NULL COMMENT 'Completar post registro y requisito al inscribirse a evento',
+  `genero` enum('F','M','X') COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Completar post registro y requisito al inscribirse a evento',
+  `dni` int DEFAULT NULL COMMENT 'DNI del Runner. Completar post registro y requisito al inscribirse a evento',
+  `localidad` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Completar post registro y requisito al inscribirse a evento',
+  `agrupacion` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Agrupacion o libre (si no tiene). Requisito antes de inscribirse a evento',
+  `nombreContactoEmergencia` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Nombre/Relacion contacto emergencia. Requisito para inscribirse a evento',
+  `telefonoEmergencia` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Contacto de emergencia. Requisito para inscribirse a evento',
+  `fechaUltimaLectura` datetime DEFAULT '2000-01-01 00:00:00',
+  PRIMARY KEY (`idPerfilRunner`),
+  UNIQUE KEY `idUsuario_UNIQUE` (`idUsuario`),
+  UNIQUE KEY `dni` (`dni`),
+  CONSTRAINT `fk_perfiles_runners_usuarios` FOREIGN KEY (`idUsuario`) REFERENCES `usuarios` (`idUsuario`) ON DELETE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `perfiles_runners`
+--
+
+LOCK TABLES `perfiles_runners` WRITE;
+/*!40000 ALTER TABLE `perfiles_runners` DISABLE KEYS */;
+INSERT INTO `perfiles_runners` VALUES (2,2,'Carlos','González Pérez','1993-05-08 00:00:00','M',11111331,'San Luis Capital','Equipo Trail Running SL','Luzmila (pareja)','266483133237','2000-01-01 00:00:00'),(3,4,'Test1 Runner Nombre','Test Runner Apellido','2000-03-20 00:00:00','M',22222222,'Juana Koslay','Equipo Trail Running SL','Pareja','2664888999','2025-12-07 20:58:12'),(6,8,'Esteban','Moreira','1993-05-08 00:00:00','M',37599292,'San Luis Capital, San Luis','Sin agrupacion','La Rosalia (pareja)','2665031234',NULL),(7,10,'Beatriz','Rosales','1993-08-21 00:00:00','F',11222333,'San Luis Capital, San Luis','Sin agrupacion','Enrique','2664044026',NULL),(8,11,'Beatriz','Zalazar',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL);
+/*!40000 ALTER TABLE `perfiles_runners` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `puntosinteres`
+--
+
+DROP TABLE IF EXISTS `puntosinteres`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `puntosinteres` (
+  `idPuntoInteres` int NOT NULL AUTO_INCREMENT,
+  `idEvento` int NOT NULL,
+  `tipo` enum('hidratacion','primeros_auxilios','punto_energetico','otro') COLLATE utf8mb4_unicode_ci NOT NULL,
+  `nombre` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `latitud` decimal(10,7) NOT NULL,
+  `longitud` decimal(10,7) NOT NULL,
+  PRIMARY KEY (`idPuntoInteres`),
+  KEY `idEvento` (`idEvento`),
+  CONSTRAINT `puntosinteres_ibfk_1` FOREIGN KEY (`idEvento`) REFERENCES `eventos` (`idEvento`) ON DELETE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=51 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `puntosinteres`
+--
+
+LOCK TABLES `puntosinteres` WRITE;
+/*!40000 ALTER TABLE `puntosinteres` DISABLE KEYS */;
+INSERT INTO `puntosinteres` VALUES (33,26,'punto_energetico','Punto Energético',-33.2743201,-66.3059375),(34,26,'primeros_auxilios','Primeros Auxilios',-33.2757379,-66.3051097),(35,26,'punto_energetico','Punto Energético',-33.2770208,-66.3064391),(36,26,'primeros_auxilios','Primeros Auxilios',-33.2769334,-66.3050390),(37,56,'hidratacion','Puesto de Hidratación',-33.2776201,-66.3019930),(38,56,'hidratacion','Puesto de Hidratación',-33.2772680,-66.3014291),(39,56,'primeros_auxilios','Primeros Auxilios',-33.2757572,-66.3021094),(40,26,'otro','Punto de Interés',-33.2772428,-66.3059600),(41,57,'hidratacion','Puesto de Hidratación',-33.2577918,-66.2980120),(42,57,'primeros_auxilios','Primeros Auxilios',-33.2523571,-66.2925929),(43,57,'punto_energetico','Punto Energético',-33.2524252,-66.2925379),(44,57,'otro','Punto de Interés',-33.2495911,-66.2902476),(45,57,'hidratacion','Puesto de Hidratación',-33.2463727,-66.2900968),(46,57,'hidratacion','Puesto de Hidratación',-33.2392251,-66.2897960),(47,57,'primeros_auxilios','Primeros Auxilios',-33.2392262,-66.2898879),(48,57,'otro','Punto de Interés',-33.2392386,-66.2900612),(49,59,'hidratacion','Puesto de Hidratación',-33.2679044,-66.3283370),(50,59,'punto_energetico','Punto Energético',-33.2662258,-66.3314792);
+/*!40000 ALTER TABLE `puntosinteres` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `resultados`
+--
+
+DROP TABLE IF EXISTS `resultados`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `resultados` (
+  `idResultado` int NOT NULL AUTO_INCREMENT,
+  `idInscripcion` int NOT NULL,
+  `tiempoOficial` varchar(20) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Ej: 00:45:30.123',
+  `posicionGeneral` int DEFAULT NULL,
+  `posicionCategoria` int DEFAULT NULL,
+  `tiempoSmartwatch` varchar(20) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Ej: 00:45:28',
+  `distanciaKm` decimal(6,2) DEFAULT NULL COMMENT 'Ej: 10.02',
+  `ritmoPromedio` varchar(20) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Ej: 4:32 min/km',
+  `velocidadPromedio` varchar(20) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Ej: 13.2 km/h',
+  `caloriasQuemadas` int DEFAULT NULL,
+  `pulsacionesPromedio` int DEFAULT NULL,
+  `pulsacionesMax` int DEFAULT NULL,
+  PRIMARY KEY (`idResultado`),
+  UNIQUE KEY `idInscripcion` (`idInscripcion`) COMMENT 'Garantiza Relación 1:1',
+  CONSTRAINT `resultados_ibfk_1` FOREIGN KEY (`idInscripcion`) REFERENCES `inscripciones` (`idInscripcion`) ON DELETE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=27 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `resultados`
+--
+
+LOCK TABLES `resultados` WRITE;
+/*!40000 ALTER TABLE `resultados` DISABLE KEYS */;
+INSERT INTO `resultados` VALUES (1,2,'00:45:10',1,1,NULL,NULL,NULL,NULL,NULL,NULL,NULL),(2,3,'00:46:03',2,1,'00:48:15',10.52,'04:35 min/km','13.1 km/h',850,160,185),(23,21,'01:40:03',1,1,NULL,NULL,NULL,NULL,NULL,NULL,NULL),(24,19,'01:48:15',2,2,NULL,NULL,NULL,NULL,NULL,NULL,NULL),(25,22,'01:52:30',3,3,NULL,NULL,NULL,NULL,NULL,NULL,NULL),(26,20,'01:59:47',4,4,NULL,NULL,NULL,NULL,NULL,NULL,NULL);
+/*!40000 ALTER TABLE `resultados` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `rutas`
+--
+
+DROP TABLE IF EXISTS `rutas`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `rutas` (
+  `idRuta` int NOT NULL AUTO_INCREMENT,
+  `idEvento` int NOT NULL,
+  `orden` int NOT NULL COMMENT 'Orden del punto en el trazado',
+  `latitud` decimal(10,7) NOT NULL,
+  `longitud` decimal(10,7) NOT NULL,
+  PRIMARY KEY (`idRuta`),
+  KEY `idEvento` (`idEvento`),
+  CONSTRAINT `rutas_ibfk_1` FOREIGN KEY (`idEvento`) REFERENCES `eventos` (`idEvento`) ON DELETE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=1842 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `rutas`
+--
+
+LOCK TABLES `rutas` WRITE;
+/*!40000 ALTER TABLE `rutas` DISABLE KEYS */;
+INSERT INTO `rutas` VALUES (1,2,1,-33.3021500,-66.3368000),(2,2,2,-33.3021500,-66.3380000),(3,2,3,-33.3032000,-66.3380000),(4,2,4,-33.3032000,-66.3368000),(5,2,5,-33.3021500,-66.3368000),(872,50,1,-33.2761530,-66.3085842),(873,50,2,-33.2687389,-66.3044047),(874,50,3,-33.2629304,-66.3010948),(875,50,4,-33.2587845,-66.2987355),(876,50,5,-33.2580200,-66.2982463),(877,50,6,-33.2549792,-66.2952030),(878,50,7,-33.2502691,-66.2903247),(879,50,8,-33.2300268,-66.2894822),(880,50,9,-33.2285581,-66.2902862),(881,50,10,-33.2269594,-66.2912917),(882,50,11,-33.2170864,-66.2942351),(883,50,12,-33.2131891,-66.2943333),(884,50,13,-33.2119883,-66.2941197),(885,50,14,-33.2106225,-66.2943548),(886,50,15,-33.2078339,-66.2944285),(887,50,16,-33.2072720,-66.2943584),(888,50,17,-33.2066357,-66.2941181),(889,50,18,-33.2040796,-66.2925553),(890,50,19,-33.2029016,-66.2913527),(891,50,20,-33.2010921,-66.2892542),(892,50,21,-33.1998546,-66.2883976),(893,50,22,-33.1987551,-66.2871480),(894,50,23,-33.1979068,-66.2862314),(895,50,24,-33.1966844,-66.2854458),(896,50,25,-33.1956530,-66.2848735),(897,50,26,-33.1918275,-66.2844859),(898,50,27,-33.1872838,-66.2833741),(899,50,28,-33.1868205,-66.2831767),(900,50,29,-33.1864872,-66.2832437),(901,50,30,-33.1862072,-66.2834680),(902,50,31,-33.1852933,-66.2837329),(903,50,32,-33.1843137,-66.2843595),(904,50,33,-33.1838583,-66.2845406),(905,50,34,-33.1835670,-66.2847266),(906,50,35,-33.1836403,-66.2849700),(907,50,36,-33.1839054,-66.2852416),(908,50,37,-33.1850267,-66.2888468),(909,50,38,-33.1859069,-66.2918774),(910,50,39,-33.1868334,-66.2947464),(911,50,40,-33.1885327,-66.3001292),(912,50,41,-33.1903174,-66.3059201),(913,50,42,-33.1911457,-66.3092102),(914,50,43,-33.1910427,-66.3094271),(915,50,44,-33.1905784,-66.3096739),(916,50,45,-33.1899280,-66.3099843),(917,50,46,-33.1889794,-66.3103602),(918,50,47,-33.1868149,-66.3112480),(919,50,48,-33.1842607,-66.3123866),(920,50,49,-33.1840996,-66.3121630),(921,50,50,-33.1838530,-66.3120050),(922,50,51,-33.1835628,-66.3119819),(923,50,52,-33.1833041,-66.3121117),(924,50,53,-33.1831456,-66.3123279),(925,50,54,-33.1830507,-66.3126226),(926,50,55,-33.1830670,-66.3129274),(927,50,56,-33.1805020,-66.3140797),(928,50,57,-33.1770931,-66.3160377),(929,50,58,-33.1746603,-66.3174127),(930,50,59,-33.1727591,-66.3181644),(931,50,60,-33.1723690,-66.3181728),(932,50,61,-33.1720536,-66.3181094),(933,50,62,-33.1718347,-66.3181775),(934,50,63,-33.1717628,-66.3183612),(935,50,64,-33.1710632,-66.3188517),(936,50,65,-33.1694874,-66.3195960),(937,50,66,-33.1661796,-66.3210642),(938,50,67,-33.1653618,-66.3214032),(939,50,68,-33.1594535,-66.3227919),(940,50,69,-33.1591405,-66.3227956),(941,50,70,-33.1588784,-66.3225894),(942,50,71,-33.1586614,-66.3220932),(943,50,72,-33.1581598,-66.3194874),(944,50,73,-33.1576442,-66.3170667),(945,50,74,-33.1572162,-66.3145756),(946,50,75,-33.1571196,-66.3140509),(947,50,76,-33.1570388,-66.3137823),(948,50,77,-33.1569310,-66.3133619),(949,50,78,-33.1567227,-66.3129133),(950,50,79,-33.1564940,-66.3125924),(951,50,80,-33.1563859,-66.3124151),(952,50,81,-33.1550672,-66.3098210),(953,50,82,-33.1544794,-66.3100259),(954,50,83,-33.1540963,-66.3104825),(955,50,84,-33.1537819,-66.3107769),(956,50,85,-33.1531144,-66.3116161),(957,50,86,-33.1528003,-66.3118988),(958,50,87,-33.1526019,-66.3121448),(959,50,88,-33.1524618,-66.3123665),(960,50,89,-33.1523181,-66.3125331),(961,50,90,-33.1515069,-66.3127561),(962,50,91,-33.1493190,-66.3132600),(963,50,92,-33.1491750,-66.3131654),(964,50,93,-33.1488112,-66.3125556),(965,50,94,-33.1481541,-66.3116201),(966,50,95,-33.1480707,-66.3114002),(967,50,96,-33.1480238,-66.3111115),(968,50,97,-33.1478905,-66.3108101),(969,50,98,-33.1477636,-66.3102935),(970,50,99,-33.1475949,-66.3090274),(971,50,100,-33.1475211,-66.3089306),(972,50,101,-33.1475309,-66.3087572),(973,50,102,-33.1476000,-66.3086841),(974,50,103,-33.1476547,-66.3084333),(975,50,104,-33.1481125,-66.3060720),(976,50,105,-33.1482172,-66.3056566),(977,50,106,-33.1482995,-66.3053267),(978,50,107,-33.1483422,-66.3049605),(979,50,108,-33.1484354,-66.3048727),(980,50,109,-33.1484241,-66.3047775),(981,50,110,-33.1483607,-66.3046793),(982,50,111,-33.1483742,-66.3045931),(983,50,112,-33.1484575,-66.3045636),(984,50,113,-33.1485252,-66.3046383),(985,50,114,-33.1486192,-66.3047493),(986,50,115,-33.1488598,-66.3049897),(987,50,116,-33.1490976,-66.3052164),(988,50,117,-33.1492755,-66.3053649),(989,50,118,-33.1494178,-66.3054185),(990,50,119,-33.1495767,-66.3053830),(991,50,120,-33.1497224,-66.3052673),(992,50,121,-33.1499748,-66.3050118),(993,50,122,-33.1501951,-66.3048181),(994,51,1,-33.2729479,-66.3067663),(995,51,2,-33.2687025,-66.3044067),(996,51,3,-33.2602416,-66.2995130),(997,51,4,-33.2580918,-66.2983315),(998,51,5,-33.2503058,-66.2903244),(999,51,6,-33.2465275,-66.2900860),(1000,51,7,-33.2462808,-66.2900683),(1001,51,8,-33.2462567,-66.2902530),(1002,51,9,-33.2464942,-66.2902711),(1003,51,10,-33.2469980,-66.2902530),(1004,51,11,-33.2497302,-66.2903831),(1005,51,12,-33.2501090,-66.2904545),(1006,51,13,-33.2505567,-66.2907509),(1007,51,14,-33.2534761,-66.2938368),(1008,51,15,-33.2556313,-66.2960871),(1009,51,16,-33.2576070,-66.2980998),(1010,51,17,-33.2578885,-66.2983117),(1011,51,18,-33.2589247,-66.2989792),(1012,51,19,-33.2626486,-66.3010532),(1013,51,20,-33.2663430,-66.3031953),(1014,51,21,-33.2719879,-66.3063379),(1015,51,22,-33.2728448,-66.3068505),(1057,54,1,-33.2762632,-66.3032178),(1058,54,2,-33.2781563,-66.3028111),(1059,54,3,-33.2772540,-66.3014438),(1060,54,4,-33.2761059,-66.3015092),(1061,54,5,-33.2754688,-66.3027434),(1062,54,6,-33.2758601,-66.3030585),(1077,55,1,-33.3158192,-66.3283736),(1078,55,2,-33.3170474,-66.3278287),(1079,55,3,-33.3184797,-66.3271481),(1080,55,4,-33.3194602,-66.3267347),(1081,55,5,-33.3202755,-66.3263793),(1082,55,6,-33.3211844,-66.3259911),(1083,55,7,-33.3221299,-66.3255442),(1084,55,8,-33.3229950,-66.3252310),(1085,55,9,-33.3241036,-66.3247978),(1086,55,10,-33.3252911,-66.3242688),(1087,55,11,-33.3260105,-66.3239315),(1088,55,12,-33.3259934,-66.3219181),(1089,55,13,-33.3260576,-66.3214377),(1090,55,14,-33.3260144,-66.3203350),(1118,26,1,-33.2762006,-66.3083136),(1119,26,2,-33.2758396,-66.3081872),(1120,26,3,-33.2751167,-66.3077527),(1121,26,4,-33.2736241,-66.3067114),(1122,26,5,-33.2753112,-66.3048103),(1123,26,6,-33.2761821,-66.3054034),(1124,26,7,-33.2764594,-66.3047916),(1125,26,8,-33.2774825,-66.3054735),(1126,26,9,-33.2766116,-66.3073745),(1137,56,1,-33.2762351,-66.3032282),(1138,56,2,-33.2781257,-66.3028131),(1139,56,3,-33.2772708,-66.3014636),(1140,56,4,-33.2760639,-66.3015122),(1141,56,5,-33.2758211,-66.3020192),(1142,56,6,-33.2748409,-66.3013456),(1143,56,7,-33.2747708,-66.3014807),(1144,56,8,-33.2757076,-66.3021747),(1145,56,9,-33.2754814,-66.3027266),(1146,56,10,-33.2757984,-66.3029925),(1163,57,1,-33.2762836,-66.3086801),(1164,57,2,-33.2732299,-66.3069323),(1165,57,3,-33.2731304,-66.3067855),(1166,57,4,-33.2729488,-66.3067925),(1167,57,5,-33.2709409,-66.3056589),(1168,57,6,-33.2658995,-66.3028175),(1169,57,7,-33.2615343,-66.3002549),(1170,57,8,-33.2587753,-66.2988203),(1171,57,9,-33.2569899,-66.2973079),(1172,57,10,-33.2551420,-66.2955480),(1173,57,11,-33.2534693,-66.2937442),(1174,57,12,-33.2514568,-66.2917138),(1175,57,13,-33.2502099,-66.2904102),(1176,57,14,-33.2470342,-66.2902862),(1177,57,15,-33.2441287,-66.2900247),(1178,57,16,-33.2392237,-66.2899905),(1179,58,1,-33.3369488,-66.3190703),(1180,58,2,-33.3331709,-66.3072924),(1181,58,3,-33.3328003,-66.3059805),(1182,58,4,-33.3325785,-66.3055416),(1183,58,5,-33.3322379,-66.3049374),(1184,58,6,-33.3318922,-66.3043470),(1185,58,7,-33.3316149,-66.3039671),(1186,58,8,-33.3312697,-66.3035333),(1187,58,9,-33.3309131,-66.3031789),(1286,59,1,-33.2622180,-66.3397639),(1287,59,2,-33.2627989,-66.3384315),(1288,59,3,-33.2632567,-66.3372215),(1289,59,4,-33.2639609,-66.3359136),(1290,59,5,-33.2643983,-66.3348836),(1291,59,6,-33.2647742,-66.3341349),(1292,59,7,-33.2652314,-66.3330768),(1293,59,8,-33.2657470,-66.3320043),(1294,59,9,-33.2659710,-66.3314380),(1295,59,10,-33.2664725,-66.3314440),(1296,59,11,-33.2668167,-66.3306715),(1297,59,12,-33.2670746,-66.3300664),(1298,59,13,-33.2674150,-66.3293834),(1299,59,14,-33.2677996,-66.3285613),(1300,59,15,-33.2684362,-66.3271863),(1301,59,16,-33.2687628,-66.3264343),(1302,59,17,-33.2691715,-66.3256689),(1303,59,18,-33.2694005,-66.3250476),(1304,59,19,-33.2695956,-66.3246677),(1305,59,20,-33.2699208,-66.3240103),(1306,59,21,-33.2701992,-66.3233665),(1307,59,22,-33.2704756,-66.3227640),(1308,59,23,-33.2707421,-66.3221797),(1309,59,24,-33.2711335,-66.3213371),(1310,59,25,-33.2714547,-66.3206853),(1311,59,26,-33.2717919,-66.3199481),(1312,59,27,-33.2721491,-66.3191622),(1313,59,28,-33.2725488,-66.3183793),(1314,59,29,-33.2726489,-66.3181631),(1315,59,30,-33.2728358,-66.3179512),(1316,59,31,-33.2729034,-66.3179076),(1317,59,32,-33.2730393,-66.3179046),(1318,59,33,-33.2731265,-66.3177993),(1319,59,34,-33.2731478,-66.3176585),(1320,59,35,-33.2730845,-66.3175059),(1321,59,36,-33.2729059,-66.3174335),(1322,59,37,-33.2727453,-66.3175887),(1323,59,38,-33.2725796,-66.3177269),(1324,59,39,-33.2723257,-66.3177647),(1325,59,40,-33.2721437,-66.3176705),(1326,59,41,-33.2719596,-66.3175425),(1327,59,42,-33.2717418,-66.3177061),(1328,59,43,-33.2717689,-66.3179582),(1329,59,44,-33.2717922,-66.3181962),(1330,59,45,-33.2714628,-66.3189157),(1331,59,46,-33.2711626,-66.3195283),(1332,59,47,-33.2706185,-66.3206857),(1333,59,48,-33.2703539,-66.3212694),(1334,59,49,-33.2702123,-66.3215721),(1335,60,1,-33.2211074,-66.2272841),(1336,60,2,-33.2202781,-66.2272888),(1337,60,3,-33.2200756,-66.2273324),(1338,60,4,-33.2199162,-66.2274608),(1339,60,5,-33.2198498,-66.2275909),(1340,60,6,-33.2197603,-66.2284804),(1341,60,7,-33.2196531,-66.2304236),(1342,60,8,-33.2195903,-66.2315086),(1343,60,9,-33.2195623,-66.2322502),(1344,60,10,-33.2195025,-66.2330492),(1345,60,11,-33.2194846,-66.2335343),(1346,60,12,-33.2195025,-66.2337771),(1347,60,13,-33.2195553,-66.2342746),(1348,60,14,-33.2199878,-66.2357391),(1349,60,15,-33.2201333,-66.2361559),(1350,60,16,-33.2202839,-66.2363359),(1351,60,17,-33.2205445,-66.2364475),(1352,60,18,-33.2208000,-66.2363909),(1353,60,19,-33.2211571,-66.2362886),(1354,60,20,-33.2215453,-66.2363020),(1355,60,21,-33.2218530,-66.2364412),(1356,60,22,-33.2223643,-66.2368851),(1357,60,23,-33.2226576,-66.2371523),(1358,60,24,-33.2231507,-66.2377276),(1359,60,25,-33.2238696,-66.2383170),(1360,60,26,-33.2242437,-66.2385765),(1361,60,27,-33.2246728,-66.2387623),(1362,60,28,-33.2267828,-66.2396585),(1363,60,29,-33.2276126,-66.2399991),(1364,60,30,-33.2278911,-66.2401852),(1365,60,31,-33.2280827,-66.2405315),(1366,60,32,-33.2285095,-66.2414244),(1367,60,33,-33.2286422,-66.2416728),(1368,60,34,-33.2287479,-66.2417476),(1369,60,35,-33.2288783,-66.2417892),(1370,60,36,-33.2289768,-66.2418083),(1371,60,37,-33.2291316,-66.2417476),(1372,60,38,-33.2292345,-66.2417047),(1373,60,39,-33.2297071,-66.2415038),(1374,60,40,-33.2318623,-66.2406586),(1375,60,41,-33.2321203,-66.2404742),(1376,60,42,-33.2324100,-66.2401768),(1377,60,43,-33.2325985,-66.2397949),(1378,60,44,-33.2326476,-66.2394033),(1379,60,45,-33.2326610,-66.2391556),(1380,60,46,-33.2327544,-66.2387660),(1381,60,47,-33.2329213,-66.2384686),(1382,60,48,-33.2337648,-66.2371258),(1383,60,49,-33.2340220,-66.2369773),(1384,60,50,-33.2341841,-66.2370262),(1385,60,51,-33.2343347,-66.2371027),(1386,60,52,-33.2345032,-66.2374041),(1387,60,53,-33.2347537,-66.2385983),(1388,60,54,-33.2349158,-66.2393266),(1389,60,55,-33.2351008,-66.2394305),(1390,60,56,-33.2353039,-66.2393403),(1391,60,57,-33.2354037,-66.2390798),(1392,60,58,-33.2353577,-66.2386205),(1393,60,59,-33.2353165,-66.2384528),(1394,60,60,-33.2353681,-66.2382745),(1395,60,61,-33.2354138,-66.2381695),(1396,60,62,-33.2355080,-66.2381196),(1397,60,63,-33.2355692,-66.2381209),(1398,60,64,-33.2358123,-66.2381994),(1399,60,65,-33.2359183,-66.2382443),(1400,60,66,-33.2359935,-66.2382443),(1401,60,67,-33.2360358,-66.2381769),(1402,60,68,-33.2360574,-66.2380663),(1403,60,69,-33.2360341,-66.2376710),(1404,60,70,-33.2359632,-66.2371754),(1405,60,71,-33.2359517,-66.2368210),(1406,60,72,-33.2359974,-66.2363731),(1407,60,73,-33.2361662,-66.2360187),(1408,60,74,-33.2363922,-66.2356358),(1409,60,75,-33.2364511,-66.2355383),(1410,60,76,-33.2365397,-66.2353804),(1411,60,77,-33.2365711,-66.2353284),(1412,60,78,-33.2366502,-66.2351500),(1413,60,79,-33.2366743,-66.2351041),(1414,60,80,-33.2367074,-66.2349676),(1415,60,81,-33.2367257,-66.2349123),(1416,60,82,-33.2367565,-66.2347423),(1417,60,83,-33.2367652,-66.2347065),(1418,60,84,-33.2367840,-66.2345194),(1419,60,85,-33.2367949,-66.2343021),(1420,60,86,-33.2367966,-66.2341650),(1421,60,87,-33.2367966,-66.2340198),(1422,60,88,-33.2367874,-66.2339343),(1423,60,89,-33.2367428,-66.2338103),(1424,60,90,-33.2366895,-66.2337184),(1425,60,91,-33.2365686,-66.2336168),(1426,60,92,-33.2361881,-66.2333047),(1427,60,93,-33.2358364,-66.2330053),(1428,60,94,-33.2354475,-66.2326817),(1429,60,95,-33.2351799,-66.2324792),(1430,60,96,-33.2348485,-66.2320732),(1431,60,97,-33.2344371,-66.2315435),(1432,60,98,-33.2339067,-66.2308850),(1433,60,99,-33.2334463,-66.2302386),(1434,60,100,-33.2332157,-66.2298403),(1435,60,101,-33.2330685,-66.2292914),(1436,60,102,-33.2330590,-66.2291177),(1437,60,103,-33.2330598,-66.2287711),(1438,60,104,-33.2331111,-66.2284891),(1439,60,105,-33.2333139,-66.2278346),(1440,60,106,-33.2334415,-66.2274062),(1441,60,107,-33.2335015,-66.2271745),(1442,60,108,-33.2334895,-66.2266457),(1443,60,109,-33.2334510,-66.2263443),(1444,60,110,-33.2333543,-66.2261452),(1445,60,111,-33.2331790,-66.2260154),(1446,60,112,-33.2321240,-66.2259192),(1447,60,113,-33.2310000,-66.2258532),(1448,60,114,-33.2302125,-66.2257962),(1449,60,115,-33.2292707,-66.2257643),(1450,60,116,-33.2283556,-66.2258079),(1451,60,117,-33.2281424,-66.2258149),(1452,60,118,-33.2279183,-66.2258692),(1453,60,119,-33.2275908,-66.2259846),(1454,60,120,-33.2273824,-66.2261184),(1455,60,121,-33.2271645,-66.2262964),(1456,60,122,-33.2268537,-66.2266159),(1457,60,123,-33.2265904,-66.2270102),(1458,60,124,-33.2263407,-66.2273726),(1459,60,125,-33.2261862,-66.2275463),(1460,60,126,-33.2259383,-66.2277672),(1461,60,127,-33.2257038,-66.2279449),(1462,60,128,-33.2253168,-66.2280717),(1463,60,129,-33.2249230,-66.2281340),(1464,60,130,-33.2240594,-66.2279252),(1465,60,131,-33.2234343,-66.2277719),(1466,60,132,-33.2230548,-66.2276382),(1467,60,133,-33.2225715,-66.2275272),(1468,60,134,-33.2219612,-66.2273773),(1469,60,135,-33.2214345,-66.2273056),(1470,60,136,-33.2212449,-66.2272881),(1471,60,137,-33.2211576,-66.2272737),(1472,60,138,-33.2211066,-66.2272419),(1473,60,139,-33.2209504,-66.2271839),(1474,60,140,-33.2206264,-66.2270011),(1475,60,141,-33.2201762,-66.2267021),(1476,60,142,-33.2197056,-66.2264201),(1477,60,143,-33.2194405,-66.2262689),(1478,60,144,-33.2191045,-66.2260801),(1479,60,145,-33.2187662,-66.2258810),(1480,60,146,-33.2184190,-66.2256845),(1481,60,147,-33.2180072,-66.2254394),(1482,60,148,-33.2176000,-66.2252238),(1483,60,149,-33.2171672,-66.2250401),(1484,60,150,-33.2169369,-66.2248919),(1485,60,151,-33.2166603,-66.2246133),(1486,60,152,-33.2165394,-66.2243997),(1487,60,153,-33.2164833,-66.2241590),(1488,60,154,-33.2163748,-66.2239166),(1489,60,155,-33.2162415,-66.2236863),(1490,60,156,-33.2160814,-66.2234838),(1491,60,157,-33.2157944,-66.2231093),(1492,60,158,-33.2155397,-66.2228702),(1493,60,159,-33.2152200,-66.2227170),(1494,60,160,-33.2149117,-66.2226177),(1495,60,161,-33.2145078,-66.2225148),(1496,60,162,-33.2142837,-66.2225007),(1497,60,163,-33.2138500,-66.2227193),(1498,60,164,-33.2134755,-66.2230808),(1499,60,165,-33.2128001,-66.2241791),(1500,60,166,-33.2121013,-66.2254874),(1501,60,167,-33.2117838,-66.2261499),(1502,60,168,-33.2113625,-66.2271124),(1503,60,169,-33.2113975,-66.2277039),(1504,60,170,-33.2115821,-66.2283952),(1505,60,171,-33.2118074,-66.2294621),(1506,60,172,-33.2118234,-66.2295549),(1507,60,173,-33.2118769,-66.2295761),(1508,60,174,-33.2119207,-66.2296049),(1509,60,175,-33.2119103,-66.2299321),(1510,60,176,-33.2118245,-66.2308665),(1511,60,177,-33.2116306,-66.2313145),(1512,60,178,-33.2115036,-66.2316058),(1513,60,179,-33.2115198,-66.2317839),(1514,60,180,-33.2117249,-66.2320729),(1515,60,181,-33.2118410,-66.2323065),(1516,60,182,-33.2118985,-66.2323904),(1517,60,183,-33.2118192,-66.2326127),(1518,60,184,-33.2117530,-66.2329791),(1519,60,185,-33.2116262,-66.2338270),(1520,60,186,-33.2114267,-66.2344148),(1521,60,187,-33.2111274,-66.2348895),(1522,60,188,-33.2108806,-66.2353549),(1523,60,189,-33.2107257,-66.2361357),(1524,60,190,-33.2104735,-66.2367627),(1525,60,191,-33.2098918,-66.2371761),(1526,60,192,-33.2096037,-66.2372566),(1527,60,193,-33.2088667,-66.2371328),(1528,60,194,-33.2085276,-66.2371111),(1529,60,195,-33.2082659,-66.2372753),(1530,60,196,-33.2080527,-66.2374483),(1531,60,197,-33.2078311,-66.2375238),(1532,60,198,-33.2076190,-66.2375067),(1533,60,199,-33.2073932,-66.2373565),(1534,60,200,-33.2070543,-66.2369112),(1535,60,201,-33.2068562,-66.2367352),(1536,60,202,-33.2067078,-66.2366614),(1537,60,203,-33.2065766,-66.2366537),(1538,60,204,-33.2063451,-66.2367218),(1539,60,205,-33.2062220,-66.2368163),(1540,60,206,-33.2061086,-66.2369595),(1541,60,207,-33.2059846,-66.2372626),(1542,60,208,-33.2057111,-66.2380116),(1543,60,209,-33.2055717,-66.2384689),(1544,60,210,-33.2054721,-66.2388099),(1545,60,211,-33.2054166,-66.2392126),(1546,60,212,-33.2053616,-66.2393906),(1547,60,213,-33.2052612,-66.2395566),(1548,60,214,-33.2049531,-66.2397621),(1549,60,215,-33.2045472,-66.2399156),(1550,60,216,-33.2043222,-66.2401272),(1551,60,217,-33.2041407,-66.2405899),(1552,60,218,-33.2038720,-66.2409996),(1553,60,219,-33.2036032,-66.2412477),(1554,60,220,-33.2033423,-66.2418794),(1555,60,221,-33.2031970,-66.2421503),(1556,60,222,-33.2027759,-66.2425073),(1557,60,223,-33.2025501,-66.2427229),(1558,60,224,-33.2024395,-66.2430092),(1559,60,225,-33.2022482,-66.2434873),(1560,60,226,-33.2020378,-66.2440489),(1561,60,227,-33.2018437,-66.2445528),(1562,60,228,-33.2017416,-66.2448891),(1563,60,229,-33.2016995,-66.2451252),(1564,60,230,-33.2017160,-66.2453337),(1565,60,231,-33.2017763,-66.2457085),(1566,60,232,-33.2018768,-66.2462604),(1567,60,233,-33.2018664,-66.2466084),(1568,60,234,-33.2017222,-66.2469883),(1569,60,235,-33.2014697,-66.2473591),(1570,60,236,-33.2012680,-66.2476649),(1571,60,237,-33.2011353,-66.2477963),(1572,60,238,-33.2009544,-66.2480196),(1573,60,239,-33.2008705,-66.2481430),(1574,60,240,-33.2007877,-66.2484142),(1575,60,241,-33.2007507,-66.2485262),(1576,60,242,-33.2007100,-66.2487425),(1577,60,243,-33.2006502,-66.2488970),(1578,60,244,-33.2004985,-66.2490626),(1579,60,245,-33.2003074,-66.2491190),(1580,60,246,-33.2000112,-66.2490955),(1581,60,247,-33.1997926,-66.2491012),(1582,60,248,-33.1996456,-66.2491803),(1583,60,249,-33.1995039,-66.2493500),(1584,60,250,-33.1994750,-66.2494717),(1585,60,251,-33.1994700,-66.2495957),(1586,60,252,-33.1995182,-66.2498438),(1587,60,253,-33.1996854,-66.2501704),(1588,60,254,-33.1997160,-66.2503625),(1589,60,255,-33.1997006,-66.2505308),(1590,60,256,-33.1995710,-66.2507082),(1591,60,257,-33.1994391,-66.2507910),(1592,60,258,-33.1992958,-66.2508765),(1593,60,259,-33.1990405,-66.2509445),(1594,60,260,-33.1989156,-66.2510217),(1595,60,261,-33.1986569,-66.2512104),(1596,60,262,-33.1984451,-66.2513009),(1597,60,263,-33.1979443,-66.2513050),(1598,60,264,-33.1974786,-66.2512114),(1599,60,265,-33.1972974,-66.2512114),(1600,60,266,-33.1968760,-66.2514310),(1601,60,267,-33.1965590,-66.2515182),(1602,60,268,-33.1963152,-66.2516288),(1603,60,269,-33.1961982,-66.2518367),(1604,60,270,-33.1961499,-66.2519993),(1605,60,271,-33.1962032,-66.2522914),(1606,60,272,-33.1962338,-66.2524573),(1607,60,273,-33.1962697,-66.2527014),(1608,60,274,-33.1962130,-66.2529586),(1609,60,275,-33.1960803,-66.2531621),(1610,60,276,-33.1959039,-66.2532472),(1611,60,277,-33.1956971,-66.2532472),(1612,60,278,-33.1954019,-66.2531922),(1613,60,279,-33.1951587,-66.2532301),(1614,60,280,-33.1949135,-66.2533619),(1615,60,281,-33.1947507,-66.2535312),(1616,60,282,-33.1947252,-66.2536164),(1617,60,283,-33.1946955,-66.2538397),(1618,60,284,-33.1947392,-66.2540177),(1619,60,285,-33.1948192,-66.2541645),(1620,60,286,-33.1950975,-66.2543483),(1621,60,287,-33.1953624,-66.2545038),(1622,60,288,-33.1954827,-66.2546219),(1623,60,289,-33.1955860,-66.2548327),(1624,60,290,-33.1956039,-66.2550272),(1625,60,291,-33.1955748,-66.2551992),(1626,60,292,-33.1954376,-66.2553823),(1627,60,293,-33.1952451,-66.2554792),(1628,60,294,-33.1950978,-66.2554366),(1629,60,295,-33.1948220,-66.2553253),(1630,60,296,-33.1946486,-66.2552864),(1631,60,297,-33.1944306,-66.2553491),(1632,60,298,-33.1943251,-66.2554379),(1633,60,299,-33.1942457,-66.2556056),(1634,60,300,-33.1941891,-66.2557487),(1635,60,301,-33.1940398,-66.2559569),(1636,60,302,-33.1939060,-66.2560109),(1637,60,303,-33.1937486,-66.2560924),(1638,60,304,-33.1935816,-66.2562781),(1639,60,305,-33.1935362,-66.2564059),(1640,60,306,-33.1935331,-66.2565064),(1641,60,307,-33.1935659,-66.2566875),(1642,60,308,-33.1936321,-66.2569078),(1643,60,309,-33.1937831,-66.2571653),(1644,60,310,-33.1938588,-66.2572829),(1645,60,311,-33.1939197,-66.2574053),(1646,60,312,-33.1939377,-66.2576276),(1647,60,313,-33.1939102,-66.2577181),(1648,60,314,-33.1938451,-66.2579092),(1649,60,315,-33.1937758,-66.2580638),(1650,60,316,-33.1937090,-66.2582938),(1651,60,317,-33.1937219,-66.2585298),(1652,60,318,-33.1937671,-66.2588631),(1653,60,319,-33.1937331,-66.2591028),(1654,60,320,-33.1936363,-66.2593425),(1655,60,321,-33.1935362,-66.2594512),(1656,60,322,-33.1933227,-66.2595655),(1657,60,323,-33.1929815,-66.2595554),(1658,60,324,-33.1927178,-66.2596041),(1659,60,325,-33.1925752,-66.2597771),(1660,60,326,-33.1924492,-66.2599397),(1661,60,327,-33.1922568,-66.2600325),(1662,60,328,-33.1916970,-66.2600024),(1663,60,329,-33.1915062,-66.2601304),(1664,60,330,-33.1914254,-66.2602421),(1665,60,331,-33.1913912,-66.2603192),(1666,60,332,-33.1913685,-66.2605026),(1667,60,333,-33.1913589,-66.2606555),(1668,60,334,-33.1913323,-66.2609881),(1669,60,335,-33.1912779,-66.2613334),(1670,60,336,-33.1911850,-66.2615500),(1671,60,337,-33.1910671,-66.2616663),(1672,60,338,-33.1908455,-66.2618561),(1673,60,339,-33.1907305,-66.2619872),(1674,60,340,-33.1905009,-66.2624425),(1675,60,341,-33.1902091,-66.2626588),(1676,60,342,-33.1897886,-66.2627060),(1677,60,343,-33.1893017,-66.2625947),(1678,60,344,-33.1890916,-66.2624398),(1679,60,345,-33.1887914,-66.2621736),(1680,60,346,-33.1883702,-66.2613327),(1681,60,347,-33.1882378,-66.2610541),(1682,60,348,-33.1880944,-66.2609170),(1683,60,349,-33.1878859,-66.2608540),(1684,60,350,-33.1876463,-66.2609227),(1685,60,351,-33.1875540,-66.2610598),(1686,60,352,-33.1874538,-66.2612617),(1687,60,353,-33.1873435,-66.2614380),(1688,60,354,-33.1871533,-66.2615953),(1689,60,355,-33.1868621,-66.2616244),(1690,60,356,-33.1865074,-66.2615728),(1691,60,357,-33.1862044,-66.2616412),(1692,60,358,-33.1860018,-66.2616509),(1693,60,359,-33.1857461,-66.2615017),(1694,60,360,-33.1856364,-66.2613160),(1695,60,361,-33.1855977,-66.2611309),(1696,60,362,-33.1854945,-66.2608349),(1697,60,363,-33.1853244,-66.2606491),(1698,60,364,-33.1850870,-66.2604315),(1699,60,365,-33.1849097,-66.2601214),(1700,60,366,-33.1847124,-66.2599859),(1701,60,367,-33.1841428,-66.2599859),(1702,60,368,-33.1835934,-66.2598971),(1703,60,369,-33.1833134,-66.2599286),(1704,60,370,-33.1824724,-66.2602555),(1705,60,371,-33.1818671,-66.2603333),(1706,60,372,-33.1816435,-66.2604624),(1707,60,373,-33.1814653,-66.2606592),(1708,60,374,-33.1812414,-66.2609995),(1709,60,375,-33.1811774,-66.2612553),(1710,60,376,-33.1811928,-66.2614866),(1711,60,377,-33.1813607,-66.2617753),(1712,60,378,-33.1815324,-66.2620268),(1713,60,379,-33.1816070,-66.2622380),(1714,60,380,-33.1815722,-66.2625287),(1715,60,381,-33.1813968,-66.2627764),(1716,60,382,-33.1807865,-66.2633538),(1717,60,383,-33.1805365,-66.2636381),(1718,60,384,-33.1803839,-66.2639335),(1719,60,385,-33.1803681,-66.2641310),(1720,60,386,-33.1804781,-66.2644582),(1721,60,387,-33.1806656,-66.2648176),(1722,60,388,-33.1808146,-66.2650567),(1723,60,389,-33.1810708,-66.2651629),(1724,60,390,-33.1813848,-66.2652494),(1725,60,391,-33.1815936,-66.2654198),(1726,60,392,-33.1816356,-66.2656243),(1727,60,393,-33.1815669,-66.2660373),(1728,60,394,-33.1814089,-66.2662881),(1729,60,395,-33.1813469,-66.2665131),(1730,60,396,-33.1813469,-66.2669550),(1731,60,397,-33.1812588,-66.2673516),(1732,60,398,-33.1810321,-66.2676225),(1733,60,399,-33.1806521,-66.2676762),(1734,60,400,-33.1803081,-66.2676634),(1735,60,401,-33.1801052,-66.2678153),(1736,60,402,-33.1799932,-66.2680051),(1737,60,403,-33.1799820,-66.2682549),(1738,60,404,-33.1800715,-66.2684252),(1739,60,405,-33.1802124,-66.2685858),(1740,60,406,-33.1803816,-66.2686216),(1741,60,407,-33.1805952,-66.2685341),(1742,60,408,-33.1807312,-66.2683873),(1743,60,409,-33.1808168,-66.2682495),(1744,60,410,-33.1809552,-66.2681033),(1745,60,411,-33.1811092,-66.2680088),(1746,60,412,-33.1813910,-66.2678971),(1747,60,413,-33.1815843,-66.2678207),(1748,60,414,-33.1817813,-66.2676353),(1749,60,415,-33.1818526,-66.2674820),(1750,60,416,-33.1819365,-66.2672463),(1751,60,417,-33.1820711,-66.2670157),(1752,60,418,-33.1821974,-66.2668920),(1753,60,419,-33.1823327,-66.2668856),(1754,60,420,-33.1824472,-66.2669148),(1755,60,421,-33.1825875,-66.2669365),(1756,60,422,-33.1827345,-66.2668732),(1757,60,423,-33.1828251,-66.2667418),(1758,60,424,-33.1829405,-66.2665087),(1759,60,425,-33.1830827,-66.2662921),(1760,60,426,-33.1831804,-66.2660564),(1761,60,427,-33.1832241,-66.2658898),(1762,60,428,-33.1832466,-66.2656032),(1763,60,429,-33.1830847,-66.2651660),(1764,60,430,-33.1829839,-66.2647824),(1765,60,431,-33.1829045,-66.2643123),(1766,60,432,-33.1828975,-66.2638755),(1767,60,433,-33.1830173,-66.2636907),(1768,60,434,-33.1831882,-66.2635707),(1769,60,435,-33.1834256,-66.2635895),(1770,60,436,-33.1835872,-66.2637370),(1771,60,437,-33.1837682,-66.2640505),(1772,60,438,-33.1839969,-66.2643013),(1773,60,439,-33.1843134,-66.2644870),(1774,60,440,-33.1844529,-66.2645514),(1775,60,441,-33.1845881,-66.2647646),(1776,60,442,-33.1846274,-66.2650124),(1777,60,443,-33.1846630,-66.2653021),(1778,60,444,-33.1848466,-66.2655240),(1779,60,445,-33.1850503,-66.2656213),(1780,60,446,-33.1855304,-66.2656058),(1781,60,447,-33.1857085,-66.2656712),(1782,60,448,-33.1858284,-66.2658834),(1783,60,449,-33.1858284,-66.2661510),(1784,60,450,-33.1857490,-66.2664387),(1785,60,451,-33.1856611,-66.2666516),(1786,60,452,-33.1856255,-66.2669533),(1787,60,453,-33.1856446,-66.2671008),(1788,60,454,-33.1857332,-66.2673667),(1789,60,455,-33.1858466,-66.2676845),(1790,60,456,-33.1859434,-66.2679283),(1791,60,457,-33.1858940,-66.2683601),(1792,60,458,-33.1858371,-66.2687826),(1793,60,459,-33.1859086,-66.2691430),(1794,60,460,-33.1861033,-66.2693515),(1795,60,461,-33.1863491,-66.2695175),(1796,60,462,-33.1866292,-66.2696580),(1797,60,463,-33.1868430,-66.2696395),(1798,60,464,-33.1870470,-66.2695225),(1799,60,465,-33.1872611,-66.2693981),(1800,60,466,-33.1876295,-66.2694213),(1801,60,467,-33.1878789,-66.2695611),(1802,60,468,-33.1880178,-66.2698122),(1803,60,469,-33.1879392,-66.2701529),(1804,60,470,-33.1876847,-66.2704301),(1805,60,471,-33.1871749,-66.2708854),(1806,60,472,-33.1869398,-66.2711298),(1807,60,473,-33.1868200,-66.2714849),(1808,60,474,-33.1866884,-66.2718581),(1809,60,475,-33.1866617,-66.2721870),(1810,60,476,-33.1867804,-66.2726322),(1811,60,477,-33.1869973,-66.2728877),(1812,60,478,-33.1873214,-66.2731663),(1813,60,479,-33.1875060,-66.2735485),(1814,60,480,-33.1875568,-66.2738047),(1815,60,481,-33.1874791,-66.2742338),(1816,60,482,-33.1874611,-66.2749678),(1817,60,483,-33.1874866,-66.2752869),(1818,60,484,-33.1876292,-66.2754925),(1819,60,485,-33.1878141,-66.2756125),(1820,60,486,-33.1879659,-66.2757054),(1821,60,487,-33.1880372,-66.2759444),(1822,60,488,-33.1879914,-66.2763203),(1823,60,489,-33.1879033,-66.2766746),(1824,60,490,-33.1879033,-66.2770263),(1825,60,491,-33.1876982,-66.2774448),(1826,60,492,-33.1875400,-66.2777619),(1827,60,493,-33.1875383,-66.2784664),(1828,60,494,-33.1875719,-66.2787976),(1829,60,495,-33.1876836,-66.2790501),(1830,60,496,-33.1878034,-66.2792891),(1831,60,497,-33.1878191,-66.2794169),(1832,60,498,-33.1877754,-66.2797994),(1833,60,499,-33.1876976,-66.2800351),(1834,60,500,-33.1875776,-66.2805296),(1835,60,501,-33.1874255,-66.2807556),(1836,60,502,-33.1871339,-66.2809457),(1837,60,503,-33.1869816,-66.2811432),(1838,60,504,-33.1869561,-66.2815341),(1839,60,505,-33.1869589,-66.2817464),(1840,60,506,-33.1869589,-66.2827187),(1841,60,507,-33.1869541,-66.2828880);
+/*!40000 ALTER TABLE `rutas` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `tokens_recuperacion`
+--
+
+DROP TABLE IF EXISTS `tokens_recuperacion`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `tokens_recuperacion` (
+  `idToken` int NOT NULL AUTO_INCREMENT,
+  `idUsuario` int NOT NULL,
+  `token` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Token unico generado',
+  `tipoToken` varchar(20) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'recuperacion' COMMENT 'Tipo de token: recuperacion, reactivacion',
+  `fechaCreacion` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `fechaExpiracion` datetime NOT NULL COMMENT 'Token valido por 1 hora',
+  `usado` tinyint(1) NOT NULL DEFAULT '0' COMMENT 'false=no usado, true=ya usado',
+  PRIMARY KEY (`idToken`),
+  UNIQUE KEY `token_UNIQUE` (`token`),
+  KEY `fk_tokens_usuarios` (`idUsuario`),
+  CONSTRAINT `fk_tokens_usuarios` FOREIGN KEY (`idUsuario`) REFERENCES `usuarios` (`idUsuario`) ON DELETE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `tokens_recuperacion`
+--
+
+LOCK TABLES `tokens_recuperacion` WRITE;
+/*!40000 ALTER TABLE `tokens_recuperacion` DISABLE KEYS */;
+INSERT INTO `tokens_recuperacion` VALUES (1,4,'9b933ab08a974a96a703ee8959e9be3e','recuperacion','2025-11-25 22:04:24','2025-11-25 23:04:24',0),(2,4,'5a1d425c997349d38b9293a47e6e4369','recuperacion','2025-11-25 22:20:38','2025-11-25 23:20:38',1),(3,4,'252701acb2af470eb213e038a907e310','recuperacion','2025-11-27 09:37:27','2025-11-27 10:37:27',1),(4,4,'566866dc43ef43d59222003acddd2c31','reactivacion','2025-11-27 09:51:16','2025-11-27 10:51:16',1),(5,4,'6403356e0c9e4bbba82acf826e137dba','recuperacion','2026-02-01 22:17:49','2026-02-01 23:17:49',1),(6,4,'f7684de42cfb4850b68948d9d33012e1','recuperacion','2026-02-01 22:19:26','2026-02-01 23:19:26',0),(7,4,'70d3fce2def54d3db842abcfd97a68ba','reactivacion','2026-02-01 22:22:01','2026-02-01 23:22:01',1);
+/*!40000 ALTER TABLE `tokens_recuperacion` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `usuarios`
+--
+
+DROP TABLE IF EXISTS `usuarios`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `usuarios` (
+  `idUsuario` int NOT NULL AUTO_INCREMENT,
+  `nombre` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Nombre de Pila (Runner) o Nombre Comercial (Organizador)',
+  `email` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `telefono` varchar(20) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Numero de celu',
+  `passwordHash` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `tipoUsuario` enum('runner','organizador') COLLATE utf8mb4_unicode_ci NOT NULL,
+  `estado` tinyint(1) NOT NULL DEFAULT '1' COMMENT '0 false, 1 true (Al crear) sera de estado true',
+  `imgAvatar` varchar(500) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'URL o ruta del avatar del usuario',
+  PRIMARY KEY (`idUsuario`),
+  UNIQUE KEY `email` (`email`),
+  KEY `email_2` (`email`)
+) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `usuarios`
+--
+
+LOCK TABLES `usuarios` WRITE;
+/*!40000 ALTER TABLE `usuarios` DISABLE KEYS */;
+INSERT INTO `usuarios` VALUES (2,'Carlos','carlos@test.com','2664222333','$2a$12$1VrSrzRZp5VM7/4fNJ/f2.DPVbPE9b4.MF9lfXAGG7lp7Amncusmq','runner',1,'/uploads/avatars/defaults/default_runner.png'),(3,'Juan Carlos','eventos@runnersclub.com','2664111113','$2a$12$4OatEBqyW4e6SJmeBhk8R.mT4StPBw5WtNHpuTBGldfeQ7NdKebpy','organizador',1,'/uploads/avatars/defaults/default_organization.png'),(4,'Test1 Runner Nombre','esteban.dev22@gmail.com','2664222222','$2a$12$HIqX.CjZWvIR/iBibNuj5eTbHVPMOf9Dwe1XOelVGu.NuD1QGXRxK','runner',1,'/uploads/avatars/defaults/default_runner.png'),(5,'La Punta RUNNER','test@orgaclub.com','2664555888','$2a$12$z0./mOCu5roRcP71s16Mh.C/XX98/V0jssxBrxBte.2sS1UZ874/m','organizador',1,'/uploads/avatars/5_20251228015156.jpg'),(8,'Esteban','este@test.com','2665044026','$2a$12$xNmXFNF0xSwK3/kgNx3MsuExSmTlV2mdZHtItnTE9xkx.dmPbPcOO','runner',1,'/uploads/avatars/defaults/default_runner.png'),(9,'RUNNer San Luis','run@sl.com','2664123456','$2a$12$kZfACtQSfY.eimN6SyLAM.kF3U88lcnJ2ndVrCHVqxZLNbkYO8wrC','organizador',1,'/uploads/avatars/9_20251231015301.jpg'),(10,'Yanina','yani@test.com','2664010203','$2a$12$5Zrx1Fh/uIjShuTBBvciTumdrXFL/.EZcXc/yzTc/DZuDwzm8veEm','runner',1,'/uploads/avatars/10_20260119020531.jpg'),(11,'Beatriz','beatriz@test.com',NULL,'$2a$12$FypSs4mmEk7IIykmgGkEv.Nu/55BbPszrl1k5PPM/ZrpaZ.ZzpGZ6','runner',1,'/uploads/avatars/defaults/default_runner.png');
+/*!40000 ALTER TABLE `usuarios` ENABLE KEYS */;
+UNLOCK TABLES;
+/*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
+
+/*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
+/*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
+/*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+/*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
+
+-- Dump completed on 2026-02-08 21:59:28

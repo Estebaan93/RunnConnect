@@ -36,6 +36,9 @@ namespace RunnConnectAPI.Models
     [Column(TypeName="varchar(1)")] //F, M , X
     public string Genero {get;set;}= "X";
 
+    [Column("estado")]
+    public string Estado { get; set; } = "programada";
+
 
     /*Navegacion*/
     //Evento al que pertenece la categoria
