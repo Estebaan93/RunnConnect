@@ -45,6 +45,10 @@ namespace RunnConnectAPI.Models
     [StringLength(20)]
     public string Estado{get;set;}= "publicado";
 
+    [Required]
+    [Column("tipoEvento")]
+    public string TipoEvento { get; set; } = "calle";
+
 
     //Navegacion
     /*Usuario organizador del evento (FK a usuarios)*/

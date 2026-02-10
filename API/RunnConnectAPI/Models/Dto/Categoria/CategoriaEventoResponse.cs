@@ -17,7 +17,7 @@ namespace RunnConnectAPI.Models.Dto.Categoria
     public string Estado { get; set; } = "programada";
 
 
-    // Descripcion legible del género
+    // Descripcion legible del genero
     public string GeneroDescripcion => Genero switch
     {
       "F" => "Femenino",

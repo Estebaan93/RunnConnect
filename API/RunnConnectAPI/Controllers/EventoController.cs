@@ -9,6 +9,7 @@ using RunnConnectAPI.Repositories;
 using System.Security.Claims;
 
 using RunnConnectAPI.Models.Dto.Notificacion;
+using System.Collections.Generic;
 
 namespace RunnConnectAPI.Controllers
 {
@@ -295,10 +296,13 @@ namespace RunnConnectAPI.Controllers
           CupoTotal = request.CupoTotal,
           UrlPronosticoClima = request.UrlPronosticoClima,
           DatosPago = request.DatosPago,
+          TipoEvento = request.TipoEvento,
           IdOrganizador = validacion.userId
         };
 
         var eventoCreado = await _eventoRepositorio.CrearAsync(evento);
+
+        var categoriasResponse = new List<CategoriaEventoResponse>();
 
         //guardar categorias junto al precio
         if (request.Categorias != null && request.Categorias.Any())
@@ -313,10 +317,27 @@ namespace RunnConnectAPI.Controllers
               CupoCategoria = catDto.CupoCategoria,
               EdadMinima = catDto.EdadMinima,
               EdadMaxima = catDto.EdadMaxima,
-              Genero = catDto.Genero
+              Genero = catDto.Genero,
+              Estado="programada"
             };
             // Usamos el repositorio de categorias existente
             await _categoriaRepositorio.CrearAsync(nuevaCategoria);
+         
+
+        categoriasResponse.Add(new CategoriaEventoResponse
+            {
+                IdCategoria = nuevaCategoria.IdCategoria, // <--- ¡AQUÍ ESTÁ EL ID!
+                IdEvento = nuevaCategoria.IdEvento,
+                Nombre = nuevaCategoria.Nombre,
+                CostoInscripcion = nuevaCategoria.CostoInscripcion,
+                CupoCategoria = nuevaCategoria.CupoCategoria,
+                EdadMinima = nuevaCategoria.EdadMinima,
+                EdadMaxima = nuevaCategoria.EdadMaxima,
+                Genero = nuevaCategoria.Genero,
+                Estado = nuevaCategoria.Estado,
+                InscriptosActuales = 0
+                // Nota: No asignamos GeneroDescripcion ni TieneCupo porque son de solo lectura (se calculan solas)
+            });
           }
         }
 
@@ -333,7 +354,15 @@ namespace RunnConnectAPI.Controllers
                 Nombre = eventoCreado.Nombre,
                 FechaHora = eventoCreado.FechaHora,
                 Lugar = eventoCreado.Lugar,
-                Estado = eventoCreado.Estado
+                Estado = eventoCreado.Estado,
+                CupoTotal = eventoCreado.CupoTotal,
+
+                TipoEvento = eventoCreado.TipoEvento,
+                DatosPago = eventoCreado.DatosPago,
+                Categorias = categoriasResponse,
+
+                NombreOrganizador = usuario.Nombre,
+                CantidadCategorias = categoriasResponse.Count
               }
             }
         );
@@ -483,9 +512,9 @@ namespace RunnConnectAPI.Controllers
           string titulo = $"EVENTO {request.NuevoEstado.ToUpper()}";
 
           if (nuevoEstadoEvento == "cancelado") titulo = "URGENTE: Evento Cancelado";
-          if (nuevoEstadoEvento == "suspendido") titulo = "⚠️ Evento Suspendido";
-          if (nuevoEstadoEvento == "retrasado") titulo = "⚠️ Evento Retrasado";
-          if (nuevoEstadoEvento == "publicado") titulo = "✅ Evento Confirmado / Reanudado";
+          if (nuevoEstadoEvento == "suspendido") titulo = "Evento Suspendido";
+          if (nuevoEstadoEvento == "retrasado") titulo = "Evento Retrasado";
+          if (nuevoEstadoEvento == "publicado") titulo = "Evento Confirmado / Reanudado";
 
           var notif = new CrearNotificacionRequest
           {

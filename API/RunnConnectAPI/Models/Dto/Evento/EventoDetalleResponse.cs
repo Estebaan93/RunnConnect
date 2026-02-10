@@ -20,6 +20,8 @@ namespace RunnConnectAPI.Models.Dto.Evento
     public string? UrlPronosticoClima { get; set; }
     public string? DatosPago { get; set; }
 
+    public string TipoEvento { get; set;}
+  
    
     // Informacin del organizador
   

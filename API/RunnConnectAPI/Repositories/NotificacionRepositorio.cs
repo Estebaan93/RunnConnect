@@ -46,15 +46,14 @@ namespace RunnConnectAPI.Repositories
     /// Busca notificaciones de eventos donde esta inscripto (confirmado)
     public async Task<MisNotificacionesResponse> ObtenerMisNotificacionesAsync(int idUsuario)
     {
-      // Obtener IDs de eventos donde el runner esta inscripto con pago confirmado
-      var eventosInscripto = await _context.Inscripciones
+      // 1. Obtener Inscripciones del usuario (Guardamos Evento Y Categoría)
+      var inscripcionesUsuario = await _context.Inscripciones
         .Include(i => i.Categoria)
         .Where(i => i.IdUsuario == idUsuario && i.EstadoPago == "pagado")
-        .Select(i => i.Categoria!.IdEvento)
-        .Distinct()
+        .Select(i => new { i.Categoria!.IdEvento, i.Categoria.IdCategoria }) // Traemos el par (Evento, Categoria)
         .ToListAsync();
 
-      if (!eventosInscripto.Any())
+      if (!inscripcionesUsuario.Any())
       {
         return new MisNotificacionesResponse
         {
@@ -63,23 +62,40 @@ namespace RunnConnectAPI.Repositories
         };
       }
 
-      // Obtener notificaciones de esos eventos
-      var notificaciones = await _context.NotificacionesEvento
+      // Extraemos solo los IDs de eventos para la primera consulta a la BD
+      var idsEventos = inscripcionesUsuario.Select(x => x.IdEvento).Distinct().ToList();
+
+      // 2. Obtener TODAS las notificaciones de esos eventos (incluimos datos de Categoria para mostrar nombre)
+      var notificacionesRaw = await _context.NotificacionesEvento
         .Include(n => n.Evento)
-        .Where(n => eventosInscripto.Contains(n.IdEvento))
+        .Include(n => n.Categoria) // Importante para saber si es de 10K o 21K
+        .Where(n => idsEventos.Contains(n.IdEvento))
         .OrderByDescending(n => n.FechaEnvio)
         .ToListAsync();
 
-      var items = notificaciones.Select(n => new NotificacionRunnerItem
+      // 3. FILTRADO INTELIGENTE EN MEMORIA
+      var notificacionesFiltradas = notificacionesRaw.Where(n =>
+      {
+        // Caso A: Notificacion Global (IdCategoria es null) -> SE MUESTRA SIEMPRE
+        if (n.IdCategoria == null) return true;
+
+        // Caso B: Notificacin Especifica -> El usuario debe tener inscripcion en ESA categoria exacta
+        // Buscamos si en "inscripcionesUsuario" existe el par exacto (Evento, Categoria)
+        return inscripcionesUsuario.Any(i => i.IdEvento == n.IdEvento && i.IdCategoria == n.IdCategoria);
+      }).ToList();
+
+      // 4. Mapeo final
+      var items = notificacionesFiltradas.Select(n => new NotificacionRunnerItem
       {
         IdNotificacion = n.IdNotificacion,
-        Titulo = n.Titulo,
+        // Si tiene categoria, agregamos el prefijo al titulo para que sea claro
+        Titulo = n.Categoria != null ? $"[{n.Categoria.Nombre}] {n.Titulo}" : n.Titulo,
         Mensaje = n.Mensaje,
         FechaEnvio = n.FechaEnvio,
         IdEvento = n.IdEvento,
         NombreEvento = n.Evento?.Nombre ?? "",
         FechaEvento = n.Evento?.FechaHora ?? DateTime.MinValue,
-        EstadoEvento = n.EstadoEvento?? n.Evento?.Estado ?? ""
+        EstadoEvento = n.EstadoEvento ?? n.Evento?.Estado ?? ""
       }).ToList();
 
       return new MisNotificacionesResponse
@@ -93,42 +109,52 @@ namespace RunnConnectAPI.Repositories
     /// util para mostrar badge/contador en la app
     public async Task<int> ContarNotificacionesRecientesAsync(int idUsuario)
     {
-      //Fecha ultima lectura del runner
+      // Fecha ultima lectura del runner
       var perfil = await _context.PerfilesRunners
             .FirstOrDefaultAsync(p => p.IdUsuario == idUsuario);
 
-      //Si nunca entro asumimos que es una fecha muy vieja (todo nuevo)
       var ultimaLectura = perfil?.FechaUltimaLectura ?? DateTime.MinValue;
 
-      // Obtener IDs de eventos donde el runner esta inscripto
-      var eventosInscripto = await _context.Inscripciones
+      // 1. Obtener Inscripciones (Evento y Categoria)
+      var inscripcionesUsuario = await _context.Inscripciones
         .Include(i => i.Categoria)
         .Where(i => i.IdUsuario == idUsuario && i.EstadoPago == "pagado")
-        .Select(i => i.Categoria!.IdEvento)
-        .Distinct()
+        .Select(i => new { i.Categoria!.IdEvento, i.Categoria.IdCategoria })
         .ToListAsync();
 
-      if (!eventosInscripto.Any())
-        return 0;
+      if (!inscripcionesUsuario.Any()) return 0;
 
-      //Contar notificaciones enviadas despues de su ultima lectura
-      return await _context.NotificacionesEvento
-        .CountAsync(n => eventosInscripto.Contains(n.IdEvento) && n.FechaEnvio >= ultimaLectura);
+      var idsEventos = inscripcionesUsuario.Select(x => x.IdEvento).Distinct().ToList();
+
+      // 2. Traer candidatos de la base de datos (filtro por fecha y evento)
+      var notificacionesCandidatas = await _context.NotificacionesEvento
+        .Where(n => idsEventos.Contains(n.IdEvento) && n.FechaEnvio >= ultimaLectura)
+        .Select(n => new { n.IdEvento, n.IdCategoria }) // Solo necesitamos IDs para contar
+        .ToListAsync();
+
+      // 3. Contar aplicando la lógica de categoría
+      var cantidad = notificacionesCandidatas.Count(n =>
+      {
+        if (n.IdCategoria == null) return true; // Global
+        return inscripcionesUsuario.Any(i => i.IdEvento == n.IdEvento && i.IdCategoria == n.IdCategoria);
+      });
+
+      return cantidad;
     }
 
     /// METODO NUEVO: MARCAR TODO COMO LEIDO
     /// Se llama cuando el usuario abre la pantalla de notificaciones
     public async Task MarcarTodasComoLeidasAsync(int idUsuario)
     {
-        var perfil = await _context.PerfilesRunners
-            .FirstOrDefaultAsync(p => p.IdUsuario == idUsuario);
+      var perfil = await _context.PerfilesRunners
+          .FirstOrDefaultAsync(p => p.IdUsuario == idUsuario);
 
-        if (perfil != null)
-        {
-            // Actualizamos la fecha a "Ahora"
-            perfil.FechaUltimaLectura = DateTime.Now;
-            await _context.SaveChangesAsync();
-        }
+      if (perfil != null)
+      {
+        // Actualizamos la fecha a "Ahora"
+        perfil.FechaUltimaLectura = DateTime.Now;
+        await _context.SaveChangesAsync();
+      }
     }
 
     /// Cuenta notificaciones de un evento
@@ -137,7 +163,7 @@ namespace RunnConnectAPI.Repositories
       return await _context.NotificacionesEvento
         .CountAsync(n => n.IdEvento == idEvento);
     }
- 
+
 
     /// Crea una nueva notificacion (Organizador)
     public async Task<(NotificacionEvento? notificacion, string? error)> CrearAsync(
@@ -145,7 +171,7 @@ namespace RunnConnectAPI.Repositories
     {
       // Verificar que el evento existe
       var evento = await _context.Eventos
-        .Include(e=>e.Categorias)
+        .Include(e => e.Categorias)
         .FirstOrDefaultAsync(e => e.IdEvento == request.IdEvento);
 
       if (evento == null)
@@ -162,10 +188,11 @@ namespace RunnConnectAPI.Repositories
       var notificacion = new NotificacionEvento
       {
         IdEvento = request.IdEvento,
+        IdCategoria = request.IdCategoria,
         Titulo = request.Titulo.Trim(),
         Mensaje = request.Mensaje?.Trim(),
         FechaEnvio = DateTime.Now,
-        EstadoEvento= evento.Estado
+        EstadoEvento = evento.Estado
       };
 
       _context.NotificacionesEvento.Add(notificacion);
@@ -232,7 +259,7 @@ namespace RunnConnectAPI.Repositories
     {
       return await _context.NotificacionesEvento
         .Include(n => n.Evento)
-        .AnyAsync(n => n.IdNotificacion == idNotificacion && 
+        .AnyAsync(n => n.IdNotificacion == idNotificacion &&
                        n.Evento!.IdOrganizador == idOrganizador);
     }
 

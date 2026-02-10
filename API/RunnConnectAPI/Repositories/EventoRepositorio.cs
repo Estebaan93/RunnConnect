@@ -15,18 +15,6 @@ namespace RunnConnectAPI.Repositories
       _context = context;
     }
 
-    // Consultas publicas
-    /// Obtiene eventos publicados y futuros (para listado publico/runners)
-    /*public async Task<List<Evento>> ObtenerEventosPublicadosAsync()
-    {
-      return await _context.Eventos
-          .Include(e=>e.Organizador)
-          .Include(e=>e.Categorias)
-            .ThenInclude(c=>c.Inscripciones)
-          .Where(e => e.Estado == "publicado" && e.FechaHora >= DateTime.Now)
-          .OrderBy(e => e.FechaHora)
-          .ToListAsync();
-    }*/
     //Para paginado
     public async Task<(List<Evento> eventos, int totalCount)> ObtenerEventosPublicadosAsync(int pagina, int tamanioPagina)
     {
@@ -38,7 +26,7 @@ namespace RunnConnectAPI.Repositories
       // 2. Contar total real
       var totalCount = await query.CountAsync();
 
-      // 3. Obtener página
+      // 3. Obtener pagina
       var eventos = await query
           .Include(e => e.Organizador)
           .Include(e => e.Categorias)
@@ -86,21 +74,6 @@ namespace RunnConnectAPI.Repositories
           .ToListAsync();
     }
 
-
-    //Consultas para Organizadores
-    /// Obtiene TODOS los eventos de un organizador (para gestion)
-    /// Incluye todos los estados
-    /// Incluye paginacion para que traiga dinamicamente los eventos
-    /*public async Task<List<Evento>> ObtenerTodosPorOrganizadorAsync(int idOrganizador)
-    {
-      return await _context.Eventos
-          .Include(e=>e.Organizador)
-          .Include(e=>e.Categorias)
-            .ThenInclude(c=>c.Inscripciones)
-          .Where(e => e.IdOrganizador == idOrganizador)
-          .OrderByDescending(e => e.FechaHora)
-          .ToListAsync();
-    }*/
     public async Task<(List<Evento> eventos, int totalCount)> ObtenerTodosPorOrganizadorAsync(int idOrganizador, int pagina, int tamanioPagina)
         {
             // 1. Query base (Filtrar por organizador)
@@ -116,7 +89,7 @@ namespace RunnConnectAPI.Repositories
                 .Include(e => e.Organizador)
                 .Include(e => e.Categorias)
                     .ThenInclude(c => c.Inscripciones)
-                .OrderByDescending(e => e.FechaHora) // Orden: Los más nuevos primero
+                .OrderByDescending(e => e.FechaHora) // Orden: Los mas nuevos primero
                 .Skip((pagina - 1) * tamanioPagina)
                 .Take(tamanioPagina)
                 .ToListAsync();
@@ -144,6 +117,7 @@ namespace RunnConnectAPI.Repositories
       evento.Lugar = evento.Lugar.Trim();
       evento.Descripcion = evento.Descripcion?.Trim();
       evento.DatosPago = evento.DatosPago?.Trim();
+      evento.TipoEvento = evento.TipoEvento.ToLower().Trim();
       evento.Estado = "publicado";
 
       _context.Eventos.Add(evento);

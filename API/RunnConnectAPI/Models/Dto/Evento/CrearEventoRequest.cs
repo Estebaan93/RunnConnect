@@ -31,6 +31,11 @@ namespace RunnConnectAPI.Models.Dto.Evento
     [StringLength(500, ErrorMessage = "Los datos de pago no pueden exceder 500 caracteres")]
     public string? DatosPago { get; set; } 
 
+    //spinner para android
+    [Required(ErrorMessage="El tipo del evento es obligarorio")]
+    [RegularExpression("^(calle|trail|cross|aventura|obstaculos|correcaminata|kids|triatlon)$", ErrorMessage = "Tipo invalido.")]
+    public string TipoEvento { get; set; } = "calle";
+
 
     // Categorias del evento (opcional al crear, se pueden agregar despues)
     public List<CrearCategoriaRequest>? Categorias { get; set; }
