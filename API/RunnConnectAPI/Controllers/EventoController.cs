@@ -56,6 +56,8 @@ namespace RunnConnectAPI.Controllers
           Lugar = e.Lugar,
           Estado = e.Estado,
           CupoTotal = e.CupoTotal,
+          TipoEvento= e.TipoEvento,
+          DatosPago= e.DatosPago,
           CantidadCategorias = e.Categorias?.Count ?? 0,
           InscriptosActuales = e.Categorias?
                 .SelectMany(c => c.Inscripciones)
@@ -64,9 +66,16 @@ namespace RunnConnectAPI.Controllers
           Categorias = e.Categorias?.Select(c => new CategoriaEventoResponse
           {
             IdCategoria = c.IdCategoria,
+            IdEvento= c.IdEvento,
             Nombre = c.Nombre, //Esto es lo que necesitamos para el Chip!
             CostoInscripcion = c.CostoInscripcion,
-            Genero = c.Genero
+            CupoCategoria = c.CupoCategoria,
+            EdadMinima = c.EdadMinima,
+            EdadMaxima = c.EdadMaxima,
+            Genero = c.Genero,
+            Estado = c.Estado,
+            //calculamos los inscrptos
+            InscriptosActuales = c.Inscripciones.Count(i=>i.EstadoPago=="pagado")
           }).ToList()
 
         }).ToList();
@@ -120,6 +129,8 @@ namespace RunnConnectAPI.Controllers
             Lugar = e.Lugar,
             Estado = e.Estado,
             CupoTotal = e.CupoTotal,
+            TipoEvento = e.TipoEvento,
+            DatosPago = e.DatosPago,
             CantidadCategorias = e.Categorias?.Count ?? 0,
             InscriptosActuales = e.Categorias?
                 .SelectMany(c => c.Inscripciones)
@@ -170,6 +181,7 @@ namespace RunnConnectAPI.Controllers
               ? evento.CupoTotal.Value - inscriptosTotal
               : int.MaxValue,
           Estado = evento.Estado,
+          TipoEvento= evento.TipoEvento,
           UrlPronosticoClima = evento.UrlPronosticoClima,
           DatosPago = evento.DatosPago,
           Organizador = evento.Organizador != null ? new OrganizadorEventoResponse
@@ -190,6 +202,7 @@ namespace RunnConnectAPI.Controllers
             EdadMinima = c.EdadMinima,
             EdadMaxima = c.EdadMaxima,
             Genero = c.Genero,
+            Estado= c.Estado,
             InscriptosActuales = inscriptosPorCategoria.ContainsKey(c.IdCategoria)
             ? inscriptosPorCategoria[c.IdCategoria]
             : 0
@@ -231,6 +244,8 @@ namespace RunnConnectAPI.Controllers
           Lugar = e.Lugar,
           Estado = e.Estado,
           CupoTotal = e.CupoTotal,
+          TipoEvento = e.TipoEvento,
+          DatosPago = e.DatosPago,
           CantidadCategorias = e.Categorias?.Count ?? 0,
           InscriptosActuales = e.Categorias?
                 .SelectMany(c => c.Inscripciones)
