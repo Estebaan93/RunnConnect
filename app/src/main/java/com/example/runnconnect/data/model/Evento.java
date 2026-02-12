@@ -10,6 +10,7 @@ public class Evento {
   private int cupoTotal;
   private String estado; // "publicado", "finalizado", etc.
   private String urlPronosticoClima;
+  private String tipoEvento;
   private String datosPago;
 
   //si la api devuleve el obj Org anidado
@@ -74,7 +75,8 @@ public class Evento {
   public void setEstado(String estado) {
     this.estado = estado;
   }
-
+  public String getTipoEvento() { return tipoEvento; }
+  public void setTipoEvento(String tipoEvento) { this.tipoEvento = tipoEvento; }
   public String getUrlPronosticoClima() {
     return urlPronosticoClima;
   }

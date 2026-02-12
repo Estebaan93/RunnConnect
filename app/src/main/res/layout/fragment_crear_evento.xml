@@ -7,439 +7,448 @@
     android:fillViewport="true"
     android:background="#F5F5F5">
 
-  <androidx.constraintlayout.widget.ConstraintLayout
-      android:layout_width="match_parent"
-      android:layout_height="wrap_content"
-      android:padding="16dp">
-
-    <TextView
-        android:id="@+id/tvTituloPagina"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Nuevo Evento"
-        android:textSize="24sp"
-        android:textStyle="bold"
-        android:textColor="@android:color/black"
-        android:layout_marginTop="8dp"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent"/>
-
-    <TextView
-        android:id="@+id/tvMensajeGlobal"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:gravity="center"
-        android:padding="8dp"
-        android:textSize="14sp"
-        android:textStyle="bold"
-        android:visibility="gone"
-        app:layout_constraintTop_toBottomOf="@id/tvTituloPagina"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"/>
-
-    <TextView
-        android:id="@+id/lblTitulo"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Título del Evento"
-        android:textColor="#616161"
-        android:textSize="12sp"
-        android:layout_marginTop="16dp"
-        app:layout_constraintTop_toBottomOf="@id/tvMensajeGlobal"
-        app:layout_constraintStart_toStartOf="parent"/>
-
-    <EditText
-        android:id="@+id/etTitulo"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:inputType="textCapSentences"
-        android:background="@android:drawable/edit_text"
-        android:paddingVertical="12dp"
-        app:layout_constraintTop_toBottomOf="@id/lblTitulo"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"/>
-
-    <TextView
-        android:id="@+id/lblDescripcion"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Descripción"
-        android:textColor="#616161"
-        android:textSize="12sp"
-        android:layout_marginTop="12dp"
-        app:layout_constraintTop_toBottomOf="@id/etTitulo"
-        app:layout_constraintStart_toStartOf="parent"/>
-
-    <EditText
-        android:id="@+id/etDescripcion"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:inputType="textMultiLine"
-        android:minLines="2"
-        android:gravity="top|start"
-        android:background="@android:drawable/edit_text"
-        android:paddingVertical="12dp"
-        app:layout_constraintTop_toBottomOf="@id/lblDescripcion"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"/>
-
-    <TextView
-        android:id="@+id/lblFecha"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Fecha"
-        android:textColor="#616161"
-        android:textSize="12sp"
-        android:layout_marginTop="12dp"
-        app:layout_constraintTop_toBottomOf="@id/etDescripcion"
-        app:layout_constraintStart_toStartOf="parent"/>
-
-    <EditText
-        android:id="@+id/etFecha"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:hint="dd/mm/aaaa"
-        android:focusable="false"
-        android:clickable="true"
-        android:inputType="none"
-        android:background="@android:drawable/edit_text"
-        android:paddingVertical="12dp"
-        android:layout_marginEnd="8dp"
-        app:layout_constraintTop_toBottomOf="@id/lblFecha"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/etHora"/>
-
-    <TextView
-        android:id="@+id/lblHora"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Hora"
-        android:textColor="#616161"
-        android:textSize="12sp"
-        android:layout_marginTop="12dp"
-        android:layout_marginStart="8dp"
-        app:layout_constraintTop_toBottomOf="@id/etDescripcion"
-        app:layout_constraintStart_toStartOf="@+id/etHora"/>
-
-    <EditText
-        android:id="@+id/etHora"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:hint="--:--"
-        android:focusable="false"
-        android:clickable="true"
-        android:inputType="none"
-        android:background="@android:drawable/edit_text"
-        android:paddingVertical="12dp"
-        android:layout_marginStart="8dp"
-        app:layout_constraintTop_toBottomOf="@id/lblHora"
-        app:layout_constraintStart_toEndOf="@+id/etFecha"
-        app:layout_constraintEnd_toEndOf="parent"/>
-
-    <TextView
-        android:id="@+id/lblUbicacion"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Ubicación / Dirección"
-        android:textColor="#616161"
-        android:textSize="12sp"
-        android:layout_marginTop="12dp"
-        app:layout_constraintTop_toBottomOf="@id/etFecha"
-        app:layout_constraintStart_toStartOf="parent"/>
-
-    <EditText
-        android:id="@+id/etUbicacion"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:inputType="textPostalAddress"
-        android:background="@android:drawable/edit_text"
-        android:paddingVertical="12dp"
-        app:layout_constraintTop_toBottomOf="@id/lblUbicacion"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"/>
-
-    <TextView
-        android:id="@+id/lblDatosPago"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Datos de Pago (CBU / Alias)"
-        android:textColor="#616161"
-        android:textSize="12sp"
-        android:layout_marginTop="12dp"
-        app:layout_constraintTop_toBottomOf="@id/etUbicacion"
-        app:layout_constraintStart_toStartOf="parent"/>
-
-    <EditText
-        android:id="@+id/etDatosPago"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:inputType="textMultiLine"
-        android:minLines="2"
-        android:gravity="top|start"
-        android:hint="Ej: Alias: RUNNERS.SL"
-        android:background="@android:drawable/edit_text"
-        android:paddingVertical="12dp"
-        app:layout_constraintTop_toBottomOf="@id/lblDatosPago"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"/>
-
-    <TextView
-        android:id="@+id/lblCupo"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Cupo Total del Evento"
-        android:textColor="#616161"
-        android:textSize="12sp"
-        android:layout_marginTop="12dp"
-        app:layout_constraintTop_toBottomOf="@id/etDatosPago"
-        app:layout_constraintStart_toStartOf="parent"/>
-
-    <EditText
-        android:id="@+id/etCupo"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:inputType="number"
-        android:background="@android:drawable/edit_text"
-        android:paddingVertical="12dp"
-        app:layout_constraintTop_toBottomOf="@id/lblCupo"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"/>
-
-    <View
-        android:id="@+id/divider"
-        android:layout_width="0dp"
-        android:layout_height="1dp"
-        android:background="#CCCCCC"
-        android:layout_marginTop="24dp"
-        app:layout_constraintTop_toBottomOf="@id/etCupo"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"/>
-
-    <TextView
-        android:id="@+id/tvTituloSeccionCat"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Definir Categorías"
-        android:textStyle="bold"
-        android:textSize="18sp"
-        android:textColor="#1565C0"
-        android:layout_marginTop="16dp"
-        app:layout_constraintTop_toBottomOf="@id/divider"
-        app:layout_constraintStart_toStartOf="parent"/>
-
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rvCategoriasAgregadas"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:nestedScrollingEnabled="false"
-        app:layout_constraintTop_toBottomOf="@id/tvTituloSeccionCat"/>
-
     <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/containerFormCategoria"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="12dp"
-        android:background="#F9F9F9"
-        android:padding="12dp"
-        app:layout_constraintTop_toBottomOf="@id/rvCategoriasAgregadas">
+        android:padding="16dp">
 
-      <TextView
-          android:id="@+id/lblNuevaCat"
-          android:layout_width="wrap_content"
-          android:layout_height="wrap_content"
-          android:text="Nueva Categoría"
-          android:textStyle="bold"
-          app:layout_constraintStart_toStartOf="parent"
-          app:layout_constraintTop_toTopOf="parent"/>
-
-      <TextView
-          android:id="@+id/lblDistancia"
-          android:layout_width="wrap_content"
-          android:layout_height="wrap_content"
-          android:text="Distancia (Km)"
-          android:textSize="12sp"
-          android:layout_marginTop="8dp"
-          app:layout_constraintTop_toBottomOf="@id/lblNuevaCat"
-          app:layout_constraintStart_toStartOf="parent"/>
-
-      <EditText
-          android:id="@+id/etDistanciaValor"
-          android:layout_width="0dp"
-          android:layout_height="wrap_content"
-          android:inputType="numberDecimal"
-          android:hint="Ej: 10"
-          android:background="@android:drawable/edit_text"
-          android:paddingVertical="12dp"
-          app:layout_constraintTop_toBottomOf="@id/lblDistancia"
-          app:layout_constraintStart_toStartOf="parent"
-          app:layout_constraintEnd_toEndOf="parent"/>
-
-      <HorizontalScrollView
-          android:id="@+id/scrollChips"
-          android:layout_width="match_parent"
-          android:layout_height="wrap_content"
-          android:layout_marginTop="4dp"
-          android:scrollbars="none"
-          app:layout_constraintTop_toBottomOf="@id/etDistanciaValor">
-
-        <com.google.android.material.chip.ChipGroup
-            android:id="@+id/chipGroupDistancias"
+        <TextView
+            android:id="@+id/tvTituloPagina"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            app:singleSelection="true">
+            android:text="Nuevo Evento"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:textColor="@android:color/black"
+            android:layout_marginTop="8dp"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent"/>
 
-          <com.google.android.material.chip.Chip
-              android:id="@+id/chip3k"
-              style="@style/Widget.MaterialComponents.Chip.Choice"
-              android:layout_width="wrap_content"
-              android:layout_height="wrap_content"
-              android:text="3K"/>
-
-          <com.google.android.material.chip.Chip
-              android:id="@+id/chip5k"
-              style="@style/Widget.MaterialComponents.Chip.Choice"
-              android:layout_width="wrap_content"
-              android:layout_height="wrap_content"
-              android:text="5K"/>
-
-          <com.google.android.material.chip.Chip
-              android:id="@+id/chip10k"
-              style="@style/Widget.MaterialComponents.Chip.Choice"
-              android:layout_width="wrap_content"
-              android:layout_height="wrap_content"
-              android:text="10K"/>
-
-          <com.google.android.material.chip.Chip
-              android:id="@+id/chip21k"
-              style="@style/Widget.MaterialComponents.Chip.Choice"
-              android:layout_width="wrap_content"
-              android:layout_height="wrap_content"
-              android:text="21K"/>
-
-          <com.google.android.material.chip.Chip
-              android:id="@+id/chip42k"
-              style="@style/Widget.MaterialComponents.Chip.Choice"
-              android:layout_width="wrap_content"
-              android:layout_height="wrap_content"
-              android:text="42K"/>
-        </com.google.android.material.chip.ChipGroup>
-      </HorizontalScrollView>>
-
-      <Spinner
-          android:id="@+id/spModalidad"
-          android:layout_width="0dp"
-          android:layout_height="48dp"
-          android:background="@drawable/bg_spinner_border"
-          android:layout_marginTop="8dp"
-          app:layout_constraintTop_toBottomOf="@id/scrollChips"
-          app:layout_constraintStart_toStartOf="parent"
-          app:layout_constraintEnd_toEndOf="parent"/>
-
-      <Spinner
-          android:id="@+id/spGeneroCat"
-          android:layout_width="0dp"
-          android:layout_height="48dp"
-          android:background="@drawable/bg_spinner_border"
-          android:layout_marginTop="8dp"
-          app:layout_constraintTop_toBottomOf="@id/spModalidad"
-          app:layout_constraintStart_toStartOf="parent"
-          app:layout_constraintEnd_toEndOf="parent"/>
-
-      <LinearLayout
-          android:id="@+id/layoutEdades"
-          android:layout_width="match_parent"
-          android:layout_height="wrap_content"
-          android:orientation="horizontal"
-          android:layout_marginTop="8dp"
-          app:layout_constraintTop_toBottomOf="@id/spGeneroCat">
-
-        <EditText
-            android:id="@+id/etEdadMin"
+        <TextView
+            android:id="@+id/tvMensajeGlobal"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:hint="Edad Mín"
+            android:layout_marginTop="8dp"
+            android:gravity="center"
+            android:padding="8dp"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:visibility="gone"
+            app:layout_constraintTop_toBottomOf="@id/tvTituloPagina"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"/>
+
+        <TextView
+            android:id="@+id/lblTitulo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Título del Evento"
+            android:textColor="#616161"
+            android:textSize="12sp"
+            android:layout_marginTop="16dp"
+            app:layout_constraintTop_toBottomOf="@id/tvMensajeGlobal"
+            app:layout_constraintStart_toStartOf="parent"/>
+
+        <EditText
+            android:id="@+id/etTitulo"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:inputType="textCapSentences"
+            android:background="@android:drawable/edit_text"
+            android:paddingVertical="12dp"
+            app:layout_constraintTop_toBottomOf="@id/lblTitulo"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"/>
+
+        <TextView
+            android:id="@+id/lblDescripcion"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Descripción"
+            android:textColor="#616161"
+            android:textSize="12sp"
+            android:layout_marginTop="12dp"
+            app:layout_constraintTop_toBottomOf="@id/etTitulo"
+            app:layout_constraintStart_toStartOf="parent"/>
+
+        <EditText
+            android:id="@+id/etDescripcion"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:inputType="textMultiLine"
+            android:minLines="2"
+            android:gravity="top|start"
+            android:background="@android:drawable/edit_text"
+            android:paddingVertical="12dp"
+            app:layout_constraintTop_toBottomOf="@id/lblDescripcion"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"/>
+
+        <TextView
+            android:id="@+id/lblFecha"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Fecha"
+            android:textColor="#616161"
+            android:textSize="12sp"
+            android:layout_marginTop="12dp"
+            app:layout_constraintTop_toBottomOf="@id/etDescripcion"
+            app:layout_constraintStart_toStartOf="parent"/>
+
+        <EditText
+            android:id="@+id/etFecha"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:hint="dd/mm/aaaa"
+            android:focusable="false"
+            android:clickable="true"
+            android:inputType="none"
+            android:background="@android:drawable/edit_text"
+            android:paddingVertical="12dp"
+            android:layout_marginEnd="8dp"
+            app:layout_constraintTop_toBottomOf="@id/lblFecha"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/etHora"/>
+
+        <TextView
+            android:id="@+id/lblHora"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Hora"
+            android:textColor="#616161"
+            android:textSize="12sp"
+            android:layout_marginTop="12dp"
+            android:layout_marginStart="8dp"
+            app:layout_constraintTop_toBottomOf="@id/etDescripcion"
+            app:layout_constraintStart_toStartOf="@+id/etHora"/>
+
+        <EditText
+            android:id="@+id/etHora"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:hint="--:--"
+            android:focusable="false"
+            android:clickable="true"
+            android:inputType="none"
+            android:background="@android:drawable/edit_text"
+            android:paddingVertical="12dp"
+            android:layout_marginStart="8dp"
+            app:layout_constraintTop_toBottomOf="@id/lblHora"
+            app:layout_constraintStart_toEndOf="@+id/etFecha"
+            app:layout_constraintEnd_toEndOf="parent"/>
+
+        <TextView
+            android:id="@+id/lblUbicacion"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Ubicación / Dirección"
+            android:textColor="#616161"
+            android:textSize="12sp"
+            android:layout_marginTop="12dp"
+            app:layout_constraintTop_toBottomOf="@id/etFecha"
+            app:layout_constraintStart_toStartOf="parent"/>
+
+        <EditText
+            android:id="@+id/etUbicacion"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:inputType="textPostalAddress"
+            android:background="@android:drawable/edit_text"
+            android:paddingVertical="12dp"
+            app:layout_constraintTop_toBottomOf="@id/lblUbicacion"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"/>
+
+        <TextView
+            android:id="@+id/lblDatosPago"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Datos de Pago (CBU / Alias)"
+            android:textColor="#616161"
+            android:textSize="12sp"
+            android:layout_marginTop="12dp"
+            app:layout_constraintTop_toBottomOf="@id/etUbicacion"
+            app:layout_constraintStart_toStartOf="parent"/>
+
+        <EditText
+            android:id="@+id/etDatosPago"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:inputType="textMultiLine"
+            android:minLines="2"
+            android:gravity="top|start"
+            android:hint="Ej: Alias: RUNNERS.SL"
+            android:background="@android:drawable/edit_text"
+            android:paddingVertical="12dp"
+            app:layout_constraintTop_toBottomOf="@id/lblDatosPago"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"/>
+
+        <TextView
+            android:id="@+id/lblCupo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Cupo Total del Evento"
+            android:textColor="#616161"
+            android:textSize="12sp"
+            android:layout_marginTop="12dp"
+            app:layout_constraintTop_toBottomOf="@id/etDatosPago"
+            app:layout_constraintStart_toStartOf="parent"/>
+
+        <EditText
+            android:id="@+id/etCupo"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
             android:inputType="number"
             android:background="@android:drawable/edit_text"
             android:paddingVertical="12dp"
-            android:layout_marginEnd="4dp"/>
+            app:layout_constraintTop_toBottomOf="@id/lblCupo"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"/>
 
-        <EditText
-            android:id="@+id/etEdadMax"
+        <TextView
+            android:id="@+id/lblTipoEvento"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Tipo de Evento (Modalidad)"
+            android:textColor="#616161"
+            android:textSize="12sp"
+            android:layout_marginTop="12dp"
+            app:layout_constraintTop_toBottomOf="@id/etCupo"
+            app:layout_constraintStart_toStartOf="parent"/>
+
+        <Spinner
+            android:id="@+id/spTipoEventoGlobal"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:background="@drawable/bg_spinner_border"
+            app:layout_constraintTop_toBottomOf="@id/lblTipoEvento"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"/>
+        <View
+            android:id="@+id/divider"
+            android:layout_width="0dp"
+            android:layout_height="1dp"
+            android:background="#CCCCCC"
+            android:layout_marginTop="24dp"
+            app:layout_constraintTop_toBottomOf="@id/spTipoEventoGlobal"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"/>
+
+        <TextView
+            android:id="@+id/tvTituloSeccionCat"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Definir Categorías"
+            android:textStyle="bold"
+            android:textSize="18sp"
+            android:textColor="#1565C0"
+            android:layout_marginTop="16dp"
+            app:layout_constraintTop_toBottomOf="@id/divider"
+            app:layout_constraintStart_toStartOf="parent"/>
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvCategoriasAgregadas"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:nestedScrollingEnabled="false"
+            app:layout_constraintTop_toBottomOf="@id/tvTituloSeccionCat"/>
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/containerFormCategoria"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:background="#F9F9F9"
+            android:padding="12dp"
+            app:layout_constraintTop_toBottomOf="@id/rvCategoriasAgregadas">
+
+            <TextView
+                android:id="@+id/lblNuevaCat"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Nueva Categoría"
+                android:textStyle="bold"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"/>
+
+            <TextView
+                android:id="@+id/lblDistancia"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Distancia (Km)"
+                android:textSize="12sp"
+                android:layout_marginTop="8dp"
+                app:layout_constraintTop_toBottomOf="@id/lblNuevaCat"
+                app:layout_constraintStart_toStartOf="parent"/>
+
+            <EditText
+                android:id="@+id/etDistanciaValor"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:inputType="numberDecimal"
+                android:hint="Ej: 10"
+                android:background="@android:drawable/edit_text"
+                android:paddingVertical="12dp"
+                app:layout_constraintTop_toBottomOf="@id/lblDistancia"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"/>
+
+            <HorizontalScrollView
+                android:id="@+id/scrollChips"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:scrollbars="none"
+                app:layout_constraintTop_toBottomOf="@id/etDistanciaValor">
+
+                <com.google.android.material.chip.ChipGroup
+                    android:id="@+id/chipGroupDistancias"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    app:singleSelection="true">
+
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/chip3k"
+                        style="@style/Widget.MaterialComponents.Chip.Choice"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="3K"/>
+
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/chip5k"
+                        style="@style/Widget.MaterialComponents.Chip.Choice"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="5K"/>
+
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/chip10k"
+                        style="@style/Widget.MaterialComponents.Chip.Choice"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="10K"/>
+
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/chip21k"
+                        style="@style/Widget.MaterialComponents.Chip.Choice"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="21K"/>
+
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/chip42k"
+                        style="@style/Widget.MaterialComponents.Chip.Choice"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="42K"/>
+                </com.google.android.material.chip.ChipGroup>
+            </HorizontalScrollView>
+
+            <Spinner
+                android:id="@+id/spGeneroCat"
+                android:layout_width="0dp"
+                android:layout_height="48dp"
+                android:background="@drawable/bg_spinner_border"
+                android:layout_marginTop="8dp"
+                app:layout_constraintTop_toBottomOf="@id/scrollChips"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"/>
+
+            <LinearLayout
+                android:id="@+id/layoutEdades"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginTop="8dp"
+                app:layout_constraintTop_toBottomOf="@id/spGeneroCat">
+
+                <EditText
+                    android:id="@+id/etEdadMin"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:hint="Edad Mín"
+                    android:inputType="number"
+                    android:background="@android:drawable/edit_text"
+                    android:paddingVertical="12dp"
+                    android:layout_marginEnd="4dp"/>
+
+                <EditText
+                    android:id="@+id/etEdadMax"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:hint="Edad Máx"
+                    android:inputType="number"
+                    android:background="@android:drawable/edit_text"
+                    android:paddingVertical="12dp"
+                    android:layout_marginStart="4dp"/>
+            </LinearLayout>
+
+            <EditText
+                android:id="@+id/etCatPrecio"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="numberDecimal"
+                android:hint="Precio ($)"
+                android:background="@android:drawable/edit_text"
+                android:paddingVertical="12dp"
+                android:layout_marginTop="8dp"
+                app:layout_constraintTop_toBottomOf="@id/layoutEdades"/>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnAgregarCategoria"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="+ Agregar esta categoría"
+                android:layout_marginTop="12dp"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                app:layout_constraintTop_toBottomOf="@id/etCatPrecio"/>
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <TextView
+            android:id="@+id/tvAvisoMapa"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:hint="Edad Máx"
-            android:inputType="number"
-            android:background="@android:drawable/edit_text"
-            android:paddingVertical="12dp"
-            android:layout_marginStart="4dp"/>
-      </LinearLayout>
+            android:text=" ¡Siguiente paso: Dibujar el circuito en el mapa!."
+            android:textColor="#1565C0"
+            android:background="#E3F2FD"
+            android:padding="12dp"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:gravity="center"
+            android:layout_marginTop="24dp"
+            app:layout_constraintTop_toBottomOf="@id/containerFormCategoria"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"/>
 
-      <EditText
-          android:id="@+id/etCatPrecio"
-          android:layout_width="match_parent"
-          android:layout_height="wrap_content"
-          android:inputType="numberDecimal"
-          android:hint="Precio ($)"
-          android:background="@android:drawable/edit_text"
-          android:paddingVertical="12dp"
-          android:layout_marginTop="8dp"
-          app:layout_constraintTop_toBottomOf="@id/layoutEdades"/>
+        <ProgressBar
+            android:id="@+id/progressBar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"/>
 
-      <com.google.android.material.button.MaterialButton
-          android:id="@+id/btnAgregarCategoria"
-          android:layout_width="match_parent"
-          android:layout_height="wrap_content"
-          android:text="+ Agregar esta categoría"
-          android:layout_marginTop="12dp"
-          style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-          app:layout_constraintTop_toBottomOf="@id/etCatPrecio"/>
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnContinuarMapa"
+            android:layout_width="0dp"
+            android:layout_height="60dp"
+            android:text="Guardar y Definir Ruta ️"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="32dp"
+            app:cornerRadius="8dp"
+            app:layout_constraintTop_toBottomOf="@id/tvAvisoMapa"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"/>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
-
-    <TextView
-        android:id="@+id/tvAvisoMapa"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:text=" ¡Siguiente paso: Dibujar el circuito en el mapa!."
-        android:textColor="#1565C0"
-        android:background="#E3F2FD"
-        android:padding="12dp"
-        android:textSize="14sp"
-        android:textStyle="bold"
-        android:gravity="center"
-        android:layout_marginTop="24dp"
-        app:layout_constraintTop_toBottomOf="@id/containerFormCategoria"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"/>
-
-    <ProgressBar
-        android:id="@+id/progressBar"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:visibility="gone"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"/>
-
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/btnContinuarMapa"
-        android:layout_width="0dp"
-        android:layout_height="60dp"
-        android:text="Guardar y Definir Ruta ️"
-        android:textSize="16sp"
-        android:textStyle="bold"
-        android:layout_marginTop="16dp"
-        android:layout_marginBottom="32dp"
-        app:cornerRadius="8dp"
-        app:layout_constraintTop_toBottomOf="@id/tvAvisoMapa"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"/>
-
-  </androidx.constraintlayout.widget.ConstraintLayout>
 </ScrollView>

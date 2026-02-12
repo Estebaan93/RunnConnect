@@ -15,6 +15,7 @@ public class CategoriaResponse {
   private int edadMinima;
   private int edadMaxima;
   private String genero; // "X", "F", "M"
+  private String estado;
 
   // Getters
   public int getIdCategoria() { return idCategoria; }
@@ -24,5 +25,6 @@ public class CategoriaResponse {
   public int getEdadMaxima() { return edadMaxima; }
   public String getGenero() { return genero; }
   public int getInscriptosActuales() { return inscriptosActuales; }
+  public String getEstado() { return estado; }
 
 }

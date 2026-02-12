@@ -11,6 +11,8 @@ public class EventoResumenResponse {
   private int cupoTotal;
   private int inscriptosActuales;
   private int cantidadCategorias;
+  private String tipoEvento; //
+  private String datosPago;
   private String nombreOrganizador;
   private List<CategoriaResponse> categorias;
 
@@ -23,6 +25,8 @@ public class EventoResumenResponse {
   public String getEstado() { return estado; }
   public int getCupoTotal() { return cupoTotal; }
   public int getInscriptosActuales() { return inscriptosActuales; }
+  public String getTipoEvento() { return tipoEvento; }
+  public String getDatosPago() { return datosPago; }
   public int getCantidadCategorias() { return cantidadCategorias; }
   public String getNombreOrganizador() { return nombreOrganizador; }
   public List<CategoriaResponse> getCategorias() { return categorias;

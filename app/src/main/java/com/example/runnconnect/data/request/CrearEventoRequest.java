@@ -9,9 +9,10 @@ public class CrearEventoRequest {
   private String lugar;
   private int cupoTotal;
   private String urlPronosticoClima;
-  private String datosPago; // Aquí guardaremos el precio/CBU temporalmente
+  private String datosPago; // el precio/CBU temporalmente
+  private String tipoEvento;
   private List<CrearCategoriaRequest> categorias;
-  public CrearEventoRequest(String nombre, String descripcion, String fechaHora, String lugar, int cupoTotal, String urlPronosticoClima, String datosPago, List<CrearCategoriaRequest> categorias) {
+  public CrearEventoRequest(String nombre, String descripcion, String fechaHora, String lugar, int cupoTotal, String urlPronosticoClima, String datosPago, String tipoEvento, List<CrearCategoriaRequest> categorias) {
     this.nombre = nombre;
     this.descripcion = descripcion;
     this.fechaHora = fechaHora;
@@ -19,6 +20,7 @@ public class CrearEventoRequest {
     this.cupoTotal = cupoTotal;
     this.urlPronosticoClima = urlPronosticoClima;
     this.datosPago = datosPago;
+    this.tipoEvento= tipoEvento;
     this.categorias= categorias;
   }
 

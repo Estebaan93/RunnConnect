@@ -44,9 +44,9 @@ public class CrearEventoFragment extends Fragment {
   }
 
   private void setupUI() {
-    String[] modalidades = {"Calle", "Trail", "Cross", "Aventura", "Obstáculos", "Correcaminata", "Kids", "Triatlón"};
-    ArrayAdapter<String> adapterMod = new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_dropdown_item, modalidades);
-    binding.spModalidad.setAdapter(adapterMod);
+    String[] tiposEvento = {"Calle", "Trail", "Cross", "Aventura", "Obstáculos", "Correcaminata", "Kids", "Triatlón"};
+    ArrayAdapter<String> adapterMod = new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_dropdown_item, tiposEvento);
+    binding.spTipoEventoGlobal.setAdapter(adapterMod);
 
     String[] generosVisual = {"Mixto / General", "Femenino", "Masculino"};
     ArrayAdapter<String> adapterGen = new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_dropdown_item, generosVisual);
@@ -60,27 +60,27 @@ public class CrearEventoFragment extends Fragment {
   }
 
   private void setupObservers() {
-    // 1. Lista de categorías (RecyclerView)
+    // 1. Lista de categorias (RecyclerView)
     viewModel.getCategoriasLive().observe(getViewLifecycleOwner(), lista -> {
       categoriasAdapter.setLista(lista);
       binding.rvCategoriasAgregadas.setVisibility(lista.isEmpty() ? View.GONE : View.VISIBLE);
     });
 
-    // 2. Visibilidad del formulario de categorías (Se oculta al Editar)
+    // 2. Visibilidad del formulario de categorias (Se oculta al Editar)
     viewModel.getUiVisibilidadCamposExtra().observe(getViewLifecycleOwner(), visibility -> {
       binding.containerFormCategoria.setVisibility(visibility);
       binding.tvTituloSeccionCat.setVisibility(visibility);
     });
 
-    // 3. NUEVO: Bloqueo de campos en modo Edición
-    // Esto es lo que te faltaba para cumplir el punto 1
+    // 3. NUEVO: Bloqueo de campos en modo Edicion
+    // Esto es lo que faltaba para cumplir el punto 1
     viewModel.getUiCamposHabilitados().observe(getViewLifecycleOwner(), habilitado -> {
       // Campos que NO se pueden editar si el evento ya existe
       binding.etTitulo.setEnabled(habilitado);
       binding.etUbicacion.setEnabled(habilitado);
       binding.etCupo.setEnabled(habilitado);
 
-      // Efecto visual (grisáceo) para indicar que están bloqueados
+      // Efecto visual (grisaceo) para indicar que estan bloqueados
       float alpha = habilitado ? 1.0f : 0.5f;
       binding.etTitulo.setAlpha(alpha);
       binding.etUbicacion.setAlpha(alpha);
@@ -90,6 +90,11 @@ public class CrearEventoFragment extends Fragment {
       binding.etDescripcion.setEnabled(true);
       binding.etDatosPago.setEnabled(true);
 
+      // Observer para pre-seleccionar el Spinner en modo Edicion
+      viewModel.getTipoEventoGlobal().observe(getViewLifecycleOwner(), tipo -> {
+        setSpinnerSelection(binding.spTipoEventoGlobal, tipo);
+      });
+
       // Fecha y Hora siempre habilitadas (manejan su propio click listener)
       binding.etFecha.setEnabled(true);
       binding.etHora.setEnabled(true);
@@ -97,7 +102,7 @@ public class CrearEventoFragment extends Fragment {
       binding.etHora.setClickable(true);
     });
 
-    // 4. Textos estáticos
+    // 4. Textos estaticos
     viewModel.getUiTituloPagina().observe(getViewLifecycleOwner(), binding.tvTituloPagina::setText);
     viewModel.getUiTextoBoton().observe(getViewLifecycleOwner(), binding.btnContinuarMapa::setText);
     viewModel.getUiTextoAviso().observe(getViewLifecycleOwner(), binding.tvAvisoMapa::setText);
@@ -111,7 +116,7 @@ public class CrearEventoFragment extends Fragment {
     viewModel.getDatosPago().observe(getViewLifecycleOwner(), s -> binding.etDatosPago.setText(s));
     viewModel.getCupo().observe(getViewLifecycleOwner(), s -> binding.etCupo.setText(s));
 
-    // Formulario de Categoría
+    // Formulario de Categoria
     viewModel.getDistancia().observe(getViewLifecycleOwner(), s -> binding.etDistanciaValor.setText(s));
     viewModel.getPrecio().observe(getViewLifecycleOwner(), s -> binding.etCatPrecio.setText(s));
 
@@ -144,17 +149,23 @@ public class CrearEventoFragment extends Fragment {
       }
     });
 
+    // Lista de categorias
+    viewModel.getCategoriasLive().observe(getViewLifecycleOwner(), lista -> {
+      categoriasAdapter.setLista(lista);
+      binding.rvCategoriasAgregadas.setVisibility(lista.isEmpty() ? View.GONE : View.VISIBLE);
+    });
+
     viewModel.getIsLoading().observe(getViewLifecycleOwner(), loading -> {
       binding.progressBar.setVisibility(loading ? View.VISIBLE : View.GONE);
       binding.btnContinuarMapa.setEnabled(!loading);
     });
 
-    // 8. Navegación tras éxito
+    // 8. Navegacion tras exito
     viewModel.getNavegacionExito().observe(getViewLifecycleOwner(), code -> {
       if (code == 0) return;
-      if (code == 2) { // Edición exitosa -> Volver atrás
+      if (code == 2) { // Edicion exitosa -> Volver atras
         Navigation.findNavController(requireView()).popBackStack();
-      } else { // Creación exitosa -> Ir a mapa (code es el ID del nuevo evento)
+      } else { // Creacion exitosa -> Ir a mapa (code es el ID del nuevo evento)
         Bundle args = new Bundle();
         args.putInt("idEvento", code);
         try {
@@ -166,11 +177,10 @@ public class CrearEventoFragment extends Fragment {
   }
 
   private void setupListeners() {
-    // --- BOTÓN AGREGAR CATEGORÍA A LA LISTA ---
+    // BOTON AGREGAR CATEGORIA A LA LISTA
     binding.btnAgregarCategoria.setOnClickListener(v -> {
       boolean exito = viewModel.agregarCategoriaLocal(
         binding.etDistanciaValor.getText().toString(),
-        binding.spModalidad.getSelectedItem().toString(),
         binding.spGeneroCat.getSelectedItem().toString(),
         binding.etEdadMin.getText().toString(),
         binding.etEdadMax.getText().toString(),
@@ -183,18 +193,22 @@ public class CrearEventoFragment extends Fragment {
         binding.etDistanciaValor.setText("");
         binding.etCatPrecio.setText("");
         binding.chipGroupDistancias.clearCheck();
-        Toast.makeText(getContext(), "Categoría agregada", Toast.LENGTH_SHORT).show();
+        Toast.makeText(getContext(), "Categoria agregada", Toast.LENGTH_SHORT).show();
       }
     });
 
-    // --- BOTÓN FINAL (GUARDAR TODO) ---
+    // --- BOTON FINAL (GUARDAR TODeO) ---
     binding.btnContinuarMapa.setOnClickListener(v -> {
+      // Obtenemos el valor del Spinner GLOBAL
+      String tipoSeleccionado = binding.spTipoEventoGlobal.getSelectedItem().toString();
+
       viewModel.guardarEvento(
         binding.etTitulo.getText().toString(),
         binding.etDescripcion.getText().toString(),
         binding.etUbicacion.getText().toString(),
         binding.etDatosPago.getText().toString(),
-        binding.etCupo.getText().toString()
+        binding.etCupo.getText().toString(),
+        tipoSeleccionado
       );
     });
 

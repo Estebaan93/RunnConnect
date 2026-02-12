@@ -314,10 +314,36 @@ public class DetalleEventoViewModel extends AndroidViewModel {
 
     if (evento.getCategorias() != null && !evento.getCategorias().isEmpty()) {
       CategoriaResponse cat = evento.getCategorias().get(0);
-      uiDistanciaTipo.setValue(cat.getNombre() != null ? cat.getNombre() : "General");
+
+      String tipotexto="";
+      // 1. Obtenemos el tipo (ej: "calle") y lo capitalizamos ("Calle")
+      String tipoTexto = "";
+      if (evento.getTipoEvento() != null && !evento.getTipoEvento().isEmpty()) {
+        String raw = evento.getTipoEvento();
+        tipoTexto = raw.substring(0, 1).toUpperCase() + raw.substring(1);
+      }
+
+      // 2. Armamos el texto final: "5K - Calle"
+      String textoFinal = (cat.getNombre() != null ? cat.getNombre() : "General");
+      if (!tipoTexto.isEmpty()) {
+        textoFinal += "  |  " + tipoTexto;
+      }
+
+      uiDistanciaTipo.setValue(textoFinal);
+
       uiGeneroPrecio.setValue("$" + cat.getPrecio());
+
       uiVisibilidadDatosCategoria.setValue(View.VISIBLE);
-    } else uiVisibilidadDatosCategoria.setValue(View.GONE);
+
+    } else {
+      // Si no hay categorias pero hay tipo, mostramos solo el tipo
+      if (evento.getTipoEvento() != null) {
+        uiDistanciaTipo.setValue(evento.getTipoEvento().toUpperCase());
+        uiVisibilidadDatosCategoria.setValue(View.VISIBLE);
+      } else {
+        uiVisibilidadDatosCategoria.setValue(View.GONE);
+      }
+    }
 
     if (evento.getCategorias() != null) listaCategorias.setValue(evento.getCategorias());
     visibilityBtnResultados.setValue("FINALIZADO".equals(estado) ? View.VISIBLE : View.GONE);

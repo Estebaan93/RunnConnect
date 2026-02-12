@@ -51,6 +51,7 @@ public class CrearEventoViewModel extends AndroidViewModel {
   private final MutableLiveData<String> datosPago = new MutableLiveData<>();
   private final MutableLiveData<String> cupo = new MutableLiveData<>();
 
+  //datos de categorias
   private final MutableLiveData<String> distancia = new MutableLiveData<>();
   private final MutableLiveData<String> precio = new MutableLiveData<>();
   private final MutableLiveData<String> edadMin = new MutableLiveData<>();
@@ -59,6 +60,8 @@ public class CrearEventoViewModel extends AndroidViewModel {
   //selectores de modalidad
   private final MutableLiveData<String> seleccionModalidad = new MutableLiveData<>();
   private final MutableLiveData<String> seleccionGenero = new MutableLiveData<>();
+
+  private final MutableLiveData<String> tipoEventoGlobal = new MutableLiveData<>();
 
   // --- CONTROL UI ---
   private final MutableLiveData<String> uiTituloPagina = new MutableLiveData<>();
@@ -122,10 +125,12 @@ public class CrearEventoViewModel extends AndroidViewModel {
   //Getter de categoria
   public LiveData<List<CrearCategoriaRequest>> getCategoriasLive() { return categoriasLive; }
 
+  public LiveData<String> getTipoEventoGlobal() { return tipoEventoGlobal; }
+
   //agregar categoria
-  public boolean agregarCategoriaLocal(String distanciaIn, String modalidadIn, String generoIn,
+  public boolean agregarCategoriaLocal(String distanciaIn, String generoIn,
                                     String edadMinIn, String edadMaxIn, String precioIn, String cupoEvento) {
-    // 1. Validaciones básicas de la categoría
+    // 1. Validaciones basicas de la categoría
     if (distanciaIn.trim().isEmpty()) {
       errorDistancia.setValue("Indica la distancia");
       return false;
@@ -146,16 +151,16 @@ public class CrearEventoViewModel extends AndroidViewModel {
     // 2. Construir Nombre y Datos
     String nombreDistancia = distanciaIn.toUpperCase().contains("K") ? distanciaIn : distanciaIn + "K";
 
-    // Mapeo Género
+    // Mapeo Genero
     String generoApi = "X";
     String generoNombre = "";
     if (generoIn.contains("Femenino")) { generoApi = "F"; generoNombre = "(Fem)"; }
     else if (generoIn.contains("Masculino")) { generoApi = "M"; generoNombre = "(Masc)"; }
 
-    // Construir Nombre: "10K Calle (Fem)"
-    String nombreFinal = nombreDistancia + " " + modalidadIn + " " + generoNombre;
+    // Construir Nombre: "10K Calle (Fem)", el tipo (calle/trail) viene del padre evento
+    String nombreFinal = nombreDistancia +  generoNombre;
 
-    // Cupo: Usamos el cupo total del evento como límite individual (según tu requerimiento)
+    // Cupo: Usamos el cupo total del evento como limite individual
     Integer cupoInt = null;
     try { cupoInt = Integer.parseInt(cupoEvento); } catch(Exception e){}
 
@@ -163,7 +168,7 @@ public class CrearEventoViewModel extends AndroidViewModel {
     CrearCategoriaRequest nuevaCat = new CrearCategoriaRequest(
       nombreFinal.trim(),
       precioDec,
-      cupoInt // <--- El mismo cupo del evento
+      cupoInt // el mismo cupo del evento
     );
     nuevaCat.setGenero(generoApi);
     try { nuevaCat.setEdadMinima(Integer.parseInt(edadMinIn)); } catch(Exception e) {}
@@ -173,7 +178,7 @@ public class CrearEventoViewModel extends AndroidViewModel {
     categoriasTemporales.add(nuevaCat);
     categoriasLive.setValue(new ArrayList<>(categoriasTemporales)); // Copia nueva para activar observer
 
-    // 5. Limpiar errores (Éxito)
+    // 5. Limpiar errores (exito)
     errorDistancia.setValue(null);
     errorPrecio.setValue(null);
     return true;
@@ -188,9 +193,8 @@ public class CrearEventoViewModel extends AndroidViewModel {
 
   public void resetearNavegacion() { navegacionExito.setValue(0); }
 
-  // --- LOGICA DE VALIDACION Y GUARDADO ---
-
-  public void guardarEvento(String tituloIn, String descripcionIn, String lugarIn, String datosPagoIn, String cupoIn) {
+  // LOGICA DE VALIDACION Y GUARDADO
+  public void guardarEvento(String tituloIn, String descripcionIn, String lugarIn, String datosPagoIn, String cupoIn,String tipoEventoIn) {
 
     // 1. Limpiar errores previos (Solo los del evento)
     mensajeGlobal.setValue(null);
@@ -219,7 +223,7 @@ public class CrearEventoViewModel extends AndroidViewModel {
       return;
     }
 
-    // Validación Cupo Total del Evento
+    // Validacion Cupo Total del Evento
     Integer cupoInt = null;
     try {
       if (cupoIn != null && !cupoIn.trim().isEmpty()) {
@@ -232,8 +236,8 @@ public class CrearEventoViewModel extends AndroidViewModel {
 
     String fechaHoraFinal = fechaIso + "T" + horaIso + ":00";
 
-    // --- RAMA EDICIÓN ---
-    // (Nota: En edición no tocamos categorías según tu regla de negocio)
+    //  RAMA EDICION
+    // (Nota: En edicion no tocamos categorias)
     if (esEdicion) {
       ActualizarEventoRequest request = new ActualizarEventoRequest();
       request.setNombre(tituloIn);
@@ -247,16 +251,15 @@ public class CrearEventoViewModel extends AndroidViewModel {
       return;
     }
 
-    // --- RAMA CREACIÓN (Aquí usamos tu modelo CrearCategoriaRequest) ---
-
-    // VALIDACIÓN CLAVE: ¿La lista tiene datos?
+    //  RAMA CREACION (Aqui usamos el modelo CrearCategoriaRequest)
+    // VALIDACION CLAVE: la lista tiene datos?
     if (categoriasTemporales.isEmpty()) {
       mensajeGlobal.setValue("Debes agregar al menos una categoría con el botón '+'.");
       return;
     }
 
-    // Creamos el request usando la lista de objetos CrearCategoriaRequest que fuimos llenando
-    // Nota: Asegúrate que tu CrearEventoRequest tenga un constructor que acepte la lista
+    // creamos el request usando la lista de objetos CrearCategoriaRequest que fuimos llenando
+    //constructor
     CrearEventoRequest request = new CrearEventoRequest(
       tituloIn,
       descripcionIn,
@@ -265,6 +268,7 @@ public class CrearEventoViewModel extends AndroidViewModel {
       cupoInt,
       null,
       datosPagoIn,
+      tipoEventoIn.toLowerCase().trim(),
       new ArrayList<>(categoriasTemporales) // Pasamos la lista acumulada
     );
 
@@ -338,11 +342,11 @@ public class CrearEventoViewModel extends AndroidViewModel {
     mensajeGlobal.setValue(msg);
   }
 
-  // --- CONFIGURACION UI (MISMOS METODOS QUE ANTES) ---
+  //  CONFIGURACION UI
   private void configurarModoCrear() {
     uiTituloPagina.setValue("Nuevo Evento");
     uiTextoBoton.setValue("Guardar y Definir Ruta");
-    uiTextoAviso.setValue("¡Siguiente paso: Dibujar el circuito en el mapa!");
+    uiTextoAviso.setValue("Siguiente paso: Dibujar el circuito en el mapa!");
     uiVisibilidadCamposExtra.setValue(View.VISIBLE);
     uiVisibilidadChips.setValue(View.VISIBLE);
     uiCamposHabilitados.setValue(true);

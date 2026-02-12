@@ -14,7 +14,7 @@ public class CrearCategoriaRequest {
     this.nombre = nombre;
     this.costoInscripcion = costoInscripcion;
     this.cupoCategoria = cupoCategoria;
-    // Valores por defecto lógicos para simplificar el form
+    // Valores por defecto logicos para simplificar el form
     this.edadMinima = 18;
     this.edadMaxima = 99;
     this.genero = "X";
