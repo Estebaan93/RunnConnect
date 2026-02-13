@@ -891,14 +891,14 @@ namespace RunnConnectAPI.Controllers
         //Generar token unico
         var token = Guid.NewGuid().ToString("N"); // Token sin guiones
 
-        //Crear registro de token (valido por 1 hora)
+        //Crear registro de token (valido por 5 minutos)
         var tokenRecuperacion = new TokenRecuperacion
         {
           IdUsuario = usuario.IdUsuario,
           Token = token,
           TipoToken="recuperacion",
           FechaCreacion = DateTime.Now,
-          FechaExpiracion = DateTime.Now.AddHours(1),
+          FechaExpiracion = DateTime.Now.AddMinutes(5),
           Usado = false
         };
 
@@ -922,7 +922,7 @@ namespace RunnConnectAPI.Controllers
         return Ok(new
         {
           message = "Se ha enviado un email con instrucciones para recuperar tu contraseña",
-          info = "Revisa tu bandeja de entrada y spam. El enlace expira en 1 hora."
+          info = "Revisa tu bandeja de entrada y spam. El enlace expira en 5 minutos."
         });
       }
       catch (Exception ex)
@@ -981,8 +981,7 @@ namespace RunnConnectAPI.Controllers
     /*SOLICITAR REACTIVACION DE CUENTA (Envia email con token)
   POST: api/Usuario/SolicitarReactivacion
   Verifica credenciales y envia email con link de reactivacion*/
-    // Controllers/UsuarioController.cs - AGREGAR ESTOS DOS MÉTODOS
-
+    
     [AllowAnonymous]
     [HttpPost("SolicitarReactivacion")]
     public async Task<IActionResult> SolicitarReactivacion([FromBody] SolicitarReactivacionDto dto)
@@ -1003,17 +1002,17 @@ namespace RunnConnectAPI.Controllers
         if (!_passwordService.VerifyPassword(dto.Password, usuario.PasswordHash))
           return Unauthorized(new { message = "Credenciales inválidas" });
 
-        // 4. Generar token unico para reactivación
+        // 4. Generar token unico para reactivacion
         var token = Guid.NewGuid().ToString("N");
 
-        // 5. Crear registro de token (valido por 1 hora)
+        // 5. Crear registro de token (valido por 5 minutos)
         var tokenReactivacion = new TokenRecuperacion
         {
           IdUsuario = usuario.IdUsuario,
           Token = token,
-          TipoToken = "reactivacion", // ← DIFERENCIADOR
+          TipoToken = "reactivacion", // DIFERENCIADOR
           FechaCreacion = DateTime.Now,
-          FechaExpiracion = DateTime.Now.AddHours(1),
+          FechaExpiracion = DateTime.Now.AddMinutes(5),
           Usado = false
         };
 
@@ -1029,7 +1028,7 @@ namespace RunnConnectAPI.Controllers
 
         if (!emailEnviado)
         {
-          // Si falla el envío, marcar token como usado para invalidarlo
+          // Si falla el envio, marcar token como usado para invalidarlo
           tokenReactivacion.Usado = true;
           await _tokenRecuperacionRepositorio.UpdateAsync(tokenReactivacion);
           return StatusCode(500, new { message = "Error al enviar el email. Intenta nuevamente" });
@@ -1039,7 +1038,7 @@ namespace RunnConnectAPI.Controllers
         return Ok(new
         {
           message = "Se ha enviado un email con instrucciones para reactivar tu cuenta",
-          info = "Revisa tu bandeja de entrada y spam. El enlace expira en 1 hora"
+          info = "Revisa tu bandeja de entrada y spam. El enlace expira en 5 minutos"
         });
       }
       catch (Exception ex)
@@ -1057,21 +1056,21 @@ namespace RunnConnectAPI.Controllers
     {
       try
       {
-        // 1. Buscar token de reactivación
+        // 1. Buscar token de reactivacion
         var tokenReactivacion = await _tokenRecuperacionRepositorio.GetByTokenAsync(dto.Token);
 
         if (tokenReactivacion == null)
           return BadRequest(new { message = "Token inválido" });
 
-        // 2. Verificar que sea un token de reactivación
+        // 2. Verificar que sea un token de reactivacion
         if (tokenReactivacion.TipoToken != "reactivacion")
           return BadRequest(new { message = "Este token no es válido para reactivación" });
 
-        // 3. Verificar que no esté usado
+        // 3. Verificar que no este usado
         if (tokenReactivacion.Usado)
           return BadRequest(new { message = "Este token ya fue utilizado" });
 
-        // 4. Verificar que no esté expirado
+        // 4. Verificar que no este expirado
         if (DateTime.Now > tokenReactivacion.FechaExpiracion)
           return BadRequest(new { message = "El token ha expirado. Solicita uno nuevo" });
 
@@ -1081,7 +1080,7 @@ namespace RunnConnectAPI.Controllers
         if (usuario == null)
           return NotFound(new { message = "Usuario no encontrado" });
 
-        // 6. Verificar que la cuenta esté desactivada
+        // 6. Verificar que la cuenta este desactivada
         if (usuario.Estado)
           return BadRequest(new { message = "La cuenta ya está activa" });
 
@@ -1093,11 +1092,11 @@ namespace RunnConnectAPI.Controllers
         tokenReactivacion.Usado = true;
         await _tokenRecuperacionRepositorio.UpdateAsync(tokenReactivacion);
 
-        // 9. Generar token JWT para login automático
+        // 9. Generar token JWT para login automatico
         var jwtToken = _jwtService.GenerarToken(usuario);
         var avatarUrl = _fileService.ObtenerUrlCompleta(usuario.ImgAvatar, Request);
 
-        // 10. Retornar éxito con token para login automatico
+        // 10. Retornar exito con token para login automatico
         return Ok(new
         {
           message = "¡Cuenta reactivada exitosamente! Bienvenido de nuevo",

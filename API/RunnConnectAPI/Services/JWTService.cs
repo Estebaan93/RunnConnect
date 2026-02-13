@@ -9,11 +9,11 @@ namespace RunnConnectAPI.Services // Define el espacio de nombres donde vive est
 {
   public class JWTService //Clase que encapsula toda la logica
   {
-    private readonly IConfiguration _config; // Configuración inyectada (lee valores de appsettings.json)
+    private readonly IConfiguration _config; // Configuracion inyectada (lee valores de appsettings.json)
 
-    public JWTService(IConfiguration config) // Constructor que recibe la configuración
+    public JWTService(IConfiguration config) // Constructor que recibe la configuracion
     {
-      _config = config; // Guarda la configuración para usarla en la clase
+      _config = config; // Guarda la configuracion para usarla en la clase
     }
 
     //Metodo que genera un JWT para un usuario

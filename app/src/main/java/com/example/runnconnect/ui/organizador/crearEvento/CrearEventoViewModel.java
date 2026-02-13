@@ -40,6 +40,7 @@ public class CrearEventoViewModel extends AndroidViewModel {
   private final MutableLiveData<String> errorDistancia = new MutableLiveData<>();
   private final MutableLiveData<String> errorPrecio = new MutableLiveData<>();
   private final MutableLiveData<String> errorCupo = new MutableLiveData<>();
+  private final MutableLiveData<String> errorEdad = new MutableLiveData<>();
   // Fecha y Hora no tienen setError nativo usaremos mensajeGlobal
 
   // --- DATOS DE LA UI (Binding) ---
@@ -98,6 +99,7 @@ public class CrearEventoViewModel extends AndroidViewModel {
   public LiveData<String> getErrorDistancia() { return errorDistancia; }
   public LiveData<String> getErrorPrecio() { return errorPrecio; }
   public LiveData<String> getErrorCupo() { return errorCupo; }
+  public LiveData<String> getErrorEdad() { return errorEdad; }
 
   // Getters de Datos
   public LiveData<String> getTitulo() { return titulo; }
@@ -148,6 +150,24 @@ public class CrearEventoViewModel extends AndroidViewModel {
       return false;
     }
 
+    //validacion edad
+    if(edadMinIn.trim().isEmpty() || edadMaxIn.trim().isEmpty()){
+      errorEdad.setValue("Define el rango de edad");
+      return false;
+    }
+    int eMin, eMax;
+    try{
+      eMin= Integer.parseInt(edadMinIn.trim());
+      eMax= Integer.parseInt(edadMaxIn.trim());
+    }catch (NumberFormatException e){
+      errorEdad.setValue("Edades invalidas");
+      return false;
+    }
+    if (eMin>eMax){
+      errorEdad.setValue("La edad minima no puede ser mayor que la maxima");
+      return false;
+    }
+
     // 2. Construir Nombre y Datos
     String nombreDistancia = distanciaIn.toUpperCase().contains("K") ? distanciaIn : distanciaIn + "K";
 
@@ -171,8 +191,8 @@ public class CrearEventoViewModel extends AndroidViewModel {
       cupoInt // el mismo cupo del evento
     );
     nuevaCat.setGenero(generoApi);
-    try { nuevaCat.setEdadMinima(Integer.parseInt(edadMinIn)); } catch(Exception e) {}
-    try { nuevaCat.setEdadMaxima(Integer.parseInt(edadMaxIn)); } catch(Exception e) {}
+    nuevaCat.setEdadMinima(eMin);
+    nuevaCat.setEdadMaxima(eMax);
 
     // 4. Agregar a la lista y notificar
     categoriasTemporales.add(nuevaCat);
@@ -181,6 +201,7 @@ public class CrearEventoViewModel extends AndroidViewModel {
     // 5. Limpiar errores (exito)
     errorDistancia.setValue(null);
     errorPrecio.setValue(null);
+    errorEdad.setValue(null);
     return true;
   }
 
@@ -308,6 +329,13 @@ public class CrearEventoViewModel extends AndroidViewModel {
             JSONObject json = new JSONObject(raw);
             if (json.has("evento")) {
               int idNuevo = json.getJSONObject("evento").getInt("idEvento");
+
+              esEdicion=true;
+              idEventoEdicion=idNuevo;
+
+              uiTituloPagina.setValue("Editar evento");
+              uiTextoBoton.setValue("Guardar cambios");
+
               mensajeGlobal.setValue("¡Evento creado! Redirigiendo al mapa...");
               navegacionExito.setValue(idNuevo);
             }

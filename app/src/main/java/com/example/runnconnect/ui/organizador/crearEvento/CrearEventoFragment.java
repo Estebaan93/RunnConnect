@@ -133,6 +133,17 @@ public class CrearEventoFragment extends Fragment {
     viewModel.getErrorPrecio().observe(getViewLifecycleOwner(), e -> {
       if(e!=null) { binding.etCatPrecio.setError(e); binding.etCatPrecio.requestFocus(); }
     });
+    viewModel.getErrorEdad().observe(getViewLifecycleOwner(), error -> {
+      if (error != null) {
+        binding.etEdadMin.setError(error);
+        binding.etEdadMax.setError(error);
+        // Opcional: Toast si prefieres mensaje flotante
+        // Toast.makeText(getContext(), error, Toast.LENGTH_SHORT).show();
+      } else {
+        binding.etEdadMin.setError(null);
+        binding.etEdadMax.setError(null);
+      }
+    });
 
     // 7. Mensajes Globales y Loading
     viewModel.getMensajeGlobal().observe(getViewLifecycleOwner(), msg -> {

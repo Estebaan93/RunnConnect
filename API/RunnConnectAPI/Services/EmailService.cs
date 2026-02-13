@@ -17,7 +17,7 @@ namespace RunnConnectAPI.Services
     {
       try
       {
-        // Configuración SMTP (usa appsettings.json)
+        // Configuracion SMTP (usa appsettings.json)
         var smtpHost = _configuration["Email:SmtpHost"];
         var smtpPort = int.Parse(_configuration["Email:SmtpPort"]);
         var smtpUser = _configuration["Email:SmtpUser"];
@@ -93,7 +93,7 @@ namespace RunnConnectAPI.Services
               <div style='text-align: center;'>
                 <a href='{resetUrl}' class='button'>Restablecer Contraseña</a>
               </div>
-              <p><strong>Este enlace expirará en 1 hora.</strong></p>
+              <p><strong>Este enlace expirará en 5 minutos.</strong></p>
               <p>Si no solicitaste restablecer tu contraseña, ignora este email.</p>
               <hr>
               <p style='font-size: 12px; color: #666;'>
@@ -191,7 +191,7 @@ namespace RunnConnectAPI.Services
           <div style='text-align: center;'>
             <a href='{reactivateUrl}' class='button'>Reactivar Cuenta</a>
           </div>
-          <p><strong>Este enlace expirará en 1 hora.</strong></p>
+          <p><strong>Este enlace expirará en 5 minutos.</strong></p>
           <p>Si no solicitaste reactivar tu cuenta, ignora este email.</p>
           <hr>
           <p style='font-size: 12px; color: #666;'>

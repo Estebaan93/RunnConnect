@@ -163,29 +163,27 @@ public class MapaEditorFragment extends Fragment implements OnMapReadyCallback {
     // Carga inicial de datos
     viewModel.onMapReady(idEvento);
 
-    // =================================================================
-    // LÓGICA DE PROTECCIÓN (AL FINAL PARA SOBRESCRIBIR TODO)
-    // =================================================================
+    // LOGICA DE PROTECCION (AL FINAL PARA SOBRESCRIBIR)
     boolean esSoloLectura = "finalizado".equalsIgnoreCase(estadoEvento) || "cancelado".equalsIgnoreCase(estadoEvento);
 
     if (esSoloLectura) {
-        // 1. Bloquear interacción con el mapa (Click para crear puntos)
+        // 1. Bloquear interaccion con el mapa (Click para crear puntos)
         mMap.setOnMapClickListener(null); 
         
         // 2. Ocultar botones visualmente
         binding.btnGuardarRuta.setVisibility(View.GONE);
         binding.fabUndo.setVisibility(View.GONE);
         
-        // 3. Feedback (Opcional, para debug)
+        // 3. Feedback
         // Toast.makeText(getContext(), "Modo Solo Lectura", Toast.LENGTH_SHORT).show();
     } else {
-        // Modo Edición: Asignar listener
+        // Modo Edicion: Asignar listener
         mMap.setOnMapClickListener(latLng -> viewModel.procesarClickMapa(latLng));
         
         binding.btnGuardarRuta.setVisibility(View.VISIBLE);
         binding.fabUndo.setVisibility(View.VISIBLE);
     }
-    // =================================================================
+
   }
   //helper verificar estado
   private boolean esSoloLectura() {

@@ -356,6 +356,19 @@ namespace RunnConnectAPI.Controllers
           }
         }
 
+        //  NUEVO: DISPARAR NOTIFICACION GLOBAL 
+       // Esto avisa a TODOS los usuarios de la app que hay un evento nuevo
+       var notifRequest = new CrearNotificacionRequest
+       {
+           IdEvento = eventoCreado.IdEvento,
+           IdCategoria = null,
+           Titulo = "¡Nuevo Evento Disponible!",
+           Mensaje = $"{eventoCreado.Nombre} en {eventoCreado.Lugar}. ¡Inscripciones abiertas!"
+       };
+
+       // Usamos el metodo especifico que creamos arriba (no requiere userId porque es automatica)
+       await _notificacionRepositorio.CrearNotificacionGlobalAsync(notifRequest);
+      
 
         return CreatedAtAction(
             nameof(ObtenerEventosPorId),
@@ -450,7 +463,7 @@ namespace RunnConnectAPI.Controllers
       }
     }
 
-    /*PUT: api/Evento/{id}/CambiarEstado - Cambiamos el estado de un evento (publicado, cancelado, finalizado)
+    /*PUT: api/Evento/{id}/CambiarEstado - Cambiamos el estado de un evento (publicado, cancelado, finalizado o retrasado)
     Solo el orga que creo el evento puede cambiar su estado, tambien enviamos una notificacion*/
     [Authorize]
     [HttpPut("{id}/CambiarEstado")]
@@ -469,22 +482,22 @@ namespace RunnConnectAPI.Controllers
 
         string nuevoEstadoEvento = request.NuevoEstado.ToLower().Trim();
 
-        // 1. Aplicar cambio al Evento Padre (Siempre masculino: retrasado, cancelado...)
+        // 1. Aplicar cambio al Evento Padre 
         await _eventoRepositorio.CambiarEstadoAsync(id, nuevoEstadoEvento);
 
         if (evento.Categorias != null)
         {
-          // CASO A: VAMOS HACIA EL DESASTRE (Bajar estado)
+          // CASO A: 
           if (nuevoEstadoEvento == "suspendido" || nuevoEstadoEvento == "cancelado" || nuevoEstadoEvento == "retrasado")
           {
-            // --- TRADUCCIÓN DE GÉNERO (Evento -> Categoría) ---
+            //  TRADUCCION DE GENERO (Evento -> Categoria) 
             string estadoParaCategoria = nuevoEstadoEvento; // Valor por defecto
 
-            // Mapeamos explícitamente a lo que TU base de datos acepta en Categorias
+            // Mapeamos lo que la base de datos acepta en Categorias
             if (nuevoEstadoEvento == "cancelado") estadoParaCategoria = "cancelada";
             if (nuevoEstadoEvento == "retrasado") estadoParaCategoria = "retrasada";
-            if (nuevoEstadoEvento == "suspendido") estadoParaCategoria = "suspendido"; // En tu DB quedó como masculino
-            // --------------------------------------------------
+            if (nuevoEstadoEvento == "suspendido") estadoParaCategoria = "suspendido"; 
+            
 
             foreach (var cat in evento.Categorias)
             {
@@ -506,13 +519,13 @@ namespace RunnConnectAPI.Controllers
               // Obtenemos el estado actual seguro (evitando nulos)
               string estadoCat = cat.Estado?.ToLower().Trim() ?? "";
 
-              // LÓGICA DE REPARACIÓN:
-              // 1. Si está "suspendido" o "retrasada" -> Volver a programada.
-              // 2. Si está "" (BLANCO/VACÍO por error anterior) -> Volver a programada (Reparación).
+              // LOGICA DE REPARACION:
+              // 1. Si esta "suspendido" o "retrasada" -> Volver a programada.
+              // 2. Si esta "" (BLANCO/VACIO por error anterior) -> Volver a programada (Reparacion).
               if (estadoCat == "suspendido" ||
                   estadoCat == "retrasada" ||
                   estadoCat == "retrasado" || // Por si acaso
-                  string.IsNullOrEmpty(estadoCat)) // <--- ESTO ARREGLA LOS BLANCOS
+                  string.IsNullOrEmpty(estadoCat)) // ESTO ARREGLA LOS BLANCOS
               {
                 cat.Estado = "programada"; // Vuelve a la normalidad
                 await _categoriaRepositorio.ActualizarAsync(cat);
@@ -521,7 +534,7 @@ namespace RunnConnectAPI.Controllers
           }
         }
 
-        // 3. Notificación
+        // 3. Notificacion
         if (!string.IsNullOrEmpty(request.Motivo))
         {
           string titulo = $"EVENTO {request.NuevoEstado.ToUpper()}";
@@ -564,7 +577,7 @@ namespace RunnConnectAPI.Controllers
         var (userId, error) = ValidarOrganizador();
         if (error != null) return error;
 
-        // 1. Obtener la categoría con el Evento (Usando el método nuevo del Repo)
+        // 1. Obtener la categoria con el Evento (Usando el metodo nuevo del Repo)
         var categoria = await _categoriaRepositorio.ObtenerPorIdConEventoAsync(idCategoria);
 
         if (categoria == null)
@@ -576,18 +589,18 @@ namespace RunnConnectAPI.Controllers
 
         string nuevoEstado = request.NuevoEstado.ToLower();
 
-        // 2. Actualizar el estado de la Categoría (Usando Repo)
+        // 2. Actualizar el estado de la Categoria (Usando Repo)
         categoria.Estado = nuevoEstado;
         await _categoriaRepositorio.ActualizarAsync(categoria);
 
-        // 3. LÓGICA DE VERIFICACIÓN (Bottom-Up)
-        // Si esta categoría finalizó, verificamos si debemos cerrar el evento completo
+        // 3. LOGICA DE VERIFICACION (Bottom-Up)
+        // Si esta categoria finalizo, verificamos si debemos cerrar el evento completo
         if (nuevoEstado == "finalizada")
         {
-          // Traemos todas las categorías del evento para ver sus estados
+          // Traemos todas las categorias del evento para ver sus estados
           var todasLasCategorias = await _categoriaRepositorio.ObtenerPorEventoAsync(categoria.IdEvento);
 
-          // Verificamos si queda alguna que NO esté finalizada ni cancelada
+          // Verificamos si queda alguna que NO este finalizada ni cancelada
           bool quedanActivas = todasLasCategorias
               .Any(c => c.Estado != "finalizada" && c.Estado != "cancelada");
 
@@ -598,7 +611,7 @@ namespace RunnConnectAPI.Controllers
           }
         }
 
-        // 4. Notificación Segmentada (Solo a esta categoría)
+        // 4. Notificacion Segmentada (Solo a esta categoria)
         if (!string.IsNullOrEmpty(request.Motivo))
         {
           string titulo = $"AVISO: {categoria.Nombre} {request.NuevoEstado.ToUpper()}";
@@ -610,7 +623,7 @@ namespace RunnConnectAPI.Controllers
           var notif = new CrearNotificacionRequest
           {
             IdEvento = categoria.IdEvento,
-            IdCategoria = categoria.IdCategoria, // Segmentación: Solo a esta categoría
+            IdCategoria = categoria.IdCategoria, 
             Titulo = titulo,
             Mensaje = request.Motivo
           };
@@ -622,7 +635,7 @@ namespace RunnConnectAPI.Controllers
         {
           message = $"Categoría actualizada a {nuevoEstado}",
           idCategoria = idCategoria,
-          estadoEventoPadre = categoria.Evento.Estado // Para que el front sepa si cambió el padre
+          estadoEventoPadre = categoria.Evento.Estado // Para que el front sepa si cambio el padre
         });
       }
       catch (Exception ex)

@@ -20,6 +20,8 @@ namespace RunnConnectAPI.Models
 
     public int? IdCategoria {get;set;}
 
+    public bool EsAnuncioGlobal { get; set; }
+
     [Required(ErrorMessage="El titulo es requerido")]
     [StringLength(255, MinimumLength = 3, ErrorMessage = "El titulo debe tener mas de 3 caracteres")]
     public string Titulo {get;set;}= string.Empty;

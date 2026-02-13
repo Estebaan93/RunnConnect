@@ -46,50 +46,53 @@ namespace RunnConnectAPI.Repositories
     /// Busca notificaciones de eventos donde esta inscripto (confirmado)
     public async Task<MisNotificacionesResponse> ObtenerMisNotificacionesAsync(int idUsuario)
     {
-      // 1. Obtener Inscripciones del usuario (Guardamos Evento Y Categoría)
+      // 1. Obtener Inscripciones del usuario
       var inscripcionesUsuario = await _context.Inscripciones
         .Include(i => i.Categoria)
         .Where(i => i.IdUsuario == idUsuario && i.EstadoPago == "pagado")
-        .Select(i => new { i.Categoria!.IdEvento, i.Categoria.IdCategoria }) // Traemos el par (Evento, Categoria)
+        .Select(i => new { i.Categoria!.IdEvento, i.Categoria.IdCategoria })
         .ToListAsync();
 
-      if (!inscripcionesUsuario.Any())
-      {
-        return new MisNotificacionesResponse
-        {
-          TotalNotificaciones = 0,
-          Notificaciones = new List<NotificacionRunnerItem>()
-        };
-      }
-
-      // Extraemos solo los IDs de eventos para la primera consulta a la BD
+      // IDs de mis eventos
       var idsEventos = inscripcionesUsuario.Select(x => x.IdEvento).Distinct().ToList();
 
-      // 2. Obtener TODAS las notificaciones de esos eventos (incluimos datos de Categoria para mostrar nombre)
+      // FECHA LIMITE PARA GLOBALES (Ej: Solo mostrar anuncios globales de los ultimos 7 dias)
+      // Esto evita que un usuario nuevo vea notificaciones de eventos de hace 2 años.
+      var fechaLimiteGlobal = DateTime.Now.AddDays(-7);
+
+      // 2. QUERY PRINCIPAL
       var notificacionesRaw = await _context.NotificacionesEvento
         .Include(n => n.Evento)
-        .Include(n => n.Categoria) // Importante para saber si es de 10K o 21K
-        .Where(n => idsEventos.Contains(n.IdEvento))
+        .Include(n => n.Categoria)
+        .Where(n => 
+            // A) Es de un evento donde estoy inscripto
+            idsEventos.Contains(n.IdEvento) 
+            || 
+            // B) Es un anuncio GLOBAL reciente (sin importar inscripcion)
+            (n.EsAnuncioGlobal == true && n.FechaEnvio >= fechaLimiteGlobal)
+        )
         .OrderByDescending(n => n.FechaEnvio)
         .ToListAsync();
 
-      // 3. FILTRADO INTELIGENTE EN MEMORIA
+      // 3. FILTRADO 
       var notificacionesFiltradas = notificacionesRaw.Where(n =>
       {
-        // Caso A: Notificacion Global (IdCategoria es null) -> SE MUESTRA SIEMPRE
-        if (n.IdCategoria == null) return true;
+        // Caso A: Es Global - SE MUESTRA SIEMPRE
+        if (n.EsAnuncioGlobal) return true; 
 
-        // Caso B: Notificacin Especifica -> El usuario debe tener inscripcion en ESA categoria exacta
-        // Buscamos si en "inscripcionesUsuario" existe el par exacto (Evento, Categoria)
+        // Caso B: Es General del Evento (IdCategoria null) - SE MUESTRA SI ESTOY INSCRIPTO EN ESE EVENTO
+        if (n.IdCategoria == null && idsEventos.Contains(n.IdEvento)) return true;
+
+        // Caso C: Es Especifica de Categoria -> DEBO TENER ESA CATEGORIA EXACTA
         return inscripcionesUsuario.Any(i => i.IdEvento == n.IdEvento && i.IdCategoria == n.IdCategoria);
       }).ToList();
 
-      // 4. Mapeo final
+      // 4. Mapeo final 
       var items = notificacionesFiltradas.Select(n => new NotificacionRunnerItem
       {
         IdNotificacion = n.IdNotificacion,
-        // Si tiene categoria, agregamos el prefijo al titulo para que sea claro
-        Titulo = n.Categoria != null ? $"[{n.Categoria.Nombre}] {n.Titulo}" : n.Titulo,
+        // Agregamos prefijo visual si es global
+        Titulo = n.EsAnuncioGlobal ? $"{n.Titulo}" : (n.Categoria != null ? $"[{n.Categoria.Nombre}] {n.Titulo}" : n.Titulo),
         Mensaje = n.Mensaje,
         FechaEnvio = n.FechaEnvio,
         IdEvento = n.IdEvento,
@@ -105,8 +108,27 @@ namespace RunnConnectAPI.Repositories
       };
     }
 
+    // --- NUEVO METODO PARA CREAR GLOBAL ---
+    // Usado por EventoController al crear un evento nuevo
+    public async Task CrearNotificacionGlobalAsync(CrearNotificacionRequest request)
+    {
+        var notificacion = new NotificacionEvento
+        {
+            IdEvento = request.IdEvento,
+            IdCategoria = null, // Global no tiene categoria especifica
+            Titulo = request.Titulo.Trim(),
+            Mensaje = request.Mensaje?.Trim(),
+            FechaEnvio = DateTime.Now,
+            EstadoEvento = "publicado",
+            EsAnuncioGlobal = true // 
+        };
+
+        _context.NotificacionesEvento.Add(notificacion);
+        await _context.SaveChangesAsync();
+    }
+
     /// Obtiene notificaciones recientes (ultimas 24 horas) para el runner
-    /// util para mostrar badge/contador en la app
+    /// util para mostrar contador en la app
     public async Task<int> ContarNotificacionesRecientesAsync(int idUsuario)
     {
       // Fecha ultima lectura del runner
