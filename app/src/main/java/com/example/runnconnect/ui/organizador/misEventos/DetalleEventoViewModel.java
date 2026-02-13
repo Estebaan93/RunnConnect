@@ -349,6 +349,7 @@ public class DetalleEventoViewModel extends AndroidViewModel {
     visibilityBtnResultados.setValue("FINALIZADO".equals(estado) ? View.VISIBLE : View.GONE);
   }
 
+
   // OTROS METODOS DE APOYO
   public void cargarRunnersDeCategoria(int idEvento, int idCategoria) {
     inscripcionRepositorio.obtenerInscriptos(idEvento, null, 1, 100, new Callback<ListaInscriptosResponse>() {

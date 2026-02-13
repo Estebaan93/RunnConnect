@@ -614,7 +614,7 @@ namespace RunnConnectAPI.Controllers
 
     /*Verificar CUIT del organizador
     GET: api/Usuario/VerificarCuit?cuit=20-1234578-9*/
-    [AllowAnonymous]
+    /*[AllowAnonymous]
     [HttpGet("VerificarCuit")]
     public async Task<IActionResult> VerificarCuit([FromQuery] string cuit)
     {
@@ -635,7 +635,7 @@ namespace RunnConnectAPI.Controllers
       {
         return StatusCode(500, new { message = "Error al verificar CUIT", error = ex.Message });
       }
-    }
+    }*/
 
 
     /*Ver perfil publico (por ej si un runner consulta la posicion, puede ver quienes son los otros runner)

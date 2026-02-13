@@ -31,6 +31,7 @@ namespace RunnConnectAPI.Services
 				}
 
 				// verificar cada 30 minutos para ser mas precisos con el corte de las 6hs
+				//metodo async, pausa pero no bloquea el hilo principal
 				await Task.Delay(TimeSpan.FromMinutes(30), stoppingToken);
 
 				//pruebas
