@@ -341,7 +341,7 @@ namespace RunnConnectAPI.Controllers
 
         categoriasResponse.Add(new CategoriaEventoResponse
             {
-                IdCategoria = nuevaCategoria.IdCategoria, // <--- ¡AQUÍ ESTÁ EL ID!
+                IdCategoria = nuevaCategoria.IdCategoria, // id
                 IdEvento = nuevaCategoria.IdEvento,
                 Nombre = nuevaCategoria.Nombre,
                 CostoInscripcion = nuevaCategoria.CostoInscripcion,
@@ -351,7 +351,7 @@ namespace RunnConnectAPI.Controllers
                 Genero = nuevaCategoria.Genero,
                 Estado = nuevaCategoria.Estado,
                 InscriptosActuales = 0
-                // Nota: No asignamos GeneroDescripcion ni TieneCupo porque son de solo lectura (se calculan solas)
+                // nota: no asignamos GeneroDescripcion ni TieneCupo porque son de solo lectura (se calculan solas)
             });
           }
         }
