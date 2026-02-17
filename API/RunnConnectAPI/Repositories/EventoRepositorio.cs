@@ -309,5 +309,57 @@ namespace RunnConnectAPI.Repositories
       var inscriptos = await ContarInscriptosPorCategoriaAsync(idCategoria);
       return inscriptos < categoria.CupoCategoria.Value;
     }
+
+    /// <summary>
+    /// Busca eventos vencidos (6hs post inicio) y finaliza tanto el evento como sus categorías.
+    /// </summary>
+    public async Task<int> FinalizarEventosVencidosAsync()
+    {
+      // Regla: 6 horas después de la largada
+      DateTime tiempoLimite = DateTime.Now.AddHours(-6);
+
+      // 1. Buscamos eventos que deban cerrarse
+      // IMPORTANTE: Usamos .Include(e => e.Categorias) para traer a los hijos
+      var eventosVencidos = await _context.Eventos
+          .Include(e => e.Categorias)
+          .Where(e => e.FechaHora < tiempoLimite
+                      && (e.Estado == "publicado" || e.Estado == "suspendido" || e.Estado == "retrasado"))
+          .ToListAsync();
+
+      if (!eventosVencidos.Any()) return 0;
+
+      int modificados = 0;
+
+      foreach (var evento in eventosVencidos)
+      {
+        // A. Finalizar Padre
+        evento.Estado = "finalizado";
+        modificados++;
+
+        // B. Finalizar Hijos (Categorías) en Cascada
+        if (evento.Categorias != null)
+        {
+          foreach (var cat in evento.Categorias)
+          {
+            // Solo cambiamos si la categoría NO estaba ya cancelada/finalizada
+            if (cat.Estado != "cancelada" && cat.Estado != "finalizada")
+            {
+              cat.Estado = "finalizada"; // Femenino para categoría
+            }
+          }
+        }
+      }
+
+      // 2. Guardar todos los cambios juntos
+      if (modificados > 0)
+      {
+        await _context.SaveChangesAsync();
+      }
+
+      return modificados;
+    }
+
+
+
   }
 }
