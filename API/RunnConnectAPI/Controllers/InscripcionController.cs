@@ -61,8 +61,25 @@ namespace RunnConnectAPI.Controllers
         if (evento == null)
           return NotFound(new { message = "Evento no encontrado" });
 
-        if (evento.Estado != "publicado")
+        if (evento.Estado != "publicado") //validacion de estado del evento
           return BadRequest(new { message = "El evento no está disponible para inscripciones" });
+
+        //validacion de categoria, solo permitido estado "publicado"
+        if (categoria.Estado.ToLower().Trim() != "programada")
+        {
+          return BadRequest(new { message = $"No te puedes inscribir. Esta categoria se encuentra: {categoria.Estado.ToUpper()}." });
+        }
+
+        DateTime fechaCierre = evento.FechaHora.AddHours(-24); //validacion de 24 hs antes
+
+        if (DateTime.Now >= fechaCierre)
+        {
+          return BadRequest(new {
+            message = "Las inscripciones cerraron 24 hs antes del inicio programado del evento",
+            cierre = fechaCierre,
+            actual = DateTime.Now
+          });  
+        }
 
         if (evento.FechaHora <= DateTime.Now)
           return BadRequest(new { message = "No se puede inscribir a un evento que ya paso" });
@@ -72,7 +89,7 @@ namespace RunnConnectAPI.Controllers
         if (!perfilCompleto)
           return BadRequest(new { message = "Debe completar su perfil antes de inscribirse", camposFaltantes });
 
-        // Verificar requisitos de la categoría (edad y genero)
+        // Verificar requisitos de la categoria (edad y genero)
         var (cumpleRequisitos, motivo) = await _inscripcionRepositorio.ValidarRequisitosCategoria(validacion.userId, request.IdCategoria);
         if (!cumpleRequisitos)
           return BadRequest(new { message = motivo });
@@ -550,7 +567,6 @@ namespace RunnConnectAPI.Controllers
 
 
     // Metodos Privados
-
     private (int userId, IActionResult? error) ValidarRunner()
     {
       var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
@@ -593,52 +609,52 @@ namespace RunnConnectAPI.Controllers
     [HttpGet("BuscarInscriptos")]
     public async Task<IActionResult> BuscarInscriptos([FromQuery] string busqueda)
     {
-        try
+      try
+      {
+        var (userId, error) = ValidarOrganizador();
+        if (error != null) return error;
+
+        if (string.IsNullOrWhiteSpace(busqueda))
+          return BadRequest(new { message = "Debe ingresar un término de búsqueda." });
+
+        // Llamada al repo
+        var resultados = await _inscripcionRepositorio.BuscarGlobalPorOrganizadorAsync(userId, busqueda);
+
+        // Mapeo a DTO: BusquedaInscripcionResponse
+        var response = resultados.Select(i => new BusquedaInscripcionResponse
         {
-            var (userId, error) = ValidarOrganizador();
-            if (error != null) return error;
+          IdInscripcion = i.IdInscripcion,
+          FechaInscripcion = i.FechaInscripcion,
+          EstadoPago = i.EstadoPago,
 
-            if (string.IsNullOrWhiteSpace(busqueda))
-                return BadRequest(new { message = "Debe ingresar un término de búsqueda." });
+          IdEvento = i.Categoria.IdEvento,
+          NombreEvento = i.Categoria.Evento.Nombre,
+          NombreCategoria = i.Categoria.Nombre,
+          EstadoEvento = i.Categoria.Evento.Estado,
 
-            // Llamada al repo
-            var resultados = await _inscripcionRepositorio.BuscarGlobalPorOrganizadorAsync(userId, busqueda);
+          TalleRemera = i.TalleRemera,
 
-            // Mapeo a tu nuevo DTO: BusquedaInscripcionResponse
-            var response = resultados.Select(i => new BusquedaInscripcionResponse
-            {
-                IdInscripcion = i.IdInscripcion,
-                FechaInscripcion = i.FechaInscripcion,
-                EstadoPago = i.EstadoPago,
-                
-                IdEvento = i.Categoria.IdEvento,
-                NombreEvento = i.Categoria.Evento.Nombre,
-                NombreCategoria = i.Categoria.Nombre,
-                EstadoEvento = i.Categoria.Evento.Estado,
+          Runner = new RunnerSimpleDto
+          {
+            Nombre = i.Usuario.Nombre,
+            // Manejo seguro de nulos con el operador '?' y '??'
+            Apellido = i.Usuario.PerfilRunner?.Apellido ?? "",
+            Dni = i.Usuario.PerfilRunner?.Dni.ToString() ?? "S/D",
+            Email = i.Usuario.Email,
+            Telefono = i.Usuario.Telefono,
+            Genero = i.Usuario.PerfilRunner?.Genero,
+            Localidad = i.Usuario.PerfilRunner?.Localidad,
+            NombreContactoEmergencia = i.Usuario.PerfilRunner?.NombreContactoEmergencia,
+            TelefonoEmergencia = i.Usuario.PerfilRunner?.TelefonoEmergencia
+          }
+        }).ToList();
 
-                TalleRemera = i.TalleRemera,
-                
-                Runner = new RunnerSimpleDto
-                {
-                    Nombre = i.Usuario.Nombre,
-                    // Manejo seguro de nulos con el operador '?' y '??'
-                    Apellido = i.Usuario.PerfilRunner?.Apellido ?? "",
-                    Dni = i.Usuario.PerfilRunner?.Dni.ToString() ?? "S/D",
-                    Email = i.Usuario.Email,
-                    Telefono = i.Usuario.Telefono,
-                    Genero= i.Usuario.PerfilRunner?.Genero,
-                    Localidad = i.Usuario.PerfilRunner?.Localidad,
-                    NombreContactoEmergencia = i.Usuario.PerfilRunner?.NombreContactoEmergencia,
-                    TelefonoEmergencia = i.Usuario.PerfilRunner?.TelefonoEmergencia
-                }
-            }).ToList();
-
-            return Ok(response);
-        }
-        catch (Exception ex)
-        {
-            return StatusCode(500, new { message = "Error en búsqueda global", error = ex.Message });
-        }
+        return Ok(response);
+      }
+      catch (Exception ex)
+      {
+        return StatusCode(500, new { message = "Error en búsqueda global", error = ex.Message });
+      }
     }
 
 

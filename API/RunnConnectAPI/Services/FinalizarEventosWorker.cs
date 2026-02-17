@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using RunnConnectAPI.Data;
-using RunnConnectAPI.Repositories; // Asegúrate de tener este using
+using RunnConnectAPI.Repositories; //
 
 namespace RunnConnectAPI.Services
 {
@@ -43,12 +43,12 @@ namespace RunnConnectAPI.Services
         // Solicitamos el Repositorio en lugar del Contexto directo
         var eventoRepo = scope.ServiceProvider.GetRequiredService<EventoRepositorio>();
 
-        // Delegamos la lógica al repositorio
+        // Delegamos la logica al repositorio
         int cantidadFinalizados = await eventoRepo.FinalizarEventosVencidosAsync();
 
         if (cantidadFinalizados > 0)
         {
-          _logger.LogInformation($"[AUTO-FIN] Se han finalizado {cantidadFinalizados} eventos y sus categorías vencidas.");
+          _logger.LogInformation($"[AUTO-FIN] Se han finalizado {cantidadFinalizados} eventos y sus categorias vencidas.");
         }
       }
     }

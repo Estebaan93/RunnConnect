@@ -35,7 +35,7 @@ namespace RunnConnectAPI.Services // Define el espacio de nombres donde vive est
         new Claim(ClaimTypes.Email, usuario.Email),
         new Claim(ClaimTypes.Name, nombreCompleto),
         new Claim(ClaimTypes.Role, usuario.TipoUsuario),
-        new Claim("TipoUsuario", usuario.TipoUsuario)
+        //new Claim("TipoUsuario", usuario.TipoUsuario) //Revisar esta duplicado por ROLE
       };
 
       //Clave secreta para firma token
@@ -109,7 +109,7 @@ namespace RunnConnectAPI.Services // Define el espacio de nombres donde vive est
       var principal = ValidarToken(token);
       if (principal == null) return null;
 
-      var tipoClaim = principal.FindFirst("TipoUsuario");
+      var tipoClaim = principal.FindFirst(ClaimTypes.Role);
       return tipoClaim?.Value;
     }
 

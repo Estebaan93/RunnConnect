@@ -68,7 +68,7 @@ namespace RunnConnectAPI.Repositories
     }
 
 
-    /// Verifica si un runner ya esta inscripto en el mismo evento (cualquier categoria)
+    // Verifica si un runner ya esta inscripto en el mismo evento (cualquier categoria)
     public async Task<bool> ExisteInscripcionEnEventoAsync(int idUsuario, int idEvento)
     {
       var estadosActivos = new[] { "pendiente", "procesando", "pagado" };

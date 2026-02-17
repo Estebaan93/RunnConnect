@@ -336,12 +336,12 @@ namespace RunnConnectAPI.Repositories
         evento.Estado = "finalizado";
         modificados++;
 
-        // B. Finalizar Hijos (Categorías) en Cascada
+        // B. Finalizar Hijos (Categorias) en Cascada
         if (evento.Categorias != null)
         {
           foreach (var cat in evento.Categorias)
           {
-            // Solo cambiamos si la categoría NO estaba ya cancelada/finalizada
+            // Solo cambiamos si la categoria NO estaba ya cancelada/finalizada
             if (cat.Estado != "cancelada" && cat.Estado != "finalizada")
             {
               cat.Estado = "finalizada"; // Femenino para categoría

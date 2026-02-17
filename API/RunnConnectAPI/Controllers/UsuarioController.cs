@@ -326,7 +326,7 @@ namespace RunnConnectAPI.Controllers
             imgAvatar = avatarUrl,
             esAvatarPorDefecto = _fileService.EsAvatarPorDefecto(usuario.ImgAvatar),
             estado = usuario.Estado,
-            perfilCompleto = perfilCompleto  // ← FLAG AGREGADO
+            perfilCompleto = perfilCompleto  // FLAG AGREGADO
           });
         }
         // ORGANIZADOR
