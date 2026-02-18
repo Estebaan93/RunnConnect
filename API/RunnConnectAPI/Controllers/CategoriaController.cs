@@ -29,8 +29,8 @@ namespace RunnConnectAPI.Controllers
     /* Obtiene todas las categorias de un evento
      Endpoint publico - cualquiera puede ver las categorias
      Incluye informacion de cupos disponibles*/
-    [HttpGet]
     [AllowAnonymous]
+    [HttpGet]
     public async Task<IActionResult> ObtenerCategorias(int idEvento)
     {
       try
@@ -78,8 +78,8 @@ namespace RunnConnectAPI.Controllers
     }
 
     // Obtiene una categoria especifica por ID
-    [HttpGet("{idCategoria}")]
     [AllowAnonymous]
+    [HttpGet("{idCategoria}")]
     public async Task<IActionResult> ObtenerCategoria(int idEvento, int idCategoria)
     {
       try
@@ -118,8 +118,8 @@ namespace RunnConnectAPI.Controllers
     /*Obtiene categorias disponibles para un runner segun su edad y genero
      Endpoint publico - el runner puede ver en qu categorias puede inscribirse
      Filtra por edad, genero y cupo disponible*/
-    [HttpGet("Disponibles")]
     [AllowAnonymous]
+    [HttpGet("Disponibles")]
     public async Task<IActionResult> ObtenerCategoriasDisponibles(
       int idEvento,
       [FromQuery] int edad,
@@ -193,8 +193,8 @@ namespace RunnConnectAPI.Controllers
     /* Crea una nueva categoria en un evento
     Requiere: Token JWT de Organizador (dueño del evento)
     No permite crear si el evento está cancelado o finalizado */
+    [Authorize(Roles="organizador")]
     [HttpPost]
-    [Authorize]
     public async Task<IActionResult> CrearCategoria(int idEvento, [FromBody] CrearCategoriaRequest request)
     {
       try
@@ -202,14 +202,14 @@ namespace RunnConnectAPI.Controllers
         if (!ModelState.IsValid)
           return BadRequest(ModelState);
 
-        var (userId, error) = ValidarOrganizador();
-        if (error != null) return error;
+        int userId = ObtenerUserIdDelToken();
 
-        // Verificar evento y ownership
+        // Verificar evento
         var evento = await _eventoRepo.ObtenerPorIdAsync(idEvento);
         if (evento == null)
           return NotFound(new { message = "Evento no encontrado" });
 
+        //verificar organizador
         if (evento.IdOrganizador != userId)
           return StatusCode(403, new { message = "No tienes permiso para modificar este evento" });
 
@@ -267,9 +267,8 @@ namespace RunnConnectAPI.Controllers
     /* Actualiza una categoria existente
      Requiere: Token JWT de Organizador (dueño del evento)
      No permite reducir cupo por debajo de inscriptos actuales */
-
+    [Authorize(Roles = "organizador")]
     [HttpPut("{idCategoria}")]
-    [Authorize]
     public async Task<IActionResult> ActualizarCategoria(
       int idEvento, int idCategoria, [FromBody] ActualizarCategoriaRequest request)
     {
@@ -278,14 +277,14 @@ namespace RunnConnectAPI.Controllers
         if (!ModelState.IsValid)
           return BadRequest(ModelState);
 
-        var (userId, error) = ValidarOrganizador();
-        if (error != null) return error;
+        int userId = ObtenerUserIdDelToken();
 
         // Verificar evento y ownership
         var evento = await _eventoRepo.ObtenerPorIdAsync(idEvento);
         if (evento == null)
           return NotFound(new { message = "Evento no encontrado" });
 
+        //verificar organaizador
         if (evento.IdOrganizador != userId)
           return StatusCode(403, new { message = "No tienes permiso para modificar este evento" });
 
@@ -335,17 +334,15 @@ namespace RunnConnectAPI.Controllers
     /* Elimina una categoria
       Requiere: Token JWT de Organizador(dueño del evento)
      No permite eliminar si tiene inscripciones */
-
+    [Authorize(Roles="organizador")]
     [HttpDelete("{idCategoria}")]
-    [Authorize]
     public async Task<IActionResult> EliminarCategoria(int idEvento, int idCategoria)
     {
       try
       {
-        var (userId, error) = ValidarOrganizador();
-        if (error != null) return error;
+        int userId = ObtenerUserIdDelToken();
 
-        // Verificar evento y ownership
+        // Verificar evento
         var evento = await _eventoRepo.ObtenerPorIdAsync(idEvento);
         if (evento == null)
           return NotFound(new { message = "Evento no encontrado" });
@@ -373,14 +370,13 @@ namespace RunnConnectAPI.Controllers
     }
 
     // Obtiene estadisticas de inscriptos por categoria (para el organizador)
+    [Authorize(Roles="organizador")]
     [HttpGet("Estadisticas")]
-    [Authorize]
     public async Task<IActionResult> ObtenerEstadisticas(int idEvento)
     {
       try
       {
-        var (userId, error) = ValidarOrganizador();
-        if (error != null) return error;
+        int userId = ObtenerUserIdDelToken();
 
         var evento = await _eventoRepo.ObtenerPorIdAsync(idEvento);
         if (evento == null)
@@ -421,22 +417,16 @@ namespace RunnConnectAPI.Controllers
       }
     }
 
-
-     // HELPERS PRIVADOS 
-    private (int userId, IActionResult? error) ValidarOrganizador()
+    //Metodos privados helper
+    private int ObtenerUserIdDelToken()
     {
       var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
       if (userIdClaim == null)
-        return (0, Unauthorized(new { message = "No autorizado" }));
+        throw new UnauthorizedAccessException("ID de usuario no encontrado");
 
-      var userId = int.Parse(userIdClaim.Value);
-
-      var tipoUsuarioClaim = User.FindFirst("TipoUsuario");
-      if (tipoUsuarioClaim == null || tipoUsuarioClaim.Value.ToLower() != "organizador")
-        return (0, BadRequest(new { message = "Solo los organizadores pueden realizar esta acción" }));
-
-      return (userId, null);
+      return int.Parse(userIdClaim.Value);
     }
+
 
   }
 }

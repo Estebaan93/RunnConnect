@@ -9,6 +9,7 @@ namespace RunnConnectAPI.Controllers
 {
   /// Controller para gestion de notificaciones de eventos (sistema PULL/buzon)
   /// Los runners ven las notificaciones al abrir la app
+  [Authorize]
   [ApiController]
   [Route("api/[controller]")]
   public class NotificacionController : ControllerBase
@@ -22,7 +23,8 @@ namespace RunnConnectAPI.Controllers
 
     // ENDPOINTS PUBLICOS 
     /// Obtiene una notificacion por ID
-    /// Endpoint publico - cualquiera puede ver una notificacion específica
+    /// Endpoint publico - cualquiera puede ver una notificacion especifica
+    [AllowAnonymous]
     [HttpGet("{id}")]
     public async Task<IActionResult> ObtenerPorId(int id)
     {
@@ -44,6 +46,7 @@ namespace RunnConnectAPI.Controllers
     /// Obtiene todas las notificaciones de un evento
     /// Endpoint publico - cualquiera puede ver las notificaciones de un evento
     /// Ordenadas por fecha (más recientes primero)
+    [AllowAnonymous]
     [HttpGet("Evento/{idEvento}")]
     public async Task<IActionResult> ObtenerPorEvento(int idEvento)
     {
@@ -68,17 +71,16 @@ namespace RunnConnectAPI.Controllers
     // ENDPOINTS RUNNER 
     /// Obtiene las notificaciones del runner autenticado
     /// Requiere: Token JWT de Runner
-    /// Retorna notificaciones de eventos donde está inscripto (pago confirmado)
+    /// Retorna notificaciones de eventos donde esta inscripto (pago confirmado)
     /// Ordenadas por fecha (más recientes primero)
     /// Este es el endpoint principal para el "buzon" de notificaciones en la app
+    [Authorize(Roles="runner")]
     [HttpGet("MisNotificaciones")]
-    [Authorize]
     public async Task<IActionResult> MisNotificaciones()
     {
       try
       {
-        var (userId, error) = ValidarRunner();
-        if (error != null) return error;
+        int userId = ObtenerUserIdDelToken();
 
         var resultado = await _notificacionRepo.ObtenerMisNotificacionesAsync(userId);
         return Ok(resultado);
@@ -92,14 +94,13 @@ namespace RunnConnectAPI.Controllers
     /// Obtiene el contador de notificaciones recientes (ultimas 24h)
     /// Requiere: Token JWT de Runner
     /// Util para mostrar badge/contador en la app
+    [Authorize(Roles= "runner")]
     [HttpGet("ContadorRecientes")]
-    [Authorize]
     public async Task<IActionResult> ContadorRecientes()
     {
       try
       {
-        var (userId, error) = ValidarRunner();
-        if (error != null) return error;
+        int userId = ObtenerUserIdDelToken();
 
         var cantidad = await _notificacionRepo.ContarNotificacionesRecientesAsync(userId);
 
@@ -117,15 +118,13 @@ namespace RunnConnectAPI.Controllers
 
     /// Marca todas las notificaciones como leidas (limpia el contador)
     /// La App debe llamar a esto cuando el usuario abre la pantalla "Mis Notificaciones"
+    [Authorize(Roles="runner")]
     [HttpPost("MarcarComoLeidas")]
-    [Authorize]
     public async Task<IActionResult> MarcarComoLeidas()
     {
       try
       {
-        var (userId, error) = ValidarRunner();
-        if (error != null)
-          return error;
+        int userId = ObtenerUserIdDelToken();
 
         await _notificacionRepo.MarcarTodasComoLeidasAsync(userId);
 
@@ -149,8 +148,8 @@ namespace RunnConnectAPI.Controllers
     /// Crea una nueva notificacion para un evento
     /// Requiere: Token JWT de Organizador (dueño del evento)
     /// La notificacion queda disponible inmediatamente para los runners inscriptos
+    [Authorize(Roles="organizador")]
     [HttpPost]
-    [Authorize]
     public async Task<IActionResult> CrearNotificacion([FromBody] CrearNotificacionRequest request)
     {
       try
@@ -158,8 +157,7 @@ namespace RunnConnectAPI.Controllers
         if (!ModelState.IsValid)
           return BadRequest(ModelState);
 
-        var (userId, error) = ValidarOrganizador();
-        if (error != null) return error;
+        int userId = ObtenerUserIdDelToken();
 
         var (notificacion, errorMsg) = await _notificacionRepo.CrearAsync(request, userId);
 
@@ -191,8 +189,8 @@ namespace RunnConnectAPI.Controllers
     /// Actualiza una notificacion existente
     /// Requiere: Token JWT de Organizador (dueño del evento)
     /// No modifica la fecha de envio original
+    [Authorize(Roles="organizador")]
     [HttpPut("{id}")]
-    [Authorize]
     public async Task<IActionResult> ActualizarNotificacion(int id, [FromBody] ActualizarNotificacionRequest request)
     {
       try
@@ -200,8 +198,7 @@ namespace RunnConnectAPI.Controllers
         if (!ModelState.IsValid)
           return BadRequest(ModelState);
 
-        var (userId, error) = ValidarOrganizador();
-        if (error != null) return error;
+        int userId = ObtenerUserIdDelToken();
 
         var (exito, errorMsg) = await _notificacionRepo.ActualizarAsync(id, request, userId);
 
@@ -218,15 +215,14 @@ namespace RunnConnectAPI.Controllers
 
     /// Elimina una notificacion
     /// Requiere: Token JWT de Organizador (dueño del evento)
-    /// Eliminacion física de la BD
+    /// Eliminacion fisica de la BD
+    [Authorize(Roles="organizador")]
     [HttpDelete("{id}")]
-    [Authorize]
     public async Task<IActionResult> EliminarNotificacion(int id)
     {
       try
       {
-        var (userId, error) = ValidarOrganizador();
-        if (error != null) return error;
+        int userId = ObtenerUserIdDelToken();
 
         var (exito, errorMsg) = await _notificacionRepo.EliminarAsync(id, userId);
 
@@ -243,34 +239,13 @@ namespace RunnConnectAPI.Controllers
 
 
     // HELPERS PRIVADOS 
-    private (int userId, IActionResult? error) ValidarRunner()
+    private int ObtenerUserIdDelToken()
     {
       var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
       if (userIdClaim == null)
-        return (0, Unauthorized(new { message = "No autorizado" }));
+        throw new UnauthorizedAccessException("ID de usuario no encontrado");
 
-      var userId = int.Parse(userIdClaim.Value);
-
-      var tipoUsuarioClaim = User.FindFirst("TipoUsuario");
-      if (tipoUsuarioClaim == null || tipoUsuarioClaim.Value.ToLower() != "runner")
-        return (0, BadRequest(new { message = "Solo los runners pueden realizar esta accion" }));
-
-      return (userId, null);
-    }
-
-    private (int userId, IActionResult? error) ValidarOrganizador()
-    {
-      var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
-      if (userIdClaim == null)
-        return (0, Unauthorized(new { message = "No autorizado" }));
-
-      var userId = int.Parse(userIdClaim.Value);
-
-      var tipoUsuarioClaim = User.FindFirst("TipoUsuario");
-      if (tipoUsuarioClaim == null || tipoUsuarioClaim.Value.ToLower() != "organizador")
-        return (0, BadRequest(new { message = "Solo los organizadores pueden realizar esta accion" }));
-
-      return (userId, null);
+      return int.Parse(userIdClaim.Value);
     }
 
 

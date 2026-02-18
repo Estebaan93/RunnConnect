@@ -224,14 +224,15 @@ namespace RunnConnectAPI.Controllers
      paginacion cada 10 elementos*/
     [Authorize]
     [HttpGet("MisEventos")]
+    [Authorize(Roles= "organizador")]
     public async Task<IActionResult> ObtenerMisEventos([FromQuery] int pagina = 1, [FromQuery] int tamanioPagina = 10)
     {
       try
       {
-        var validacion = ValidarOrganizador();
-        if (validacion.error != null) return validacion.error;
+        int userId = ObtenerUserIdDelToken();
 
-        var (eventos, totalCount) = await _eventoRepositorio.ObtenerTodosPorOrganizadorAsync(validacion.userId, pagina, tamanioPagina);
+
+        var (eventos, totalCount) = await _eventoRepositorio.ObtenerTodosPorOrganizadorAsync(userId, pagina, tamanioPagina);
 
         var totalPaginas = (int)Math.Ceiling(totalCount / (double)tamanioPagina);
 
@@ -270,8 +271,8 @@ namespace RunnConnectAPI.Controllers
 
 
     /*POST: api/Nuevo - Crea un nuevo evento (Organizadores) y sus categorias*/
-    [Authorize]
     [HttpPost]
+    [Authorize(Roles="organizador")]
     public async Task<IActionResult> CrearEvento([FromBody] CrearEventoRequest request)
     {
       try
@@ -279,12 +280,10 @@ namespace RunnConnectAPI.Controllers
         if (!ModelState.IsValid)
           return BadRequest(ModelState);
 
-        var validacion = ValidarOrganizador();
-        if (validacion.error != null)
-          return validacion.error;
+        int userId = ObtenerUserIdDelToken();  
 
         // Verificar perfil completo del organizador
-        var usuario = await _usuarioRepositorio.GetByIdAsync(validacion.userId);
+        var usuario = await _usuarioRepositorio.GetByIdAsync(userId);
         if (usuario == null)
           return NotFound(new { message = "Usuario no encontrado" });
 
@@ -312,7 +311,7 @@ namespace RunnConnectAPI.Controllers
           UrlPronosticoClima = request.UrlPronosticoClima,
           DatosPago = request.DatosPago,
           TipoEvento = request.TipoEvento,
-          IdOrganizador = validacion.userId
+          IdOrganizador = userId
         };
 
         var eventoCreado = await _eventoRepositorio.CrearAsync(evento);
@@ -402,8 +401,8 @@ namespace RunnConnectAPI.Controllers
     }
 
     /*PUT: api/Evento/{id} - Actualiza un evento exitosamente (solo el organizador propio)*/
-    [Authorize]
     [HttpPut("{id}")]
+    [Authorize(Roles = "organizador")]
     public async Task<IActionResult> ActualizarEvento(int id, [FromBody] ActualizarEventoRequest request)
     {
       try
@@ -411,15 +410,13 @@ namespace RunnConnectAPI.Controllers
         if (!ModelState.IsValid)
           return BadRequest(ModelState);
 
-        var validacion = ValidarOrganizador();
-        if (validacion.error != null)
-          return validacion.error;
+        int userId = ObtenerUserIdDelToken();
 
         var evento = await _eventoRepositorio.ObtenerPorIdAsync(id);
         if (evento == null)
           return NotFound(new { message = "Evento no encontrado" });
 
-        if (evento.IdOrganizador != validacion.userId)
+        if (evento.IdOrganizador != userId)
           return Forbid();
 
         /*bloqueo de estados*/
@@ -465,16 +462,15 @@ namespace RunnConnectAPI.Controllers
 
     /*PUT: api/Evento/{id}/CambiarEstado - Cambiamos el estado de un evento (publicado, cancelado, finalizado o retrasado)
     Solo el orga que creo el evento puede cambiar su estado, tambien enviamos una notificacion*/
-    [Authorize]
     [HttpPut("{id}/CambiarEstado")]
+    [Authorize(Roles = "organizador")]
     public async Task<IActionResult> CambiarEstadoEvento(int id, [FromBody] CambiarEstadoEventoRequest request)
     {
       try
       {
         if (!ModelState.IsValid) return BadRequest(ModelState);
 
-        var (userId, error) = ValidarOrganizador();
-        if (error != null) return error;
+        int userId = ObtenerUserIdDelToken();
 
         var evento = await _eventoRepositorio.ObtenerPorIdConDetalleAsync(id);
         if (evento == null) return NotFound(new { message = "Evento no encontrado" });
@@ -566,16 +562,15 @@ namespace RunnConnectAPI.Controllers
     //PUT cambiar estado de una categoria especifica (ej la 10k)
     //se retrasa 1 hs, pero no afecta a la de 20k, que corre en el mismo circuito
     //cada categoria tiene su estado
-    [Authorize]
     [HttpPut("Categoria/{idCategoria}/CambiarEstado")]
+    [Authorize(Roles = "organizador")]
     public async Task<IActionResult> CambiarEstadoCategoria(int idCategoria, [FromBody] CambiarEstadoCategoriaRequest request)
     {
       try
       {
         if (!ModelState.IsValid) return BadRequest(ModelState);
 
-        var (userId, error) = ValidarOrganizador();
-        if (error != null) return error;
+        int userId= ObtenerUserIdDelToken();
 
         // 1. Obtener la categoria con el Evento (Usando el metodo nuevo del Repo)
         var categoria = await _categoriaRepositorio.ObtenerPorIdConEventoAsync(idCategoria);
@@ -644,22 +639,13 @@ namespace RunnConnectAPI.Controllers
       }
     }
 
-
-
-    /*Validar que el usuario autenticado sea organizado, retorna el userId si es valido o un ACtionResult con error*/
-    private (int userId, IActionResult? error) ValidarOrganizador()
+     private int ObtenerUserIdDelToken()
     {
       var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
       if (userIdClaim == null)
-        return (0, Unauthorized(new { message = "No autorizado" }));
+        throw new UnauthorizedAccessException("ID de usuario no encontrado");
 
-      var userId = int.Parse(userIdClaim.Value);
-
-      var tipoUsuarioClaim = User.FindFirst("TipoUsuario");
-      if (tipoUsuarioClaim == null || tipoUsuarioClaim.Value.ToLower() != "organizador")
-        return (0, BadRequest(new { message = "Solo los organizadores pueden realizar esta acción" }));
-
-      return (userId, null);
+      return int.Parse(userIdClaim.Value);
     }
 
 

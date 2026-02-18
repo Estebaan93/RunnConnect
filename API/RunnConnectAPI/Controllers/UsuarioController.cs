@@ -11,7 +11,7 @@ namespace RunnConnectAPI.Controllers
 {
   [ApiController]
   [Route("api/[controller]")]
-  [Authorize] //Todos los endpoint requieren autenticacion JWT
+  [Authorize] //Todos los endpoint requieren autenticacion JWT, salvo que tengan AllowAnonymus
   public class UsuarioController : ControllerBase
   {
     private readonly UsuarioRepositorio _usuarioRepositorio;
@@ -279,12 +279,7 @@ namespace RunnConnectAPI.Controllers
     {
       try
       {
-        // Obtenemos el Id del usuario desde el token JWT
-        var userClaim = User.FindFirst(ClaimTypes.NameIdentifier);
-        if (userClaim == null)
-          return Unauthorized(new { message = "No autorizado" });
-
-        var userId = int.Parse(userClaim.Value);
+        int userId = ObtenerUserIdDelToken();
 
         // Buscamos el usuario en la BD (Solo los activos)
         var usuario = await _usuarioRepositorio.GetByIdAsync(userId);
@@ -351,7 +346,7 @@ namespace RunnConnectAPI.Controllers
             imgAvatar = avatarUrl,
             esAvatarPorDefecto = _fileService.EsAvatarPorDefecto(usuario.ImgAvatar),
             estado = usuario.Estado,
-            perfilCompleto = perfilCompleto  // ← FLAG AGREGADO
+            perfilCompleto = perfilCompleto  //FLAG AGREGADO
           });
         }
 
@@ -368,24 +363,19 @@ namespace RunnConnectAPI.Controllers
     Requerido todos los campos antes de inscribirse a evento
     PUT: api/Usuario/ActualizarPerfilRunner
     Content-Type: application/json*/
+    [Authorize(Roles = "runner")] //solor runners
     [HttpPut("ActualizarPerfilRunner")]
     public async Task<IActionResult> ActualizarPerfilRunner([FromBody] ActualizarPerfilRunnerDto dto)
     {
       try
       {
         //Obtener ID del usuario autenticado desde el token JWT
-        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out int userId))
-          return Unauthorized(new { message = "Token invalido" });
+        int userId = ObtenerUserIdDelToken();
 
         //Buscar usuario con su perfil runner
         var usuario = await _usuarioRepositorio.GetByIdAsync(userId);
         if (usuario == null)
           return NotFound(new { message = "Usuario no encontrado" });
-
-        //Verificar que sea runner
-        if (usuario.TipoUsuario.ToLower() != "runner")
-          return BadRequest(new { message = "Este endpoint es solo para runners" });
 
         //Verificar que tenga perfil runner
         if (usuario.PerfilRunner == null)
@@ -450,24 +440,19 @@ namespace RunnConnectAPI.Controllers
     PUT: api/Usuario/ActualizarPerfilOrganizador
     Requerido todos perfil completo para poder crear eventos
     Content-Type: application/json*/
+    [Authorize(Roles = "organizador")]
     [HttpPut("ActualizarPerfilOrganizador")]
     public async Task<IActionResult> ActualizarPerfilOrganizador([FromBody] ActualizarPerfilOrganizadorDto dto)
     {
       try
       {
         //Obtener ID del usuario autenticado desde el token JWT
-        var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-        if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out int userId))
-          return Unauthorized(new { message = "Token invalido" });
+        int userId = ObtenerUserIdDelToken();
 
         //Buscar usuario con su perfil organizador
         var usuario = await _usuarioRepositorio.GetByIdAsync(userId);
         if (usuario == null)
           return NotFound(new { message = "Usuario no encontrado" });
-
-        //Verificar que sea organizador
-        if (usuario.TipoUsuario.ToLower() != "organizador")
-          return BadRequest(new { message = "Este endpoint es solo para organizadores" });
 
         //Verificar que tenga perfil organizador
         if (usuario.PerfilOrganizador == null)
@@ -528,11 +513,7 @@ namespace RunnConnectAPI.Controllers
           return BadRequest(ModelState);
 
         //Obtener ID del usuario desde el token
-        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
-        if (userIdClaim == null)
-          return Unauthorized(new { message = "No autorizado" });
-
-        var userId = int.Parse(userIdClaim.Value);
+        int userId = ObtenerUserIdDelToken();
 
         //Buscar usuario en la BD
         var usuario = await _usuarioRepositorio.GetByIdAsync(userId);
@@ -748,11 +729,8 @@ namespace RunnConnectAPI.Controllers
       try
       {
         //Obtenemos el id del usuario desde el token
-        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
-        if (userIdClaim == null)
-          return Unauthorized(new { message = "No autorizado" });
 
-        var userId = int.Parse(userIdClaim.Value);
+        var userId = ObtenerUserIdDelToken();
 
         //Buscamos el usuario en la BD
         var usuario = await _usuarioRepositorio.GetByIdAsync(userId);
@@ -789,15 +767,9 @@ namespace RunnConnectAPI.Controllers
       if (!ModelState.IsValid || dto.Imagen == null || dto.Imagen.Length == 0)
         return BadRequest(new { message = "Debe enviar una imagen válida" });
 
-      //Obtener Id del usuario desde el token
-      var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
-      if (userIdClaim == null)
-        return Unauthorized(new { message = "No autorizado" });
-
-      var userId = int.Parse(userIdClaim.Value);
-
       try
       {
+        int userId = ObtenerUserIdDelToken();
         //Buscar usuario en la BD
         var usuario = await _usuarioRepositorio.GetByIdAsync(userId);
         if (usuario == null)
@@ -835,15 +807,9 @@ namespace RunnConnectAPI.Controllers
     [HttpDelete("Avatar")]
     public async Task<IActionResult> EliminarAvatar()
     {
-      //Obtener el Id del usuario desde el token
-      var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
-      if (userIdClaim == null)
-        return Unauthorized(new { message = "No autorizado" });
-
-      var userId = int.Parse(userIdClaim.Value);
-
       try
       {
+        int userId = ObtenerUserIdDelToken();
         //Buscar usuario en la BD
         var usuario = await _usuarioRepositorio.GetByIdAsync(userId);
         if (usuario == null)
@@ -896,7 +862,7 @@ namespace RunnConnectAPI.Controllers
         {
           IdUsuario = usuario.IdUsuario,
           Token = token,
-          TipoToken="recuperacion",
+          TipoToken = "recuperacion",
           FechaCreacion = DateTime.Now,
           FechaExpiracion = DateTime.Now.AddMinutes(5),
           Usado = false
@@ -944,8 +910,8 @@ namespace RunnConnectAPI.Controllers
           return BadRequest(new { message = "Token invalido" });
 
         //Verificar que sea un token de recuperacion (no de activacion)
-        if(tokenRecuperacion.TipoToken!="recuperacion")
-          return BadRequest(new {message="Este token no es valido para recuperar contraseña"});
+        if (tokenRecuperacion.TipoToken != "recuperacion")
+          return BadRequest(new { message = "Este token no es valido para recuperar contraseña" });
 
         // Verificar que no este usado
         if (tokenRecuperacion.Usado)
@@ -981,31 +947,31 @@ namespace RunnConnectAPI.Controllers
     /*SOLICITAR REACTIVACION DE CUENTA (Envia email con token)
   POST: api/Usuario/SolicitarReactivacion
   Verifica credenciales y envia email con link de reactivacion*/
-    
+
     [AllowAnonymous]
     [HttpPost("SolicitarReactivacion")]
     public async Task<IActionResult> SolicitarReactivacion([FromBody] SolicitarReactivacionDto dto)
     {
       try
       {
-        // 1. Buscar usuario SIN filtro de estado
+        //Buscar usuario SIN filtro de estado
         var usuario = await _usuarioRepositorio.GetByEmailSinFiltroEstadoAsync(dto.Email.Trim().ToLower());
 
         if (usuario == null)
           return NotFound(new { message = "No existe un usuario con ese email" });
 
-        // 2. Verificar que la cuenta este desactivada
+        //Verificar que la cuenta este desactivada
         if (usuario.Estado)
           return BadRequest(new { message = "Tu cuenta ya esta activa. Puedes iniciar sesión normalmente" });
 
-        // 3. Verificar password
+        //Verificar password
         if (!_passwordService.VerifyPassword(dto.Password, usuario.PasswordHash))
           return Unauthorized(new { message = "Credenciales inválidas" });
 
-        // 4. Generar token unico para reactivacion
+        //Generar token unico para reactivacion
         var token = Guid.NewGuid().ToString("N");
 
-        // 5. Crear registro de token (valido por 5 minutos)
+        //Crear registro de token (valido por 5 minutos)
         var tokenReactivacion = new TokenRecuperacion
         {
           IdUsuario = usuario.IdUsuario,
@@ -1056,47 +1022,47 @@ namespace RunnConnectAPI.Controllers
     {
       try
       {
-        // 1. Buscar token de reactivacion
+        //Buscar token de reactivacion
         var tokenReactivacion = await _tokenRecuperacionRepositorio.GetByTokenAsync(dto.Token);
 
         if (tokenReactivacion == null)
           return BadRequest(new { message = "Token inválido" });
 
-        // 2. Verificar que sea un token de reactivacion
+        //Verificar que sea un token de reactivacion
         if (tokenReactivacion.TipoToken != "reactivacion")
           return BadRequest(new { message = "Este token no es válido para reactivación" });
 
-        // 3. Verificar que no este usado
+        //Verificar que no este usado
         if (tokenReactivacion.Usado)
           return BadRequest(new { message = "Este token ya fue utilizado" });
 
-        // 4. Verificar que no este expirado
+        //Verificar que no este expirado
         if (DateTime.Now > tokenReactivacion.FechaExpiracion)
           return BadRequest(new { message = "El token ha expirado. Solicita uno nuevo" });
 
-        // 5. Buscar usuario SIN filtro de estado
-         var usuario = await _usuarioRepositorio.GetByIdSinFiltroEstadoAsync(tokenReactivacion.IdUsuario);
+        //Buscar usuario SIN filtro de estado
+        var usuario = await _usuarioRepositorio.GetByIdSinFiltroEstadoAsync(tokenReactivacion.IdUsuario);
 
         if (usuario == null)
           return NotFound(new { message = "Usuario no encontrado" });
 
-        // 6. Verificar que la cuenta este desactivada
+        //Verificar que la cuenta este desactivada
         if (usuario.Estado)
           return BadRequest(new { message = "La cuenta ya está activa" });
 
-        // 7. REACTIVAR CUENTA
+        //REACTIVAR CUENTA
         usuario.Estado = true;
         await _usuarioRepositorio.UpdateAsync(usuario);
 
-        // 8. Marcar token como usado
+        //Marcar token como usado
         tokenReactivacion.Usado = true;
         await _tokenRecuperacionRepositorio.UpdateAsync(tokenReactivacion);
 
-        // 9. Generar token JWT para login automatico
+        //Generar token JWT para login automatico
         var jwtToken = _jwtService.GenerarToken(usuario);
         var avatarUrl = _fileService.ObtenerUrlCompleta(usuario.ImgAvatar, Request);
 
-        // 10. Retornar exito con token para login automatico
+        //Retornar exito con token para login automatico
         return Ok(new
         {
           message = "¡Cuenta reactivada exitosamente! Bienvenido de nuevo",
@@ -1117,7 +1083,14 @@ namespace RunnConnectAPI.Controllers
       }
     }
 
+    private int ObtenerUserIdDelToken()
+    {
+      var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+      if (userIdClaim == null)
+        throw new UnauthorizedAccessException("ID de usuario no encontrado");
 
+      return int.Parse(userIdClaim.Value);
+    }
 
 
   }

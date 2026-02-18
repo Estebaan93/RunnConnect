@@ -34,7 +34,7 @@ namespace RunnConnectAPI.Services // Define el espacio de nombres donde vive est
         new Claim(ClaimTypes.NameIdentifier, usuario.IdUsuario.ToString()),
         new Claim(ClaimTypes.Email, usuario.Email),
         new Claim(ClaimTypes.Name, nombreCompleto),
-        new Claim(ClaimTypes.Role, usuario.TipoUsuario),
+        new Claim(ClaimTypes.Role, usuario.TipoUsuario)
         //new Claim("TipoUsuario", usuario.TipoUsuario) //Revisar esta duplicado por ROLE
       };
 
@@ -49,7 +49,7 @@ namespace RunnConnectAPI.Services // Define el espacio de nombres donde vive est
         issuer: _config["Jwt:Issuer"],
         audience: _config["Jwt:Audience"],
         claims: claims,
-        expires: DateTime.UtcNow.AddHours(1), //Vaido por 1 hora
+        expires: DateTime.UtcNow.AddHours(1), //Valido por 1 hora
         signingCredentials: creds
       );
 

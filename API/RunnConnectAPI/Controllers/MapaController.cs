@@ -10,6 +10,7 @@ namespace RunnConnectAPI.Controllers
 {
   /// Controller para gestion de Rutas y Puntos de Interes de eventos
   /// Permite al organizador dibujar la ruta y marcar puntos importantes
+  [Authorize]
   [ApiController]
   [Route("api/Evento/{idEvento}")]
   public class MapaController : ControllerBase
@@ -25,7 +26,7 @@ namespace RunnConnectAPI.Controllers
     /* Obtiene el mapa completo del evento (ruta + puntos de interes)
     Endpoint publico - ideal para la app Android
     Retorna toda la información necesaria para mostrar el mapa */
-    
+    [AllowAnonymous]
     [HttpGet("Mapa")]
     public async Task<IActionResult> ObtenerMapaCompleto(int idEvento)
     {
@@ -49,6 +50,7 @@ namespace RunnConnectAPI.Controllers
     /* Obtiene la ruta (trazado GPS) de un evento
     Endpoint publico
     Retorna los puntos ordenados que forman el recorrido */
+    [AllowAnonymous]
     [HttpGet("Ruta")]
     public async Task<IActionResult> ObtenerRuta(int idEvento)
     {
@@ -67,12 +69,11 @@ namespace RunnConnectAPI.Controllers
       }
     }
 
-    /// Guarda la ruta completa de un evento (reemplaza la existente)
+    /// Guarda la ruta completa de un evento (no reemplaza la existente)
     /// Requiere: Token JWT de Organizador (dueño del evento)
-    /// Si ya existe una ruta, la reemplaza completamente
-    /// Los puntos deben venir en orden (el sistema asigna el número de orden automaticamente)
+    /// Los puntos deben venir en orden (el sistema asigna el numero de orden automaticamente)
+    [Authorize(Roles="organizador")]
     [HttpPut("Ruta")]
-    [Authorize]
     public async Task<IActionResult> GuardarRuta(int idEvento, [FromBody] GuardarRutaRequest request)
     {
       try
@@ -80,8 +81,7 @@ namespace RunnConnectAPI.Controllers
         if (!ModelState.IsValid)
           return BadRequest(ModelState);
 
-        var (userId, error) = ValidarOrganizador();
-        if (error != null) return error;
+        int userId = ObtenerUserIdDelToken();
 
         var (exito, errorMsg) = await _rutaRepo.GuardarRutaAsync(idEvento, request, userId);
 
@@ -101,14 +101,13 @@ namespace RunnConnectAPI.Controllers
     }
 
     /// Elimina toda la ruta de un evento
+    [Authorize(Roles="organizador")]
     [HttpDelete("Ruta")]
-    [Authorize]
     public async Task<IActionResult> EliminarRuta(int idEvento)
     {
       try
       {
-        var (userId, error) = ValidarOrganizador();
-        if (error != null) return error;
+        int userId = ObtenerUserIdDelToken();
 
         var (exito, errorMsg) = await _rutaRepo.EliminarRutaAsync(idEvento, userId);
 
@@ -128,6 +127,7 @@ namespace RunnConnectAPI.Controllers
     /// Obtiene todos los puntos de interes de un evento
     /// Endpoint publico
     /// Retorna: hidratacion, primeros auxilios, etc.
+    [AllowAnonymous]
     [HttpGet("PuntosInteres")]
     public async Task<IActionResult> ObtenerPuntosInteres(int idEvento)
     {
@@ -147,6 +147,7 @@ namespace RunnConnectAPI.Controllers
     }
 
     /// Obtiene un punto de interes especifico
+    [AllowAnonymous]
     [HttpGet("PuntosInteres/{idPunto}")]
     public async Task<IActionResult> ObtenerPuntoInteres(int idEvento, int idPunto)
     {
@@ -172,8 +173,8 @@ namespace RunnConnectAPI.Controllers
     /// Crea un nuevo punto de interes
     /// Requiere: Token JWT de Organizador (dueño del evento)
     /// Tipos validos: hidratacion, primeros auxilios, punto de energia, otro
+    [Authorize(Roles="organizador")]
     [HttpPost("PuntosInteres")]
-    [Authorize]
     public async Task<IActionResult> CrearPuntoInteres(int idEvento, [FromBody] CrearPuntoInteresRequest request)
     {
       try
@@ -181,8 +182,7 @@ namespace RunnConnectAPI.Controllers
         if (!ModelState.IsValid)
           return BadRequest(ModelState);
 
-        var (userId, error) = ValidarOrganizador();
-        if (error != null) return error;
+        int userId = ObtenerUserIdDelToken();
 
         var (punto, errorMsg) = await _rutaRepo.CrearPuntoInteresAsync(idEvento, request, userId);
 
@@ -214,8 +214,8 @@ namespace RunnConnectAPI.Controllers
     /// Crea multiples puntos de interes a la vez
     /// Requiere: Token JWT de Organizador (dueño del evento)
     /// Util para cargar todos los puntos de una vez desde la app
+    [Authorize(Roles="organizador")]
     [HttpPost("PuntosInteres/Batch")]
-    [Authorize]
     public async Task<IActionResult> CrearPuntosInteresMultiples(
       int idEvento, [FromBody] List<CrearPuntoInteresRequest> puntos)
     {
@@ -227,8 +227,7 @@ namespace RunnConnectAPI.Controllers
         if (puntos == null || !puntos.Any())
           return BadRequest(new { message = "Debe incluir al menos un punto de interés" });
 
-        var (userId, error) = ValidarOrganizador();
-        if (error != null) return error;
+        int userId = ObtenerUserIdDelToken();
 
         var (creados, errorMsg) = await _rutaRepo.CrearPuntosInteresMultiplesAsync(idEvento, puntos, userId);
 
@@ -248,8 +247,8 @@ namespace RunnConnectAPI.Controllers
     }
 
     /// Actualiza un punto de interes existente
+    [Authorize(Roles="organizador")]
     [HttpPut("PuntosInteres/{idPunto}")]
-    [Authorize]
     public async Task<IActionResult> ActualizarPuntoInteres(
       int idEvento, int idPunto, [FromBody] ActualizarPuntoInteresRequest request)
     {
@@ -258,8 +257,7 @@ namespace RunnConnectAPI.Controllers
         if (!ModelState.IsValid)
           return BadRequest(ModelState);
 
-        var (userId, error) = ValidarOrganizador();
-        if (error != null) return error;
+        int userId = ObtenerUserIdDelToken();
 
         var (exito, errorMsg) = await _rutaRepo.ActualizarPuntoInteresAsync(idPunto, request, userId);
 
@@ -275,14 +273,13 @@ namespace RunnConnectAPI.Controllers
     }
 
     /// Elimina un punto de interes
+     [Authorize(Roles="organizador")]
     [HttpDelete("PuntosInteres/{idPunto}")]
-    [Authorize]
     public async Task<IActionResult> EliminarPuntoInteres(int idEvento, int idPunto)
     {
       try
       {
-        var (userId, error) = ValidarOrganizador();
-        if (error != null) return error;
+        int userId = ObtenerUserIdDelToken();
 
         var (exito, errorMsg) = await _rutaRepo.EliminarPuntoInteresAsync(idPunto, userId);
 
@@ -298,14 +295,13 @@ namespace RunnConnectAPI.Controllers
     }
 
     /// Elimina todos los puntos de interes de un evento
+    [Authorize(Roles="organizador")]
     [HttpDelete("PuntosInteres")]
-    [Authorize]
     public async Task<IActionResult> EliminarTodosPuntosInteres(int idEvento)
     {
       try
       {
-        var (userId, error) = ValidarOrganizador();
-        if (error != null) return error;
+        int userId = ObtenerUserIdDelToken();
 
         var (exito, errorMsg) = await _rutaRepo.EliminarTodosPuntosInteresAsync(idEvento, userId);
 
@@ -322,19 +318,13 @@ namespace RunnConnectAPI.Controllers
 
 
     // HELPERS PRIVADOS 
-    private (int userId, IActionResult? error) ValidarOrganizador()
+    private int ObtenerUserIdDelToken()
     {
       var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
       if (userIdClaim == null)
-        return (0, Unauthorized(new { message = "No autorizado" }));
+        throw new UnauthorizedAccessException("ID de usuario no encontrado");
 
-      var userId = int.Parse(userIdClaim.Value);
-
-      var tipoUsuarioClaim = User.FindFirst("TipoUsuario");
-      if (tipoUsuarioClaim == null || tipoUsuarioClaim.Value.ToLower() != "organizador")
-        return (0, BadRequest(new { message = "Solo los organizadores pueden realizar esta acción" }));
-
-      return (userId, null);
+      return int.Parse(userIdClaim.Value);
     }
 
   }

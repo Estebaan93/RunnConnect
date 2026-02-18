@@ -36,6 +36,7 @@ namespace RunnConnectAPI.Controllers
     /// Inscribirse a una categoria de evento
     /// POST: api/Inscripcion
     [HttpPost]
+    [Authorize(Roles = "runner")] //para runners
     public async Task<IActionResult> Inscribirse([FromBody] CrearInscripcionRequest request)
     {
       try
@@ -43,9 +44,7 @@ namespace RunnConnectAPI.Controllers
         if (!ModelState.IsValid)
           return BadRequest(ModelState);
 
-        var validacion = ValidarRunner();
-        if (validacion.error != null)
-          return validacion.error;
+        int userId = ObtenerUserIdDelToken();
 
         // Validar que acepto el deslinde
         if (!request.AceptoDeslinde)
@@ -85,17 +84,17 @@ namespace RunnConnectAPI.Controllers
           return BadRequest(new { message = "No se puede inscribir a un evento que ya paso" });
 
         // Verificar perfil completo del runner
-        var (perfilCompleto, camposFaltantes) = await _inscripcionRepositorio.ValidarPerfilCompletoRunner(validacion.userId);
+        var (perfilCompleto, camposFaltantes) = await _inscripcionRepositorio.ValidarPerfilCompletoRunner(userId);
         if (!perfilCompleto)
           return BadRequest(new { message = "Debe completar su perfil antes de inscribirse", camposFaltantes });
 
         // Verificar requisitos de la categoria (edad y genero)
-        var (cumpleRequisitos, motivo) = await _inscripcionRepositorio.ValidarRequisitosCategoria(validacion.userId, request.IdCategoria);
+        var (cumpleRequisitos, motivo) = await _inscripcionRepositorio.ValidarRequisitosCategoria(userId, request.IdCategoria);
         if (!cumpleRequisitos)
           return BadRequest(new { message = motivo });
 
         // Verificar que no este ya inscripto en el evento
-        if (await _inscripcionRepositorio.ExisteInscripcionEnEventoAsync(validacion.userId, evento.IdEvento))
+        if (await _inscripcionRepositorio.ExisteInscripcionEnEventoAsync(userId, evento.IdEvento))
           return BadRequest(new { message = "Ya tiene una inscripcion activa en este evento" });
 
         // Verificar cupo disponible en la categoria
@@ -109,7 +108,7 @@ namespace RunnConnectAPI.Controllers
         // Crear la inscripcion
         var inscripcion = new Inscripcion
         {
-          IdUsuario = validacion.userId,
+          IdUsuario = userId,
           IdCategoria = request.IdCategoria,
           TalleRemera = request.TalleRemera,
           AceptoDeslinde = true
@@ -148,17 +147,17 @@ namespace RunnConnectAPI.Controllers
     /// Obtiene las inscripciones del runner autenticado
     /// GET: api/Inscripcion/MisInscripciones
     [HttpGet("MisInscripciones")]
+    [Authorize(Roles = "runner")] //para runners
     public async Task<IActionResult> ObtenerMisInscripciones([FromQuery] bool soloActivas = false)
     {
       try
       {
-        var validacion = ValidarRunner();
-        if (validacion.error != null)
-          return validacion.error;
+        
+        int userId = ObtenerUserIdDelToken();
 
         var inscripciones = soloActivas
-            ? await _inscripcionRepositorio.ObtenerActivasPorRunnerAsync(validacion.userId)
-            : await _inscripcionRepositorio.ObtenerPorRunnerAsync(validacion.userId);
+            ? await _inscripcionRepositorio.ObtenerActivasPorRunnerAsync(userId)
+            : await _inscripcionRepositorio.ObtenerPorRunnerAsync(userId);
 
         var response = inscripciones.Select(i => new InscripcionDetalleResponse
         {
@@ -208,15 +207,13 @@ namespace RunnConnectAPI.Controllers
       try
       {
         var userId = ObtenerUserIdDelToken();
-        if (userId == null)
-          return Unauthorized(new { message = "No autorizado" });
 
         var inscripcion = await _inscripcionRepositorio.ObtenerPorIdAsync(id);
 
         if (inscripcion == null)
           return NotFound(new { message = "Inscripcion no encontrada" });
 
-        // Verificar que la inscripción pertenece al usuario o es organizador del evento
+        // Verificar que la inscripcion pertenece al usuario o es organizador del evento
         var esRunner = inscripcion.IdUsuario == userId;
         var esOrganizador = inscripcion.Categoria?.Evento?.IdOrganizador == userId;
 
@@ -263,20 +260,20 @@ namespace RunnConnectAPI.Controllers
     /// PUT: api/Inscripcion/{id}/Comprobante
     [HttpPut("{id}/Comprobante")]
     [Consumes("multipart/form-data")]
+    [Authorize(Roles = "runner")]
     public async Task<IActionResult> SubirComprobante(int id, [FromForm] SubirComprobanteRequest request)
     {
       try
       {
-        var validacion = ValidarRunner();
-        if (validacion.error != null)
-          return validacion.error;
+        
+        int userId = ObtenerUserIdDelToken();
 
         var inscripcion = await _inscripcionRepositorio.ObtenerPorIdAsync(id);
 
         if (inscripcion == null)
           return NotFound(new { message = "Inscripcion no encontrada" });
 
-        if (inscripcion.IdUsuario != validacion.userId)
+        if (inscripcion.IdUsuario != userId)
           return Forbid();
 
         if (inscripcion.EstadoPago != "pendiente")
@@ -315,20 +312,19 @@ namespace RunnConnectAPI.Controllers
     /// Cancelar una inscripcion
     /// PUT: api/Inscripcion/{id}/Cancelar
     [HttpPut("{id}/Cancelar")]
+    [Authorize(Roles ="runner")]
     public async Task<IActionResult> CancelarInscripcion(int id)
     {
       try
       {
-        var validacion = ValidarRunner();
-        if (validacion.error != null)
-          return validacion.error;
+        int userId= ObtenerUserIdDelToken();  
 
         var inscripcion = await _inscripcionRepositorio.ObtenerPorIdAsync(id);
 
         if (inscripcion == null)
           return NotFound(new { message = "Inscripcion no encontrada" });
 
-        if (inscripcion.IdUsuario != validacion.userId)
+        if (inscripcion.IdUsuario != userId)
           return Forbid();
 
         if (inscripcion.EstadoPago == "procesando")
@@ -367,20 +363,19 @@ namespace RunnConnectAPI.Controllers
     /// Obtiene los inscriptos de un evento
     /// GET: api/Evento/{idEvento}/Inscripciones
     [HttpGet("/api/Evento/{idEvento}/Inscripciones")]
+    [Authorize(Roles = "organizador")]
     public async Task<IActionResult> ObtenerInscriptosEvento(int idEvento, [FromQuery] FiltroInscripcionesRequest filtro)
     {
       try
       {
-        var validacion = ValidarOrganizador();
-        if (validacion.error != null)
-          return validacion.error;
+        int userId = ObtenerUserIdDelToken();
 
         // Verificar que el evento existe y pertenece al organizador
         var evento = await _eventoRepositorio.ObtenerPorIdAsync(idEvento);
         if (evento == null)
           return NotFound(new { message = "Evento no encontrado" });
 
-        if (evento.IdOrganizador != validacion.userId)
+        if (evento.IdOrganizador != userId)
           return Forbid();
 
         var (inscripciones, totalCount) = await _inscripcionRepositorio.ObtenerPorEventoConFiltrosAsync(
@@ -444,19 +439,19 @@ namespace RunnConnectAPI.Controllers
     /// Confirmar o rechazar pago de una inscripcion
     /// PUT: api/Inscripcion/{id}/EstadoPago
     [HttpPut("{id}/EstadoPago")]
+    [Authorize(Roles = "organizador")]
     public async Task<IActionResult> CambiarEstadoPago(int id, [FromBody] CambiarEstadoPagoRequest request)
     {
       try
       {
         if (!ModelState.IsValid) return BadRequest(ModelState);
 
-        var validacion = ValidarOrganizador();
-        if (validacion.error != null) return validacion.error;
+        int userId = ObtenerUserIdDelToken();
 
         var inscripcion = await _inscripcionRepositorio.ObtenerPorIdAsync(id);
         if (inscripcion == null) return NotFound(new { message = "Inscripción no encontrada" });
 
-        if (inscripcion.Categoria?.Evento?.IdOrganizador != validacion.userId) return Forbid();
+        if (inscripcion.Categoria?.Evento?.IdOrganizador != userId) return Forbid();
 
         // Validar estado origen
         if (inscripcion.EstadoPago != "procesando")
@@ -490,17 +485,17 @@ namespace RunnConnectAPI.Controllers
     /// Reembolsar una inscripcion (solo confirmadas)
     /// PUT: api/Inscripcion/{id}/Reembolsar
     [HttpPut("{id}/Reembolsar")]
+    [Authorize(Roles = "organizador")]
     public async Task<IActionResult> ReembolsarInscripcion(int id)
     {
       try
       {
-        var validacion = ValidarOrganizador();
-        if (validacion.error != null) return validacion.error;
+        int userId = ObtenerUserIdDelToken();
 
         var inscripcion = await _inscripcionRepositorio.ObtenerPorIdAsync(id);
         if (inscripcion == null) return NotFound(new { message = "Inscripcion no encontrada" });
 
-        if (inscripcion.Categoria?.Evento?.IdOrganizador != validacion.userId) return Forbid();
+        if (inscripcion.Categoria?.Evento?.IdOrganizador != userId) return Forbid();
 
         // La validacion estricta (solo si es 'pagado') esta en el repositorio
         await _inscripcionRepositorio.CambiarEstadoPagoAsync(id, "reembolsado");
@@ -525,18 +520,18 @@ namespace RunnConnectAPI.Controllers
     //dar de baja un runner (solo organizador)
     //PUT: api/Inscripcion/{id}/BajaRunner
     [HttpPut("{id}/BajaRunner")]
+    [Authorize(Roles = "organizador")]
     public async Task<IActionResult> DarDeBajaInscripcion(int id, [FromBody] MotivoRequest request)
     {
       try
       {
-        var validacion = ValidarOrganizador();
-        if (validacion.error != null) return validacion.error;
+        int userId = ObtenerUserIdDelToken();
 
         var inscripcion = await _inscripcionRepositorio.ObtenerPorIdAsync(id);
         if (inscripcion == null) return NotFound(new { message = "Inscripcion no encontrada" });
 
         // Verificar que la inscripción pertenece a un evento de este organizador
-        if (inscripcion.Categoria?.Evento?.IdOrganizador != validacion.userId)
+        if (inscripcion.Categoria?.Evento?.IdOrganizador != userId)
           return Forbid();
 
 
@@ -564,55 +559,13 @@ namespace RunnConnectAPI.Controllers
       public string Motivo { get; set; } = string.Empty;
     }
 
-
-
-    // Metodos Privados
-    private (int userId, IActionResult? error) ValidarRunner()
-    {
-      var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
-      if (userIdClaim == null)
-        return (0, Unauthorized(new { message = "No autorizado" }));
-
-      var userId = int.Parse(userIdClaim.Value);
-
-      var tipoUsuarioClaim = User.FindFirst("TipoUsuario");
-      if (tipoUsuarioClaim == null || tipoUsuarioClaim.Value.ToLower() != "runner")
-        return (0, BadRequest(new { message = "Solo los runners pueden realizar esta accion" }));
-
-      return (userId, null);
-    }
-
-    private (int userId, IActionResult? error) ValidarOrganizador()
-    {
-      var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
-      if (userIdClaim == null)
-        return (0, Unauthorized(new { message = "No autorizado" }));
-
-      var userId = int.Parse(userIdClaim.Value);
-
-      var tipoUsuarioClaim = User.FindFirst("TipoUsuario");
-      if (tipoUsuarioClaim == null || tipoUsuarioClaim.Value.ToLower() != "organizador")
-        return (0, BadRequest(new { message = "Solo los organizadores pueden realizar esta accion" }));
-
-      return (userId, null);
-    }
-
-    private int? ObtenerUserIdDelToken()
-    {
-      var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
-      if (userIdClaim == null)
-        return null;
-
-      return int.Parse(userIdClaim.Value);
-    }
-
     [HttpGet("BuscarInscriptos")]
+    [Authorize(Roles="organizador")]
     public async Task<IActionResult> BuscarInscriptos([FromQuery] string busqueda)
     {
       try
       {
-        var (userId, error) = ValidarOrganizador();
-        if (error != null) return error;
+        int userId = ObtenerUserIdDelToken();
 
         if (string.IsNullOrWhiteSpace(busqueda))
           return BadRequest(new { message = "Debe ingresar un término de búsqueda." });
@@ -658,6 +611,14 @@ namespace RunnConnectAPI.Controllers
     }
 
 
+    private int ObtenerUserIdDelToken()
+    {
+      var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+      if (userIdClaim == null)
+        throw new UnauthorizedAccessException("ID de usuario no encontrado");
+
+      return int.Parse(userIdClaim.Value);
+    }
 
   }
 }

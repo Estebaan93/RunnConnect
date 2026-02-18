@@ -82,15 +82,13 @@ namespace RunnConnectAPI.Controllers
       }
     }
 
+    [Authorize(Roles = "runner")]
     [HttpGet("MisResultados")]
-    [Authorize]
     public async Task<IActionResult> MisResultados()
     {
       try
       {
-        var (userId, error) = ValidarRunner();
-        if (error != null)
-          return error;
+        int userId = ObtenerUserIdDelToken();
 
         var resultados = await _resultadoRepo.ObtenerMisResultadosAsync(userId);
         return Ok(resultados);
@@ -105,15 +103,13 @@ namespace RunnConnectAPI.Controllers
       }
     }
 
+    [Authorize(Roles = "runner")]
     [HttpPut("{id}/DatosSmartwatch")]
-    [Authorize]
     public async Task<IActionResult> AgregarDatosSmartwatch(int id, [FromBody] DatosSmartwatchRequest request)
     {
       try
       {
-        var (userId, error) = ValidarRunner();
-        if (error != null)
-          return error;
+        int userId = ObtenerUserIdDelToken();
 
         var (exito, errorMsg) = await _resultadoRepo.AgregarDatosSmartwatchAsync(id, request, userId);
 
@@ -134,15 +130,13 @@ namespace RunnConnectAPI.Controllers
 
     // GESTION (ORGANIZADOR)
     // CARGA MANUAL (1 a 1) -> Recibe JSON
+    [Authorize(Roles = "organizador")]
     [HttpPost("Cargar")]
-    [Authorize]
     public async Task<IActionResult> CargarResultado([FromBody] CargarResultadoRequest request)
     {
       try
       {
-        var (userId, error) = ValidarOrganizador();
-        if (error != null)
-          return error;
+        int userId = ObtenerUserIdDelToken();
 
         var (resultado, errorMsg) = await _resultadoRepo.CargarResultadoAsync(request, userId);
 
@@ -168,18 +162,16 @@ namespace RunnConnectAPI.Controllers
       }
     }
 
-    // CARGA MASIVA (Batch) -> Recibe Archivo CSV
+    // CARGA MASIVA -> Recibe Archivo CSV
     // Formato CSV esperado: DNI,TiempoOficial,PosGeneral,PosCategoria
+    [Authorize(Roles = "organizador")]
     [HttpPost("CargarArchivo")]
-    [Authorize]
     [Consumes("multipart/form-data")]
     public async Task<IActionResult> CargarArchivoResultados([FromForm] SubirResultadosArchivoRequest request)
     {
       try
       {
-        var (userId, error) = ValidarOrganizador();
-        if (error != null)
-          return error;
+        int userId = ObtenerUserIdDelToken();
 
         if (request.Archivo == null || request.Archivo.Length == 0)
           return BadRequest(new { message = "El archivo es obligatorio" });
@@ -259,15 +251,14 @@ namespace RunnConnectAPI.Controllers
       }
     }
 
+
+    [Authorize(Roles = "organizador")]
     [HttpPut("{id}/TiempoOficial")]
-    [Authorize]
     public async Task<IActionResult> ActualizarTiempoOficial(int id, [FromBody] ActualizarTiempoOficialRequest request)
     {
       try
       {
-        var (userId, error) = ValidarOrganizador();
-        if (error != null)
-          return error;
+        int userId = ObtenerUserIdDelToken();
 
         var (exito, errorMsg) = await _resultadoRepo.ActualizarTiempoOficialAsync(id, request.TiempoOficial, userId);
 
@@ -286,15 +277,13 @@ namespace RunnConnectAPI.Controllers
       }
     }
 
+    [Authorize(Roles = "organizador")]
     [HttpPut("{id}/Posiciones")]
-    [Authorize]
     public async Task<IActionResult> ActualizarPosiciones(int id, [FromBody] ActualizarPosicionesRequest request)
     {
       try
       {
-        var (userId, error) = ValidarOrganizador();
-        if (error != null)
-          return error;
+        int userId = ObtenerUserIdDelToken();
 
         var (exito, errorMsg) = await _resultadoRepo.ActualizarPosicionesAsync(id, request, userId);
 
@@ -313,15 +302,14 @@ namespace RunnConnectAPI.Controllers
       }
     }
 
+
+    [Authorize(Roles = "organizador")]
     [HttpDelete("{id}")]
-    [Authorize]
     public async Task<IActionResult> EliminarResultado(int id)
     {
       try
       {
-        var (userId, error) = ValidarOrganizador();
-        if (error != null)
-          return error;
+        int userId = ObtenerUserIdDelToken();
 
         var (exito, errorMsg) = await _resultadoRepo.EliminarResultadoAsync(id, userId);
 
@@ -340,35 +328,18 @@ namespace RunnConnectAPI.Controllers
       }
     }
 
-    // HELPERS 
-    private (int userId, IActionResult? error) ValidarRunner()
+    //Metodos privados helper
+    private int ObtenerUserIdDelToken()
     {
       var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
       if (userIdClaim == null)
-        return (0, Unauthorized(new { message = "No autorizado" }));
+        throw new UnauthorizedAccessException("ID de usuario no encontrado");
 
-      var userId = int.Parse(userIdClaim.Value);
-      var tipoUsuarioClaim = User.FindFirst("TipoUsuario");
-
-      if (tipoUsuarioClaim == null || tipoUsuarioClaim.Value.ToLower() != "runner")
-        return (0, BadRequest(new { message = "Solo los runners pueden realizar esta accion" }));
-
-      return (userId, null);
+      return int.Parse(userIdClaim.Value);
     }
 
-    private (int userId, IActionResult? error) ValidarOrganizador()
-    {
-      var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
-      if (userIdClaim == null)
-        return (0, Unauthorized(new { message = "No autorizado" }));
 
-      var userId = int.Parse(userIdClaim.Value);
-      var tipoUsuarioClaim = User.FindFirst("TipoUsuario");
 
-      if (tipoUsuarioClaim == null || tipoUsuarioClaim.Value.ToLower() != "organizador")
-        return (0, BadRequest(new { message = "Solo los organizadores pueden realizar esta acción" }));
 
-      return (userId, null);
-    }
   }
 }

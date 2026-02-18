@@ -140,7 +140,6 @@ namespace RunnConnectAPI.Repositories
     }
 
     /// Cambia el estado de un evento con validaciones de negocio
-    
     public async Task CambiarEstadoAsync(int idEvento, string nuevoEstado)
     {
       var evento = await _context.Eventos.FindAsync(idEvento);
@@ -310,9 +309,8 @@ namespace RunnConnectAPI.Repositories
       return inscriptos < categoria.CupoCategoria.Value;
     }
 
-    /// <summary>
-    /// Busca eventos vencidos (6hs post inicio) y finaliza tanto el evento como sus categorías.
-    /// </summary>
+    
+    // Busca eventos vencidos (6hs post inicio) y finaliza tanto el evento como sus categorías.
     public async Task<int> FinalizarEventosVencidosAsync()
     {
       // Regla: 6 horas después de la largada
