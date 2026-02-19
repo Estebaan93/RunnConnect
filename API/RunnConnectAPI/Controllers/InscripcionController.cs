@@ -261,11 +261,13 @@ namespace RunnConnectAPI.Controllers
     [HttpPut("{id}/Comprobante")]
     [Consumes("multipart/form-data")]
     [Authorize(Roles = "runner")]
-    public async Task<IActionResult> SubirComprobante(int id, [FromForm] SubirComprobanteRequest request)
+    public async Task<IActionResult> SubirComprobante(int id, IFormFile comprobante)
     {
       try
       {
-        
+        if(comprobante ==null || comprobante.Length==0)
+          return BadRequest(new { message = "El comprobante de pago es obligatorio" });
+
         int userId = ObtenerUserIdDelToken();
 
         var inscripcion = await _inscripcionRepositorio.ObtenerPorIdAsync(id);
@@ -280,19 +282,19 @@ namespace RunnConnectAPI.Controllers
           return BadRequest(new { message = "Solo se puede subir comprobante para inscripciones pendientes" });
 
         // Validar archivo
-        if (request.Comprobante == null || request.Comprobante.Length == 0)
-          return BadRequest(new { message = "Debe seleccionar un archivo" });
+        /*if (request.Comprobante == null || request.Comprobante.Length == 0)
+          return BadRequest(new { message = "Debe seleccionar un archivo" });*/
 
         var extensionesPermitidas = new[] { ".jpg", ".jpeg", ".png", ".pdf" };
-        var extension = Path.GetExtension(request.Comprobante.FileName).ToLower();
+        var extension = Path.GetExtension(comprobante.FileName).ToLower();
         if (!extensionesPermitidas.Contains(extension))
           return BadRequest(new { message = "Solo se permiten archivos JPG, PNG o PDF" });
 
-        if (request.Comprobante.Length > 10 * 1024 * 1024) // 10MB maximo
+        if (comprobante.Length > 10 * 1024 * 1024) // 10MB maximo
           return BadRequest(new { message = "El archivo no puede exceder 10MB" });
 
         // Guardar archivo
-        var urlComprobante = await _fileService.GuardarComprobanteAsync(request.Comprobante, id);
+        var urlComprobante = await _fileService.GuardarComprobanteAsync(comprobante, id);
 
         await _inscripcionRepositorio.ActualizarComprobanteYEstadoAsync(id, urlComprobante, "procesando");
 
@@ -458,10 +460,17 @@ namespace RunnConnectAPI.Controllers
           return BadRequest(new { message = "Solo se puede confirmar/rechazar pagos en estado PROCESANDO." });
 
         var estadoAnterior = inscripcion.EstadoPago;
+
         string estadoFinal = request.NuevoEstado.ToLower();
 
+        //si rechaza obliga a poner un motivo
+        if(estadoFinal=="rechazado" && string.IsNullOrWhiteSpace(request.Motivo))
+        {
+          return BadRequest(new { message = "Debe colocar el motivo del rechazo del pago" });
+        }
+
         // El repositorio validara si 'pagado' o 'rechazado' son transiciones validas
-        await _inscripcionRepositorio.CambiarEstadoPagoAsync(id, estadoFinal);
+        await _inscripcionRepositorio.CambiarEstadoPagoAsync(id, estadoFinal, request.Motivo);
 
         return Ok(new
         {
@@ -469,7 +478,7 @@ namespace RunnConnectAPI.Controllers
           idInscripcion = id,
           estadoAnterior,
           estadoNuevo = estadoFinal,
-          motivo = request.Motivo
+          observacion = request.Motivo ?? "Pago impactao correctamente"
         });
       }
       catch (InvalidOperationException ex)

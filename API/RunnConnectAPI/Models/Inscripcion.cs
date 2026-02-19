@@ -34,9 +34,12 @@ namespace RunnConnectAPI.Models
     [StringLength(255)]
     public string? ComprobantePagoURL {get;set;}
 
+    [StringLength(250)]
+    public string Observacion { get; set; } = "Inscripcion creada. Pago pendiente";//observacion del estado pago
+
 
     /*Navegacion*/
-   [ForeignKey("IdUsuario")]
+    [ForeignKey("IdUsuario")]
     [JsonIgnore]
     public Usuario? Usuario { get; set; }
 

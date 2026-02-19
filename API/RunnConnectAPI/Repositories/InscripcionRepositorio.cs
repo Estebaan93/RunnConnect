@@ -1,6 +1,7 @@
 //Repositories/InscripcionRepositorio.cs
 
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Internal;
 using RunnConnectAPI.Data;
 using RunnConnectAPI.Models;
 
@@ -179,7 +180,7 @@ namespace RunnConnectAPI.Repositories
     }
 
     /// Cambia el estado de pago de una inscripcion
-    public async Task CambiarEstadoPagoAsync(int idInscripcion, string nuevoEstado)
+    public async Task CambiarEstadoPagoAsync(int idInscripcion, string nuevoEstado, string? motivoOrganizador=null)
     {
       var inscripcion = await _context.Inscripciones.FindAsync(idInscripcion);
 
@@ -196,6 +197,42 @@ namespace RunnConnectAPI.Repositories
       ValidarTransicionEstado(inscripcion.EstadoPago, nuevoEstado);
 
       inscripcion.EstadoPago = nuevoEstado;
+
+      //para la obs de la inscripcion
+      switch (nuevoEstado.ToLower())
+    {
+        case "pagado":
+            // Si el organizador pone un msj lo usamos, si no, texto default
+            inscripcion.Observacion = !string.IsNullOrEmpty(motivoOrganizador) 
+                ? motivoOrganizador 
+                : "Pago impactado correctamente. Inscripción confirmada.";
+            break;
+
+        case "rechazado":
+            // En rechazado, el motivo del organizador
+            inscripcion.Observacion = !string.IsNullOrEmpty(motivoOrganizador) 
+                ? $"Pago rechazado. Motivo: {motivoOrganizador}" 
+                : "Pago rechazado por el organizador (Sin motivo especificado).";
+            break;
+
+        case "procesando":
+            inscripcion.Observacion = "Comprobante subido. Esperando revisión del organizador.";
+            break;
+
+        case "pendiente":
+             inscripcion.Observacion = "Pendiente de pago o reintento de carga.";
+             break;
+             
+        case "cancelado":
+             inscripcion.Observacion = "Inscripción cancelada.";
+             break;
+
+        default:
+            inscripcion.Observacion = $"Estado cambiado a {nuevoEstado}";
+            break;
+    }
+
+
       await _context.SaveChangesAsync();
     }
 

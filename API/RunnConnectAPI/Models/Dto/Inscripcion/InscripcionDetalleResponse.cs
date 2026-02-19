@@ -12,6 +12,7 @@ namespace RunnConnectAPI.Models.Dto.Inscripcion
     public string? TalleRemera { get; set; }
     public bool AceptoDeslinde { get; set; }
     public string? ComprobantePagoURL { get; set; }
+    public string Observacion { get; set; }
 
     
     // Informacion del evento
