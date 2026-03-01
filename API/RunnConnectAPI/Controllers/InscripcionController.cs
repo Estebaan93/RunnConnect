@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using RunnConnectAPI.Models;
 using RunnConnectAPI.Models.Dto.Inscripcion;
+using RunnConnectAPI.Models.Dto.Notificacion;
 using RunnConnectAPI.Repositories;
 using RunnConnectAPI.Services;
 using System.Security.Claims;
@@ -17,17 +18,20 @@ namespace RunnConnectAPI.Controllers
     private readonly InscripcionRepositorio _inscripcionRepositorio;
     private readonly CategoriaRepositorio _categoriaRepositorio;
     private readonly EventoRepositorio _eventoRepositorio;
+    private readonly NotificacionRepositorio _notificacionRepositorio;
     private readonly FileService _fileService;
 
     public InscripcionController(
         InscripcionRepositorio inscripcionRepositorio,
         CategoriaRepositorio categoriaRepositorio,
         EventoRepositorio eventoRepositorio,
+        NotificacionRepositorio notificacionRepositorio,
         FileService fileService)
     {
       _inscripcionRepositorio = inscripcionRepositorio;
       _categoriaRepositorio = categoriaRepositorio;
       _eventoRepositorio = eventoRepositorio;
+      _notificacionRepositorio = notificacionRepositorio;
       _fileService = fileService;
     }
 
@@ -469,8 +473,36 @@ namespace RunnConnectAPI.Controllers
           return BadRequest(new { message = "Debe colocar el motivo del rechazo del pago" });
         }
 
-        // El repositorio validara si 'pagado' o 'rechazado' son transiciones validas
+        // El repositorio validara si 'pagado' o 'rechazado' 
         await _inscripcionRepositorio.CambiarEstadoPagoAsync(id, estadoFinal, request.Motivo);
+
+        //crear las noti para el runner
+        string tituloNotif= estadoFinal =="pagado" ? "¡Pago Confirmado!" : "Pago de Inscripción Rechazado";
+        string mensajeNotif= estadoFinal== "pagado"
+          ? $"Tu pago para el evento '{inscripcion.Categoria.Evento.Nombre}' ha sido aprobado." : $"Tu comprobante fue rechazado. Motivo: {request.Motivo}";
+
+        var notificacion = new NotificacionEvento
+        {
+          IdEvento = inscripcion.Categoria.Evento.IdEvento,
+          IdCategoria = inscripcion.IdCategoria,
+          IdUsuarioDestino = inscripcion.IdUsuario,
+          Titulo = tituloNotif,
+          Mensaje = mensajeNotif,
+          FechaEnvio = DateTime.Now,
+          EsAnuncioGlobal = false,
+          EstadoEvento = inscripcion.Categoria.Evento.Estado
+        };
+
+        //inyectamos la notificacion
+        await _notificacionRepositorio.CrearAsync(new CrearNotificacionRequest
+        {
+          IdEvento = notificacion.IdEvento,
+          IdCategoria = notificacion.IdCategoria,
+          Titulo= notificacion.Titulo,
+          Mensaje= notificacion.Mensaje
+        },userId, notificacion.IdUsuarioDestino);
+
+        
 
         return Ok(new
         {

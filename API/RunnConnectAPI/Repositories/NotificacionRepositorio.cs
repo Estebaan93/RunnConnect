@@ -47,44 +47,62 @@ namespace RunnConnectAPI.Repositories
     public async Task<MisNotificacionesResponse> ObtenerMisNotificacionesAsync(int idUsuario)
     {
       // 1. Obtener Inscripciones del usuario
-      var inscripcionesUsuario = await _context.Inscripciones
+      var inscripcionesPagadas = await _context.Inscripciones
         .Include(i => i.Categoria)
         .Where(i => i.IdUsuario == idUsuario && i.EstadoPago == "pagado")
         .Select(i => new { i.Categoria!.IdEvento, i.Categoria.IdCategoria })
         .ToListAsync();
 
       // IDs de mis eventos
-      var idsEventos = inscripcionesUsuario.Select(x => x.IdEvento).Distinct().ToList();
+      var idEventosPagados = inscripcionesPagadas.Select(x => x.IdEvento).Distinct().ToList();
+      var idCategoriasPagadas = inscripcionesPagadas.Select(x => x.IdCategoria).Distinct().ToList();
 
       // FECHA LIMITE PARA GLOBALES (Ej: Solo mostrar anuncios globales de los ultimos 7 dias)
       // Esto evita que un usuario nuevo vea notificaciones de eventos de hace 2 años.
       var fechaLimiteGlobal = DateTime.Now.AddDays(-7);
 
       // 2. QUERY PRINCIPAL
-      var notificacionesRaw = await _context.NotificacionesEvento
+      var notificaciones = await _context.NotificacionesEvento
+        .AsNoTracking()
         .Include(n => n.Evento)
         .Include(n => n.Categoria)
-        .Where(n => 
-            // A) Es de un evento donde estoy inscripto
-            idsEventos.Contains(n.IdEvento) 
-            || 
-            // B) Es un anuncio GLOBAL reciente (sin importar inscripcion)
+        .Where(n =>
+    // CASO A: Es un mensaje PRIVADO para mí (Prioridad Máxima - Pagos rechazados, etc)
+            n.IdUsuarioDestino == idUsuario
+
+            ||
+
+            // CASO B: Es un anuncio GLOBAL reciente
             (n.EsAnuncioGlobal == true && n.FechaEnvio >= fechaLimiteGlobal)
+
+            ||
+
+            // CASO C: Es un aviso PÚBLICO GENERAL de un evento donde estoy pagado
+            (n.IdUsuarioDestino == null && n.IdCategoria == null && idEventosPagados.Contains(n.IdEvento))
+
+            ||
+
+            // CASO D: Es un aviso ESPECÍFICO de una categoría donde estoy pagado
+            (n.IdUsuarioDestino == null && n.IdCategoria != null && idCategoriasPagadas.Contains(n.IdCategoria.Value))
         )
         .OrderByDescending(n => n.FechaEnvio)
         .ToListAsync();
 
       // 3. FILTRADO 
-      var notificacionesFiltradas = notificacionesRaw.Where(n =>
+      var notificacionesFiltradas = notificaciones.Where(n =>
       {
-        // Caso A: Es Global - SE MUESTRA SIEMPRE
-        if (n.EsAnuncioGlobal) return true; 
+        // 1. Si es PRIVADA para mi
+        if (n.IdUsuarioDestino == idUsuario) return true; // NUEVO
 
-        // Caso B: Es General del Evento (IdCategoria null) - SE MUESTRA SI ESTOY INSCRIPTO EN ESE EVENTO
-        if (n.IdCategoria == null && idsEventos.Contains(n.IdEvento)) return true;
+        // 2. Si es Global
+        if (n.EsAnuncioGlobal) return true;
 
-        // Caso C: Es Especifica de Categoria -> DEBO TENER ESA CATEGORIA EXACTA
-        return inscripcionesUsuario.Any(i => i.IdEvento == n.IdEvento && i.IdCategoria == n.IdCategoria);
+        // 3. Si es Publica del Evento
+        // Si no tiene categoria específica
+        if (n.IdCategoria == null) return true;
+
+        // Si TIENE categoria especifica -> Debo estar en ESA categoria exacta
+        return inscripcionesPagadas.Any(i => i.IdEvento == n.IdEvento && i.IdCategoria == n.IdCategoria);
       }).ToList();
 
       // 4. Mapeo final 
@@ -98,7 +116,10 @@ namespace RunnConnectAPI.Repositories
         IdEvento = n.IdEvento,
         NombreEvento = n.Evento?.Nombre ?? "",
         FechaEvento = n.Evento?.FechaHora ?? DateTime.MinValue,
-        EstadoEvento = n.EstadoEvento ?? n.Evento?.Estado ?? ""
+        EstadoEvento = n.EstadoEvento ?? n.Evento?.Estado ?? "",
+
+        EsPrivada = n.IdUsuarioDestino !=null
+
       }).ToList();
 
       return new MisNotificacionesResponse
@@ -112,19 +133,19 @@ namespace RunnConnectAPI.Repositories
     // Usado por EventoController al crear un evento nuevo
     public async Task CrearNotificacionGlobalAsync(CrearNotificacionRequest request)
     {
-        var notificacion = new NotificacionEvento
-        {
-            IdEvento = request.IdEvento,
-            IdCategoria = null, // Global no tiene categoria especifica
-            Titulo = request.Titulo.Trim(),
-            Mensaje = request.Mensaje?.Trim(),
-            FechaEnvio = DateTime.Now,
-            EstadoEvento = "publicado",
-            EsAnuncioGlobal = true // 
-        };
+      var notificacion = new NotificacionEvento
+      {
+        IdEvento = request.IdEvento,
+        IdCategoria = null, // Global no tiene categoria especifica
+        Titulo = request.Titulo.Trim(),
+        Mensaje = request.Mensaje?.Trim(),
+        FechaEnvio = DateTime.Now,
+        EstadoEvento = "publicado",
+        EsAnuncioGlobal = true // 
+      };
 
-        _context.NotificacionesEvento.Add(notificacion);
-        await _context.SaveChangesAsync();
+      _context.NotificacionesEvento.Add(notificacion);
+      await _context.SaveChangesAsync();
     }
 
     /// Obtiene notificaciones recientes (ultimas 24 horas) para el runner
@@ -188,8 +209,7 @@ namespace RunnConnectAPI.Repositories
 
 
     /// Crea una nueva notificacion (Organizador)
-    public async Task<(NotificacionEvento? notificacion, string? error)> CrearAsync(
-      CrearNotificacionRequest request, int idOrganizador)
+    public async Task<(NotificacionEvento? notificacion, string? error)> CrearAsync(CrearNotificacionRequest request, int idOrganizador, int? idUsuarioDestino = null)
     {
       // Verificar que el evento existe
       var evento = await _context.Eventos
@@ -211,6 +231,7 @@ namespace RunnConnectAPI.Repositories
       {
         IdEvento = request.IdEvento,
         IdCategoria = request.IdCategoria,
+        IdUsuarioDestino = idUsuarioDestino,
         Titulo = request.Titulo.Trim(),
         Mensaje = request.Mensaje?.Trim(),
         FechaEnvio = DateTime.Now,
@@ -294,6 +315,8 @@ namespace RunnConnectAPI.Repositories
         Titulo = notificacion.Titulo,
         Mensaje = notificacion.Mensaje,
         FechaEnvio = notificacion.FechaEnvio,
+        EsPrivada = notificacion.IdUsuarioDestino != null,
+
         Evento = notificacion.Evento != null
           ? new EventoNotificacionInfo
           {

@@ -1,5 +1,5 @@
 // Models/Dto/Inscripcion/SubirComprobanteRequest.cs
-using System.ComponentModel.DataAnnotations;
+/*using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Http;
 
 namespace RunnConnectAPI.Models.Dto.Inscripcion
@@ -13,4 +13,4 @@ namespace RunnConnectAPI.Models.Dto.Inscripcion
     [Required(ErrorMessage = "El comprobante de pago es obligatorio")]
     public IFormFile Comprobante { get; set; } = null!;
   }
-}
+}*/

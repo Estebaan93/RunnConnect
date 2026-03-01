@@ -12,36 +12,38 @@ namespace RunnConnectAPI.Models
   {
     [Key]
     [Column("idNotificacion")]
-    public int IdNotificacion {get;set;}
+    public int IdNotificacion { get; set; }
 
     [Required]
     [Column("idEvento")]
-    public int IdEvento {get;set;}
+    public int IdEvento { get; set; }
 
-    public int? IdCategoria {get;set;}
+    public int? IdCategoria { get; set; }
+
+    public int? IdUsuarioDestino { get; set; }
 
     public bool EsAnuncioGlobal { get; set; }
 
-    [Required(ErrorMessage="El titulo es requerido")]
+    [Required(ErrorMessage = "El titulo es requerido")]
     [StringLength(255, MinimumLength = 3, ErrorMessage = "El titulo debe tener mas de 3 caracteres")]
-    public string Titulo {get;set;}= string.Empty;
+    public string Titulo { get; set; } = string.Empty;
 
-    [Column("mensaje", TypeName="text")]  
-    public string? Mensaje {get;set;}
+    [Column("mensaje", TypeName = "text")]
+    public string? Mensaje { get; set; }
 
     [Column("fechaEnvio")]
-    public DateTime FechaEnvio {get;set;}= DateTime.Now;
+    public DateTime FechaEnvio { get; set; } = DateTime.Now;
 
     [Column("estadoEvento")]
-    public string? EstadoEvento {get;set;}
+    public string? EstadoEvento { get; set; }
 
     //Navegacion
     [ForeignKey("IdEvento")]
     [JsonIgnore]
-    public Evento? Evento {get;set;}
+    public Evento? Evento { get; set; }
 
     [ForeignKey("IdCategoria")]
-    public CategoriaEvento? Categoria {get;set;}
+    public CategoriaEvento? Categoria { get; set; }
 
   }
 }

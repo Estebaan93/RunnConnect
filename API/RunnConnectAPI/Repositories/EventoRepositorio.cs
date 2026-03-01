@@ -54,7 +54,7 @@ namespace RunnConnectAPI.Repositories
           .Include(e => e.Organizador)
             .ThenInclude(o => o!.PerfilOrganizador)
           .Include(e => e.Categorias)
-            .ThenInclude(c=>c.Inscripciones)
+            .ThenInclude(c => c.Inscripciones)
           .FirstOrDefaultAsync(e => e.IdEvento == id);
     }
 
@@ -75,27 +75,27 @@ namespace RunnConnectAPI.Repositories
     }
 
     public async Task<(List<Evento> eventos, int totalCount)> ObtenerTodosPorOrganizadorAsync(int idOrganizador, int pagina, int tamanioPagina)
-        {
-            // 1. Query base (Filtrar por organizador)
-            var query = _context.Eventos
-                .AsNoTracking()
-                .Where(e => e.IdOrganizador == idOrganizador);
+    {
+      // 1. Query base (Filtrar por organizador)
+      var query = _context.Eventos
+          .AsNoTracking()
+          .Where(e => e.IdOrganizador == idOrganizador);
 
-            // 2. Contar total
-            var totalCount = await query.CountAsync();
+      // 2. Contar total
+      var totalCount = await query.CountAsync();
 
-            // 3. Obtener página
-            var eventos = await query
-                .Include(e => e.Organizador)
-                .Include(e => e.Categorias)
-                    .ThenInclude(c => c.Inscripciones)
-                .OrderByDescending(e => e.FechaHora) // Orden: Los mas nuevos primero
-                .Skip((pagina - 1) * tamanioPagina)
-                .Take(tamanioPagina)
-                .ToListAsync();
+      // 3. Obtener página
+      var eventos = await query
+          .Include(e => e.Organizador)
+          .Include(e => e.Categorias)
+              .ThenInclude(c => c.Inscripciones)
+          .OrderByDescending(e => e.FechaHora) // Orden: Los mas nuevos primero
+          .Skip((pagina - 1) * tamanioPagina)
+          .Take(tamanioPagina)
+          .ToListAsync();
 
-            return (eventos, totalCount);
-        }
+      return (eventos, totalCount);
+    }
 
 
     /// Verifica si un evento pertenece a un organizador especifico
@@ -142,7 +142,9 @@ namespace RunnConnectAPI.Repositories
     /// Cambia el estado de un evento con validaciones de negocio
     public async Task CambiarEstadoAsync(int idEvento, string nuevoEstado)
     {
-      var evento = await _context.Eventos.FindAsync(idEvento);
+      var evento = await _context.Eventos
+        .Include(e => e.Categorias)
+        .FirstOrDefaultAsync(e => e.IdEvento == idEvento);
 
       if (evento == null)
         throw new KeyNotFoundException("Evento no encontrado");
@@ -150,7 +152,7 @@ namespace RunnConnectAPI.Repositories
       nuevoEstado = nuevoEstado.ToLower().Trim();
 
       // Validar estado valido
-      var estadosValidos = new[] { "publicado", "cancelado", "finalizado", "suspendido", "retrasado" };
+      /*var estadosValidos = new[] { "publicado", "cancelado", "finalizado", "suspendido", "retrasado" };
       
       if (!estadosValidos.Contains(nuevoEstado))
         throw new ArgumentException($"Estado inválido. Estados válidos: {string.Join(", ", estadosValidos)}");
@@ -158,6 +160,22 @@ namespace RunnConnectAPI.Repositories
       // Validaciones de logica de negocio
       ValidarTransicionEstado(evento, nuevoEstado);
 
+      evento.Estado = nuevoEstado;
+      await _context.SaveChangesAsync();*/
+
+      // verificamos que no haya categorías en estados activos.
+      if (nuevoEstado == "finalizado")
+      {
+        var categoriasActivas = evento.Categorias?
+            .Any(c => c.Estado != "finalizada" && c.Estado != "cancelada");
+
+        if (categoriasActivas == true)
+        {
+          throw new InvalidOperationException("No se puede finalizar el evento porque aún tiene categorías activas. Finalice las categorías primero.");
+        }
+      }
+
+      ValidarTransicionEstado(evento, nuevoEstado);
       evento.Estado = nuevoEstado;
       await _context.SaveChangesAsync();
     }
@@ -240,9 +258,9 @@ namespace RunnConnectAPI.Repositories
 
       // Aplicar paginacion
       var eventos = await query
-          .Include(e=>e.Organizador)
-          .Include(e=>e.Categorias)
-            .ThenInclude(c=>c.Inscripciones)
+          .Include(e => e.Organizador)
+          .Include(e => e.Categorias)
+            .ThenInclude(c => c.Inscripciones)
           .OrderByDescending(e => e.FechaHora)
           .Skip((pagina - 1) * tamanioPagina)
           .Take(tamanioPagina)
@@ -292,8 +310,7 @@ namespace RunnConnectAPI.Repositories
     }
 
 
-    /// Verifica si hay cupo disponible en una categoría
-
+    /// Verifica si hay cupo disponible en una categoria
     public async Task<bool> TieneCupoDisponibleEnCategoriaAsync(int idCategoria)
     {
       var categoria = await _context.CategoriasEvento.FindAsync(idCategoria);
@@ -301,7 +318,7 @@ namespace RunnConnectAPI.Repositories
       if (categoria == null)
         return false;
 
-      // Si no tiene límite de cupo, siempre hay disponible
+      // Si no tiene limite de cupo, siempre hay disponible
       if (!categoria.CupoCategoria.HasValue)
         return true;
 
@@ -309,55 +326,72 @@ namespace RunnConnectAPI.Repositories
       return inscriptos < categoria.CupoCategoria.Value;
     }
 
-    
-    // Busca eventos vencidos (6hs post inicio) y finaliza tanto el evento como sus categorías.
+
+    // Busca eventos vencidos (6hs post inicio) y finaliza tanto el evento como sus categorias.
     public async Task<int> FinalizarEventosVencidosAsync()
     {
-      // Regla: 6 horas después de la largada
+      // Regla de seguridad: 6 horas despues de la largada (por si el organizador se olvida)
       DateTime tiempoLimite = DateTime.Now.AddHours(-6);
-
-      // 1. Buscamos eventos que deban cerrarse
-      // IMPORTANTE: Usamos .Include(e => e.Categorias) para traer a los hijos
-      var eventosVencidos = await _context.Eventos
-          .Include(e => e.Categorias)
-          .Where(e => e.FechaHora < tiempoLimite
-                      && (e.Estado == "publicado" || e.Estado == "suspendido" || e.Estado == "retrasado"))
-          .ToListAsync();
-
-      if (!eventosVencidos.Any()) return 0;
-
       int modificados = 0;
 
-      foreach (var evento in eventosVencidos)
-      {
-        // A. Finalizar Padre
-        evento.Estado = "finalizado";
-        modificados++;
+      // 1. Buscamos eventos que NO esten finalizados ni cancelados
+      // Traemos las categorias para verificar su estado
+      var eventosActivos = await _context.Eventos
+          .Include(e => e.Categorias)
+          .Where(e => e.Estado != "finalizado" && e.Estado != "cancelado")
+          .ToListAsync();
 
-        // B. Finalizar Hijos (Categorias) en Cascada
-        if (evento.Categorias != null)
+      foreach (var evento in eventosActivos)
+      {
+        bool debeFinalizar = false;
+
+        // CASO A: Finalizacion por TIEMPO
+        // Si pasaron 6 horas del inicio, forzamos el cierre de todo.
+        if (evento.FechaHora < tiempoLimite)
         {
+          debeFinalizar = true;
+          // Forzamos finalizacion de categorias hijas que hayan quedado colgadas
           foreach (var cat in evento.Categorias)
           {
-            // Solo cambiamos si la categoria NO estaba ya cancelada/finalizada
-            if (cat.Estado != "cancelada" && cat.Estado != "finalizada")
+            if (cat.Estado != "finalizada" && cat.Estado != "cancelada")
             {
-              cat.Estado = "finalizada"; // Femenino para categoría
+              cat.Estado = "finalizada";
             }
           }
         }
+        // CASO B: Finalizacion por ESTADO DE HIJOS
+        // El evento es reciente, pero verificamos si ya terminaron todas sus categorias
+        else if (evento.Categorias != null && evento.Categorias.Any())
+        {
+          // Verificamos si TODAS las categorias estan en estado terminal
+          bool todasLasCategoriasCerradas = evento.Categorias
+              .All(c => c.Estado == "finalizada" || c.Estado == "cancelada");
+
+          if (todasLasCategoriasCerradas)
+          {
+            debeFinalizar = true;
+          }
+        }
+
+        // Aplicar cambios si corresponde
+        if (debeFinalizar)
+        {
+          evento.Estado = "finalizado";
+          modificados++;
+
+          //notificacion de "Evento Concluido"
+          
+        }
       }
 
-      // 2. Guardar todos los cambios juntos
       if (modificados > 0)
       {
         await _context.SaveChangesAsync();
       }
 
       return modificados;
+
     }
-
-
 
   }
 }

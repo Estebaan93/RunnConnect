@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using RunnConnectAPI.Models.Dto.Resultado;
+using RunnConnectAPI.Models.Dto.Notificacion;
 using RunnConnectAPI.Repositories;
 using System.Security.Claims;
 using System.IO;
@@ -13,10 +14,13 @@ namespace RunnConnectAPI.Controllers
   public class ResultadoController : ControllerBase
   {
     private readonly ResultadoRepositorio _resultadoRepo;
+    private readonly NotificacionRepositorio _notificacionRepo;
 
-    public ResultadoController(ResultadoRepositorio resultadoRepo)
+
+    public ResultadoController(ResultadoRepositorio resultadoRepo, NotificacionRepositorio notificacionRepo)
     {
       _resultadoRepo = resultadoRepo;
+      _notificacionRepo = notificacionRepo;
     }
 
     // LECTURA (PUBLICO & RUNNER) 
@@ -42,6 +46,7 @@ namespace RunnConnectAPI.Controllers
       }
     }
 
+    //lectura gnal de resultados  
     [HttpGet("Evento/{idEvento}")]
     public async Task<IActionResult> ObtenerResultadosEvento(int idEvento)
     {
@@ -61,6 +66,25 @@ namespace RunnConnectAPI.Controllers
           message = "Error al obtener resultados",
           error = ex.Message
         });
+      }
+    }
+
+    //podis por cate
+    [HttpGet("Evento/{idEvento}/Podios")]
+    public async Task<IActionResult> ObtenerPodios(int idEvento)
+    {
+      try
+      {
+        var podios = await _resultadoRepo.ObtenerPodiosAsync(idEvento);
+        
+        if (podios == null) 
+            return NotFound(new { message = "Evento no encontrado" });
+            
+        return Ok(podios);
+      }
+      catch (Exception ex)
+      {
+        return StatusCode(500, new { message = "Error al obtener podios", error = ex.Message });
       }
     }
 
@@ -129,39 +153,6 @@ namespace RunnConnectAPI.Controllers
     }
 
     // GESTION (ORGANIZADOR)
-    // CARGA MANUAL (1 a 1) -> Recibe JSON
-    [Authorize(Roles = "organizador")]
-    [HttpPost("Cargar")]
-    public async Task<IActionResult> CargarResultado([FromBody] CargarResultadoRequest request)
-    {
-      try
-      {
-        int userId = ObtenerUserIdDelToken();
-
-        var (resultado, errorMsg) = await _resultadoRepo.CargarResultadoAsync(request, userId);
-
-        if (resultado == null)
-          return BadRequest(new { message = errorMsg });
-
-        return CreatedAtAction(
-            nameof(ObtenerPorId),
-            new { id = resultado.IdResultado },
-            new
-            {
-              message = "Resultado cargado correctamente",
-              idResultado = resultado.IdResultado
-            });
-      }
-      catch (Exception ex)
-      {
-        return StatusCode(500, new
-        {
-          message = "Error al cargar",
-          error = ex.Message
-        });
-      }
-    }
-
     // CARGA MASIVA -> Recibe Archivo CSV
     // Formato CSV esperado: DNI,TiempoOficial,PosGeneral,PosCategoria
     [Authorize(Roles = "organizador")]
@@ -184,7 +175,7 @@ namespace RunnConnectAPI.Controllers
 
         using (var reader = new StreamReader(request.Archivo.OpenReadStream()))
         {
-          // Opcional: Descomentar si el CSV tiene encabezados y quieres saltar la primera linea
+          // descomentar si el CSV tiene encabezados y quieres saltar la primera linea
           // await reader.ReadLineAsync();
 
           while (!reader.EndOfStream)
@@ -195,7 +186,7 @@ namespace RunnConnectAPI.Controllers
 
             var valores = linea.Split(','); // Separador coma
 
-            // Validación basica de columnas (mínimo DNI y Tiempo)
+            // Validacion basica de columnas (mínimo DNI y Tiempo)
             if (valores.Length < 2)
               continue;
 
@@ -207,9 +198,9 @@ namespace RunnConnectAPI.Controllers
                 Dni = int.Parse(valores[0].Trim()),
                 // Columna 1: Tiempo
                 TiempoOficial = valores[1].Trim(),
-                // Columna 2: Pos General (Opcional)
+                // Columna 2: Pos General 
                 PosicionGeneral = (valores.Length > 2 && int.TryParse(valores[2], out int pg)) ? pg : null,
-                // Columna 3: Pos Categoria (Opcional)
+                // Columna 3: Pos Categoria
                 PosicionCategoria = (valores.Length > 3 && int.TryParse(valores[3], out int pc)) ? pc : null
               };
 
@@ -232,8 +223,23 @@ namespace RunnConnectAPI.Controllers
           Resultados = listaResultados
         };
 
-        // Delegamos la lógica de negocio al repositorio
-        var resultado = await _resultadoRepo.CargarResultadosBatchAsync(requestRepo, userId);
+        // Delegamos la logica de negocio al repositorio
+        var resultado = await _resultadoRepo.CargarResultadosAsync(requestRepo, userId);
+
+        //inyeccion de notif
+        if (resultado.Exitosos > 0)
+        {
+            var notif = new CrearNotificacionRequest
+            {
+                IdEvento = request.IdEvento,
+                IdCategoria = null, // Anuncio Global del evento
+                Titulo = "¡Resultados Oficiales Disponibles!",
+                Mensaje = $"Se han cargado {resultado.Exitosos} nuevos tiempos. Revisa tu posición en los Podios."
+            };
+            
+            // Usamos el repo de notificaciones
+            await _notificacionRepo.CrearNotificacionGlobalAsync(notif);
+        }
 
         return Ok(new
         {
@@ -302,7 +308,7 @@ namespace RunnConnectAPI.Controllers
       }
     }
 
-
+    //eliminacion
     [Authorize(Roles = "organizador")]
     [HttpDelete("{id}")]
     public async Task<IActionResult> EliminarResultado(int id)

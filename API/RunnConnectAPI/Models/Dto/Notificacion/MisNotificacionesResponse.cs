@@ -22,6 +22,8 @@ namespace RunnConnectAPI.Models.Dto.Notificacion
     public string Titulo { get; set; } = string.Empty;
     public string? Mensaje { get; set; }
     public DateTime FechaEnvio { get; set; }
+    public bool EsPrivada { get; set; }
+
 
     // Informacion del evento
     public int IdEvento { get; set; }

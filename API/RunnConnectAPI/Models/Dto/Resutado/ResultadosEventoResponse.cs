@@ -46,4 +46,20 @@ namespace RunnConnectAPI.Models.Dto.Resultado
     // Indicador de datos smartwatch
     public bool TieneDatosSmartwatch { get; set; }
   }
+
+  public class PodiosEventoResponse
+  {
+    public int IdEvento { get; set; }
+    public string NombreEvento { get; set; }
+    // Lista de categorias, cada una con su lista de ganadores
+    public List<PodioCategoriaItem> Categorias { get; set; } = new();
+  }
+  public class PodioCategoriaItem
+  {
+    public int IdCategoria { get; set; }
+    public string NombreCategoria { get; set; }
+    public List<ResultadoEventoItem> TopRunners { get; set; } = new();
+  }
+
+
 }

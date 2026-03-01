@@ -12,9 +12,10 @@ namespace RunnConnectAPI.Models.Dto.Notificacion
     public string Titulo { get; set; } = string.Empty;
     public string? Mensaje { get; set; }
     public DateTime FechaEnvio { get; set; }
+    public bool EsPrivada { get; set; }
 
-    // Informacion basica del evento asociado
-    public EventoNotificacionInfo? Evento { get; set; }
+        // Informacion basica del evento asociado
+        public EventoNotificacionInfo? Evento { get; set; }
 
     // Tiempo transcurrido desde el envio (para mostrar "hace 2 horas", etc.)
     public string TiempoTranscurrido => CalcularTiempoTranscurrido();
