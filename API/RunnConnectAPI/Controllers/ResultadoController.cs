@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using RunnConnectAPI.Models.Dto.Resultado;
-using RunnConnectAPI.Models.Dto.Notificacion;
+using RunnConnectAPI.Models.Dto.Notificacion; //para la inyeccion de la notif
 using RunnConnectAPI.Repositories;
 using System.Security.Claims;
 using System.IO;
@@ -186,7 +186,7 @@ namespace RunnConnectAPI.Controllers
 
             var valores = linea.Split(','); // Separador coma
 
-            // Validacion basica de columnas (mínimo DNI y Tiempo)
+            // Validacion basica de columnas (minimo DNI y Tiempo)
             if (valores.Length < 2)
               continue;
 
@@ -208,7 +208,7 @@ namespace RunnConnectAPI.Controllers
             }
             catch
             {
-              continue; // Ignoramos líneas mal formadas
+              continue; // Ignoramos lineas mal formadas
             }
           }
         }

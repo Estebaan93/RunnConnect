@@ -1,11 +1,11 @@
 -- phpMyAdmin SQL Dump
--- version 5.2.1
+-- version 5.2.3
 -- https://www.phpmyadmin.net/
 --
--- Servidor: 127.0.0.1
--- Tiempo de generación: 08-02-2026 a las 19:33:19
--- Versión del servidor: 10.4.32-MariaDB
--- Versión de PHP: 8.0.30
+-- Servidor: mysql-db:3306
+-- Tiempo de generación: 02-03-2026 a las 18:14:17
+-- Versión del servidor: 8.0.45
+-- Versión de PHP: 8.3.26
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -20,7 +20,7 @@ SET time_zone = "+00:00";
 --
 -- Base de datos: `runners_db`
 --
-CREATE DATABASE IF NOT EXISTS `runners_db` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE DATABASE IF NOT EXISTS `runners_db` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
 USE `runners_db`;
 
 -- --------------------------------------------------------
@@ -30,37 +30,47 @@ USE `runners_db`;
 --
 
 CREATE TABLE `categorias_evento` (
-  `idCategoria` int(11) NOT NULL,
-  `idEvento` int(11) NOT NULL,
-  `nombre` varchar(100) NOT NULL COMMENT 'Ej: 10k Competitiva, 2k Corre Caminata',
-  `costoInscripcion` decimal(10,2) NOT NULL DEFAULT 0.00,
-  `cupoCategoria` int(11) DEFAULT NULL,
-  `edadMinima` int(11) DEFAULT 0,
-  `edadMaxima` int(11) DEFAULT 99,
-  `genero` enum('F','M','X') DEFAULT 'X' COMMENT 'Categoría aplica a Femenino, Masculino o Mixto/Todos (X)'
+  `idCategoria` int NOT NULL,
+  `idEvento` int NOT NULL,
+  `nombre` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Ej: 10k Competitiva, 2k Corre Caminata',
+  `costoInscripcion` decimal(10,2) NOT NULL DEFAULT '0.00',
+  `cupoCategoria` int DEFAULT NULL,
+  `edadMinima` int DEFAULT '0',
+  `edadMaxima` int DEFAULT '99',
+  `genero` enum('F','M','X') COLLATE utf8mb4_unicode_ci DEFAULT 'X' COMMENT 'Categoría aplica a Femenino, Masculino o Mixto/Todos (X)',
+  `estado` enum('programada','retrasada','cancelada','finalizada','suspendido') COLLATE utf8mb4_unicode_ci DEFAULT 'programada'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Volcado de datos para la tabla `categorias_evento`
 --
 
-INSERT INTO `categorias_evento` (`idCategoria`, `idEvento`, `nombre`, `costoInscripcion`, `cupoCategoria`, `edadMinima`, `edadMaxima`, `genero`) VALUES
-(1, 1, '10K Competitiva', 5000.00, 200, 18, 90, 'X'),
-(3, 5, '5K Calle', 50000.00, 5000, 18, 85, 'X'),
-(23, 26, '7K Calle', 1.00, 5, 18, 60, 'X'),
-(47, 26, '15K Competitiva', 5000.00, 3, 16, 90, 'F'),
-(48, 50, '21K Calle', 20000.00, 10, 17, 90, 'X'),
-(49, 51, '3K Calle', 3000.00, 10, 18, 80, 'X'),
-(50, 51, '6K Calle', 4000.00, 10, 18, 80, 'X'),
-(52, 53, '5K Calle', 60000.00, 500, 18, 89, 'X'),
-(53, 54, '5K Calle', 6000.00, 600, 18, 60, 'X'),
-(54, 55, '5K Calle', 5000.00, 500, 17, 60, 'X'),
-(55, 56, '5K Calle', 10000.00, 500, 18, 90, 'X'),
-(56, 57, '21K Calle', 5000.00, 10, 17, 85, 'X'),
-(57, 58, '5K Calle (Fem)', 5000.00, 4000, 17, 70, 'F'),
-(58, 59, '3K Calle', 400.00, 5000, 18, 80, 'X'),
-(59, 60, '6K Calle', 60000.00, 5000, 17, 80, 'X'),
-(60, 60, '18K Cross', 70000.00, 5000, 17, 80, 'X');
+INSERT INTO `categorias_evento` (`idCategoria`, `idEvento`, `nombre`, `costoInscripcion`, `cupoCategoria`, `edadMinima`, `edadMaxima`, `genero`, `estado`) VALUES
+(1, 1, '10K Competitiva', 5000.00, 200, 18, 90, 'X', 'finalizada'),
+(3, 5, '5K Calle', 50000.00, 5000, 18, 85, 'X', 'programada'),
+(23, 26, '7K Calle', 1.00, 5, 18, 60, 'X', 'finalizada'),
+(47, 26, '15K Competitiva', 5000.00, 3, 16, 90, 'F', 'finalizada'),
+(48, 50, '21K Calle', 20000.00, 10, 17, 90, 'X', 'programada'),
+(49, 51, '3K Calle', 3000.00, 10, 18, 80, 'X', 'programada'),
+(50, 51, '6K Calle', 4000.00, 10, 18, 80, 'X', 'programada'),
+(52, 53, '5K Calle', 60000.00, 500, 18, 89, 'X', 'programada'),
+(53, 54, '5K Calle', 6000.00, 600, 18, 60, 'X', 'programada'),
+(54, 55, '5K Calle', 5000.00, 500, 17, 60, 'X', 'programada'),
+(55, 56, '5K Calle', 10000.00, 500, 18, 90, 'X', 'programada'),
+(56, 57, '21K Calle', 5000.00, 10, 17, 85, 'X', 'programada'),
+(57, 58, '5K Calle (Fem)', 5000.00, 4000, 17, 70, 'F', 'programada'),
+(58, 59, '3K Calle', 400.00, 5000, 18, 80, 'X', 'finalizada'),
+(59, 60, '6K Calle', 60000.00, 5000, 17, 80, 'X', 'programada'),
+(60, 60, '18K Cross', 70000.00, 5000, 17, 80, 'X', 'programada'),
+(65, 63, '10K Integrativa', 12000.00, 600, 16, 99, 'X', 'suspendido'),
+(66, 63, '21K Competitiva', 25000.00, 400, 18, 70, 'X', 'programada'),
+(71, 67, '5K', 6000.00, 5000, 18, 99, 'X', 'programada'),
+(74, 70, '5K', 500.00, 500, 18, 80, 'X', 'programada'),
+(75, 71, '5K', 5000.00, 5000, 18, 80, 'X', 'programada'),
+(76, 72, '3K', 100.00, 600, 18, 80, 'X', 'programada'),
+(77, 73, '5K Calle (Participativa)', 5000.00, 2000, 14, 99, 'F', 'programada'),
+(78, 73, '10K Calle (Competitiva)', 10000.00, 2000, 18, 99, 'M', 'programada'),
+(79, 73, '21K Media Maratón', 15000.00, 1000, 18, 65, 'X', 'programada');
 
 -- --------------------------------------------------------
 
@@ -69,38 +79,45 @@ INSERT INTO `categorias_evento` (`idCategoria`, `idEvento`, `nombre`, `costoInsc
 --
 
 CREATE TABLE `eventos` (
-  `idEvento` int(11) NOT NULL,
-  `nombre` varchar(255) NOT NULL,
-  `descripcion` text DEFAULT NULL,
+  `idEvento` int NOT NULL,
+  `nombre` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `descripcion` text COLLATE utf8mb4_unicode_ci,
   `fechaHora` datetime NOT NULL,
-  `lugar` varchar(255) NOT NULL,
-  `cupoTotal` int(11) DEFAULT NULL,
-  `idOrganizador` int(11) NOT NULL,
-  `urlPronosticoClima` varchar(255) DEFAULT NULL,
-  `datosPago` text DEFAULT NULL COMMENT 'Datos para transferencia (CBU, Alias, Titular), inicialmente puede ser nulo hasta que el orga cargue datos de alias',
-  `estado` enum('publicado','cancelado','finalizado','suspendido','retrasado') DEFAULT 'publicado'
+  `lugar` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `tipoEvento` enum('calle','trail','cross','aventura','obstaculos','correcaminata','kids','triatlon') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'calle',
+  `cupoTotal` int DEFAULT NULL,
+  `idOrganizador` int NOT NULL,
+  `urlPronosticoClima` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `datosPago` text COLLATE utf8mb4_unicode_ci COMMENT 'Datos para transferencia (CBU, Alias, Titular), inicialmente puede ser nulo hasta que el orga cargue datos de alias',
+  `estado` enum('publicado','cancelado','finalizado','suspendido','retrasado') COLLATE utf8mb4_unicode_ci DEFAULT 'publicado'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Volcado de datos para la tabla `eventos`
 --
 
-INSERT INTO `eventos` (`idEvento`, `nombre`, `descripcion`, `fechaHora`, `lugar`, `cupoTotal`, `idOrganizador`, `urlPronosticoClima`, `datosPago`, `estado`) VALUES
-(1, 'Maratón San Luis 2025 - ACTUALIZADO', 'Carrera de 10K y 5K - Descripción actualizada', '2025-12-05 09:00:00', 'Plaza Pringles, San Luis Capital', 600, 5, 'https://www.weather.com/sanluisargentina', 'CBU: 0000003100012345678901 - Alias: RUNNERS.SL.2025', 'finalizado'),
-(2, 'Maratón Independencia San Luis 2026', 'Carrera de 10K por las calles de San Luis', '2026-01-15 08:00:00', 'Av España - Av La Finur, San Luis', 1000, 5, 'https://www.weather.com/sanluisargentina', 'CBU: 0000003100012345678901 - Alias: RUNNERS.SL - Titular: Runners Club San Luis S.A', 'finalizado'),
-(3, 'Potrero Corre', 'Gran premio FEST POTRERO', '2026-02-02 12:29:00', 'Potrero de los Funes', 40000, 9, NULL, 'Costo: $10000', 'finalizado'),
-(5, 'Corre San Francisco', 'San Francisco con premio', '2026-03-12 12:00:00', 'San Francisco- San Luis', 5000, 9, NULL, 'trump.maduro', 'cancelado'),
-(26, 'San valentin', 'San valentin', '2026-02-20 18:04:00', 'San Luis - Zona Norte', 5, 9, NULL, 'correSanLuis', 'suspendido'),
-(50, 'San Luis - La Punta', 'Gran evento San Luis - La Punta', '2026-03-19 19:45:00', 'San Luis - La Punta', 10, 9, NULL, 'teresita.mp', 'publicado'),
-(51, 'Teresita', '1er Rotonda - Teresita', '2026-04-16 18:00:00', 'San Luis', 10, 9, NULL, 'teresita.mp', 'publicado'),
-(53, 'Test PI', 'puntos de interes y direccion del circuito', '2026-03-31 18:30:00', 'San Luis', 500, 9, NULL, 'PuntosInteres', 'publicado'),
-(54, 'Test PI2', 'Puntos interes y sentido evento', '2026-03-21 06:22:00', 'San Luis', 600, 9, NULL, 'sl.com', 'publicado'),
-(55, 'Test PI3', 'puntos interes', '2026-03-20 05:27:00', 'san luis', 500, 9, NULL, 'alias. puntos', 'publicado'),
-(56, 'Test 4', 'Ver los puntos de interes', '2026-02-24 06:20:00', 'San Luis', 500, 9, NULL, 'alisa.com', 'publicado'),
-(57, 'Test 57', 'descriocion57', '2026-04-23 18:00:00', 'San Luis', 10, 9, NULL, 'descripon57', 'publicado'),
-(58, 'Test 58', 'descripcion 58', '2026-03-31 18:11:00', 'San Luis', 4000, 9, NULL, 'test58', 'publicado'),
-(59, 'CargaResultados', 'Cargando resultados', '2026-02-02 18:29:00', 'San Luis', 5000, 9, NULL, 'SanLuis.mp', 'finalizado'),
-(60, 'Potrero Golden Run', 'Golden Run Potrero - Gran premio', '2026-04-30 09:00:00', 'Potrero - San Luis', 5000, 9, NULL, 'potrero.golden', 'publicado');
+INSERT INTO `eventos` (`idEvento`, `nombre`, `descripcion`, `fechaHora`, `lugar`, `tipoEvento`, `cupoTotal`, `idOrganizador`, `urlPronosticoClima`, `datosPago`, `estado`) VALUES
+(1, 'Maratón San Luis 2025 - ACTUALIZADO', 'Carrera de 10K y 5K - Descripción actualizada', '2025-12-05 09:00:00', 'Plaza Pringles, San Luis Capital', 'calle', 600, 5, 'https://www.weather.com/sanluisargentina', 'CBU: 0000003100012345678901 - Alias: RUNNERS.SL.2025', 'finalizado'),
+(2, 'Maratón Independencia San Luis 2026', 'Carrera de 10K por las calles de San Luis', '2026-01-15 08:00:00', 'Av España - Av La Finur, San Luis', 'calle', 1000, 5, 'https://www.weather.com/sanluisargentina', 'CBU: 0000003100012345678901 - Alias: RUNNERS.SL - Titular: Runners Club San Luis S.A', 'finalizado'),
+(3, 'Potrero Corre', 'Gran premio FEST POTRERO', '2026-02-02 12:29:00', 'Potrero de los Funes', 'calle', 40000, 9, NULL, 'Costo: $10000', 'finalizado'),
+(5, 'Corre San Francisco', 'San Francisco con premio', '2026-03-12 12:00:00', 'San Francisco- San Luis', 'calle', 5000, 9, NULL, 'trump.maduro', 'cancelado'),
+(26, 'San valentin', 'San valentin', '2026-02-20 18:04:00', 'San Luis - Zona Norte', 'calle', 5, 9, NULL, 'correSanLuis', 'finalizado'),
+(50, 'San Luis - La Punta', 'Gran evento San Luis - La Punta', '2026-03-19 19:45:00', 'San Luis - La Punta', 'calle', 10, 9, NULL, 'teresita.mp', 'publicado'),
+(51, 'Teresita', '1er Rotonda - Teresita', '2026-04-16 18:00:00', 'San Luis', 'calle', 10, 9, NULL, 'teresita.mp', 'publicado'),
+(53, 'Test PI', 'puntos de interes y direccion del circuito', '2026-03-31 18:30:00', 'San Luis', 'calle', 500, 9, NULL, 'PuntosInteres', 'publicado'),
+(54, 'Test PI2', 'Puntos interes y sentido evento', '2026-03-21 06:22:00', 'San Luis', 'calle', 600, 9, NULL, 'sl.com', 'publicado'),
+(55, 'Test PI3', 'puntos interes', '2026-03-20 05:27:00', 'san luis', 'calle', 500, 9, NULL, 'alias. puntos', 'publicado'),
+(56, 'Test 4', 'Ver los puntos de interes', '2026-02-24 06:20:00', 'San Luis', 'calle', 500, 9, NULL, 'alisa.com', 'publicado'),
+(57, 'Test 57', 'descriocion57', '2026-04-23 18:00:00', 'San Luis', 'calle', 10, 9, NULL, 'descripon57', 'publicado'),
+(58, 'Test 58', 'descripcion 58', '2026-03-31 18:11:00', 'San Luis', 'calle', 4000, 9, NULL, 'test58', 'publicado'),
+(59, 'CargaResultados', 'Cargando resultados', '2026-02-02 18:29:00', 'San Luis', 'calle', 5000, 9, NULL, 'SanLuis.mp', 'finalizado'),
+(60, 'Potrero Golden Run', 'Golden Run Potrero - Gran premio', '2026-04-30 09:00:00', 'Potrero - San Luis', 'calle', 5000, 9, NULL, 'potrero.golden', 'publicado'),
+(63, 'Gran Trail Potrero 2026', 'La carrera más desafiante del año en las sierras puntanas.', '2026-10-20 08:00:00', 'Potrero de los Funes, San Luis', 'trail', 1000, 9, 'https://weather.com/potrero', 'Alias: RUN.POTRERO.2026 | CBU: 0000123456789', 'publicado'),
+(67, 'Test60', 'probando sin validacione', '2026-04-23 06:30:00', 'san luis', 'calle', 5000, 9, NULL, 'alias.runner', 'publicado'),
+(70, 'Test62', 'descripcion62', '2026-03-27 06:00:00', 'San Luis', 'calle', 500, 9, NULL, 'alias.runner', 'publicado'),
+(71, 'Test71', 'dasdsad', '2026-02-28 06:36:00', 'dasdsad', 'calle', 5000, 9, NULL, 'assasd', 'publicado'),
+(72, 'Test 72', 'desricoos', '2026-03-28 06:53:00', 'san luis', 'calle', 600, 9, NULL, 'assdasd', 'publicado'),
+(73, 'Test 73', 'Test para el service worker, ademas de finalizar el evento debe finalizar sus categorias.', '2026-02-20 08:00:00', 'Plaza Pringles, San Luis', 'calle', 5000, 9, 'https://weather.com/es-AR/tiempo/hoy/l/San+Luis', 'Alias: RUN.SANLUIS | CBU: 0000003100012345678900', 'finalizado');
 
 -- --------------------------------------------------------
 
@@ -109,42 +126,59 @@ INSERT INTO `eventos` (`idEvento`, `nombre`, `descripcion`, `fechaHora`, `lugar`
 --
 
 CREATE TABLE `inscripciones` (
-  `idInscripcion` int(11) NOT NULL,
-  `idUsuario` int(11) NOT NULL,
-  `idCategoria` int(11) NOT NULL,
-  `fechaInscripcion` datetime DEFAULT current_timestamp(),
-  `estadoPago` enum('pendiente','procesando','pagado','rechazado','reembolsado','cancelado') DEFAULT 'pendiente',
-  `talleRemera` enum('XS','S','M','L','XL','XXL') DEFAULT NULL,
-  `aceptoDeslinde` tinyint(1) NOT NULL DEFAULT 0 COMMENT 'Debe ser true (1) para aceptar el deslinde',
-  `comprobantePagoURL` varchar(255) DEFAULT NULL COMMENT 'URL o path al comprobante subido'
+  `idInscripcion` int NOT NULL,
+  `idUsuario` int NOT NULL,
+  `idCategoria` int NOT NULL,
+  `fechaInscripcion` datetime DEFAULT CURRENT_TIMESTAMP,
+  `estadoPago` enum('pendiente','procesando','pagado','rechazado','reembolsado','cancelado') COLLATE utf8mb4_unicode_ci DEFAULT 'pendiente',
+  `talleRemera` enum('XS','S','M','L','XL','XXL') COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `aceptoDeslinde` tinyint(1) NOT NULL DEFAULT '0' COMMENT 'Debe ser true (1) para aceptar el deslinde',
+  `comprobantePagoURL` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'URL o path al comprobante subido',
+  `observacion` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'observacion del estado de pago'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Volcado de datos para la tabla `inscripciones`
 --
 
-INSERT INTO `inscripciones` (`idInscripcion`, `idUsuario`, `idCategoria`, `fechaInscripcion`, `estadoPago`, `talleRemera`, `aceptoDeslinde`, `comprobantePagoURL`) VALUES
-(2, 2, 1, '2025-12-03 15:36:12', 'pagado', 'L', 1, '/uploads/comprobantes/comprobante_2_20251203181006.pdf'),
-(3, 4, 1, '2025-12-04 16:55:46', 'pagado', 'M', 1, '/uploads/comprobantes/comprobante_3_20251204165759.pdf'),
-(4, 4, 23, '2026-01-17 14:41:32', 'cancelado', 'L', 1, '/uploads/comprobantes/comprobante_4_20260117144719.pdf'),
-(5, 8, 23, '2026-01-19 01:48:43', 'cancelado', 'M', 1, '/uploads/comprobantes/comprobante_5_20260119015011.jpeg'),
-(6, 2, 23, '2026-01-19 02:47:25', 'rechazado', 'M', 1, '/uploads/comprobantes/comprobante_6_20260119024909.png'),
-(7, 2, 23, '2026-01-19 02:49:54', 'rechazado', 'M', 1, '/uploads/comprobantes/comprobante_7_20260119025044.pdf'),
-(8, 2, 23, '2026-01-19 02:51:06', 'pagado', 'M', 1, '/uploads/comprobantes/comprobante_8_20260119025243.jpg'),
-(10, 10, 23, '2026-01-28 01:14:18', 'rechazado', 'S', 1, '/uploads/comprobantes/comprobante_10_20260128011455.png'),
-(11, 10, 23, '2026-01-29 04:00:28', 'cancelado', 'S', 1, '/uploads/comprobantes/comprobante_11_20260129043548.png'),
-(12, 10, 23, '2026-01-30 19:02:22', 'rechazado', 'M', 1, '/uploads/comprobantes/comprobante_12_20260130190456.jpg'),
-(13, 10, 23, '2026-01-30 19:34:29', 'rechazado', 'M', 1, '/uploads/comprobantes/comprobante_13_20260130193439.jpg'),
-(14, 10, 23, '2026-01-30 19:35:29', 'cancelado', 'M', 1, '/uploads/comprobantes/comprobante_14_20260130193537.jpg'),
-(15, 10, 23, '2026-01-30 19:51:25', 'cancelado', 'M', 1, '/uploads/comprobantes/comprobante_15_20260130211237.jpg'),
-(16, 10, 23, '2026-02-02 00:30:23', 'rechazado', 'M', 1, '/uploads/comprobantes/comprobante_16_20260202003207.jpg'),
-(17, 10, 23, '2026-02-02 00:33:24', 'cancelado', 'M', 1, '/uploads/comprobantes/comprobante_17_20260202003333.jpg'),
-(18, 10, 47, '2026-02-02 00:36:08', 'cancelado', 'M', 1, NULL),
-(19, 2, 58, '2026-02-03 10:16:50', 'pagado', 'M', 1, '/uploads/comprobantes/comprobante_19_20260203101735.jpg'),
-(20, 4, 58, '2026-02-03 10:19:36', 'pagado', 'M', 1, '/uploads/comprobantes/comprobante_20_20260203101946.jpg'),
-(21, 8, 58, '2026-02-03 10:20:19', 'pagado', 'M', 1, '/uploads/comprobantes/comprobante_21_20260203102026.jpg'),
-(22, 10, 58, '2026-02-03 10:21:21', 'pagado', 'M', 1, '/uploads/comprobantes/comprobante_22_20260203102130.jpg'),
-(23, 10, 47, '2026-02-06 13:05:50', 'pagado', 'M', 1, '/uploads/comprobantes/comprobante_23_20260206130611.jpg');
+INSERT INTO `inscripciones` (`idInscripcion`, `idUsuario`, `idCategoria`, `fechaInscripcion`, `estadoPago`, `talleRemera`, `aceptoDeslinde`, `comprobantePagoURL`, `observacion`) VALUES
+(2, 2, 1, '2025-12-03 15:36:12', 'pagado', 'L', 1, '/uploads/comprobantes/comprobante_2_20251203181006.pdf', ''),
+(3, 4, 1, '2025-12-04 16:55:46', 'pagado', 'M', 1, '/uploads/comprobantes/comprobante_3_20251204165759.pdf', ''),
+(4, 4, 23, '2026-01-17 14:41:32', 'cancelado', 'L', 1, '/uploads/comprobantes/comprobante_4_20260117144719.pdf', ''),
+(5, 8, 23, '2026-01-19 01:48:43', 'cancelado', 'M', 1, '/uploads/comprobantes/comprobante_5_20260119015011.jpeg', ''),
+(6, 2, 23, '2026-01-19 02:47:25', 'rechazado', 'M', 1, '/uploads/comprobantes/comprobante_6_20260119024909.png', ''),
+(7, 2, 23, '2026-01-19 02:49:54', 'rechazado', 'M', 1, '/uploads/comprobantes/comprobante_7_20260119025044.pdf', ''),
+(8, 2, 23, '2026-01-19 02:51:06', 'pagado', 'M', 1, '/uploads/comprobantes/comprobante_8_20260119025243.jpg', ''),
+(10, 10, 23, '2026-01-28 01:14:18', 'rechazado', 'S', 1, '/uploads/comprobantes/comprobante_10_20260128011455.png', ''),
+(11, 10, 23, '2026-01-29 04:00:28', 'cancelado', 'S', 1, '/uploads/comprobantes/comprobante_11_20260129043548.png', ''),
+(12, 10, 23, '2026-01-30 19:02:22', 'rechazado', 'M', 1, '/uploads/comprobantes/comprobante_12_20260130190456.jpg', ''),
+(13, 10, 23, '2026-01-30 19:34:29', 'rechazado', 'M', 1, '/uploads/comprobantes/comprobante_13_20260130193439.jpg', ''),
+(14, 10, 23, '2026-01-30 19:35:29', 'cancelado', 'M', 1, '/uploads/comprobantes/comprobante_14_20260130193537.jpg', ''),
+(15, 10, 23, '2026-01-30 19:51:25', 'cancelado', 'M', 1, '/uploads/comprobantes/comprobante_15_20260130211237.jpg', ''),
+(16, 10, 23, '2026-02-02 00:30:23', 'rechazado', 'M', 1, '/uploads/comprobantes/comprobante_16_20260202003207.jpg', ''),
+(17, 10, 23, '2026-02-02 00:33:24', 'cancelado', 'M', 1, '/uploads/comprobantes/comprobante_17_20260202003333.jpg', ''),
+(18, 10, 47, '2026-02-02 00:36:08', 'cancelado', 'M', 1, NULL, ''),
+(19, 2, 58, '2026-02-03 10:16:50', 'pagado', 'M', 1, '/uploads/comprobantes/comprobante_19_20260203101735.jpg', ''),
+(20, 4, 58, '2026-02-03 10:19:36', 'pagado', 'M', 1, '/uploads/comprobantes/comprobante_20_20260203101946.jpg', ''),
+(21, 8, 58, '2026-02-03 10:20:19', 'pagado', 'M', 1, '/uploads/comprobantes/comprobante_21_20260203102026.jpg', ''),
+(22, 10, 58, '2026-02-03 10:21:21', 'pagado', 'M', 1, '/uploads/comprobantes/comprobante_22_20260203102130.jpg', ''),
+(23, 10, 47, '2026-02-06 13:05:50', 'pagado', 'M', 1, '/uploads/comprobantes/comprobante_23_20260206130611.jpg', ''),
+(24, 10, 65, '2026-02-10 04:23:36', 'pagado', 'S', 1, '/uploads/comprobantes/comprobante_24_20260210043034.png', ''),
+(25, 2, 66, '2026-02-10 04:44:55', 'pagado', 'S', 1, '/uploads/comprobantes/comprobante_25_20260210044528.png', ''),
+(28, 10, 74, '2026-02-13 00:13:51', 'pagado', 'M', 1, '/uploads/comprobantes/comprobante_28_20260213001408.jpg', ''),
+(29, 8, 65, '2026-02-17 05:55:13', 'cancelado', 'M', 1, '/uploads/comprobantes/comprobante_29_20260217055713.png', ''),
+(30, 10, 77, '2026-02-17 18:20:15', 'rechazado', 'S', 1, '/uploads/comprobantes/comprobante_30_20260217182924.jpg', ''),
+(31, 10, 77, '2026-02-17 18:32:26', 'rechazado', 'S', 1, '/uploads/comprobantes/comprobante_31_20260217185853.jpg', ''),
+(33, 10, 77, '2026-02-18 22:55:21', 'rechazado', 'S', 1, '/uploads/comprobantes/comprobante_33_20260218225601.jpg', ''),
+(34, 10, 77, '2026-02-19 03:41:40', 'rechazado', 'S', 1, '/uploads/comprobantes/comprobante_34_20260219042842.jpg', 'Pago rechazado. Motivo: Pago rechazado, monto equivocado'),
+(37, 2, 78, '2026-02-19 06:25:20', 'rechazado', 'S', 1, '/uploads/comprobantes/comprobante_37_20260219063138.png', 'Pago rechazado. Motivo: TE FALTA GUITA!'),
+(38, 2, 78, '2026-02-19 06:36:19', 'rechazado', 'S', 1, '/uploads/comprobantes/comprobante_38_20260219064557.jpg', 'Pago rechazado. Motivo: Foto borrosa!'),
+(39, 10, 77, '2026-02-20 23:25:58', 'rechazado', 'S', 1, '/uploads/comprobantes/comprobante_39_20260220232622.jpg', 'Pago rechazado. Motivo: Foto borrosa, no se ve claro!'),
+(40, 10, 77, '2026-02-20 23:31:43', 'rechazado', 'S', 1, '/uploads/comprobantes/comprobante_40_20260220233202.jpg', 'Pago rechazado. Motivo: Foto borrosa, no se ve claro!'),
+(41, 10, 77, '2026-02-21 02:37:41', 'rechazado', 'S', 1, '/uploads/comprobantes/comprobante_41_20260221023827.jpg', 'Pago rechazado. Motivo: Foto borrosa, no se ve claro!'),
+(42, 10, 77, '2026-02-21 02:39:36', 'rechazado', 'S', 1, '/uploads/comprobantes/comprobante_42_20260221023945.jpg', 'Comprobante correcto!'),
+(43, 2, 78, '2026-02-21 05:06:08', 'pagado', 'S', 1, '/uploads/comprobantes/comprobante_43_20260221050641.jpg', 'Comprobante correcto!'),
+(44, 10, 79, '2026-02-21 05:12:47', 'pagado', 'S', 1, '/uploads/comprobantes/comprobante_44_20260221051325.jpg', 'Comprobante OK!');
 
 -- --------------------------------------------------------
 
@@ -153,25 +187,39 @@ INSERT INTO `inscripciones` (`idInscripcion`, `idUsuario`, `idCategoria`, `fecha
 --
 
 CREATE TABLE `notificaciones_evento` (
-  `idNotificacion` int(11) NOT NULL,
-  `idEvento` int(11) NOT NULL COMMENT 'Evento al que se asocia',
-  `idCategoria` int(11) DEFAULT NULL,
-  `titulo` varchar(255) NOT NULL COMMENT 'Ej: Evento Suspendido',
-  `mensaje` text DEFAULT NULL COMMENT 'Ej: La carrera se pasa al próximo domingo...',
-  `fechaEnvio` datetime DEFAULT current_timestamp(),
-  `estadoEvento` varchar(50) DEFAULT NULL COMMENT 'Estado del evento al momento de crear la notificacion'
+  `idNotificacion` int NOT NULL,
+  `idEvento` int NOT NULL COMMENT 'Evento al que se asocia',
+  `idCategoria` int DEFAULT NULL,
+  `idUsuarioDestino` int DEFAULT NULL COMMENT 'Si es NULL es pública para el evento, si tiene ID es un mensaje privado para ese usuario',
+  `titulo` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Ej: Evento Suspendido',
+  `mensaje` text COLLATE utf8mb4_unicode_ci COMMENT 'Ej: La carrera se pasa al próximo domingo...',
+  `fechaEnvio` datetime DEFAULT CURRENT_TIMESTAMP,
+  `estadoEvento` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Estado del evento al momento de crear la notificacion',
+  `esAnuncioGlobal` tinyint(1) NOT NULL DEFAULT '0'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Volcado de datos para la tabla `notificaciones_evento`
 --
 
-INSERT INTO `notificaciones_evento` (`idNotificacion`, `idEvento`, `idCategoria`, `titulo`, `mensaje`, `fechaEnvio`, `estadoEvento`) VALUES
-(1, 1, NULL, 'Retiro de Kits', 'Recuerden que el retiro de kits es hoy hasta las 18hs en el Centro Cultural.', '2025-12-07 20:08:00', 'finalizado'),
-(2, 1, NULL, 'Cambio de Horario', 'La largada se retrasa 30 minutos por clima.', '2025-12-07 20:56:48', 'finalizado'),
-(50, 59, NULL, 'Evento FINALIZADO', 'Evento finalizado', '2026-02-03 10:23:19', 'finalizado'),
-(51, 59, NULL, 'URGENTE: Evento Cancelado', 'Adadads', '2026-02-03 19:46:25', 'finalizado'),
-(61, 26, NULL, 'Evento SUSPENDIDO', 'Evento de prueba - cancelacion para testing', '2026-02-07 23:48:31', 'suspendido');
+INSERT INTO `notificaciones_evento` (`idNotificacion`, `idEvento`, `idCategoria`, `idUsuarioDestino`, `titulo`, `mensaje`, `fechaEnvio`, `estadoEvento`, `esAnuncioGlobal`) VALUES
+(1, 1, NULL, NULL, 'Retiro de Kits', 'Recuerden que el retiro de kits es hoy hasta las 18hs en el Centro Cultural.', '2025-12-07 20:08:00', 'finalizado', 0),
+(2, 1, NULL, NULL, 'Cambio de Horario', 'La largada se retrasa 30 minutos por clima.', '2025-12-07 20:56:48', 'finalizado', 0),
+(50, 59, NULL, NULL, 'Evento FINALIZADO', 'Evento finalizado', '2026-02-03 10:23:19', 'finalizado', 0),
+(51, 59, NULL, NULL, 'URGENTE: Evento Cancelado', 'Adadads', '2026-02-03 19:46:25', 'finalizado', 0),
+(61, 26, NULL, NULL, 'Evento SUSPENDIDO', 'Evento de prueba - cancelacion para testing', '2026-02-07 23:48:31', 'suspendido', 0),
+(62, 63, NULL, NULL, 'AVISO: 10K Integrativa SUSPENDIDO', 'Aun no se hizo presente los medicos.', '2026-02-10 05:29:34', 'publicado', 0),
+(63, 63, 65, NULL, 'AVISO: 10K Integrativa SUSPENDIDO', 'Las barras energeticas, estan llegando. Solo visible para YANINA', '2026-02-10 05:52:07', 'publicado', 0),
+(64, 71, NULL, NULL, '¡Nuevo Evento Disponible!', 'Test71 en dasdsad. ¡Inscripciones abiertas!', '2026-02-13 02:37:32', 'publicado', 1),
+(65, 72, NULL, NULL, '¡Nuevo Evento Disponible!', 'Test 72 en san luis. ¡Inscripciones abiertas!', '2026-02-15 02:54:25', 'publicado', 1),
+(66, 73, NULL, NULL, '¡Nuevo Evento Disponible!', 'Test 73 en Plaza Pringles, San Luis. ¡Inscripciones abiertas!', '2026-02-15 19:30:18', 'publicado', 1),
+(67, 73, 77, 10, 'Pago de Inscripción Rechazado', 'Tu comprobante fue rechazado. Motivo: Foto borrosa, no se ve claro!', '2026-02-21 02:38:53', 'publicado', 0),
+(68, 73, 77, 10, '¡Pago Confirmado!', 'Tu pago para el evento \'Test 73\' ha sido aprobado.', '2026-02-21 02:40:17', 'publicado', 0),
+(69, 73, 77, NULL, '5K Calle (Participativa) CANCELADA', 'La categoría 21k ha sido cancelada por falta de cupo mínimo. Los corredores serán reubicados en los 10k o pueden solicitar reembolso.', '2026-02-21 04:44:20', 'publicado', 0),
+(70, 73, 78, 2, '¡Pago Confirmado!', 'Tu pago para el evento \'Test 73\' ha sido aprobado.', '2026-02-21 05:06:53', 'publicado', 0),
+(71, 73, 79, 10, '¡Pago Confirmado!', 'Tu pago para el evento \'Test 73\' ha sido aprobado.', '2026-02-21 05:13:38', 'publicado', 0),
+(72, 73, NULL, NULL, 'URGENTE: Evento Cancelado', 'Aviso: Se cancela el evento por temporal en la provincia.', '2026-02-21 05:46:53', 'cancelado', 0),
+(73, 73, NULL, NULL, 'EVENTO FINALIZADO', 'TEST: prueba, no se debe de poder finalizar un evento con categorias que aun no finalizan.', '2026-02-21 06:32:08', 'finalizado', 0);
 
 -- --------------------------------------------------------
 
@@ -180,12 +228,12 @@ INSERT INTO `notificaciones_evento` (`idNotificacion`, `idEvento`, `idCategoria`
 --
 
 CREATE TABLE `perfiles_organizadores` (
-  `idPerfilOrganizador` int(11) NOT NULL,
-  `idUsuario` int(11) NOT NULL COMMENT 'FK a la tabla usuarios',
-  `razonSocial` varchar(100) NOT NULL COMMENT 'Nombre Legal y Oficial de la entidad',
-  `nombreComercial` varchar(100) NOT NULL COMMENT 'Nombre de marca que se usa públicamente (puede ser igual al campo nombre en usuarios)',
-  `cuit_taxid` varchar(30) DEFAULT NULL COMMENT 'CUIT/ID Fiscal de la organizacion. Requisito para crear evento',
-  `direccionLegal` varchar(255) DEFAULT NULL COMMENT 'Requisito para crear evento'
+  `idPerfilOrganizador` int NOT NULL,
+  `idUsuario` int NOT NULL COMMENT 'FK a la tabla usuarios',
+  `razonSocial` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Nombre Legal y Oficial de la entidad',
+  `nombreComercial` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Nombre de marca que se usa públicamente (puede ser igual al campo nombre en usuarios)',
+  `cuit_taxid` varchar(30) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'CUIT/ID Fiscal de la organizacion. Requisito para crear evento',
+  `direccionLegal` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Requisito para crear evento'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
@@ -193,9 +241,10 @@ CREATE TABLE `perfiles_organizadores` (
 --
 
 INSERT INTO `perfiles_organizadores` (`idPerfilOrganizador`, `idUsuario`, `razonSocial`, `nombreComercial`, `cuit_taxid`, `direccionLegal`) VALUES
-(1, 3, 'Runners Club San Luis S.A', 'Runners Club SL', '30-12345678-9', 'Av Illia 435, San Luis'),
+(1, 3, 'Runners Club San Luis S.A', 'Runners Club SL', '30123456799', 'Av Illia 435, San Luis'),
 (2, 5, 'Club Deportivo La Punta', 'CLUB La Punta', '13231331112', 'Av. Costanera s/n, La Punta, San Luis'),
-(3, 9, 'RUNNER ORGANIZACION S.A', 'RUNNER San Luis', '20331231234', 'Av Sarmiento 100');
+(3, 9, 'RUNNER ORGANIZACION S.A', 'RUNNER San Luis', '20331231234', 'Av Sarmiento 100'),
+(4, 12, 'RunnerS unidos', 'MarDelPlataRun', '30123456789', 'San Luis');
 
 -- --------------------------------------------------------
 
@@ -204,17 +253,17 @@ INSERT INTO `perfiles_organizadores` (`idPerfilOrganizador`, `idUsuario`, `razon
 --
 
 CREATE TABLE `perfiles_runners` (
-  `idPerfilRunner` int(11) NOT NULL,
-  `idUsuario` int(11) NOT NULL COMMENT 'FK a la tabla usuarios',
-  `nombre` varchar(100) NOT NULL COMMENT 'Nombre de Pila del Runner',
-  `apellido` varchar(100) NOT NULL COMMENT 'Apellido del Runner',
+  `idPerfilRunner` int NOT NULL,
+  `idUsuario` int NOT NULL COMMENT 'FK a la tabla usuarios',
+  `nombre` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Nombre de Pila del Runner',
+  `apellido` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Apellido del Runner',
   `fechaNacimiento` datetime DEFAULT NULL COMMENT 'Completar post registro y requisito al inscribirse a evento',
-  `genero` enum('F','M','X') DEFAULT NULL COMMENT 'Completar post registro y requisito al inscribirse a evento',
-  `dni` int(11) DEFAULT NULL COMMENT 'DNI del Runner. Completar post registro y requisito al inscribirse a evento',
-  `localidad` varchar(100) DEFAULT NULL COMMENT 'Completar post registro y requisito al inscribirse a evento',
-  `agrupacion` varchar(100) DEFAULT NULL COMMENT 'Agrupacion o libre (si no tiene). Requisito antes de inscribirse a evento',
-  `nombreContactoEmergencia` varchar(100) DEFAULT NULL COMMENT 'Nombre/Relacion contacto emergencia. Requisito para inscribirse a evento',
-  `telefonoEmergencia` varchar(50) DEFAULT NULL COMMENT 'Contacto de emergencia. Requisito para inscribirse a evento',
+  `genero` enum('F','M','X') COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Completar post registro y requisito al inscribirse a evento',
+  `dni` int DEFAULT NULL COMMENT 'DNI del Runner. Completar post registro y requisito al inscribirse a evento',
+  `localidad` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Completar post registro y requisito al inscribirse a evento',
+  `agrupacion` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Agrupacion o libre (si no tiene). Requisito antes de inscribirse a evento',
+  `nombreContactoEmergencia` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Nombre/Relacion contacto emergencia. Requisito para inscribirse a evento',
+  `telefonoEmergencia` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Contacto de emergencia. Requisito para inscribirse a evento',
   `fechaUltimaLectura` datetime DEFAULT '2000-01-01 00:00:00'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -223,9 +272,9 @@ CREATE TABLE `perfiles_runners` (
 --
 
 INSERT INTO `perfiles_runners` (`idPerfilRunner`, `idUsuario`, `nombre`, `apellido`, `fechaNacimiento`, `genero`, `dni`, `localidad`, `agrupacion`, `nombreContactoEmergencia`, `telefonoEmergencia`, `fechaUltimaLectura`) VALUES
-(2, 2, 'Carlos', 'González Pérez', '1993-05-08 00:00:00', 'M', 11111331, 'San Luis Capital', 'Equipo Trail Running SL', 'Luzmila (pareja)', '266483133237', '2000-01-01 00:00:00'),
+(2, 2, 'Carlitos', 'González Pérezz', '1990-05-08 00:00:00', 'M', 1234567, 'Villa Unión, La Rioja', 'Equipo Trail Running SL', 'Luzmila (pareja)', '266483133237', '2000-01-01 00:00:00'),
 (3, 4, 'Test1 Runner Nombre', 'Test Runner Apellido', '2000-03-20 00:00:00', 'M', 22222222, 'Juana Koslay', 'Equipo Trail Running SL', 'Pareja', '2664888999', '2025-12-07 20:58:12'),
-(6, 8, 'Esteban', 'Moreira', '1993-05-08 00:00:00', 'M', 37599292, 'San Luis Capital, San Luis', 'Sin agrupacion', 'La Rosalia (pareja)', '2665031234', NULL),
+(6, 8, 'Esteban', 'Moreira', '1903-05-08 00:00:00', 'M', 37599292, 'San Luis Capital, San Luis', 'Sin agrupacion', 'La Rosalia (pareja)', '2665031234', NULL),
 (7, 10, 'Beatriz', 'Rosales', '1993-08-21 00:00:00', 'F', 11222333, 'San Luis Capital, San Luis', 'Sin agrupacion', 'Enrique', '2664044026', NULL),
 (8, 11, 'Beatriz', 'Zalazar', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
 
@@ -236,10 +285,10 @@ INSERT INTO `perfiles_runners` (`idPerfilRunner`, `idUsuario`, `nombre`, `apelli
 --
 
 CREATE TABLE `puntosinteres` (
-  `idPuntoInteres` int(11) NOT NULL,
-  `idEvento` int(11) NOT NULL,
-  `tipo` enum('hidratacion','primeros_auxilios','punto_energetico','otro') NOT NULL,
-  `nombre` varchar(100) NOT NULL,
+  `idPuntoInteres` int NOT NULL,
+  `idEvento` int NOT NULL,
+  `tipo` enum('hidratacion','primeros_auxilios','punto_energetico','otro') COLLATE utf8mb4_unicode_ci NOT NULL,
+  `nombre` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
   `latitud` decimal(10,7) NOT NULL,
   `longitud` decimal(10,7) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -266,7 +315,17 @@ INSERT INTO `puntosinteres` (`idPuntoInteres`, `idEvento`, `tipo`, `nombre`, `la
 (47, 57, 'primeros_auxilios', 'Primeros Auxilios', -33.2392262, -66.2898879),
 (48, 57, 'otro', 'Punto de Interés', -33.2392386, -66.2900612),
 (49, 59, 'hidratacion', 'Puesto de Hidratación', -33.2679044, -66.3283370),
-(50, 59, 'punto_energetico', 'Punto Energético', -33.2662258, -66.3314792);
+(50, 59, 'punto_energetico', 'Punto Energético', -33.2662258, -66.3314792),
+(51, 70, 'punto_energetico', 'Punto Energético', -33.2716739, -66.3388224),
+(52, 70, 'primeros_auxilios', 'Primeros Auxilios', -33.2726508, -66.3387141),
+(53, 70, 'hidratacion', 'Puesto de Hidratación', -33.2721945, -66.3314792),
+(54, 70, 'hidratacion', 'Puesto de Hidratación', -33.2779315, -66.3314883),
+(55, 70, 'hidratacion', 'Puesto de Hidratación', -33.2800141, -66.3333293),
+(56, 70, 'otro', 'Punto de Interés', -33.2796589, -66.3379534),
+(57, 63, 'hidratacion', 'Puesto de Hidratación', -33.3063302, -66.3335740),
+(58, 63, 'primeros_auxilios', 'Primeros Auxilios', -33.3072246, -66.3229830),
+(59, 72, 'punto_energetico', 'Punto Energético', -33.2772571, -66.3045881),
+(60, 72, 'hidratacion', 'Puesto de Hidratación', -33.2771705, -66.3062185);
 
 -- --------------------------------------------------------
 
@@ -275,18 +334,18 @@ INSERT INTO `puntosinteres` (`idPuntoInteres`, `idEvento`, `tipo`, `nombre`, `la
 --
 
 CREATE TABLE `resultados` (
-  `idResultado` int(11) NOT NULL,
-  `idInscripcion` int(11) NOT NULL,
-  `tiempoOficial` varchar(20) DEFAULT NULL COMMENT 'Ej: 00:45:30.123',
-  `posicionGeneral` int(11) DEFAULT NULL,
-  `posicionCategoria` int(11) DEFAULT NULL,
-  `tiempoSmartwatch` varchar(20) DEFAULT NULL COMMENT 'Ej: 00:45:28',
+  `idResultado` int NOT NULL,
+  `idInscripcion` int NOT NULL,
+  `tiempoOficial` varchar(20) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Ej: 00:45:30.123',
+  `posicionGeneral` int DEFAULT NULL,
+  `posicionCategoria` int DEFAULT NULL,
+  `tiempoSmartwatch` varchar(20) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Ej: 00:45:28',
   `distanciaKm` decimal(6,2) DEFAULT NULL COMMENT 'Ej: 10.02',
-  `ritmoPromedio` varchar(20) DEFAULT NULL COMMENT 'Ej: 4:32 min/km',
-  `velocidadPromedio` varchar(20) DEFAULT NULL COMMENT 'Ej: 13.2 km/h',
-  `caloriasQuemadas` int(11) DEFAULT NULL,
-  `pulsacionesPromedio` int(11) DEFAULT NULL,
-  `pulsacionesMax` int(11) DEFAULT NULL
+  `ritmoPromedio` varchar(20) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Ej: 4:32 min/km',
+  `velocidadPromedio` varchar(20) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Ej: 13.2 km/h',
+  `caloriasQuemadas` int DEFAULT NULL,
+  `pulsacionesPromedio` int DEFAULT NULL,
+  `pulsacionesMax` int DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
@@ -308,9 +367,9 @@ INSERT INTO `resultados` (`idResultado`, `idInscripcion`, `tiempoOficial`, `posi
 --
 
 CREATE TABLE `rutas` (
-  `idRuta` int(11) NOT NULL,
-  `idEvento` int(11) NOT NULL,
-  `orden` int(11) NOT NULL COMMENT 'Orden del punto en el trazado',
+  `idRuta` int NOT NULL,
+  `idEvento` int NOT NULL,
+  `orden` int NOT NULL COMMENT 'Orden del punto en el trazado',
   `latitud` decimal(10,7) NOT NULL,
   `longitud` decimal(10,7) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -1088,7 +1147,79 @@ INSERT INTO `rutas` (`idRuta`, `idEvento`, `orden`, `latitud`, `longitud`) VALUE
 (1838, 60, 504, -33.1869561, -66.2815341),
 (1839, 60, 505, -33.1869589, -66.2817464),
 (1840, 60, 506, -33.1869589, -66.2827187),
-(1841, 60, 507, -33.1869541, -66.2828880);
+(1841, 60, 507, -33.1869541, -66.2828880),
+(1874, 67, 1, -33.2622262, -66.3398014),
+(1875, 67, 2, -33.2632172, -66.3376272),
+(1876, 67, 3, -33.2643963, -66.3350325),
+(1877, 67, 4, -33.2658726, -66.3319100),
+(1878, 67, 5, -33.2676451, -66.3280302),
+(1879, 67, 6, -33.2705619, -66.3215547),
+(1880, 67, 7, -33.2722800, -66.3180517),
+(1881, 67, 8, -33.2723924, -66.3177681),
+(1882, 67, 9, -33.2726256, -66.3177208),
+(1883, 67, 10, -33.2727495, -66.3176269),
+(1884, 67, 11, -33.2728187, -66.3175002),
+(1885, 67, 12, -33.2729342, -66.3174533),
+(1886, 67, 13, -33.2730519, -66.3174818),
+(1887, 67, 14, -33.2731397, -66.3175991),
+(1888, 67, 15, -33.2732518, -66.3176420),
+(1889, 67, 16, -33.2734421, -66.3176206),
+(1969, 70, 1, -33.2623391, -66.3398427),
+(1970, 70, 2, -33.2659777, -66.3394608),
+(1971, 70, 3, -33.2693882, -66.3390276),
+(1972, 70, 4, -33.2717118, -66.3387986),
+(1973, 70, 5, -33.2714071, -66.3362770),
+(1974, 70, 6, -33.2711951, -66.3332361),
+(1975, 70, 7, -33.2710244, -66.3315275),
+(1976, 70, 8, -33.2716736, -66.3314376),
+(1977, 70, 9, -33.2729858, -66.3314705),
+(1978, 70, 10, -33.2747178, -66.3315315),
+(1979, 70, 11, -33.2762623, -66.3314661),
+(1980, 70, 12, -33.2779573, -66.3315315),
+(1981, 70, 13, -33.2791393, -66.3313518),
+(1982, 70, 14, -33.2797285, -66.3312392),
+(1983, 70, 15, -33.2799995, -66.3343696),
+(1984, 70, 16, -33.2802229, -66.3361000),
+(1985, 70, 17, -33.2804146, -66.3378934),
+(1986, 70, 18, -33.2787951, -66.3380650),
+(1987, 70, 19, -33.2766903, -66.3383266),
+(1988, 70, 20, -33.2744703, -66.3385616),
+(1989, 70, 21, -33.2726615, -66.3386350),
+(1990, 71, 1, -33.2368813, -66.3440403),
+(1991, 71, 2, -33.2407099, -66.3428139),
+(1992, 71, 3, -33.2450582, -66.3411301),
+(1993, 71, 4, -33.2485037, -66.3399858),
+(1994, 71, 5, -33.2520310, -66.3389884),
+(1995, 71, 6, -33.2540211, -66.3386739),
+(1996, 71, 7, -33.2580814, -66.3394259),
+(1997, 71, 8, -33.2613761, -66.3398346),
+(1998, 63, 1, -33.2776260, -66.3380493),
+(1999, 63, 2, -33.2998746, -66.3350412),
+(2000, 63, 3, -33.3120622, -66.3320331),
+(2001, 63, 4, -33.3115161, -66.3301079),
+(2002, 63, 5, -33.3094693, -66.3260243),
+(2003, 63, 6, -33.3051623, -66.3195628),
+(2004, 63, 7, -33.3013480, -66.3139040),
+(2005, 63, 8, -33.2923564, -66.3149994),
+(2006, 63, 9, -33.2898419, -66.3214246),
+(2007, 63, 10, -33.2891404, -66.3245923),
+(2008, 63, 11, -33.2895776, -66.3287611),
+(2009, 63, 12, -33.2895193, -66.3312432),
+(2010, 63, 13, -33.2884532, -66.3342516),
+(2011, 63, 14, -33.2862257, -66.3365566),
+(2025, 72, 1, -33.2761387, -66.3083187),
+(2026, 72, 2, -33.2750974, -66.3077360),
+(2027, 72, 3, -33.2753468, -66.3071533),
+(2028, 72, 4, -33.2756409, -66.3065427),
+(2029, 72, 5, -33.2759212, -66.3059949),
+(2030, 72, 6, -33.2761707, -66.3054326),
+(2031, 72, 7, -33.2764549, -66.3048137),
+(2032, 72, 8, -33.2767043, -66.3042310),
+(2033, 72, 9, -33.2777698, -66.3049515),
+(2034, 72, 10, -33.2775012, -66.3055278),
+(2035, 72, 11, -33.2768638, -66.3068827),
+(2036, 72, 12, -33.2765771, -66.3074949),
+(2037, 72, 13, -33.2763585, -66.3079747);
 
 -- --------------------------------------------------------
 
@@ -1097,13 +1228,13 @@ INSERT INTO `rutas` (`idRuta`, `idEvento`, `orden`, `latitud`, `longitud`) VALUE
 --
 
 CREATE TABLE `tokens_recuperacion` (
-  `idToken` int(11) NOT NULL,
-  `idUsuario` int(11) NOT NULL,
-  `token` varchar(255) NOT NULL COMMENT 'Token unico generado',
-  `tipoToken` varchar(20) NOT NULL DEFAULT 'recuperacion' COMMENT 'Tipo de token: recuperacion, reactivacion',
-  `fechaCreacion` datetime NOT NULL DEFAULT current_timestamp(),
+  `idToken` int NOT NULL,
+  `idUsuario` int NOT NULL,
+  `token` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Token unico generado',
+  `tipoToken` varchar(20) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'recuperacion' COMMENT 'Tipo de token: recuperacion, reactivacion',
+  `fechaCreacion` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `fechaExpiracion` datetime NOT NULL COMMENT 'Token valido por 1 hora',
-  `usado` tinyint(1) NOT NULL DEFAULT 0 COMMENT 'false=no usado, true=ya usado'
+  `usado` tinyint(1) NOT NULL DEFAULT '0' COMMENT 'false=no usado, true=ya usado'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
@@ -1117,7 +1248,11 @@ INSERT INTO `tokens_recuperacion` (`idToken`, `idUsuario`, `token`, `tipoToken`,
 (4, 4, '566866dc43ef43d59222003acddd2c31', 'reactivacion', '2025-11-27 09:51:16', '2025-11-27 10:51:16', 1),
 (5, 4, '6403356e0c9e4bbba82acf826e137dba', 'recuperacion', '2026-02-01 22:17:49', '2026-02-01 23:17:49', 1),
 (6, 4, 'f7684de42cfb4850b68948d9d33012e1', 'recuperacion', '2026-02-01 22:19:26', '2026-02-01 23:19:26', 0),
-(7, 4, '70d3fce2def54d3db842abcfd97a68ba', 'reactivacion', '2026-02-01 22:22:01', '2026-02-01 23:22:01', 1);
+(7, 4, '70d3fce2def54d3db842abcfd97a68ba', 'reactivacion', '2026-02-01 22:22:01', '2026-02-01 23:22:01', 1),
+(8, 4, 'e39279fcedd84a4382842d5b1c3f394d', 'recuperacion', '2026-02-13 02:10:10', '2026-02-13 03:10:10', 1),
+(9, 4, '0cbdfb1b95334ce3bae35e1f37fb2958', 'recuperacion', '2026-02-13 02:16:41', '2026-02-13 02:21:41', 0),
+(10, 4, '4e8d3533322948298b7996c332777f4b', 'recuperacion', '2026-02-13 02:16:48', '2026-02-13 02:21:48', 0),
+(11, 4, 'ba9d368582894a6eb25485c38ced4fa8', 'reactivacion', '2026-02-13 02:25:25', '2026-02-13 02:30:25', 1);
 
 -- --------------------------------------------------------
 
@@ -1126,14 +1261,14 @@ INSERT INTO `tokens_recuperacion` (`idToken`, `idUsuario`, `token`, `tipoToken`,
 --
 
 CREATE TABLE `usuarios` (
-  `idUsuario` int(11) NOT NULL,
-  `nombre` varchar(100) NOT NULL COMMENT 'Nombre de Pila (Runner) o Nombre Comercial (Organizador)',
-  `email` varchar(100) NOT NULL,
-  `telefono` varchar(20) DEFAULT NULL COMMENT 'Numero de celu',
-  `passwordHash` varchar(255) NOT NULL,
-  `tipoUsuario` enum('runner','organizador') NOT NULL,
-  `estado` tinyint(1) NOT NULL DEFAULT 1 COMMENT '0 false, 1 true (Al crear) sera de estado true',
-  `imgAvatar` varchar(500) DEFAULT NULL COMMENT 'URL o ruta del avatar del usuario'
+  `idUsuario` int NOT NULL,
+  `nombre` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Nombre de Pila (Runner) o Nombre Comercial (Organizador)',
+  `email` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `telefono` varchar(20) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Numero de celu',
+  `passwordHash` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `tipoUsuario` enum('runner','organizador') COLLATE utf8mb4_unicode_ci NOT NULL,
+  `estado` tinyint(1) NOT NULL DEFAULT '1' COMMENT '0 false, 1 true (Al crear) sera de estado true',
+  `imgAvatar` varchar(500) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'URL o ruta del avatar del usuario'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
@@ -1141,14 +1276,15 @@ CREATE TABLE `usuarios` (
 --
 
 INSERT INTO `usuarios` (`idUsuario`, `nombre`, `email`, `telefono`, `passwordHash`, `tipoUsuario`, `estado`, `imgAvatar`) VALUES
-(2, 'Carlos', 'carlos@test.com', '2664222333', '$2a$12$1VrSrzRZp5VM7/4fNJ/f2.DPVbPE9b4.MF9lfXAGG7lp7Amncusmq', 'runner', 1, '/uploads/avatars/defaults/default_runner.png'),
+(2, 'Carlitos', 'carlos@test.com', '2664222333', '$2a$12$1VrSrzRZp5VM7/4fNJ/f2.DPVbPE9b4.MF9lfXAGG7lp7Amncusmq', 'runner', 1, '/uploads/avatars/2_20260213183414.jpg'),
 (3, 'Juan Carlos', 'eventos@runnersclub.com', '2664111113', '$2a$12$4OatEBqyW4e6SJmeBhk8R.mT4StPBw5WtNHpuTBGldfeQ7NdKebpy', 'organizador', 1, '/uploads/avatars/defaults/default_organization.png'),
-(4, 'Test1 Runner Nombre', 'esteban.dev22@gmail.com', '2664222222', '$2a$12$HIqX.CjZWvIR/iBibNuj5eTbHVPMOf9Dwe1XOelVGu.NuD1QGXRxK', 'runner', 1, '/uploads/avatars/defaults/default_runner.png'),
+(4, 'Test1 Runner Nombre', 'esteban.dev22@gmail.com', '2664222222', '$2a$12$2tvF8p8vyyOQQhrt/2ApGOUD9wyDnAGYeBwDkJ9/TZ7NBSIUO2VLy', 'runner', 1, '/uploads/avatars/defaults/default_runner.png'),
 (5, 'La Punta RUNNER', 'test@orgaclub.com', '2664555888', '$2a$12$z0./mOCu5roRcP71s16Mh.C/XX98/V0jssxBrxBte.2sS1UZ874/m', 'organizador', 1, '/uploads/avatars/5_20251228015156.jpg'),
 (8, 'Esteban', 'este@test.com', '2665044026', '$2a$12$xNmXFNF0xSwK3/kgNx3MsuExSmTlV2mdZHtItnTE9xkx.dmPbPcOO', 'runner', 1, '/uploads/avatars/defaults/default_runner.png'),
-(9, 'RUNNer San Luis', 'run@sl.com', '2664123456', '$2a$12$kZfACtQSfY.eimN6SyLAM.kF3U88lcnJ2ndVrCHVqxZLNbkYO8wrC', 'organizador', 1, '/uploads/avatars/9_20251231015301.jpg'),
+(9, 'RUNNer San Luis', 'run@sl.com', '2664123456', '$2a$12$kZfACtQSfY.eimN6SyLAM.kF3U88lcnJ2ndVrCHVqxZLNbkYO8wrC', 'organizador', 1, '/uploads/avatars/9_20260209234309.jpg'),
 (10, 'Yanina', 'yani@test.com', '2664010203', '$2a$12$5Zrx1Fh/uIjShuTBBvciTumdrXFL/.EZcXc/yzTc/DZuDwzm8veEm', 'runner', 1, '/uploads/avatars/10_20260119020531.jpg'),
-(11, 'Beatriz', 'beatriz@test.com', NULL, '$2a$12$FypSs4mmEk7IIykmgGkEv.Nu/55BbPszrl1k5PPM/ZrpaZ.ZzpGZ6', 'runner', 1, '/uploads/avatars/defaults/default_runner.png');
+(11, 'Beatriz', 'beatriz@test.com', NULL, '$2a$12$FypSs4mmEk7IIykmgGkEv.Nu/55BbPszrl1k5PPM/ZrpaZ.ZzpGZ6', 'runner', 1, '/uploads/avatars/defaults/default_runner.png'),
+(12, 'MarDelPlataRun', 'mdq@test.com', '12345678', '$2a$12$tWTnX8MhLSE.cOW0vRH97utSojUZ4y/c/qEjA9QAw.dL7Topyty4O', 'organizador', 1, '/uploads/avatars/defaults/default_organization.png');
 
 --
 -- Índices para tablas volcadas
@@ -1182,7 +1318,8 @@ ALTER TABLE `inscripciones`
 ALTER TABLE `notificaciones_evento`
   ADD PRIMARY KEY (`idNotificacion`),
   ADD KEY `idEvento` (`idEvento`),
-  ADD KEY `fk_notificaciones_categorias` (`idCategoria`);
+  ADD KEY `fk_notificaciones_categorias` (`idCategoria`),
+  ADD KEY `fk_notificaciones_usuario` (`idUsuarioDestino`);
 
 --
 -- Indices de la tabla `perfiles_organizadores`
@@ -1246,67 +1383,67 @@ ALTER TABLE `usuarios`
 -- AUTO_INCREMENT de la tabla `categorias_evento`
 --
 ALTER TABLE `categorias_evento`
-  MODIFY `idCategoria` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=61;
+  MODIFY `idCategoria` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=80;
 
 --
 -- AUTO_INCREMENT de la tabla `eventos`
 --
 ALTER TABLE `eventos`
-  MODIFY `idEvento` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=61;
+  MODIFY `idEvento` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=74;
 
 --
 -- AUTO_INCREMENT de la tabla `inscripciones`
 --
 ALTER TABLE `inscripciones`
-  MODIFY `idInscripcion` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=24;
+  MODIFY `idInscripcion` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=45;
 
 --
 -- AUTO_INCREMENT de la tabla `notificaciones_evento`
 --
 ALTER TABLE `notificaciones_evento`
-  MODIFY `idNotificacion` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=62;
+  MODIFY `idNotificacion` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=74;
 
 --
 -- AUTO_INCREMENT de la tabla `perfiles_organizadores`
 --
 ALTER TABLE `perfiles_organizadores`
-  MODIFY `idPerfilOrganizador` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `idPerfilOrganizador` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT de la tabla `perfiles_runners`
 --
 ALTER TABLE `perfiles_runners`
-  MODIFY `idPerfilRunner` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+  MODIFY `idPerfilRunner` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- AUTO_INCREMENT de la tabla `puntosinteres`
 --
 ALTER TABLE `puntosinteres`
-  MODIFY `idPuntoInteres` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=51;
+  MODIFY `idPuntoInteres` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=61;
 
 --
 -- AUTO_INCREMENT de la tabla `resultados`
 --
 ALTER TABLE `resultados`
-  MODIFY `idResultado` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=27;
+  MODIFY `idResultado` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=27;
 
 --
 -- AUTO_INCREMENT de la tabla `rutas`
 --
 ALTER TABLE `rutas`
-  MODIFY `idRuta` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1842;
+  MODIFY `idRuta` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2038;
 
 --
 -- AUTO_INCREMENT de la tabla `tokens_recuperacion`
 --
 ALTER TABLE `tokens_recuperacion`
-  MODIFY `idToken` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+  MODIFY `idToken` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
 
 --
 -- AUTO_INCREMENT de la tabla `usuarios`
 --
 ALTER TABLE `usuarios`
-  MODIFY `idUsuario` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
+  MODIFY `idUsuario` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 
 --
 -- Restricciones para tablas volcadas
@@ -1336,6 +1473,7 @@ ALTER TABLE `inscripciones`
 --
 ALTER TABLE `notificaciones_evento`
   ADD CONSTRAINT `fk_notificaciones_categorias` FOREIGN KEY (`idCategoria`) REFERENCES `categorias_evento` (`idCategoria`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `fk_notificaciones_usuario` FOREIGN KEY (`idUsuarioDestino`) REFERENCES `usuarios` (`idUsuario`) ON DELETE CASCADE,
   ADD CONSTRAINT `notificaciones_evento_ibfk_1` FOREIGN KEY (`idEvento`) REFERENCES `eventos` (`idEvento`) ON DELETE CASCADE;
 
 --

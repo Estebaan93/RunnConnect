@@ -479,7 +479,7 @@ namespace RunnConnectAPI.Repositories
                     })
                     .ToListAsync();
 
-                // Solo agregamos la categoría si tiene resultados
+                // Solo agregamos la categoria si tiene resultados
                 if (topRunners.Any())
                 {
                     respuesta.Categorias.Add(new PodioCategoriaItem
