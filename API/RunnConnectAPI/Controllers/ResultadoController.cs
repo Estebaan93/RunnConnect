@@ -199,7 +199,7 @@ namespace RunnConnectAPI.Controllers
                 // Columna 1: Tiempo
                 TiempoOficial = valores[1].Trim(),
                 // Columna 2: Pos Categoria
-                PosicionCategoria = (valores.Length > 3 && int.TryParse(valores[3], out int pc)) ? pc : null
+                PosicionCategoria = (valores.Length > 2 && int.TryParse(valores[2], out int pc)) ? pc : null
               };
 
               listaResultados.Add(item);
