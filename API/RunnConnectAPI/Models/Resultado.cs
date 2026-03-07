@@ -28,8 +28,8 @@ namespace RunnConnectAPI.Models
     public string? TiempoOficial { get; set; }
 
     // Posicion general en toda la carrera
-    [Column("posicionGeneral")]
-    public int? PosicionGeneral { get; set; }
+    /*[Column("posicionGeneral")]
+    public int? PosicionGeneral { get; set; }*/
 
     // Posicion dentro de su categoria
     [Column("posicionCategoria")]

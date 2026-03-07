@@ -40,7 +40,7 @@ namespace RunnConnectAPI.Models.Dto.Resultado
 
     // Resultados oficiales
     public string? TiempoOficial { get; set; }
-    public int? PosicionGeneral { get; set; }
+    /* public int? PosicionGeneral { get; set; } */
     public int? PosicionCategoria { get; set; }
 
     // Indicador de datos smartwatch

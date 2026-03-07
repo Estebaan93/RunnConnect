@@ -29,7 +29,7 @@ namespace RunnConnectAPI.Models.Dto.Resultado
 
     // Resultados oficiales
     public string? TiempoOficial { get; set; }
-    public int? PosicionGeneral { get; set; }
+   /*  public int? PosicionGeneral { get; set; } */
     public int? PosicionCategoria { get; set; }
     public int? TotalParticipantesCategoria { get; set; }
 
@@ -44,6 +44,6 @@ namespace RunnConnectAPI.Models.Dto.Resultado
     public decimal? DistanciaTotalKm { get; set; }
     public int? CaloriasTotales { get; set; }
     public string? MejorTiempo { get; set; }
-    public int? MejorPosicion { get; set; }
+    public int? PosicionCategoria { get; set; }
   }
 }

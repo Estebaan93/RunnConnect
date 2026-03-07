@@ -9,8 +9,8 @@ namespace RunnConnectAPI.Models.Dto.Resultado
   public class ActualizarPosicionesRequest
   {
     /*Posicion general en toda la carrera*/
-    [Range(1, 10000, ErrorMessage = "La posicion general debe ser mayor a 0")]
-    public int? PosicionGeneral { get; set; }
+    /*[Range(1, 10000, ErrorMessage = "La posicion general debe ser mayor a 0")]
+    public int? PosicionGeneral { get; set; }*/
 
     /*Posicion dentro de su categoria*/
     [Range(1,10000,ErrorMessage ="La posicion en categoria debe ser mayor a 0")]

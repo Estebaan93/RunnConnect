@@ -53,7 +53,7 @@ namespace RunnConnectAPI.Repositories
 
       var resultados = inscripcionesEvento
           .Where(i => i.Resultado != null)
-          .OrderBy(i => i.Resultado!.PosicionGeneral ?? int.MaxValue)
+          .OrderBy(i => i.Resultado!.PosicionCategoria ?? int.MaxValue)
           .ThenBy(i => i.Resultado!.TiempoOficial)
           .Select(i => new ResultadoEventoItem
           {
@@ -65,7 +65,6 @@ namespace RunnConnectAPI.Repositories
             Agrupacion = i.Usuario?.PerfilRunner?.Agrupacion,
             NombreCategoria = i.Categoria?.Nombre ?? "",
             TiempoOficial = i.Resultado.TiempoOficial,
-            PosicionGeneral = i.Resultado.PosicionGeneral,
             PosicionCategoria = i.Resultado.PosicionCategoria,
             TieneDatosSmartwatch = !string.IsNullOrEmpty(i.Resultado.TiempoSmartwatch) || i.Resultado.DistanciaKm.HasValue
           })
@@ -108,7 +107,6 @@ namespace RunnConnectAPI.Repositories
             Agrupacion = i.Usuario.PerfilRunner.Agrupacion,
             NombreCategoria = i.Categoria!.Nombre,
             TiempoOficial = i.Resultado.TiempoOficial,
-            PosicionGeneral = i.Resultado.PosicionGeneral,
             PosicionCategoria = i.Resultado.PosicionCategoria,
             TieneDatosSmartwatch = !string.IsNullOrEmpty(i.Resultado.TiempoSmartwatch)
           })
@@ -116,7 +114,7 @@ namespace RunnConnectAPI.Repositories
     }
 
     public async Task<MisResultadosResponse> ObtenerMisResultadosAsync(int idUsuario)
-    { 
+    {
       //Obtener mis resultados
       var inscripciones = await _context.Inscripciones
           .Include(i => i.Categoria)
@@ -127,18 +125,18 @@ namespace RunnConnectAPI.Repositories
           .ToListAsync();
 
       //Obtener cantidad por categoria
-      var categoriaIds= inscripciones
+      var categoriaIds = inscripciones
         .Select(
-          i=>i.IdCategoria
+          i => i.IdCategoria
         ).Distinct()
           .ToList();
 
       //Contar inscriptos PAGADOS hay en esa categoria
-      var contadoresCategoria= await _context.Inscripciones
-        .Where (i=>categoriaIds.Contains(i.IdCategoria) && i.EstadoPago=="pagado")
-        .GroupBy(i=>i.IdCategoria)
+      var contadoresCategoria = await _context.Inscripciones
+        .Where(i => categoriaIds.Contains(i.IdCategoria) && i.EstadoPago == "pagado")
+        .GroupBy(i => i.IdCategoria)
         .Select(g => new { IdCategoria = g.Key, Total = g.Count() })
-        .ToDictionaryAsync(k => k.IdCategoria, v => v.Total);      
+        .ToDictionaryAsync(k => k.IdCategoria, v => v.Total);
 
       //Mapear respuestas
       var resultados = inscripciones
@@ -152,10 +150,9 @@ namespace RunnConnectAPI.Repositories
             LugarEvento = i.Categoria.Evento.Lugar,
             NombreCategoria = i.Categoria.Nombre,
             TiempoOficial = i.Resultado.TiempoOficial,
-            PosicionGeneral = i.Resultado.PosicionGeneral,
             PosicionCategoria = i.Resultado.PosicionCategoria,
             //Calculamos la categoria
-            TotalParticipantesCategoria= contadoresCategoria.ContainsKey(i.IdCategoria)
+            TotalParticipantesCategoria = contadoresCategoria.ContainsKey(i.IdCategoria)
               ? contadoresCategoria[i.IdCategoria]
               : 0,
 
@@ -181,16 +178,14 @@ namespace RunnConnectAPI.Repositories
           CarrerasCompletadas = resultados.Count,
           DistanciaTotalKm = resultados.Sum(r => r.DatosSmartwatch?.DistanciaKm ?? 0),
           CaloriasTotales = resultados.Sum(r => r.DatosSmartwatch?.CaloriasQuemadas ?? 0),
-          MejorPosicion = resultados.Any() ? resultados.Min(r => r.PosicionGeneral) : null
+          PosicionCategoria = resultados.Any() ? resultados.Min(r => r.PosicionCategoria) : null
         }
       };
     }
 
     // CARGA (ORGANIZADOR) 
     /// Carga masiva de resultados (llamado por el controller que leyo el CSV)
-    public async Task<ResultadosResponse> CargarResultadosAsync(
-        CargarResultadosRequest request,
-        int idOrganizador)
+    public async Task<ResultadosResponse> CargarResultadosAsync(CargarResultadosRequest request, int idOrganizador)
     {
       var response = new ResultadosResponse
       {
@@ -238,22 +233,21 @@ namespace RunnConnectAPI.Repositories
         }
 
         // Solo permitimos cargar si la categoria específica esta finalizada
-            if (inscripcion.Categoria?.Estado != "finalizada")
-            {
-                response.Errores.Add(new ResultadoError 
-                { 
-                    Dni = item.Dni, 
-                    Motivo = $"La categoría '{inscripcion.Categoria?.Nombre}' aún no está finalizada." 
-                });
-                response.Fallidos++;
-                continue;
-            }
+        if (inscripcion.Categoria?.Estado != "finalizada")
+        {
+          response.Errores.Add(new ResultadoError
+          {
+            Dni = item.Dni,
+            Motivo = $"La categoría '{inscripcion.Categoria?.Nombre}' aún no está finalizada."
+          });
+          response.Fallidos++;
+          continue;
+        }
 
         // logica oficial
         if (inscripcion.Resultado != null)
         {
           inscripcion.Resultado.TiempoOficial = item.TiempoOficial;
-          inscripcion.Resultado.PosicionGeneral = item.PosicionGeneral;
           inscripcion.Resultado.PosicionCategoria = item.PosicionCategoria;
         }
         else
@@ -262,13 +256,19 @@ namespace RunnConnectAPI.Repositories
           {
             IdInscripcion = inscripcion.IdInscripcion,
             TiempoOficial = item.TiempoOficial,
-            PosicionGeneral = item.PosicionGeneral,
             PosicionCategoria = item.PosicionCategoria
           };
           _context.Resultados.Add(nuevoResultado);
         }
 
         response.Exitosos++;
+
+
+        //para inyeccion de notif a categorias afectadas
+        if (!response.CategoriasActualizadas.Contains(inscripcion.IdCategoria))
+        {
+          response.CategoriasActualizadas.Add(inscripcion.IdCategoria);
+        }
       }
 
       await _context.SaveChangesAsync();
@@ -301,9 +301,7 @@ namespace RunnConnectAPI.Repositories
     }
 
     public async Task<(bool exito, string? error)> ActualizarPosicionesAsync(
-        int idResultado,
-        ActualizarPosicionesRequest request,
-        int idOrganizador)
+        int idResultado, ActualizarPosicionesRequest request, int idOrganizador)
     {
       var resultado = await _context.Resultados
           .Include(r => r.Inscripcion)
@@ -316,9 +314,6 @@ namespace RunnConnectAPI.Repositories
 
       if (resultado.Inscripcion?.Categoria?.Evento?.IdOrganizador != idOrganizador)
         return (false, "Sin permiso");
-
-      if (request.PosicionGeneral.HasValue)
-        resultado.PosicionGeneral = request.PosicionGeneral;
 
       if (request.PosicionCategoria.HasValue)
         resultado.PosicionCategoria = request.PosicionCategoria;
@@ -417,7 +412,6 @@ namespace RunnConnectAPI.Repositories
               }
               : null,
         TiempoOficial = resultado.TiempoOficial,
-        PosicionGeneral = resultado.PosicionGeneral,
         PosicionCategoria = resultado.PosicionCategoria,
         DatosSmartwatch = new DatosSmartwatchInfo
         {
@@ -435,64 +429,63 @@ namespace RunnConnectAPI.Repositories
     //obtener podios (10 primeras posic por categ)
     public async Task<PodiosEventoResponse?> ObtenerPodiosAsync(int idEvento)
     {
-        var evento = await _context.Eventos
-            .Include(e => e.Categorias)
-            .FirstOrDefaultAsync(e => e.IdEvento == idEvento);
+      var evento = await _context.Eventos
+          .Include(e => e.Categorias)
+          .FirstOrDefaultAsync(e => e.IdEvento == idEvento);
 
-        if (evento == null) return null;
+      if (evento == null) return null;
 
-        var respuesta = new PodiosEventoResponse
+      var respuesta = new PodiosEventoResponse
+      {
+        IdEvento = evento.IdEvento,
+        NombreEvento = evento.Nombre,
+        Categorias = new List<PodioCategoriaItem>()
+      };
+
+      if (evento.Categorias != null)
+      {
+        foreach (var cat in evento.Categorias)
         {
-            IdEvento = evento.IdEvento,
-            NombreEvento = evento.Nombre,
-            Categorias = new List<PodioCategoriaItem>()
-        };
+          // Obtenemos los mejores 10 tiempos de esta categoria
+          // Solo pagados y con resultado cargado
+          var topRunners = await _context.Inscripciones
+              .Include(i => i.Usuario).ThenInclude(u => u.PerfilRunner)
+              .Include(i => i.Resultado)
+              .Where(i => i.IdCategoria == cat.IdCategoria
+                     && i.EstadoPago == "pagado"
+                     && i.Resultado != null) // Que tengan resultado
+              .OrderBy(i => i.Resultado.PosicionCategoria ?? int.MaxValue) // Primero por posicion
+              .ThenBy(i => i.Resultado.TiempoOficial) // Luego por tiempo
+              .Take(10) // TOP 10
+              .Select(i => new ResultadoEventoItem
+              {
+                IdResultado = i.Resultado.IdResultado,
+                IdInscripcion = i.IdInscripcion,
+                NombreRunner = $"{i.Usuario.PerfilRunner.Nombre} {i.Usuario.PerfilRunner.Apellido}".Trim(),
+                DniRunner = i.Usuario.PerfilRunner.Dni,
+                Genero = i.Usuario.PerfilRunner.Genero,
+                Agrupacion = i.Usuario.PerfilRunner.Agrupacion,
+                NombreCategoria = cat.Nombre,
+                TiempoOficial = i.Resultado.TiempoOficial,
+                PosicionCategoria = i.Resultado.PosicionCategoria,
+                TieneDatosSmartwatch = !string.IsNullOrEmpty(i.Resultado.TiempoSmartwatch)
+              })
+              .ToListAsync();
 
-        if (evento.Categorias != null)
-        {
-            foreach (var cat in evento.Categorias)
+          // Solo agregamos la categoria si tiene resultados
+          if (topRunners.Any())
+          {
+            respuesta.Categorias.Add(new PodioCategoriaItem
             {
-                // Obtenemos los mejores 10 tiempos de esta categoria
-                // Solo pagados y con resultado cargado
-                var topRunners = await _context.Inscripciones
-                    .Include(i => i.Usuario).ThenInclude(u => u.PerfilRunner)
-                    .Include(i => i.Resultado)
-                    .Where(i => i.IdCategoria == cat.IdCategoria 
-                           && i.EstadoPago == "pagado" 
-                           && i.Resultado != null) // Que tengan resultado
-                    .OrderBy(i => i.Resultado.PosicionCategoria ?? int.MaxValue) // Primero por posicion
-                    .ThenBy(i => i.Resultado.TiempoOficial) // Luego por tiempo
-                    .Take(10) // TOP 10
-                    .Select(i => new ResultadoEventoItem
-                    {
-                        IdResultado = i.Resultado.IdResultado,
-                        IdInscripcion = i.IdInscripcion,
-                        NombreRunner = $"{i.Usuario.PerfilRunner.Nombre} {i.Usuario.PerfilRunner.Apellido}".Trim(),
-                        DniRunner = i.Usuario.PerfilRunner.Dni,
-                        Genero = i.Usuario.PerfilRunner.Genero,
-                        Agrupacion = i.Usuario.PerfilRunner.Agrupacion,
-                        NombreCategoria = cat.Nombre,
-                        TiempoOficial = i.Resultado.TiempoOficial,
-                        PosicionGeneral = i.Resultado.PosicionGeneral,
-                        PosicionCategoria = i.Resultado.PosicionCategoria,
-                        TieneDatosSmartwatch = !string.IsNullOrEmpty(i.Resultado.TiempoSmartwatch)
-                    })
-                    .ToListAsync();
-
-                // Solo agregamos la categoria si tiene resultados
-                if (topRunners.Any())
-                {
-                    respuesta.Categorias.Add(new PodioCategoriaItem
-                    {
-                        IdCategoria = cat.IdCategoria,
-                        NombreCategoria = cat.Nombre,
-                        TopRunners = topRunners
-                    });
-                }
-            }
+              IdCategoria = cat.IdCategoria,
+              NombreCategoria = cat.Nombre,
+              TopRunners = topRunners
+            });
+          }
         }
+      }
 
-        return respuesta;
+      return respuesta;
     }
 
 

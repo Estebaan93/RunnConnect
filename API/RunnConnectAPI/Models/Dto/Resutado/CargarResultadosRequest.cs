@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations;
 namespace RunnConnectAPI.Models.Dto.Resultado
 {
   // DTO para carga masiva de resultados
-  // POST: api/Resultado/CargarBatch
+  // POST: api/Resultado/Cargar
   public class CargarResultadosRequest
   {
     /// ID del evento al que pertenecen los resultados
@@ -18,7 +18,7 @@ namespace RunnConnectAPI.Models.Dto.Resultado
   }
 
 
-  // Item individual para carga batch - identifica por DNI
+  // Item individual para carga - identifica por DNI
   public class ResultadoItem
   {
 
@@ -29,13 +29,12 @@ namespace RunnConnectAPI.Models.Dto.Resultado
     // Tiempo oficial. Formato: HH:MM:SS o HH:MM:SS.mmm
     [Required(ErrorMessage = "El tiempo oficial es obligatorio")]
     [StringLength(20)]
-    [RegularExpression(@"^\d{2}:\d{2}:\d{2}(\.\d{1,3})?$", 
-      ErrorMessage = "Formato de tiempo inválido")]
+    [RegularExpression(@"^\d{2}:\d{2}:\d{2}(\.\d{1,3})?$", ErrorMessage = "Formato de tiempo inválido")]
     public string TiempoOficial { get; set; } = string.Empty;
 
     // Posicion general (opcional)
-    [Range(1, 100000)]
-    public int? PosicionGeneral { get; set; }
+    /* [Range(1, 100000)]
+    public int? PosicionGeneral { get; set; } */
 
     // Posicion en categoria (opcional)
     [Range(1, 10000)]
@@ -49,6 +48,10 @@ namespace RunnConnectAPI.Models.Dto.Resultado
     public int Exitosos { get; set; }
     public int Fallidos { get; set; }
     public List<ResultadoError> Errores { get; set; } = new();
+
+    //para poder inyectar notificaciones por categorias
+    public List<int> CategoriasActualizadas {get;set;} = new();
+
   }
 
   public class ResultadoError

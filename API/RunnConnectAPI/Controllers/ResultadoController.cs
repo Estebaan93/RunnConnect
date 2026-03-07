@@ -198,9 +198,7 @@ namespace RunnConnectAPI.Controllers
                 Dni = int.Parse(valores[0].Trim()),
                 // Columna 1: Tiempo
                 TiempoOficial = valores[1].Trim(),
-                // Columna 2: Pos General 
-                PosicionGeneral = (valores.Length > 2 && int.TryParse(valores[2], out int pg)) ? pg : null,
-                // Columna 3: Pos Categoria
+                // Columna 2: Pos Categoria
                 PosicionCategoria = (valores.Length > 3 && int.TryParse(valores[3], out int pc)) ? pc : null
               };
 
@@ -227,18 +225,22 @@ namespace RunnConnectAPI.Controllers
         var resultado = await _resultadoRepo.CargarResultadosAsync(requestRepo, userId);
 
         //inyeccion de notif
-        if (resultado.Exitosos > 0)
+        if (resultado.Exitosos > 0 && resultado.CategoriasActualizadas.Any())
         {
-            var notif = new CrearNotificacionRequest
+            // Enviamos una notificacion por CADA categoria que haya recibido resultados en este CSV
+            foreach (var idCatActualizada in resultado.CategoriasActualizadas)
             {
-                IdEvento = request.IdEvento,
-                IdCategoria = null, // Anuncio Global del evento
-                Titulo = "¡Resultados Oficiales Disponibles!",
-                Mensaje = $"Se han cargado {resultado.Exitosos} nuevos tiempos. Revisa tu posición en los Podios."
-            };
-            
-            // Usamos el repo de notificaciones
-            await _notificacionRepo.CrearNotificacionGlobalAsync(notif);
+                var notif = new CrearNotificacionRequest
+                {
+                    IdEvento = request.IdEvento,
+                    IdCategoria = idCatActualizada, //Notifica solo a esta categoria
+                    Titulo = "¡Resultados Oficiales Disponibles!",
+                    Mensaje = "Se han cargado los tiempos de tu categoría. ¡Revisa tu posición en los Podios!"
+                };
+                
+                // Usamos el metodo CrearAsync normal (no el global) y le pasamos el userId
+                await _notificacionRepo.CrearAsync(notif, userId);
+            }
         }
 
         return Ok(new

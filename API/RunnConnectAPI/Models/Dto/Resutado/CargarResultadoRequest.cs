@@ -22,8 +22,8 @@ namespace RunnConnectAPI.Models.Dto.Resultado
 
 
     // Posicion general en toda la carrera (opcional, puede calcularse despus)
-    [Range(1, 100000, ErrorMessage = "La posicion general debe ser mayor a 0")]
-    public int? PosicionGeneral { get; set; }
+    /* [Range(1, 100000, ErrorMessage = "La posicion general debe ser mayor a 0")]
+    public int? PosicionGeneral { get; set; } */
 
 
     // Posicion dentro de su categoria (opcional, puede calcularse después)

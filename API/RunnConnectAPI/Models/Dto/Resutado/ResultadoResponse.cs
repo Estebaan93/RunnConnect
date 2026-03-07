@@ -16,7 +16,7 @@ namespace RunnConnectAPI.Models.Dto.Resultado
 
     // Datos oficiales (cargados por organizador)
     public string? TiempoOficial { get; set; }
-    public int? PosicionGeneral { get; set; }
+    /* public int? PosicionGeneral { get; set; } */
     public int? PosicionCategoria { get; set; }
 
     // Datos de smartwatch (cargados por runner)
