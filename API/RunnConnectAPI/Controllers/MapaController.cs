@@ -5,6 +5,7 @@ using RunnConnectAPI.Models.Dto.Ruta;
 using RunnConnectAPI.Models.Dto.PuntoInteres;
 using RunnConnectAPI.Repositories;
 using System.Security.Claims;
+using RunnConnectAPI.Services;
 
 namespace RunnConnectAPI.Controllers
 {
@@ -81,7 +82,7 @@ namespace RunnConnectAPI.Controllers
         if (!ModelState.IsValid)
           return BadRequest(ModelState);
 
-        int userId = ObtenerUserIdDelToken();
+        int userId = User.ObtenerUserId();
 
         var (exito, errorMsg) = await _rutaRepo.GuardarRutaAsync(idEvento, request, userId);
 
@@ -107,7 +108,7 @@ namespace RunnConnectAPI.Controllers
     {
       try
       {
-        int userId = ObtenerUserIdDelToken();
+        int userId = User.ObtenerUserId();
 
         var (exito, errorMsg) = await _rutaRepo.EliminarRutaAsync(idEvento, userId);
 
@@ -182,7 +183,7 @@ namespace RunnConnectAPI.Controllers
         if (!ModelState.IsValid)
           return BadRequest(ModelState);
 
-        int userId = ObtenerUserIdDelToken();
+        int userId = User.ObtenerUserId();
 
         var (punto, errorMsg) = await _rutaRepo.CrearPuntoInteresAsync(idEvento, request, userId);
 
@@ -227,7 +228,7 @@ namespace RunnConnectAPI.Controllers
         if (puntos == null || !puntos.Any())
           return BadRequest(new { message = "Debe incluir al menos un punto de interés" });
 
-        int userId = ObtenerUserIdDelToken();
+        int userId = User.ObtenerUserId();
 
         var (creados, errorMsg) = await _rutaRepo.CrearPuntosInteresMultiplesAsync(idEvento, puntos, userId);
 
@@ -257,7 +258,7 @@ namespace RunnConnectAPI.Controllers
         if (!ModelState.IsValid)
           return BadRequest(ModelState);
 
-        int userId = ObtenerUserIdDelToken();
+        int userId = User.ObtenerUserId();
 
         var (exito, errorMsg) = await _rutaRepo.ActualizarPuntoInteresAsync(idPunto, request, userId);
 
@@ -279,7 +280,7 @@ namespace RunnConnectAPI.Controllers
     {
       try
       {
-        int userId = ObtenerUserIdDelToken();
+        int userId = User.ObtenerUserId();
 
         var (exito, errorMsg) = await _rutaRepo.EliminarPuntoInteresAsync(idPunto, userId);
 
@@ -301,7 +302,7 @@ namespace RunnConnectAPI.Controllers
     {
       try
       {
-        int userId = ObtenerUserIdDelToken();
+        int userId = User.ObtenerUserId();
 
         var (exito, errorMsg) = await _rutaRepo.EliminarTodosPuntosInteresAsync(idEvento, userId);
 
@@ -316,16 +317,6 @@ namespace RunnConnectAPI.Controllers
       }
     }
 
-
-    // HELPERS PRIVADOS 
-    private int ObtenerUserIdDelToken()
-    {
-      var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
-      if (userIdClaim == null)
-        throw new UnauthorizedAccessException("ID de usuario no encontrado");
-
-      return int.Parse(userIdClaim.Value);
-    }
 
   }
 }

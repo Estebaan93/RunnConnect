@@ -10,6 +10,7 @@ using System.Security.Claims;
 
 using RunnConnectAPI.Models.Dto.Notificacion;
 using System.Collections.Generic;
+using RunnConnectAPI.Services;
 
 namespace RunnConnectAPI.Controllers
 {
@@ -229,7 +230,7 @@ namespace RunnConnectAPI.Controllers
     {
       try
       {
-        int userId = ObtenerUserIdDelToken();
+        int userId = User.ObtenerUserId();
 
 
         var (eventos, totalCount) = await _eventoRepositorio.ObtenerTodosPorOrganizadorAsync(userId, pagina, tamanioPagina);
@@ -270,7 +271,7 @@ namespace RunnConnectAPI.Controllers
     }
 
 
-    /*POST: api/Nuevo - Crea un nuevo evento (Organizadores) y sus categorias*/
+    /*POST: api/Evento - Crea un nuevo evento (Organizadores) y sus categorias*/
     [HttpPost]
     [Authorize(Roles="organizador")]
     public async Task<IActionResult> CrearEvento([FromBody] CrearEventoRequest request)
@@ -280,7 +281,7 @@ namespace RunnConnectAPI.Controllers
         if (!ModelState.IsValid)
           return BadRequest(ModelState);
 
-        int userId = ObtenerUserIdDelToken();  
+        int userId = User.ObtenerUserId();  
 
         // Verificar perfil completo del organizador
         var usuario = await _usuarioRepositorio.GetByIdAsync(userId);
@@ -410,7 +411,7 @@ namespace RunnConnectAPI.Controllers
         if (!ModelState.IsValid)
           return BadRequest(ModelState);
 
-        int userId = ObtenerUserIdDelToken();
+        int userId = User.ObtenerUserId();
 
         var evento = await _eventoRepositorio.ObtenerPorIdAsync(id);
         if (evento == null)
@@ -468,17 +469,21 @@ namespace RunnConnectAPI.Controllers
     {
       try
       {
-        if (!ModelState.IsValid) return BadRequest(ModelState);
+        if (!ModelState.IsValid) 
+          return BadRequest(ModelState);
 
-        int userId = ObtenerUserIdDelToken();
+        int userId = User.ObtenerUserId();
 
         var evento = await _eventoRepositorio.ObtenerPorIdConDetalleAsync(id);
-        if (evento == null) return NotFound(new { message = "Evento no encontrado" });
-        if (evento.IdOrganizador != userId) return Forbid();
+        if (evento == null) 
+          return NotFound(new { message = "Evento no encontrado" });
+        
+        if (evento.IdOrganizador != userId) 
+          return Forbid();
 
         string nuevoEstadoEvento = request.NuevoEstado.ToLower().Trim();
 
-        // 1. Aplicar cambio al Evento Padre 
+        //aplicar cambio al Evento Padre 
         await _eventoRepositorio.CambiarEstadoAsync(id, nuevoEstadoEvento);
 
         if (evento.Categorias != null)
@@ -486,7 +491,7 @@ namespace RunnConnectAPI.Controllers
           // CASO A: 
           if (nuevoEstadoEvento == "suspendido" || nuevoEstadoEvento == "cancelado" || nuevoEstadoEvento == "retrasado")
           {
-            //  TRADUCCION DE GENERO (Evento -> Categoria) 
+            //Evento -> Categoria
             string estadoParaCategoria = nuevoEstadoEvento; // Valor por defecto
 
             // Mapeamos lo que la base de datos acepta en Categorias
@@ -515,9 +520,8 @@ namespace RunnConnectAPI.Controllers
               // Obtenemos el estado actual seguro (evitando nulos)
               string estadoCat = cat.Estado?.ToLower().Trim() ?? "";
 
-              // LOGICA DE REPARACION:
-              // 1. Si esta "suspendido" o "retrasada" -> Volver a programada.
-              // 2. Si esta "" (BLANCO/VACIO por error anterior) -> Volver a programada (Reparacion).
+              // 1. Si esta "suspendido" o "retrasada" -> volver a programada.
+              // 2. Si esta "" (BLANCO/VACIO por error anterior) -> volver a programada (reparacion).
               if (estadoCat == "suspendido" ||
                   estadoCat == "retrasada" ||
                   estadoCat == "retrasado" || // Por si acaso
@@ -530,7 +534,7 @@ namespace RunnConnectAPI.Controllers
           }
         }
 
-        // 3. Notificacion
+        //notificacion
         if (!string.IsNullOrEmpty(request.Motivo))
         {
           string titulo = $"EVENTO {request.NuevoEstado.ToUpper()}";
@@ -558,96 +562,6 @@ namespace RunnConnectAPI.Controllers
         return StatusCode(500, new { message = "Error interno", error = ex.Message });
       }
     }
-
-    //PUT cambiar estado de una categoria especifica (ej la 10k)
-    //se retrasa 1 hs, pero no afecta a la de 20k, que corre en el mismo circuito
-    //cada categoria tiene su estado
-    [HttpPut("Categoria/{idCategoria}/CambiarEstado")]
-    [Authorize(Roles = "organizador")]
-    public async Task<IActionResult> CambiarEstadoCategoria(int idCategoria, [FromBody] CambiarEstadoCategoriaRequest request)
-    {
-      try
-      {
-        if (!ModelState.IsValid) return BadRequest(ModelState);
-
-        int userId= ObtenerUserIdDelToken();
-
-        // 1. Obtener la categoria con el Evento (Usando el metodo nuevo del Repo)
-        var categoria = await _categoriaRepositorio.ObtenerPorIdConEventoAsync(idCategoria);
-
-        if (categoria == null)
-          return NotFound(new { message = "Categoría no encontrada" });
-
-        // Validar que el evento padre pertenezca al organizador
-        if (categoria.Evento == null || categoria.Evento.IdOrganizador != userId)
-          return Forbid();
-
-        string nuevoEstado = request.NuevoEstado.ToLower();
-
-        // 2. Actualizar el estado de la Categoria (Usando Repo)
-        categoria.Estado = nuevoEstado;
-        await _categoriaRepositorio.ActualizarAsync(categoria);
-
-        // 3. LOGICA DE VERIFICACION (Bottom-Up)
-        // Si esta categoria finalizo, verificamos si debemos cerrar el evento completo
-        if (nuevoEstado == "finalizada")
-        {
-          // Traemos todas las categorias del evento para ver sus estados
-          var todasLasCategorias = await _categoriaRepositorio.ObtenerPorEventoAsync(categoria.IdEvento);
-
-          // Verificamos si queda alguna que NO este finalizada ni cancelada
-          bool quedanActivas = todasLasCategorias
-              .Any(c => c.Estado != "finalizada" && c.Estado != "cancelada");
-
-          if (!quedanActivas)
-          {
-            // Si no quedan activas, cerramos el evento padre usando su Repo
-            await _eventoRepositorio.CambiarEstadoAsync(categoria.IdEvento, "finalizado");
-          }
-        }
-
-        // 4. Notificacion Segmentada (Solo a esta categoria)
-        if (!string.IsNullOrEmpty(request.Motivo))
-        {
-          string titulo = $"AVISO: {categoria.Nombre} {request.NuevoEstado.ToUpper()}";
-
-          if (nuevoEstado == "retrasada") titulo = $"Retraso en {categoria.Nombre}";
-          if (nuevoEstado == "cancelada") titulo = $"{categoria.Nombre} CANCELADA";
-          if (nuevoEstado == "finalizada") titulo = $"{categoria.Nombre} Finalizada";
-
-          var notif = new CrearNotificacionRequest
-          {
-            IdEvento = categoria.IdEvento,
-            IdCategoria = categoria.IdCategoria, 
-            Titulo = titulo,
-            Mensaje = request.Motivo
-          };
-
-          await _notificacionRepositorio.CrearAsync(notif, userId);
-        }
-
-        return Ok(new
-        {
-          message = $"Categoría actualizada a {nuevoEstado}",
-          idCategoria = idCategoria,
-          estadoEventoPadre = categoria.Evento.Estado // Para que el front sepa si cambio el padre
-        });
-      }
-      catch (Exception ex)
-      {
-        return StatusCode(500, new { message = "Error interno", error = ex.Message });
-      }
-    }
-
-     private int ObtenerUserIdDelToken()
-    {
-      var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
-      if (userIdClaim == null)
-        throw new UnauthorizedAccessException("ID de usuario no encontrado");
-
-      return int.Parse(userIdClaim.Value);
-    }
-
 
   }
 }

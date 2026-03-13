@@ -7,7 +7,7 @@ namespace RunnConnectAPI.Models.Dto.Evento
   /*Dto para crear un evento*/
   public class CrearEventoRequest
   {
-   [Required(ErrorMessage = "El nombre del evento es obligatorio")]
+    [Required(ErrorMessage = "El nombre del evento es obligatorio")]
     [StringLength(255, MinimumLength = 5, ErrorMessage = "El nombre debe tener entre 5 y 255 caracteres")]
     public string Nombre { get; set; } = string.Empty;
 

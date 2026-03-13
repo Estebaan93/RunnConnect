@@ -3,13 +3,14 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using RunnConnectAPI.Models;
 using RunnConnectAPI.Models.Dto.Categoria;
+using RunnConnectAPI.Models.Dto.Notificacion;
 using RunnConnectAPI.Repositories;
+using RunnConnectAPI.Services;
 using System.Security.Claims;
 
 namespace RunnConnectAPI.Controllers
 {
-  /* Controller para gestion de categorias de eventos
-  Las categorias definen las divisiones de un evento (10K, 5K, etc.)
+  /* Controller para gestion de categorias de eventos, las categorias definen las divisiones de un evento (10K, 5K, etc.)
   con sus respectivos costos, cupos, rangos de edad y genero*/
 
   [ApiController]
@@ -18,17 +19,18 @@ namespace RunnConnectAPI.Controllers
   {
     private readonly CategoriaRepositorio _categoriaRepo;
     private readonly EventoRepositorio _eventoRepo;
+    private readonly NotificacionRepositorio _notificacionRepo;
 
-    public CategoriaController(CategoriaRepositorio categoriaRepo, EventoRepositorio eventoRepo)
+    public CategoriaController(CategoriaRepositorio categoriaRepo, EventoRepositorio eventoRepo, NotificacionRepositorio notificacionRepo)
     {
       _categoriaRepo = categoriaRepo;
       _eventoRepo = eventoRepo;
+      _notificacionRepo = notificacionRepo;
     }
 
-      //ENDPOINTS PUBLICOS 
-    /* Obtiene todas las categorias de un evento
-     Endpoint publico - cualquiera puede ver las categorias
-     Incluye informacion de cupos disponibles*/
+    //ENDPOINTS PUBLICOS 
+    /* Obtiene todas las categorias de un evento, endpoint publico - cualquiera puede ver las categorias
+     incluye informacion de cupos disponibles*/
     [AllowAnonymous]
     [HttpGet]
     public async Task<IActionResult> ObtenerCategorias(int idEvento)
@@ -115,15 +117,11 @@ namespace RunnConnectAPI.Controllers
       }
     }
 
-    /*Obtiene categorias disponibles para un runner segun su edad y genero
-     Endpoint publico - el runner puede ver en qu categorias puede inscribirse
-     Filtra por edad, genero y cupo disponible*/
+    /*Obtiene categorias disponibles para un runner segun su edad y genero, endpoint publico - 
+    el runner puede ver en qu categorias puede inscribirse - filtra por edad, genero y cupo disponible*/
     [AllowAnonymous]
     [HttpGet("Disponibles")]
-    public async Task<IActionResult> ObtenerCategoriasDisponibles(
-      int idEvento,
-      [FromQuery] int edad,
-      [FromQuery] string genero)
+    public async Task<IActionResult> ObtenerCategoriasDisponibles(int idEvento, [FromQuery] int edad, [FromQuery] string genero)
     {
       try
       {
@@ -190,10 +188,9 @@ namespace RunnConnectAPI.Controllers
 
 
     //ENDPOINTS ORGANIZADOR 
-    /* Crea una nueva categoria en un evento
-    Requiere: Token JWT de Organizador (dueño del evento)
-    No permite crear si el evento está cancelado o finalizado */
-    [Authorize(Roles="organizador")]
+    /* Crea una nueva categoria en un evento, requiere: Token JWT de Organizador (dueño del evento)
+    No permite crear si el evento esta cancelado o finalizado */
+    [Authorize(Roles = "organizador")]
     [HttpPost]
     public async Task<IActionResult> CrearCategoria(int idEvento, [FromBody] CrearCategoriaRequest request)
     {
@@ -202,7 +199,7 @@ namespace RunnConnectAPI.Controllers
         if (!ModelState.IsValid)
           return BadRequest(ModelState);
 
-        int userId = ObtenerUserIdDelToken();
+        int userId = User.ObtenerUserId();
 
         // Verificar evento
         var evento = await _eventoRepo.ObtenerPorIdAsync(idEvento);
@@ -240,9 +237,7 @@ namespace RunnConnectAPI.Controllers
 
         var categoriaCreada = await _categoriaRepo.CrearAsync(categoria);
 
-        return CreatedAtAction(
-          nameof(ObtenerCategoria),
-          new { idEvento, idCategoria = categoriaCreada.IdCategoria },
+        return CreatedAtAction(nameof(ObtenerCategoria), new { idEvento, idCategoria = categoriaCreada.IdCategoria },
           new
           {
             message = "Categoría creada correctamente",
@@ -264,22 +259,20 @@ namespace RunnConnectAPI.Controllers
       }
     }
 
-    /* Actualiza una categoria existente
-     Requiere: Token JWT de Organizador (dueño del evento)
+    /* Actualiza una categoria existente, requiere: Token JWT de Organizador (dueño del evento)
      No permite reducir cupo por debajo de inscriptos actuales */
     [Authorize(Roles = "organizador")]
     [HttpPut("{idCategoria}")]
-    public async Task<IActionResult> ActualizarCategoria(
-      int idEvento, int idCategoria, [FromBody] ActualizarCategoriaRequest request)
+    public async Task<IActionResult> ActualizarCategoria(int idEvento, int idCategoria, [FromBody] ActualizarCategoriaRequest request)
     {
       try
       {
         if (!ModelState.IsValid)
           return BadRequest(ModelState);
 
-        int userId = ObtenerUserIdDelToken();
+        int userId = User.ObtenerUserId();
 
-        // Verificar evento y ownership
+        // Verificar evento
         var evento = await _eventoRepo.ObtenerPorIdAsync(idEvento);
         if (evento == null)
           return NotFound(new { message = "Evento no encontrado" });
@@ -331,16 +324,15 @@ namespace RunnConnectAPI.Controllers
       }
     }
 
-    /* Elimina una categoria
-      Requiere: Token JWT de Organizador(dueño del evento)
+    /* Elimina una categoria, requiere: Token JWT de Organizador(dueño del evento)
      No permite eliminar si tiene inscripciones */
-    [Authorize(Roles="organizador")]
+    [Authorize(Roles = "organizador")]
     [HttpDelete("{idCategoria}")]
     public async Task<IActionResult> EliminarCategoria(int idEvento, int idCategoria)
     {
       try
       {
-        int userId = ObtenerUserIdDelToken();
+        int userId = User.ObtenerUserId();
 
         // Verificar evento
         var evento = await _eventoRepo.ObtenerPorIdAsync(idEvento);
@@ -370,13 +362,13 @@ namespace RunnConnectAPI.Controllers
     }
 
     // Obtiene estadisticas de inscriptos por categoria (para el organizador)
-    [Authorize(Roles="organizador")]
+    [Authorize(Roles = "organizador")]
     [HttpGet("Estadisticas")]
     public async Task<IActionResult> ObtenerEstadisticas(int idEvento)
     {
       try
       {
-        int userId = ObtenerUserIdDelToken();
+        int userId = User.ObtenerUserId();
 
         var evento = await _eventoRepo.ObtenerPorIdAsync(idEvento);
         if (evento == null)
@@ -417,15 +409,101 @@ namespace RunnConnectAPI.Controllers
       }
     }
 
-    //Metodos privados helper
-    private int ObtenerUserIdDelToken()
-    {
-      var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
-      if (userIdClaim == null)
-        throw new UnauthorizedAccessException("ID de usuario no encontrado");
 
-      return int.Parse(userIdClaim.Value);
+    //PUT cambiar estado de una categoria especifica (ej la 10k)
+    //se retrasa 1 hs, pero no afecta a la de 20k, que corre en el mismo circuito
+    //cada categoria tiene su estado
+    [HttpPut("{idCategoria}/CambiarEstado")]
+    [Authorize(Roles = "organizador")]
+    public async Task<IActionResult> CambiarEstadoCategoria([FromRoute] int idEvento, [FromRoute] int idCategoria, [FromBody] CambiarEstadoCategoriaRequest request)
+    {
+      try
+      {
+        if (!ModelState.IsValid) return BadRequest(ModelState);
+
+        int userId = User.ObtenerUserId();
+
+        // obtener la categoria con el Evento (Usando el metodo nuevo del Repo)
+        var categoria = await _categoriaRepo.ObtenerPorIdConEventoAsync(idCategoria);
+
+        if (categoria == null)
+          return NotFound(new { message = "Categoría no encontrada" });
+
+        //validamos URL idEvento coincida con la categoria
+        if(categoria.IdEvento !=idEvento)
+          return BadRequest(new {message = "La categoria no pertenece al evento especifico"});  
+
+        // Validar que el evento padre pertenezca al organizador
+        if (categoria.Evento == null || categoria.Evento.IdOrganizador != userId)
+          return StatusCode(403, new { message = "No tienes permiso para modificar este evento" });
+
+        //verificamos si el evento esta finalizado
+        string estadoEvento = categoria.Evento.Estado?.ToLower() ?? "";
+        if (estadoEvento == "finalizado" || estadoEvento == "cancelado")
+            return BadRequest(new { message = $"Acción denegada: El evento ya se encuentra {estadoEvento}." });
+
+        //Verificar que la CATEGORIA no este cerrada
+        string estadoActualCategoria = categoria.Estado?.ToLower() ?? "";
+        if (estadoActualCategoria == "finalizada" || estadoActualCategoria == "cancelada")
+            return BadRequest(new { message = $"Acción denegada: No se puede modificar una categoría que ya está {estadoActualCategoria}." });
+
+        string nuevoEstado = request.NuevoEstado.ToLower();
+
+        // Actualizar el estado de la Categoria (Usando Repo)
+        categoria.Estado = nuevoEstado;
+        await _categoriaRepo.ActualizarAsync(categoria);
+
+        //LOGICA DE VERIFICACION
+        // Si esta categoria finalizo, verificamos si debemos cerrar el evento completo
+        if (nuevoEstado == "finalizada")
+        {
+          // Traemos todas las categorias del evento para ver sus estados
+          var todasLasCategorias = await _categoriaRepo.ObtenerPorEventoAsync(categoria.IdEvento);
+
+          // Verificamos si queda alguna que NO este finalizada ni cancelada
+          bool quedanActivas = todasLasCategorias
+              .Any(c => c.Estado != "finalizada" && c.Estado != "cancelada");
+
+          if (!quedanActivas)
+          {
+            // Si no quedan activas, cerramos el evento padre usando el Repo
+            await _eventoRepo.CambiarEstadoAsync(categoria.IdEvento, "finalizado");
+          }
+        }
+
+        // Notificacion (solo a esta categoria)
+        if (!string.IsNullOrEmpty(request.Motivo))
+        {
+          string titulo = $"AVISO: {categoria.Nombre} {request.NuevoEstado.ToUpper()}";
+
+          if (nuevoEstado == "retrasada") titulo = $"Retraso en {categoria.Nombre}";
+          if (nuevoEstado == "cancelada") titulo = $"{categoria.Nombre} CANCELADA";
+          if (nuevoEstado == "finalizada") titulo = $"{categoria.Nombre} Finalizada";
+
+          var notif = new CrearNotificacionRequest
+          {
+            IdEvento = categoria.IdEvento,
+            IdCategoria = categoria.IdCategoria,
+            Titulo = titulo,
+            Mensaje = request.Motivo
+          };
+
+          await _notificacionRepo.CrearAsync(notif, userId);
+        }
+
+        return Ok(new
+        {
+          message = $"Categoría actualizada a {nuevoEstado}",
+          idCategoria = idCategoria,
+          estadoEventoPadre = categoria.Evento.Estado // Para que el front sepa si cambio el padre
+        });
+      }
+      catch (Exception ex)
+      {
+        return StatusCode(500, new { message = "Error interno", error = ex.Message });
+      }
     }
+
 
 
   }

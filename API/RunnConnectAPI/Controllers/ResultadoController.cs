@@ -6,6 +6,7 @@ using RunnConnectAPI.Models.Dto.Notificacion; //para la inyeccion de la notif
 using RunnConnectAPI.Repositories;
 using System.Security.Claims;
 using System.IO;
+using RunnConnectAPI.Services;
 
 namespace RunnConnectAPI.Controllers
 {
@@ -112,7 +113,7 @@ namespace RunnConnectAPI.Controllers
     {
       try
       {
-        int userId = ObtenerUserIdDelToken();
+        int userId = User.ObtenerUserId();
 
         var resultados = await _resultadoRepo.ObtenerMisResultadosAsync(userId);
         return Ok(resultados);
@@ -133,7 +134,7 @@ namespace RunnConnectAPI.Controllers
     {
       try
       {
-        int userId = ObtenerUserIdDelToken();
+        int userId = User.ObtenerUserId();
 
         var (exito, errorMsg) = await _resultadoRepo.AgregarDatosSmartwatchAsync(id, request, userId);
 
@@ -162,7 +163,7 @@ namespace RunnConnectAPI.Controllers
     {
       try
       {
-        int userId = ObtenerUserIdDelToken();
+        int userId = User.ObtenerUserId();
 
         if (request.Archivo == null || request.Archivo.Length == 0)
           return BadRequest(new { message = "El archivo es obligatorio" });
@@ -266,7 +267,7 @@ namespace RunnConnectAPI.Controllers
     {
       try
       {
-        int userId = ObtenerUserIdDelToken();
+        int userId = User.ObtenerUserId();
 
         var (exito, errorMsg) = await _resultadoRepo.ActualizarTiempoOficialAsync(id, request.TiempoOficial, userId);
 
@@ -291,7 +292,7 @@ namespace RunnConnectAPI.Controllers
     {
       try
       {
-        int userId = ObtenerUserIdDelToken();
+        int userId = User.ObtenerUserId();
 
         var (exito, errorMsg) = await _resultadoRepo.ActualizarPosicionesAsync(id, request, userId);
 
@@ -317,7 +318,7 @@ namespace RunnConnectAPI.Controllers
     {
       try
       {
-        int userId = ObtenerUserIdDelToken();
+        int userId = User.ObtenerUserId();
 
         var (exito, errorMsg) = await _resultadoRepo.EliminarResultadoAsync(id, userId);
 
@@ -336,18 +337,7 @@ namespace RunnConnectAPI.Controllers
       }
     }
 
-    //Metodos privados helper
-    private int ObtenerUserIdDelToken()
-    {
-      var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
-      if (userIdClaim == null)
-        throw new UnauthorizedAccessException("ID de usuario no encontrado");
-
-      return int.Parse(userIdClaim.Value);
-    }
-
-
-
+   
 
   }
 }

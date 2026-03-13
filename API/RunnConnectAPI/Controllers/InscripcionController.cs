@@ -37,8 +37,8 @@ namespace RunnConnectAPI.Controllers
 
     // Endpoints para Runners
 
-    /// Inscribirse a una categoria de evento
-    /// POST: api/Inscripcion
+    // Inscribirse a una categoria de evento
+    // POST: api/Inscripcion
     [HttpPost]
     [Authorize(Roles = "runner")] //para runners
     public async Task<IActionResult> Inscribirse([FromBody] CrearInscripcionRequest request)
@@ -48,7 +48,7 @@ namespace RunnConnectAPI.Controllers
         if (!ModelState.IsValid)
           return BadRequest(ModelState);
 
-        int userId = ObtenerUserIdDelToken();
+        int userId = User.ObtenerUserId();
 
         // Validar que acepto el deslinde
         if (!request.AceptoDeslinde)
@@ -157,7 +157,7 @@ namespace RunnConnectAPI.Controllers
       try
       {
         
-        int userId = ObtenerUserIdDelToken();
+        int userId = User.ObtenerUserId();
 
         var inscripciones = soloActivas
             ? await _inscripcionRepositorio.ObtenerActivasPorRunnerAsync(userId)
@@ -210,7 +210,7 @@ namespace RunnConnectAPI.Controllers
     {
       try
       {
-        var userId = ObtenerUserIdDelToken();
+        var userId = User.ObtenerUserId();
 
         var inscripcion = await _inscripcionRepositorio.ObtenerPorIdAsync(id);
 
@@ -272,7 +272,7 @@ namespace RunnConnectAPI.Controllers
         if(comprobante ==null || comprobante.Length==0)
           return BadRequest(new { message = "El comprobante de pago es obligatorio" });
 
-        int userId = ObtenerUserIdDelToken();
+        int userId = User.ObtenerUserId();
 
         var inscripcion = await _inscripcionRepositorio.ObtenerPorIdAsync(id);
 
@@ -323,7 +323,7 @@ namespace RunnConnectAPI.Controllers
     {
       try
       {
-        int userId= ObtenerUserIdDelToken();  
+        int userId= User.ObtenerUserId();  
 
         var inscripcion = await _inscripcionRepositorio.ObtenerPorIdAsync(id);
 
@@ -374,7 +374,7 @@ namespace RunnConnectAPI.Controllers
     {
       try
       {
-        int userId = ObtenerUserIdDelToken();
+        int userId = User.ObtenerUserId();
 
         // Verificar que el evento existe y pertenece al organizador
         var evento = await _eventoRepositorio.ObtenerPorIdAsync(idEvento);
@@ -452,7 +452,7 @@ namespace RunnConnectAPI.Controllers
       {
         if (!ModelState.IsValid) return BadRequest(ModelState);
 
-        int userId = ObtenerUserIdDelToken();
+        int userId = User.ObtenerUserId();
 
         var inscripcion = await _inscripcionRepositorio.ObtenerPorIdAsync(id);
         if (inscripcion == null) return NotFound(new { message = "Inscripción no encontrada" });
@@ -531,7 +531,7 @@ namespace RunnConnectAPI.Controllers
     {
       try
       {
-        int userId = ObtenerUserIdDelToken();
+        int userId = User.ObtenerUserId();
 
         var inscripcion = await _inscripcionRepositorio.ObtenerPorIdAsync(id);
         if (inscripcion == null) return NotFound(new { message = "Inscripcion no encontrada" });
@@ -566,7 +566,7 @@ namespace RunnConnectAPI.Controllers
     {
       try
       {
-        int userId = ObtenerUserIdDelToken();
+        int userId = User.ObtenerUserId();
 
         var inscripcion = await _inscripcionRepositorio.ObtenerPorIdAsync(id);
         if (inscripcion == null) return NotFound(new { message = "Inscripcion no encontrada" });
@@ -606,7 +606,7 @@ namespace RunnConnectAPI.Controllers
     {
       try
       {
-        int userId = ObtenerUserIdDelToken();
+        int userId = User.ObtenerUserId();
 
         if (string.IsNullOrWhiteSpace(busqueda))
           return BadRequest(new { message = "Debe ingresar un término de búsqueda." });
@@ -652,14 +652,14 @@ namespace RunnConnectAPI.Controllers
     }
 
 
-    private int ObtenerUserIdDelToken()
+    /*private int User.ObtenerUserId()
     {
       var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
       if (userIdClaim == null)
         throw new UnauthorizedAccessException("ID de usuario no encontrado");
 
       return int.Parse(userIdClaim.Value);
-    }
+    }*/
 
   }
 }

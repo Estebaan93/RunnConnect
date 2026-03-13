@@ -20,7 +20,7 @@ namespace RunnConnectAPI.Services // Define el espacio de nombres donde vive est
     public string GenerarToken(Usuario usuario)
     {
       //Determinar el nombre segun el usuario
-      string nombreCompleto= usuario.Nombre;
+      string nombreCompleto = usuario.Nombre;
 
       // Si es runner y tiene perfil cargado, usar nombre + apellido
       if (usuario.TipoUsuario.ToLower() == "runner" && usuario.PerfilRunner != null)
@@ -40,7 +40,7 @@ namespace RunnConnectAPI.Services // Define el espacio de nombres donde vive est
 
       //Clave secreta para firma token
       var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"])); //Clave secreta para firmar el token
-      
+
       //Credenciales de firma
       var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256); //Credencias de forma usando HMAC-SHA256
 
@@ -57,61 +57,26 @@ namespace RunnConnectAPI.Services // Define el espacio de nombres donde vive est
 
     }
 
-    /*Valida un token y retorna el claimPrincipal*/
-    public ClaimsPrincipal? ValidarToken(string token)
-    {
-      try
-      {
-        var tokenHandler = new JwtSecurityTokenHandler();
-        var key = Encoding.UTF8.GetBytes(_config["Jwt:Key"]);
-
-        var validationParameters = new TokenValidationParameters
-        {
-          ValidateIssuerSigningKey = true,
-          IssuerSigningKey = new SymmetricSecurityKey(key),
-          ValidateIssuer = true,
-          ValidIssuer = _config["Jwt:Issuer"],
-          ValidateAudience = true,
-          ValidAudience = _config["Jwt:Audience"],
-          ValidateLifetime = true,
-          ClockSkew = TimeSpan.Zero
-        };
-
-        var principal = tokenHandler.ValidateToken(token, validationParameters, out SecurityToken validatedToken);
-        return principal;
-      }
-      catch
-      {
-        return null;
-      }
-    }
-
-
-    /*Obtenemos el Id del usuario desde el token*/
-    public int? ObtenerIdUsuarioDelToken(string token)
-    {
-      var principal = ValidarToken(token);
-      if (principal == null) return null;
-
-      var idClaim = principal.FindFirst(ClaimTypes.NameIdentifier);
-      if (idClaim != null && int.TryParse(idClaim.Value, out int userId))
-      {
-        return userId;
-      }
-
-      return null;
-    }
-
-
-    /*Obtenemos el tipo de usuario desde el token*/
-    public string? ObtenerTipoUsuarioDelToken(string token)
-    {
-      var principal = ValidarToken(token);
-      if (principal == null) return null;
-
-      var tipoClaim = principal.FindFirst(ClaimTypes.Role);
-      return tipoClaim?.Value;
-    }
-
   }
+
+  public static class ClaimsPrincipalExtensions
+  {
+    public static int ObtenerUserId(this ClaimsPrincipal user)
+    {
+      var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier);
+      if (userIdClaim == null)
+        throw new UnauthorizedAccessException("ID de usuario no encontrado en el token.");
+
+      return int.Parse(userIdClaim.Value);
+    }
+
+    public static string ObtenerRol(this ClaimsPrincipal user)
+    {
+      var rolClaim = user.FindFirst(ClaimTypes.Role);
+      return rolClaim?.Value ?? "";
+    }
+  }
+
+
+
 }

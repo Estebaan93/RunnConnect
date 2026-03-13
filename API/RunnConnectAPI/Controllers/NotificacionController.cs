@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using RunnConnectAPI.Models.Dto.Notificacion;
 using RunnConnectAPI.Repositories;
+using RunnConnectAPI.Services;
 using System.Security.Claims;
 
 namespace RunnConnectAPI.Controllers
@@ -80,7 +81,7 @@ namespace RunnConnectAPI.Controllers
     {
       try
       {
-        int userId = ObtenerUserIdDelToken();
+        int userId = User.ObtenerUserId();
 
         var resultado = await _notificacionRepo.ObtenerMisNotificacionesAsync(userId);
         return Ok(resultado);
@@ -100,7 +101,7 @@ namespace RunnConnectAPI.Controllers
     {
       try
       {
-        int userId = ObtenerUserIdDelToken();
+        int userId = User.ObtenerUserId();
 
         var cantidad = await _notificacionRepo.ContarNotificacionesRecientesAsync(userId);
 
@@ -124,7 +125,7 @@ namespace RunnConnectAPI.Controllers
     {
       try
       {
-        int userId = ObtenerUserIdDelToken();
+        int userId = User.ObtenerUserId();
 
         await _notificacionRepo.MarcarTodasComoLeidasAsync(userId);
 
@@ -157,7 +158,7 @@ namespace RunnConnectAPI.Controllers
         if (!ModelState.IsValid)
           return BadRequest(ModelState);
 
-        int userId = ObtenerUserIdDelToken();
+        int userId = User.ObtenerUserId();
 
         var (notificacion, errorMsg) = await _notificacionRepo.CrearAsync(request, userId);
 
@@ -198,7 +199,7 @@ namespace RunnConnectAPI.Controllers
         if (!ModelState.IsValid)
           return BadRequest(ModelState);
 
-        int userId = ObtenerUserIdDelToken();
+        int userId = User.ObtenerUserId();
 
         var (exito, errorMsg) = await _notificacionRepo.ActualizarAsync(id, request, userId);
 
@@ -222,7 +223,7 @@ namespace RunnConnectAPI.Controllers
     {
       try
       {
-        int userId = ObtenerUserIdDelToken();
+        int userId = User.ObtenerUserId();
 
         var (exito, errorMsg) = await _notificacionRepo.EliminarAsync(id, userId);
 
@@ -237,16 +238,6 @@ namespace RunnConnectAPI.Controllers
       }
     }
 
-
-    // HELPERS PRIVADOS 
-    private int ObtenerUserIdDelToken()
-    {
-      var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
-      if (userIdClaim == null)
-        throw new UnauthorizedAccessException("ID de usuario no encontrado");
-
-      return int.Parse(userIdClaim.Value);
-    }
 
 
   }

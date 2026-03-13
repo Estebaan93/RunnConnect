@@ -5,7 +5,7 @@ using System.ComponentModel.DataAnnotations;
 namespace RunnConnectAPI.Models.Dto.Evento
 {
   /* DTO para cambiar el estado de un evento
-  Estados validos: "publicado", "cancelado", "finalizado"
+  Estados validos: publicado, cancelado, finalizado, suspendido y retrasado
   PUT: api/Evento/{id}/Estado */
 
   public class CambiarEstadoEventoRequest

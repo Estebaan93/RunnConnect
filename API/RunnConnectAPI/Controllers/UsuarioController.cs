@@ -279,7 +279,7 @@ namespace RunnConnectAPI.Controllers
     {
       try
       {
-        int userId = ObtenerUserIdDelToken();
+        int userId = User.ObtenerUserId();
 
         // Buscamos el usuario en la BD (Solo los activos)
         var usuario = await _usuarioRepositorio.GetByIdAsync(userId);
@@ -370,7 +370,7 @@ namespace RunnConnectAPI.Controllers
       try
       {
         //Obtener ID del usuario autenticado desde el token JWT
-        int userId = ObtenerUserIdDelToken();
+        int userId = User.ObtenerUserId();
 
         //Buscar usuario con su perfil runner
         var usuario = await _usuarioRepositorio.GetByIdAsync(userId);
@@ -447,7 +447,7 @@ namespace RunnConnectAPI.Controllers
       try
       {
         //Obtener ID del usuario autenticado desde el token JWT
-        int userId = ObtenerUserIdDelToken();
+        int userId = User.ObtenerUserId();
 
         //Buscar usuario con su perfil organizador
         var usuario = await _usuarioRepositorio.GetByIdAsync(userId);
@@ -513,7 +513,7 @@ namespace RunnConnectAPI.Controllers
           return BadRequest(ModelState);
 
         //Obtener ID del usuario desde el token
-        int userId = ObtenerUserIdDelToken();
+        int userId = User.ObtenerUserId();
 
         //Buscar usuario en la BD
         var usuario = await _usuarioRepositorio.GetByIdAsync(userId);
@@ -730,7 +730,7 @@ namespace RunnConnectAPI.Controllers
       {
         //Obtenemos el id del usuario desde el token
 
-        var userId = ObtenerUserIdDelToken();
+        var userId = User.ObtenerUserId();
 
         //Buscamos el usuario en la BD
         var usuario = await _usuarioRepositorio.GetByIdAsync(userId);
@@ -769,7 +769,7 @@ namespace RunnConnectAPI.Controllers
 
       try
       {
-        int userId = ObtenerUserIdDelToken();
+        int userId = User.ObtenerUserId();
         //Buscar usuario en la BD
         var usuario = await _usuarioRepositorio.GetByIdAsync(userId);
         if (usuario == null)
@@ -809,7 +809,7 @@ namespace RunnConnectAPI.Controllers
     {
       try
       {
-        int userId = ObtenerUserIdDelToken();
+        int userId = User.ObtenerUserId();
         //Buscar usuario en la BD
         var usuario = await _usuarioRepositorio.GetByIdAsync(userId);
         if (usuario == null)
@@ -1081,15 +1081,6 @@ namespace RunnConnectAPI.Controllers
       {
         return StatusCode(500, new { message = "Error al reactivar cuenta", error = ex.Message });
       }
-    }
-
-    private int ObtenerUserIdDelToken()
-    {
-      var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
-      if (userIdClaim == null)
-        throw new UnauthorizedAccessException("ID de usuario no encontrado");
-
-      return int.Parse(userIdClaim.Value);
     }
 
 
