@@ -3,20 +3,23 @@ using Microsoft.EntityFrameworkCore;
 using RunnConnectAPI.Data;
 using RunnConnectAPI.Models;
 using RunnConnectAPI.Models.Dto.Notificacion;
+using RunnConnectAPI.Services;
 
 namespace RunnConnectAPI.Repositories
 {
-  /// Repositorio para gestion de notificaciones de eventos (sistema PULL/buzón)
+  // Repositorio para gestion de notificaciones de eventos (sistema PULL/buzon)
   public class NotificacionRepositorio
   {
     private readonly RunnersContext _context;
+    private readonly FirebaseNotificacionService _firebaseService; //inyectamos firebase
 
-    public NotificacionRepositorio(RunnersContext context)
+    public NotificacionRepositorio(RunnersContext context, FirebaseNotificacionService firebase)
     {
       _context = context;
+      _firebaseService = firebase;
     }
 
-    /// Obtiene una notificacion por ID
+    // Obtiene una notificacion por ID
     public async Task<NotificacionResponse?> ObtenerPorIdAsync(int idNotificacion)
     {
       var notificacion = await _context.NotificacionesEvento
@@ -28,8 +31,8 @@ namespace RunnConnectAPI.Repositories
       return MapearAResponse(notificacion);
     }
 
-    /// Obtiene todas las notificaciones de un evento
-    /// Ordenadas por fecha (mas recientes primero)
+    // Obtiene todas las notificaciones de un evento
+    // Ordenadas por fecha (mas recientes primero)
     public async Task<List<NotificacionResponse>> ObtenerPorEventoAsync(int idEvento)
     {
       var notificaciones = await _context.NotificacionesEvento
@@ -42,8 +45,8 @@ namespace RunnConnectAPI.Repositories
       return notificaciones.Select(MapearAResponse).ToList();
     }
 
-    /// Obtiene las notificaciones para el runner autenticado
-    /// Busca notificaciones de eventos donde esta inscripto (confirmado)
+    // Obtiene las notificaciones para el runner autenticado
+    // Busca notificaciones de eventos donde esta inscripto (confirmado)
     public async Task<MisNotificacionesResponse> ObtenerMisNotificacionesAsync(int idUsuario)
     {
       // 1. Obtener Inscripciones del usuario
@@ -67,7 +70,7 @@ namespace RunnConnectAPI.Repositories
         .Include(n => n.Evento)
         .Include(n => n.Categoria)
         .Where(n =>
-    // CASO A: Es un mensaje PRIVADO para mí (Prioridad Máxima - Pagos rechazados, etc)
+    // CASO A: Es un mensaje PRIVADO para mi (Prioridad Maxima - Pagos rechazados, etc)
             n.IdUsuarioDestino == idUsuario
 
             ||
@@ -77,12 +80,12 @@ namespace RunnConnectAPI.Repositories
 
             ||
 
-            // CASO C: Es un aviso PÚBLICO GENERAL de un evento donde estoy pagado
+            // CASO C: Es un aviso PIBLICO GENERAL de un evento donde estoy pagado
             (n.IdUsuarioDestino == null && n.IdCategoria == null && idEventosPagados.Contains(n.IdEvento))
 
             ||
 
-            // CASO D: Es un aviso ESPECÍFICO de una categoría donde estoy pagado
+            // CASO D: Es un aviso ESPECIFICO de una categoria donde estoy pagado
             (n.IdUsuarioDestino == null && n.IdCategoria != null && idCategoriasPagadas.Contains(n.IdCategoria.Value))
         )
         .OrderByDescending(n => n.FechaEnvio)
@@ -98,7 +101,7 @@ namespace RunnConnectAPI.Repositories
         if (n.EsAnuncioGlobal) return true;
 
         // 3. Si es Publica del Evento
-        // Si no tiene categoria específica
+        // Si no tiene categoria especifica
         if (n.IdCategoria == null) return true;
 
         // Si TIENE categoria especifica -> Debo estar en ESA categoria exacta
@@ -129,7 +132,7 @@ namespace RunnConnectAPI.Repositories
       };
     }
 
-    // --- NUEVO METODO PARA CREAR GLOBAL ---
+    // NUEVO METODO PARA CREAR GLOBAL
     // Usado por EventoController al crear un evento nuevo
     public async Task CrearNotificacionGlobalAsync(CrearNotificacionRequest request)
     {
@@ -146,10 +149,13 @@ namespace RunnConnectAPI.Repositories
 
       _context.NotificacionesEvento.Add(notificacion);
       await _context.SaveChangesAsync();
+
+      //Disparar a firebase
+      await _firebaseService.EnviarNotificacionTopicAsync("topico_global", request.Titulo, request.Mensaje, request.IdEvento);
     }
 
-    /// Obtiene notificaciones recientes (ultimas 24 horas) para el runner
-    /// util para mostrar contador en la app
+    // Obtiene notificaciones recientes (ultimas 24 horas) para el runner
+    // util para mostrar contador en la app
     public async Task<int> ContarNotificacionesRecientesAsync(int idUsuario)
     {
       // Fecha ultima lectura del runner
@@ -175,7 +181,7 @@ namespace RunnConnectAPI.Repositories
         .Select(n => new { n.IdEvento, n.IdCategoria }) // Solo necesitamos IDs para contar
         .ToListAsync();
 
-      // 3. Contar aplicando la lógica de categoría
+      // 3. Contar aplicando la logica de categoria
       var cantidad = notificacionesCandidatas.Count(n =>
       {
         if (n.IdCategoria == null) return true; // Global
@@ -185,8 +191,8 @@ namespace RunnConnectAPI.Repositories
       return cantidad;
     }
 
-    /// METODO NUEVO: MARCAR TODO COMO LEIDO
-    /// Se llama cuando el usuario abre la pantalla de notificaciones
+    // METODO NUEVO: MARCAR TODO COMO LEIDO
+    // Se llama cuando el usuario abre la pantalla de notificaciones
     public async Task MarcarTodasComoLeidasAsync(int idUsuario)
     {
       var perfil = await _context.PerfilesRunners
@@ -200,7 +206,7 @@ namespace RunnConnectAPI.Repositories
       }
     }
 
-    /// Cuenta notificaciones de un evento
+    // Cuenta notificaciones de un evento
     public async Task<int> ContarPorEventoAsync(int idEvento)
     {
       return await _context.NotificacionesEvento
@@ -208,7 +214,7 @@ namespace RunnConnectAPI.Repositories
     }
 
 
-    /// Crea una nueva notificacion (Organizador)
+    // Crea una nueva notificacion (Organizador)
     public async Task<(NotificacionEvento? notificacion, string? error)> CrearAsync(CrearNotificacionRequest request, int idOrganizador, int? idUsuarioDestino = null)
     {
       // Verificar que el evento existe
@@ -241,10 +247,14 @@ namespace RunnConnectAPI.Repositories
       _context.NotificacionesEvento.Add(notificacion);
       await _context.SaveChangesAsync();
 
+      //Disparar a firebase
+      string notif = DeterminarNotificacion(request.IdEvento, request.IdCategoria, idUsuarioDestino);
+      await _firebaseService.EnviarNotificacionTopicAsync(notif, request.Titulo, request.Mensaje, request.IdEvento);
+
       return (notificacion, null);
     }
 
-    /// Actualiza una notificacion existente (Organizador)
+    // Actualiza una notificacion existente (Organizador)
     public async Task<(bool exito, string? error)> ActualizarAsync(
       int idNotificacion, ActualizarNotificacionRequest request, int idOrganizador)
     {
@@ -289,6 +299,21 @@ namespace RunnConnectAPI.Repositories
 
 
     //  HELPERS 
+
+    // Metodo para auxiliar mensajes
+    private string DeterminarNotificacion (int idEvento, int? idCategoria, int? idUsuarioDestino)
+    {
+      // Caso 1: Notificacion privada a un solo Runner (Ej: tu pago fue aprobado!)
+        if (idUsuarioDestino.HasValue)
+            return $"runner_{idUsuarioDestino.Value}";
+
+        // Caso 2: Notificacion a los inscriptos de una categoria especifica (Ej: 10K Retrasada)
+        if (idCategoria.HasValue)
+            return $"evento_{idEvento}_cat_{idCategoria.Value}";
+
+        // Caso 3: Notificacion a todos los inscriptos de un evento general (Ej: Evento Cancelado)
+        return $"evento_{idEvento}";
+    }
 
     /// Verifica si existe una notificacion
     public async Task<bool> ExisteAsync(int idNotificacion)

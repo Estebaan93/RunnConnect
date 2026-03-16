@@ -27,8 +27,8 @@ namespace RunnConnectAPI.Services
         }
         catch (Exception ex)
         {
-          Console.WriteLine($"Error fatal al iniciar Firebase: {ex.Message}");
-          Console.WriteLine($"Asegúrate de que el archivo '{fileName}' esté en la carpeta raíz y copiado al output.");
+          Console.WriteLine($"Error al iniciar Firebase: {ex.Message}");
+          Console.WriteLine($"El archivo '{fileName}' no esta en la carpeta raíz y copiado al output.");
         }
       }
     }
@@ -64,7 +64,7 @@ namespace RunnConnectAPI.Services
         // Enviamos el mensaje a la nube de Google
         string response = await FirebaseMessaging.DefaultInstance.SendAsync(message);
 
-        Console.WriteLine($" Notificación enviada al tópico '{topic}': {response}");
+        Console.WriteLine($" Notificación enviada al cliente '{topic}': {response}");
         return true;
       }
       catch (Exception ex)

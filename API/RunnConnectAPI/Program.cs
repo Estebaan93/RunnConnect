@@ -68,13 +68,13 @@ builder.Services.AddDbContext<RunnersContext>(options =>
 );
 
 
-//Registrar services para inyeccion de dependencias
+//Registrar servicios para inyeccion de dependencias
 builder.Services.AddScoped<JWTService>();
 builder.Services.AddScoped<PasswordService>();
 builder.Services.AddScoped<FileService>();
 builder.Services.AddScoped<EmailService>();
 builder.Services.AddHostedService<RunnConnectAPI.Services.FinalizarEventosWorker>();
-
+builder.Services.AddSingleton<FirebaseNotificacionService>(); //singleton porque firebaseApp.Create se ejecuta una sola vez
 
 //Repos
 builder.Services.AddScoped<UsuarioRepositorio>();
