@@ -44,13 +44,22 @@ namespace RunnConnectAPI.Controllers
         if (!ModelState.IsValid)
           return BadRequest(ModelState);
 
-        //Buscar por email
-        var usuario = await _usuarioRepositorio.GetByEmailAsync(loginRequestDto.Email);
+        //Buscar por email sin filtro de estado
+        //var usuario = await _usuarioRepositorio.GetByEmailAsync(loginRequestDto.Email);
+        var usuario = await _usuarioRepositorio.GetByEmailSinFiltroEstadoAsync(loginRequestDto.Email);
 
+        //sino existe o la contraseña esta mal, unauthorized normal
         if (usuario == null || !_passwordService.VerifyPassword(loginRequestDto.Password, usuario.PasswordHash))
           return Unauthorized(new { message = "Credenciales invalidas" });
 
-        //Generar token
+        //si las credenciales estan OK, pero el usuario esta desactivado
+        if(!usuario.Estado)
+        {
+          // badRequest para Android esta esperando para mostrar el AlertDialog
+            return BadRequest(new { message = "Tu cuenta se encuentra desactivada." });
+        }
+
+        //si esta activo, generar token
         var token = _jwtService.GenerarToken(usuario);
         var avatarUrl = _fileService.ObtenerUrlCompleta(usuario.ImgAvatar, Request);
 

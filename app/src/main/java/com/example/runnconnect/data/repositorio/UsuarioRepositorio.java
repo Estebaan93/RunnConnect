@@ -11,6 +11,8 @@ import com.example.runnconnect.data.request.ActualizarPerfilOrganizadorRequest;
 import com.example.runnconnect.data.request.ActualizarPerfilRunnerRequest;
 import com.example.runnconnect.data.request.CambiarPasswordRequest;
 import com.example.runnconnect.data.request.LoginRequest;
+import com.example.runnconnect.data.request.RecuperarPasswordRequest;
+import com.example.runnconnect.data.request.SolicitarReactivacionRequest;
 import com.example.runnconnect.data.response.LoginResponse;
 import com.example.runnconnect.data.response.PerfilUsuarioResponse;
 
@@ -142,6 +144,14 @@ public class UsuarioRepositorio {
     apiService.registrarOrganizador(rbRazon, rbNombreCom, rbEmail, rbPass, rbConfirm, bodyAvatar).enqueue(callback);
   }
 
+  //recuperar password (orga/runner)
+  public void recuperarPassword(String email, Callback<Void> callback){
+    apiService.recuperarPassword(new RecuperarPasswordRequest(email)).enqueue(callback);
+  }
 
+  //solicitar reactivacion (automatico)
+  public void solicitarReactivacion(String email, String password, Callback<Void> callback) {
+    apiService.solicitarReactivacion(new SolicitarReactivacionRequest(email, password)).enqueue(callback);
+  }
 
 }
