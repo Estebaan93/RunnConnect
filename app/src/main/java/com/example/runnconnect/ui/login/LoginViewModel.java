@@ -51,8 +51,7 @@ public class LoginViewModel extends AndroidViewModel {
   public LiveData<Intent> getNavegacionEvento() { return navegacionEvento; }
   public LiveData<Boolean> getPedirConfirmacionReactivacion() { return pedirConfirmacionReactivacion; }
 
-  // LOGICA DE NEGOCIO
-
+  // login
   public void login(String email, String password) {
     prepararNuevaAccion();
 
@@ -148,6 +147,39 @@ public class LoginViewModel extends AndroidViewModel {
       }
     });
   }
+
+  public void confirmarReactivacionFinal(String token) {
+    Log.d("DEBUG_TOKEN", "Enviando token al servidor: [" + token + "]");
+    isLoading.setValue(true);
+
+    //
+    repositorio.confirmarReactivacion(token, new Callback<LoginResponse>() {
+      @Override
+      public void onResponse(Call<LoginResponse> call, Response<LoginResponse> response) {
+        isLoading.setValue(false);
+        if (response.isSuccessful() && response.body() != null) {
+          // Guardamos la sesiin (token JWT) que nos dio el servidor
+          repositorio.guardarSesion(response.body());
+
+          // Mandamos al MainActivity (Ya esta activo y logueado)
+          decidirNavegacionSegunRol();
+        } else {
+          mostrarError("El token es inválido o ya expiró");
+        }
+      }
+
+      @Override
+      public void onFailure(Call<LoginResponse> call, Throwable t) {
+        isLoading.setValue(false);
+        mostrarError("Error de conexión al reactivar: "+ t.getMessage());
+        Log.e("API_ERROR", "Falla en reactivacion", t);
+      }
+    });
+  }
+
+
+
+
 
   //HELPER PARA LA VISTA
 

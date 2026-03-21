@@ -986,7 +986,7 @@ namespace RunnConnectAPI.Controllers
           IdUsuario = usuario.IdUsuario,
           Token = token,
           TipoToken = "reactivacion", // DIFERENCIADOR
-          FechaCreacion = DateTime.Now,
+          FechaCreacion = DateTime.UtcNow,
           FechaExpiracion = DateTime.Now.AddMinutes(5),
           Usado = false
         };

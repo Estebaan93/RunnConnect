@@ -7,6 +7,7 @@ import com.example.runnconnect.data.request.ActualizarEventoRequest;
 import com.example.runnconnect.data.request.ActualizarPerfilOrganizadorRequest;
 import com.example.runnconnect.data.request.ActualizarPerfilRunnerRequest;
 import com.example.runnconnect.data.request.CrearPuntoInteresRequest;
+import com.example.runnconnect.data.request.ReactivarCuentaRequest;
 import com.example.runnconnect.data.request.RecuperarPasswordRequest;
 import com.example.runnconnect.data.request.SolicitarReactivacionRequest;
 import com.example.runnconnect.data.response.BusquedaInscripcionResponse;
@@ -111,6 +112,8 @@ public interface ApiService {
   Call<Void> solicitarReactivacion(@Body SolicitarReactivacionRequest request);
 
   //reactivar cuenta (run/orga)
+  @POST("Usuario/ReactivarCuenta")
+  Call<LoginResponse> confirmarReactivacion(@Body ReactivarCuentaRequest request);
 
 
   //--------------EVENTOS------------------

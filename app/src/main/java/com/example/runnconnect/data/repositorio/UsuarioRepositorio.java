@@ -11,6 +11,7 @@ import com.example.runnconnect.data.request.ActualizarPerfilOrganizadorRequest;
 import com.example.runnconnect.data.request.ActualizarPerfilRunnerRequest;
 import com.example.runnconnect.data.request.CambiarPasswordRequest;
 import com.example.runnconnect.data.request.LoginRequest;
+import com.example.runnconnect.data.request.ReactivarCuentaRequest;
 import com.example.runnconnect.data.request.RecuperarPasswordRequest;
 import com.example.runnconnect.data.request.SolicitarReactivacionRequest;
 import com.example.runnconnect.data.response.LoginResponse;
@@ -153,5 +154,11 @@ public class UsuarioRepositorio {
   public void solicitarReactivacion(String email, String password, Callback<Void> callback) {
     apiService.solicitarReactivacion(new SolicitarReactivacionRequest(email, password)).enqueue(callback);
   }
+
+  //confirmar reactivacion usando el token de recuperacion del deep link (abrir links en android)
+  public void confirmarReactivacion(String token, Callback<LoginResponse> callback) {
+    apiService.confirmarReactivacion(new ReactivarCuentaRequest(token)).enqueue(callback);
+  }
+
 
 }
