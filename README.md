@@ -1,0 +1,1 @@
+RunnConnect es una plataforma integral (App Móvil + API REST) diseñada para unificar la comunidad del running. Conecta a corredores apasionados con organizadores de eventos deportivos, facilitando desde la búsqueda de carreras y la inscripción, hasta la gestión completa de rutas, pagos y resultados.
