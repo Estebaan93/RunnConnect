@@ -1,0 +1,39 @@
+#Se dispara en cada push o pull request en la rama DevTodo.
+#Compila tu proyecto Android con assembleDebug.
+#Genera el APK en app/build/outputs/apk/debug/.
+#Lo sube como artefacto a GitHub Actions -> descargar desde la pestaña Actions en tu repo.
+
+
+name: Android APK Build
+
+on:
+  push:
+    branches: [ "DevTodo" ]
+  pull_request:
+    branches: [ "DevTodo" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Grant execute permission for Gradlew
+        run: chmod +x gradlew
+
+      - name: Build APK
+        run: ./gradlew assembleDebug
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-debug-apk
+          path: app/build/outputs/apk/debug/app-debug.apk
