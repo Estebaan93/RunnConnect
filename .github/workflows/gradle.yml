@@ -11,6 +11,7 @@ on:
     branches: [ "DevTodo" ]
   pull_request:
     branches: [ "DevTodo" ]
+  workflow_dispatch:
 
 jobs:
   build:
