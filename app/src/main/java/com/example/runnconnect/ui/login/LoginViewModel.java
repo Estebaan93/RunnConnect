@@ -177,6 +177,64 @@ public class LoginViewModel extends AndroidViewModel {
     });
   }
 
+  //para la recuperacion de passowrd
+  public void ejecutarRestablecerPassword(String token, String pass1, String pass2) {
+    prepararNuevaAccion();
+
+    // 1. Lógica de validación (Fuera de la Vista)
+    if (token == null || token.isEmpty()) {
+      mostrarError("Error de seguridad: Token no encontrado");
+      return;
+    }
+
+    if (pass1.isEmpty() || pass2.isEmpty()) {
+      mostrarError("Completa ambos campos");
+      return;
+    }
+
+    if (pass1.length() < 6) {
+      mostrarError("La contraseña debe tener al menos 6 caracteres");
+      return;
+    }
+
+    if (!pass1.equals(pass2)) {
+      mostrarError("Las contraseñas no coinciden");
+      return;
+    }
+
+    // 2. Peticion a la API
+    isLoading.setValue(true);
+    repositorio.restablecerPassword(token, pass1, pass2, new Callback<Void>() {
+      @Override
+      public void onResponse(Call<Void> call, Response<Void> response) {
+        isLoading.setValue(false);
+        if (response.isSuccessful()) {
+          // La palabra "actualizada" es clave porque la Activity la esta escuchando para cerrarse
+          mostrarExito("Contraseña actualizada exitosamente");
+        } else {
+          // Intentar capturar el mensaje real de C#
+          try {
+            String errorReal = response.errorBody() != null ? response.errorBody().string() : "";
+            Log.d("ErrorTokenRecuperarPass", "Response: " + errorReal);
+            if (errorReal.contains("expirado")) {
+              mostrarError("El enlace ha expirado. Solicita uno nuevo.");
+            } else {
+              mostrarError("El enlace es inválido o ya fue utilizado.");
+            }
+          } catch (Exception e) {
+            mostrarError("El enlace es inválido o ya fue utilizado.");
+          }
+        }
+      }
+
+      @Override
+      public void onFailure(Call<Void> call, Throwable t) {
+        isLoading.setValue(false);
+        mostrarError("Error de conexión: " + t.getMessage());
+      }
+    });
+  }
+
 
 
 

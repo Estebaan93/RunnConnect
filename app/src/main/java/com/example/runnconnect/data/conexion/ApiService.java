@@ -9,6 +9,7 @@ import com.example.runnconnect.data.request.ActualizarPerfilRunnerRequest;
 import com.example.runnconnect.data.request.CrearPuntoInteresRequest;
 import com.example.runnconnect.data.request.ReactivarCuentaRequest;
 import com.example.runnconnect.data.request.RecuperarPasswordRequest;
+import com.example.runnconnect.data.request.RestablecerPasswordRequest;
 import com.example.runnconnect.data.request.SolicitarReactivacionRequest;
 import com.example.runnconnect.data.response.BusquedaInscripcionResponse;
 import com.example.runnconnect.data.request.CambiarEstadoPagoRequest;
@@ -104,6 +105,8 @@ public interface ApiService {
   Call<Void> recuperarPassword(@Body RecuperarPasswordRequest request);
 
   //restablecerPassword (run/orga)
+  @POST("Usuario/RestablecerPassword")
+  Call<Void> restablecerPassword(@Body RestablecerPasswordRequest request);
 
   //eliminar cuenta (run/orga)
 

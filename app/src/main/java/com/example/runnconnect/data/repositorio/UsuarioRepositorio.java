@@ -13,6 +13,7 @@ import com.example.runnconnect.data.request.CambiarPasswordRequest;
 import com.example.runnconnect.data.request.LoginRequest;
 import com.example.runnconnect.data.request.ReactivarCuentaRequest;
 import com.example.runnconnect.data.request.RecuperarPasswordRequest;
+import com.example.runnconnect.data.request.RestablecerPasswordRequest;
 import com.example.runnconnect.data.request.SolicitarReactivacionRequest;
 import com.example.runnconnect.data.response.LoginResponse;
 import com.example.runnconnect.data.response.PerfilUsuarioResponse;
@@ -148,6 +149,11 @@ public class UsuarioRepositorio {
   //recuperar password (orga/runner)
   public void recuperarPassword(String email, Callback<Void> callback){
     apiService.recuperarPassword(new RecuperarPasswordRequest(email)).enqueue(callback);
+  }
+
+  //restablecer desde el enlace email
+  public void restablecerPassword(String token, String passwordNueva, String confirmarPassword, Callback<Void> callback){
+    apiService.restablecerPassword(new RestablecerPasswordRequest(token, passwordNueva, confirmarPassword)).enqueue(callback);
   }
 
   //solicitar reactivacion (automatico)

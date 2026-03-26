@@ -14,7 +14,7 @@
     <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="9.0.0" />
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.0.1" />
     
-    <!-- Swagger versión 6.5.0 (más estable y sin problemas) -->
+    <!-- Swagger version 6.5.0 (mas estable y sin problemas) -->
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
   </ItemGroup>
 

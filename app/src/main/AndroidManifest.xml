@@ -81,6 +81,25 @@
           </intent-filter>
       </activity>
 
+      <activity
+          android:name=".ui.login.RestablecerPasswordActivity"
+          android:exported="true"
+          android:label="Nueva Contraseña"
+          android:windowSoftInputMode="adjustResize">
+
+          <intent-filter android:label="Abrir con RunnConnect">
+              <action android:name="android.intent.action.VIEW" />
+              <category android:name="android.intent.category.DEFAULT" />
+              <category android:name="android.intent.category.BROWSABLE" />
+
+              <data
+                  android:scheme="http"
+                  android:host="10.0.2.2"
+                  android:port="5213"
+                  android:pathPrefix="/reset-password" />
+          </intent-filter>
+      </activity>
+
 
   </application>
 
