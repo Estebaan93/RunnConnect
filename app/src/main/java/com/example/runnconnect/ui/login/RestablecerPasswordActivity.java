@@ -7,6 +7,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -22,6 +23,9 @@ public class RestablecerPasswordActivity extends AppCompatActivity {
   private Button btnGuardarPassword;
   private ProgressBar pbResetPassword;
 
+  //agregamos las vistas
+  private TextView tvErrorReset, tvExitoReset;
+
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -33,7 +37,7 @@ public class RestablecerPasswordActivity extends AppCompatActivity {
     configurarActionBar();
 
     initViews();
-    capturarToken();
+    capturarToken(); //mandamo al vm el token
     setupObservers();
     setupListeners();
   }
@@ -41,7 +45,7 @@ public class RestablecerPasswordActivity extends AppCompatActivity {
   private void configurarActionBar() {
     if (getSupportActionBar() != null) {
       getSupportActionBar().setDisplayHomeAsUpEnabled(true); // Muestra la flecha de volver
-      getSupportActionBar().setTitle("Nueva Contraseña");    // Título en la barra
+      getSupportActionBar().setTitle("Nueva Contraseña");    // Titulo en la barra
     }
   }
 
@@ -50,6 +54,10 @@ public class RestablecerPasswordActivity extends AppCompatActivity {
     etConfirmarPassword = findViewById(R.id.etConfirmarPassword);
     btnGuardarPassword = findViewById(R.id.btnGuardarPassword);
     pbResetPassword = findViewById(R.id.pbResetPassword);
+
+    //inicializamos los txtView
+    tvErrorReset= findViewById(R.id.tvErrorReset);
+    tvExitoReset= findViewById(R.id.tvExitoReset);
   }
 
   private void capturarToken() {
@@ -57,12 +65,9 @@ public class RestablecerPasswordActivity extends AppCompatActivity {
     if (data != null) {
       tokenRecuperacion = data.getQueryParameter("token");
     }
+    //enviamos al vm
+    viewModel.verificarTokenRecuperacion(tokenRecuperacion);
 
-    // Si alguien abre la activity sin un token, la cerramos por seguridad
-    if (tokenRecuperacion == null || tokenRecuperacion.isEmpty()) {
-      Toast.makeText(this, "Enlace inválido o corrupto", Toast.LENGTH_LONG).show();
-      finish();
-    }
   }
 
   private void setupObservers() {
@@ -72,26 +77,21 @@ public class RestablecerPasswordActivity extends AppCompatActivity {
       btnGuardarPassword.setEnabled(!isLoading);
     });
 
-    // Observar exito (Si tod sale bien, cerramos esta pantalla y volvemos al Login)
-    viewModel.getExito().observe(this, mensaje -> {
-      if (mensaje != null && mensaje.contains("actualizada")) {
-        Toast.makeText(this, "¡Contraseña actualizada con éxito!", Toast.LENGTH_LONG).show();
+    // Conectar el exito a la UI
+    viewModel.getExito().observe(this, tvExitoReset::setText);
+    viewModel.getExitoVisibility().observe(this, tvExitoReset::setVisibility);
 
-        // 1. Creamos el Intent hacia el Login
-        Intent intent = new Intent(this, LoginActivity.class);
+    // Conectar el Error a la UI
+    viewModel.getErrorMessage().observe(this, tvErrorReset::setText);
+    viewModel.getErrorVisibility().observe(this, tvErrorReset::setVisibility);
 
-        // 2. Limpiamos el historial de navegación (Corta el lazo con Gmail)
-        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
 
-        // 3. Iniciamos la actividad
-        startActivity(intent);
-      }
-    });
 
-    // Observar errores
-    viewModel.getErrorMessage().observe(this, error -> {
-      if (error != null) {
-        Toast.makeText(this, error, Toast.LENGTH_LONG).show();
+    // nuevo: observar instrucciones de navegacion del ViewModel
+    viewModel.getNavegarAlLogin().observe(this, debeNavegar -> {
+      if (debeNavegar != null && debeNavegar) {
+        volverAlLogin();
+        viewModel.navegacionALoginCompletada(); // Le avisamos que ya cumplimos
       }
     });
   }
@@ -101,12 +101,12 @@ public class RestablecerPasswordActivity extends AppCompatActivity {
       String pass1 = etNuevaPassword.getText().toString().trim();
       String pass2 = etConfirmarPassword.getText().toString().trim();
 
-      // La vista no piensa, solo delega al ViewModel
+      //delega al ViewModel
       viewModel.ejecutarRestablecerPassword(tokenRecuperacion, pass1, pass2);
     });
   }
 
-  // --- MÉTODOS DE NAVEGACIÓN ---
+  // METODOS DE NAVEGACION
 
   // Este atrapa la flecha de la barra morada
   @Override
@@ -115,7 +115,7 @@ public class RestablecerPasswordActivity extends AppCompatActivity {
     return true;
   }
 
-  // Este atrapa el botón "Atrás" del sistema (navegación del celular)
+  // Este atrapa el boton "atras" del sistema (navegacion del celular)
   @Override
   public void onBackPressed() {
     volverAlLogin();

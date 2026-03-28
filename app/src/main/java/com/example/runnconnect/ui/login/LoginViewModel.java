@@ -35,7 +35,11 @@ public class LoginViewModel extends AndroidViewModel {
   private final MutableLiveData<String> exito = new MutableLiveData<>();
   private final MutableLiveData<Integer> exitoVisibility = new MutableLiveData<>(View.GONE);
 
+  //estado para controlar la nav al login de vuelta
   private final MutableLiveData<Boolean> pedirConfirmacionReactivacion = new MutableLiveData<>();
+
+  //navegar al login
+  private final MutableLiveData<Boolean> navegarAlLogin = new MutableLiveData<>();
 
   public LoginViewModel(@NonNull Application application) {
     super(application);
@@ -50,6 +54,8 @@ public class LoginViewModel extends AndroidViewModel {
   public LiveData<Integer> getExitoVisibility() { return exitoVisibility; }
   public LiveData<Intent> getNavegacionEvento() { return navegacionEvento; }
   public LiveData<Boolean> getPedirConfirmacionReactivacion() { return pedirConfirmacionReactivacion; }
+  public LiveData<Boolean> getNavegarAlLogin() {return navegarAlLogin; }
+
 
   // login
   public void login(String email, String password) {
@@ -149,6 +155,14 @@ public class LoginViewModel extends AndroidViewModel {
   }
 
   public void confirmarReactivacionFinal(String token) {
+    prepararNuevaAccion();
+
+    //valiacion seguridad
+    if (token == null || token.isEmpty()) {
+      mostrarError("Enlace de reactivación inválido o corrupto");
+      return; // Al llamar a mostrarError, la Activity escuchara y hara finish()
+    }
+
     Log.d("DEBUG_TOKEN", "Enviando token al servidor: [" + token + "]");
     isLoading.setValue(true);
 
@@ -181,7 +195,7 @@ public class LoginViewModel extends AndroidViewModel {
   public void ejecutarRestablecerPassword(String token, String pass1, String pass2) {
     prepararNuevaAccion();
 
-    // 1. Lógica de validación (Fuera de la Vista)
+    // 1. Logica de validacion (Fuera de la Vista)
     if (token == null || token.isEmpty()) {
       mostrarError("Error de seguridad: Token no encontrado");
       return;
@@ -211,6 +225,7 @@ public class LoginViewModel extends AndroidViewModel {
         if (response.isSuccessful()) {
           // La palabra "actualizada" es clave porque la Activity la esta escuchando para cerrarse
           mostrarExito("Contraseña actualizada exitosamente");
+          navegarAlLogin.setValue(true);
         } else {
           // Intentar capturar el mensaje real de C#
           try {
@@ -273,4 +288,24 @@ public class LoginViewModel extends AndroidViewModel {
     intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
     navegacionEvento.setValue(intent);
   }
+
+  // cuando el usuario toca la flecha atras
+  public void volverAtrasClick(){
+    navegarAlLogin.setValue(true);
+  }
+
+  //cuando la vista ya navego resetea el estado
+  public void navegacionALoginCompletada() {
+    navegarAlLogin.setValue(false);
+  }
+
+  //verificar token
+  public void verificarTokenRecuperacion(String token) {
+    if (token == null || token.isEmpty()) {
+      mostrarError("Enlace inválido o corrupto");
+      navegarAlLogin.setValue(true); // Ordena a la vista que se cierre
+    }
+  }
+
+
 }
