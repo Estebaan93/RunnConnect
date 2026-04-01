@@ -109,6 +109,8 @@ public interface ApiService {
   Call<Void> restablecerPassword(@Body RestablecerPasswordRequest request);
 
   //eliminar cuenta (run/orga)
+  @DELETE("Usuario/Perfil")
+  Call<Void> eliminarCuenta(@Header("Authorization") String token);
 
   //solicitar reactivacion (run/orga)
   @POST("Usuario/SolicitarReactivacion")

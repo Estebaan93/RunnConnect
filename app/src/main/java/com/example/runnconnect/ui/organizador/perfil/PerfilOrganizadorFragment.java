@@ -21,6 +21,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 
@@ -85,6 +86,12 @@ public class PerfilOrganizadorFragment extends Fragment {
     etPassActualRef = view.findViewById(R.id.etPassActual);
     etPassNuevaRef = view.findViewById(R.id.etPassNueva);
     etPassConfirmRef = view.findViewById(R.id.etPassConfirm);
+    Button btnDarDeBajaUsuario= view.findViewById(R.id.btnDarDeBajaUsuario);
+
+    btnDarDeBajaUsuario.setOnClickListener(v->{
+      mv.btnDarBaja();
+      if(dialogPassword!= null) dialogPassword.dismiss();
+    });
 
     builder.setView(view)
       .setPositiveButton("Cambiar", null)
@@ -231,6 +238,21 @@ public class PerfilOrganizadorFragment extends Fragment {
         mv.onZoomImageConsumed();
       }
     });
+
+    //btn dar de baja
+    mv.getConfirmarBaja().observe(getViewLifecycleOwner(), show ->{
+      if(Boolean.TRUE.equals(show)){
+        mostrarDialogoAdvertenciaBaja();
+        mv.confirmarBajaConsumido();
+      }
+    });
+
+    //escuchar si la baja fue exitosa e ir al login
+    mv.getNavegarAlLogin().observe(getViewLifecycleOwner(), navegar ->{
+      if (Boolean.TRUE.equals(navegar)){
+        cerrarSesionYNavegar();
+      }
+    });
   }
 
   private void recolectarYEnviar() {
@@ -273,4 +295,23 @@ public class PerfilOrganizadorFragment extends Fragment {
     Glide.with(this).load(url).into(ivZoom);
     dialog.show();
   }
+
+  private void mostrarDialogoAdvertenciaBaja() {
+    new AlertDialog.Builder(getContext())
+      .setTitle("¡Peligro!")
+      .setMessage("¿Estás seguro de que deseas dar de baja tu cuenta? Esta acción deshabilitará tu perfil.")
+      .setPositiveButton("Sí, dar de baja", (d, w) -> mv.confirmarDarDeBaja()) // El ViewModel ejecuta la baja
+      .setNegativeButton("Cancelar", null)
+      .show();
+  }
+
+  private void cerrarSesionYNavegar() {
+    // Necesitamos el contexto de la Activity para el Intent
+    android.content.Intent intent = new android.content.Intent(requireActivity(), com.example.runnconnect.ui.login.LoginActivity.class);
+    intent.setFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK | android.content.Intent.FLAG_ACTIVITY_CLEAR_TASK);
+    startActivity(intent);
+    requireActivity().finish();
+  }
+
+
 }

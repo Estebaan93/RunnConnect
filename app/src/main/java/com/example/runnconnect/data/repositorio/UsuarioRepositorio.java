@@ -166,5 +166,11 @@ public class UsuarioRepositorio {
     apiService.confirmarReactivacion(new ReactivarCuentaRequest(token)).enqueue(callback);
   }
 
+  //dar de baja (orga/runner)
+  public void eliminarCuenta(Callback<Void> callback){
+    String token= sessionManager.leerToken();
+    apiService.eliminarCuenta("Bearer "+token).enqueue(callback);
+  }
+
 
 }

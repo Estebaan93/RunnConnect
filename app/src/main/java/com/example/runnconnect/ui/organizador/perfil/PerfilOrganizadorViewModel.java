@@ -35,6 +35,8 @@ public class PerfilOrganizadorViewModel extends AndroidViewModel {
   private final MutableLiveData<String> btnText = new MutableLiveData<>("Editar");
   private final MutableLiveData<Boolean> isLoading = new MutableLiveData<>(false);
   private final MutableLiveData<String> avatarUrl = new MutableLiveData<>();
+  private final MutableLiveData<Boolean> confirmarBaja = new MutableLiveData<>(false);
+  private final MutableLiveData<Boolean> navegarAlLogin= new MutableLiveData<>(false);
 
   //password
   private final MutableLiveData<String>mensajePassword= new MutableLiveData<>();
@@ -71,6 +73,8 @@ public class PerfilOrganizadorViewModel extends AndroidViewModel {
   public LiveData<String> getMensajeGlobal() { return mensajeGlobal; }
   public LiveData<Boolean> getEsMensajeError() { return esMensajeError; }
   public LiveData<String> getMensajePassword() { return mensajePassword; }
+  public LiveData<Boolean> getConfirmarBaja() { return confirmarBaja; }
+  public LiveData<Boolean> getNavegarAlLogin() { return navegarAlLogin; }
 
   // get Errores
   public LiveData<String> getErrorNombreComercial() { return errorNombreComercial; }
@@ -94,6 +98,15 @@ public class PerfilOrganizadorViewModel extends AndroidViewModel {
     } else {
       habilitarEdicion();
     }
+  }
+
+  //btn dar baja
+  public void btnDarBaja(){
+    confirmarBaja.setValue(true);
+  }
+  //reseteo del evento
+  public void confirmarBajaConsumido(){
+    confirmarBaja.setValue(false);
   }
 
   //acciones de Imagen (Igual que Runner)
@@ -349,6 +362,33 @@ public class PerfilOrganizadorViewModel extends AndroidViewModel {
       }
     });
   }
+
+  //btn confirmar baja
+  public void confirmarDarDeBaja(){
+    isLoading.setValue(true);
+
+    repo.eliminarCuenta(new Callback<Void>() {
+      @Override
+      public void onResponse(Call<Void> call, Response<Void> response) {
+        isLoading.setValue(false);
+        if (response.isSuccessful()) {
+          // Destruimos el token local
+          repo.cerrarSesion();
+          // Ordenamos a la vista que se vaya al Login
+          navegarAlLogin.setValue(true);
+        } else {
+          mostrarMensajeGlobal("No se pudo dar de baja la cuenta.", true);
+        }
+      }
+
+      @Override
+      public void onFailure(Call<Void> call, Throwable t) {
+        isLoading.setValue(false);
+        mostrarMensajeGlobal("Error de conexión al dar de baja.", true);
+      }
+    });
+  }
+
 
   // DTO Input para la vista
   public static class OrganizadorInput {
