@@ -954,9 +954,8 @@ namespace RunnConnectAPI.Controllers
 
 
     /*SOLICITAR REACTIVACION DE CUENTA (Envia email con token)
-  POST: api/Usuario/SolicitarReactivacion
-  Verifica credenciales y envia email con link de reactivacion*/
-
+    POST: api/Usuario/SolicitarReactivacion
+    Verifica credenciales y envia email con link de reactivacion*/
     [AllowAnonymous]
     [HttpPost("SolicitarReactivacion")]
     public async Task<IActionResult> SolicitarReactivacion([FromBody] SolicitarReactivacionDto dto)

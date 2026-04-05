@@ -1,19 +1,10 @@
 package com.example.runnconnect.ui.organizador.perfil;
 
-import androidx.activity.result.ActivityResultLauncher;
-import androidx.activity.result.PickVisualMediaRequest;
-import androidx.activity.result.contract.ActivityResultContracts;
-import androidx.lifecycle.ViewModelProvider;
-
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
-
-import androidx.annotation.NonNull;
-import androidx.fragment.app.Fragment;
-
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -21,56 +12,74 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.PickVisualMediaRequest;
+import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
 
 import com.bumptech.glide.Glide;
 import com.example.runnconnect.R;
 import com.example.runnconnect.databinding.FragmentPerfilOrganizadorBinding;
 
 public class PerfilOrganizadorFragment extends Fragment {
+
   private FragmentPerfilOrganizadorBinding binding;
   private PerfilOrganizadorViewModel mv;
   private ActivityResultLauncher<PickVisualMediaRequest> mediaImagen;
 
-  // Referencias Dialogo Password
   private AlertDialog dialogPassword;
   private EditText etPassActualRef, etPassNuevaRef, etPassConfirmRef;
 
+  @Override
   public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
     binding = FragmentPerfilOrganizadorBinding.inflate(inflater, container, false);
     mv = new ViewModelProvider(this).get(PerfilOrganizadorViewModel.class);
+    return binding.getRoot();
+  }
 
-    // Habilitar menu (engranaje)
+  @Override
+  public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+    super.onViewCreated(view, savedInstanceState);
+
     setHasOptionsMenu(true);
 
-    //inicializar selector de imagen
-    mediaImagen = registerForActivityResult(new ActivityResultContracts.PickVisualMedia(), uri -> {
-      //if (uri != null)
-        mv.onImagenSeleccionada(uri);
-    });
+    mediaImagen = registerForActivityResult(
+      new ActivityResultContracts.PickVisualMedia(),
+      uri -> mv.onImagenSeleccionada(uri));
 
     setupObservers();
     setupListeners();
     mv.cargarPerfil();
-
-    return binding.getRoot();
-
   }
 
+  //Listeners
+
   private void setupListeners() {
-    binding.btnAccion.setOnClickListener(v -> recolectarYEnviar());
+    binding.btnAccion.setOnClickListener(v ->
+      mv.onBotonPrincipalClick(new PerfilOrganizadorViewModel.OrganizadorInput(
+        binding.etNombreComercial.getText().toString(),
+        binding.etRazonSocial.getText().toString(),
+        binding.etCuit.getText().toString(),
+        binding.etNombreContacto.getText().toString(),
+        binding.etTelefono.getText().toString(),
+        binding.etDireccionLegal.getText().toString()
+      )));
     binding.btnEditAvatar.setOnClickListener(v -> mv.onEditAvatarClicked());
     binding.ivAvatar.setOnClickListener(v -> mv.onAvatarImageClicked());
   }
 
-  //MENU Y DIALOGO PASSWORD
   @Override
   public void onCreateOptionsMenu(@NonNull Menu menu, @NonNull MenuInflater inflater) {
-    inflater.inflate(R.menu.menu_perfil_opciones, menu); // Reutilizamos el XML del Runner
+    inflater.inflate(R.menu.menu_perfil_opciones, menu);
     super.onCreateOptionsMenu(menu, inflater);
   }
+
   @Override
   public boolean onOptionsItemSelected(@NonNull MenuItem item) {
     if (item.getItemId() == R.id.action_cambiar_pass) {
@@ -79,69 +88,29 @@ public class PerfilOrganizadorFragment extends Fragment {
     }
     return super.onOptionsItemSelected(item);
   }
-  private void mostrarDialogoCambiarPassword() {
-    AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
-    View view = getLayoutInflater().inflate(R.layout.dialog_cambiar_password, null);
 
-    etPassActualRef = view.findViewById(R.id.etPassActual);
-    etPassNuevaRef = view.findViewById(R.id.etPassNueva);
-    etPassConfirmRef = view.findViewById(R.id.etPassConfirm);
-    Button btnDarDeBajaUsuario= view.findViewById(R.id.btnDarDeBajaUsuario);
-
-    btnDarDeBajaUsuario.setOnClickListener(v->{
-      mv.btnDarBaja();
-      if(dialogPassword!= null) dialogPassword.dismiss();
-    });
-
-    builder.setView(view)
-      .setPositiveButton("Cambiar", null)
-      .setNegativeButton("Cancelar", (d, w) -> limpiarReferenciasDialogo());
-
-    dialogPassword = builder.create();
-    dialogPassword.show();
-
-    dialogPassword.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
-      etPassActualRef.setError(null);
-      etPassNuevaRef.setError(null);
-      etPassConfirmRef.setError(null);
-
-      String actual = etPassActualRef.getText().toString();
-      String nueva = etPassNuevaRef.getText().toString();
-      String confirm = etPassConfirmRef.getText().toString();
-
-      mv.cambiarPassword(actual, nueva, confirm);
-    });
-
-    dialogPassword.setOnDismissListener(d -> limpiarReferenciasDialogo());
-  }
-
-  private void limpiarReferenciasDialogo() {
-    etPassActualRef = null; etPassNuevaRef = null; etPassConfirmRef = null; dialogPassword = null;
-  }
+  //Observers
 
   private void setupObservers() {
-    // Datos del Perfil
+
     mv.getPerfilData().observe(getViewLifecycleOwner(), p -> {
       binding.etEmail.setText(p.getEmail());
-      // Mapeo especifico Organizador
       binding.etNombreComercial.setText(p.getNombreComercial());
       binding.etRazonSocial.setText(p.getRazonSocial());
       binding.etCuit.setText(p.getCuit());
-      binding.etNombreContacto.setText(p.getNombre()); // Nombre del usuario es el contacto
+      binding.etNombreContacto.setText(p.getNombre());
       binding.etTelefono.setText(p.getTelefono());
       binding.etDireccionLegal.setText(p.getDireccionLegal());
     });
 
-    mv.getAvatarUrl().observe(getViewLifecycleOwner(), url -> {
-      Glide.with(this)
-        .load(url)
+    mv.getAvatarUrl().observe(getViewLifecycleOwner(), url ->
+      Glide.with(this).load(url)
         .placeholder(android.R.drawable.ic_menu_camera)
         .error(android.R.drawable.ic_menu_camera)
         .circleCrop()
-        .into(binding.ivAvatar);
-    });
+        .into(binding.ivAvatar));
 
-    // Estado Edicion
+    // El vm ya limpia los errores en deshabilitarEdicion() — el Fragment solo habilita/deshabilita
     mv.getIsEditable().observe(getViewLifecycleOwner(), enabled -> {
       binding.etNombreComercial.setEnabled(enabled);
       binding.etRazonSocial.setEnabled(enabled);
@@ -149,130 +118,103 @@ public class PerfilOrganizadorFragment extends Fragment {
       binding.etNombreContacto.setEnabled(enabled);
       binding.etTelefono.setEnabled(enabled);
       binding.etDireccionLegal.setEnabled(enabled);
-      binding.etEmail.setEnabled(false); // Nunca editable
-
-      if (!enabled) { // Limpiar errores visuales
-        binding.etNombreComercial.setError(null);
-        binding.etRazonSocial.setError(null);
-        binding.etCuit.setError(null);
-        binding.etNombreContacto.setError(null);
-        binding.etTelefono.setError(null);
-        binding.etDireccionLegal.setError(null);
-      }
+      binding.etEmail.setEnabled(false);
     });
 
     mv.getBtnText().observe(getViewLifecycleOwner(), binding.btnAccion::setText);
 
-    mv.getIsLoading().observe(getViewLifecycleOwner(), loading ->
-      binding.progressBar.setVisibility(loading ? View.VISIBLE : View.GONE));
+    mv.getProgressVisibility().observe(getViewLifecycleOwner(),
+      binding.progressBar::setVisibility);
 
-    // Mensajes y Errores
-    mv.getMensajeGlobal().observe(getViewLifecycleOwner(), msg -> {
-      binding.tvMensajeGlobal.setText(msg);
-      binding.tvMensajeGlobal.setVisibility(msg != null && !msg.isEmpty() ? View.VISIBLE : View.GONE);
-    });
-    mv.getEsMensajeError().observe(getViewLifecycleOwner(), isError ->
-      binding.tvMensajeGlobal.setTextColor(isError ? Color.RED : Color.parseColor("#008000")));
+    mv.getMensajeGlobal().observe(getViewLifecycleOwner(),
+      binding.tvMensajeGlobal::setText);
+    mv.getMensajeVisibility().observe(getViewLifecycleOwner(),
+      binding.tvMensajeGlobal::setVisibility);
+    mv.getMensajeColor().observe(getViewLifecycleOwner(),
+      binding.tvMensajeGlobal::setTextColor);
 
-    mv.getErrorNombreComercial().observe(getViewLifecycleOwner(), e -> binding.etNombreComercial.setError(e));
-    mv.getErrorRazonSocial().observe(getViewLifecycleOwner(), e -> binding.etRazonSocial.setError(e));
-    mv.getErrorCuit().observe(getViewLifecycleOwner(), e -> binding.etCuit.setError(e));
-    mv.getErrorNombreContacto().observe(getViewLifecycleOwner(), e -> binding.etNombreContacto.setError(e));
-    mv.getErrorTelefono().observe(getViewLifecycleOwner(), e -> binding.etTelefono.setError(e));
-    mv.getErrorDireccion().observe(getViewLifecycleOwner(), e -> binding.etDireccionLegal.setError(e));
+    // Errores del perfil
+    mv.getErrorNombreComercial().observe(getViewLifecycleOwner(), binding.etNombreComercial::setError);
+    mv.getErrorRazonSocial().observe(getViewLifecycleOwner(),     binding.etRazonSocial::setError);
+    mv.getErrorCuit().observe(getViewLifecycleOwner(),            binding.etCuit::setError);
+    mv.getErrorNombreContacto().observe(getViewLifecycleOwner(),  binding.etNombreContacto::setError);
+    mv.getErrorTelefono().observe(getViewLifecycleOwner(),        binding.etTelefono::setError);
+    mv.getErrorDireccion().observe(getViewLifecycleOwner(),       binding.etDireccionLegal::setError);
 
-    // OBSERVER PASSWORD (logica visual errores en dialog)
-    mv.getMensajePassword().observe(getViewLifecycleOwner(), msg -> {
-      if (msg == null) return;
+    // Errores de password — las refs existen porque el vm solo emite con el dialogo abierto
+    mv.getErrorPassActual().observe(getViewLifecycleOwner(), e -> {
+      etPassActualRef.setError(e);
+      etPassActualRef.requestFocus();
+    });
+    mv.getErrorPassNuevo().observe(getViewLifecycleOwner(),   e -> etPassNuevaRef.setError(e));
+    mv.getErrorPassConfirm().observe(getViewLifecycleOwner(), e -> etPassConfirmRef.setError(e));
 
-      if (msg.startsWith("Éxito") || msg.startsWith("Exito")) {
-        if (dialogPassword != null && dialogPassword.isShowing()) dialogPassword.dismiss();
-        binding.tvMensajeGlobal.setText(msg);
-        binding.tvMensajeGlobal.setTextColor(Color.parseColor("#008000"));
-        binding.tvMensajeGlobal.setVisibility(View.VISIBLE);
-      }
-      else if (msg.startsWith("Error")) {
-        if (dialogPassword != null && dialogPassword.isShowing()) {
-          if (msg.contains("campos son obligatorios")) {
-            if(etPassActualRef.getText().toString().isEmpty()) etPassActualRef.setError("Requerido");
-            if(etPassNuevaRef.getText().toString().isEmpty()) etPassNuevaRef.setError("Requerido");
-            if(etPassConfirmRef.getText().toString().isEmpty()) etPassConfirmRef.setError("Requerido");
-          } else if (msg.contains("no coinciden")) {
-            etPassConfirmRef.setError("No coinciden"); etPassConfirmRef.requestFocus();
-          } else if (msg.contains("6 caracteres")) {
-            etPassNuevaRef.setError("Mínimo 6"); etPassNuevaRef.requestFocus();
-          } else {
-            etPassActualRef.setError(msg.replace("Error: ", "")); etPassActualRef.requestFocus();
-          }
-        } else {
-          binding.tvMensajeGlobal.setText(msg);
-          binding.tvMensajeGlobal.setTextColor(Color.RED);
-          binding.tvMensajeGlobal.setVisibility(View.VISIBLE);
-        }
-      }
-      mv.limpiarMensajePassword();
-    });
+    // Eventos — pulso, el Fragment solo ejecuta
+    mv.getEventCerrarDialogPassword().observe(getViewLifecycleOwner(),
+      ignored -> dialogPassword.dismiss());
 
+    mv.getEventShowAvatarOptions().observe(getViewLifecycleOwner(),
+      ignored -> mostrarDialogoOpciones());
 
-    // Eventos de Dialogs
-    mv.getEventShowAvatarOptions().observe(getViewLifecycleOwner(), show -> {
-      if (Boolean.TRUE.equals(show)) {
-        mostrarDialogoOpciones();
-        mv.onAvatarOptionsConsumed();
-      }
-    });
-    mv.getEventShowDeleteConfirmation().observe(getViewLifecycleOwner(), show -> {
-      if (Boolean.TRUE.equals(show)) { mostrarDialogoConfirmacion(); mv.onDeleteConfirmationConsumed(); }
-    });
-    mv.getEventOpenGallery().observe(getViewLifecycleOwner(), open -> {
-      if (Boolean.TRUE.equals(open)) {
-        mediaImagen.launch(new PickVisualMediaRequest.Builder()
-          .setMediaType(ActivityResultContracts.PickVisualMedia.ImageOnly.INSTANCE)
-          .build());
-        mv.onGalleryOpenConsumed();
-      }
-    });
-    mv.getEventShowZoomImage().observe(getViewLifecycleOwner(), url -> {
-      if (url != null) {
-        mostrarDialogoZoom(url);
-        mv.onZoomImageConsumed();
-      }
-    });
+    mv.getEventShowDeleteConfirmation().observe(getViewLifecycleOwner(),
+      ignored -> mostrarDialogoConfirmacion());
 
-    //btn dar de baja
-    mv.getConfirmarBaja().observe(getViewLifecycleOwner(), show ->{
-      if(Boolean.TRUE.equals(show)){
-        mostrarDialogoAdvertenciaBaja();
-        mv.confirmarBajaConsumido();
-      }
-    });
+    mv.getEventOpenGallery().observe(getViewLifecycleOwner(),
+      ignored -> mediaImagen.launch(new PickVisualMediaRequest.Builder()
+        .setMediaType(ActivityResultContracts.PickVisualMedia.ImageOnly.INSTANCE)
+        .build()));
 
-    //escuchar si la baja fue exitosa e ir al login
-    mv.getNavegarAlLogin().observe(getViewLifecycleOwner(), navegar ->{
-      if (Boolean.TRUE.equals(navegar)){
-        cerrarSesionYNavegar();
-      }
-    });
+    mv.getEventShowZoomImage().observe(getViewLifecycleOwner(),
+      url -> mostrarDialogoZoom(url));
+
+    mv.getEventConfirmarBaja().observe(getViewLifecycleOwner(),
+      ignored -> mostrarDialogoAdvertenciaBaja());
+
+    mv.getEventNavegarAlLogin().observe(getViewLifecycleOwner(),
+      ignored -> cerrarSesionYNavegar());
   }
 
-  private void recolectarYEnviar() {
-    PerfilOrganizadorViewModel.OrganizadorInput input = new PerfilOrganizadorViewModel.OrganizadorInput(
-      binding.etNombreComercial.getText().toString(),
-      binding.etRazonSocial.getText().toString(),
-      binding.etCuit.getText().toString(),
-      binding.etNombreContacto.getText().toString(),
-      binding.etTelefono.getText().toString(),
-      binding.etDireccionLegal.getText().toString()
-    );
-    mv.onBotonPrincipalClick(input);
+  //Dialogos
+
+  private void mostrarDialogoCambiarPassword() {
+    View view = getLayoutInflater().inflate(R.layout.dialog_cambiar_password, null);
+
+    etPassActualRef  = view.findViewById(R.id.etPassActual);
+    etPassNuevaRef   = view.findViewById(R.id.etPassNueva);
+    etPassConfirmRef = view.findViewById(R.id.etPassConfirm);
+
+    view.findViewById(R.id.btnDarDeBajaUsuario)
+      .setOnClickListener(v -> mv.btnDarBaja());
+
+    dialogPassword = new AlertDialog.Builder(requireContext())
+      .setView(view)
+      .setPositiveButton("Cambiar", null)
+      .setNegativeButton("Cancelar", (d, w) -> limpiarReferenciasDialogo())
+      .create();
+
+    dialogPassword.show();
+
+    dialogPassword.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v ->
+      mv.cambiarPassword(
+        etPassActualRef.getText().toString(),
+        etPassNuevaRef.getText().toString(),
+        etPassConfirmRef.getText().toString()
+      ));
+
+    dialogPassword.setOnDismissListener(d -> limpiarReferenciasDialogo());
   }
 
-  //metodos UI Auxiliares (Dialogs)
+  private void limpiarReferenciasDialogo() {
+    etPassActualRef  = null;
+    etPassNuevaRef   = null;
+    etPassConfirmRef = null;
+    dialogPassword   = null;
+  }
+
   private void mostrarDialogoOpciones() {
-    String[] opciones = {"Cambiar Foto", "Eliminar Foto", "Cancelar"};
     new AlertDialog.Builder(getContext())
       .setTitle("Foto de Perfil")
-      .setItems(opciones, (dialog, which) -> {
+      .setItems(new String[]{"Cambiar Foto", "Eliminar Foto", "Cancelar"}, (dialog, which) -> {
         if (which == 0) mv.onChangePhotoOptionSelected();
         else if (which == 1) mv.onDeletePhotoOptionSelected();
       }).show();
@@ -283,16 +225,17 @@ public class PerfilOrganizadorFragment extends Fragment {
       .setTitle("Eliminar foto")
       .setMessage("¿Volver a la imagen por defecto?")
       .setPositiveButton("Sí", (d, w) -> mv.onDeleteConfirmed())
-      .setNegativeButton("No", null).show();
+      .setNegativeButton("No", null)
+      .show();
   }
 
   private void mostrarDialogoZoom(String url) {
     Dialog dialog = new Dialog(getContext());
     dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
     dialog.setContentView(R.layout.dialog_ver_imagen);
-    if (dialog.getWindow() != null) dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
-    ImageView ivZoom = dialog.findViewById(R.id.ivZoom);
-    Glide.with(this).load(url).into(ivZoom);
+    if (dialog.getWindow() != null)
+      dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+    Glide.with(this).load(url).into((ImageView) dialog.findViewById(R.id.ivZoom));
     dialog.show();
   }
 
@@ -300,18 +243,23 @@ public class PerfilOrganizadorFragment extends Fragment {
     new AlertDialog.Builder(getContext())
       .setTitle("¡Peligro!")
       .setMessage("¿Estás seguro de que deseas dar de baja tu cuenta? Esta acción deshabilitará tu perfil.")
-      .setPositiveButton("Sí, dar de baja", (d, w) -> mv.confirmarDarDeBaja()) // El ViewModel ejecuta la baja
+      .setPositiveButton("Sí, dar de baja", (d, w) -> mv.confirmarDarDeBaja())
       .setNegativeButton("Cancelar", null)
       .show();
   }
 
   private void cerrarSesionYNavegar() {
-    // Necesitamos el contexto de la Activity para el Intent
-    android.content.Intent intent = new android.content.Intent(requireActivity(), com.example.runnconnect.ui.login.LoginActivity.class);
-    intent.setFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK | android.content.Intent.FLAG_ACTIVITY_CLEAR_TASK);
+    android.content.Intent intent = new android.content.Intent(
+      requireActivity(), com.example.runnconnect.ui.login.LoginActivity.class);
+    intent.setFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK |
+      android.content.Intent.FLAG_ACTIVITY_CLEAR_TASK);
     startActivity(intent);
     requireActivity().finish();
   }
 
-
+  @Override
+  public void onDestroyView() {
+    super.onDestroyView();
+    binding = null;
+  }
 }
