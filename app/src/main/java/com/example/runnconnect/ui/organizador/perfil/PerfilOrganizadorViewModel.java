@@ -35,84 +35,167 @@ public class PerfilOrganizadorViewModel extends AndroidViewModel {
 
   // Datos
   private final MutableLiveData<PerfilUsuarioResponse> perfilData = new MutableLiveData<>();
-  private final MutableLiveData<String>  avatarUrl  = new MutableLiveData<>();
+  private final MutableLiveData<String> avatarUrl = new MutableLiveData<>();
   private final MutableLiveData<Boolean> isEditable = new MutableLiveData<>(false);
-  private final MutableLiveData<String>  btnText    = new MutableLiveData<>("Editar");
+  private final MutableLiveData<String> btnText = new MutableLiveData<>("Editar");
 
   // Loading — expone visibilidad directamente
   private final MutableLiveData<Integer> progressVisibility = new MutableLiveData<>(View.GONE);
 
   // Mensaje global — el VM decide texto, visibilidad y color
-  private final MutableLiveData<String>  mensajeGlobal     = new MutableLiveData<>("");
+  private final MutableLiveData<String> mensajeGlobal = new MutableLiveData<>("");
   private final MutableLiveData<Integer> mensajeVisibility = new MutableLiveData<>(View.GONE);
-  private final MutableLiveData<Integer> mensajeColor      = new MutableLiveData<>(Color.RED);
+  private final MutableLiveData<Integer> mensajeColor = new MutableLiveData<>(Color.RED);
 
   // Errores de campos del perfil
   private final MutableLiveData<String> errorNombreComercial = new MutableLiveData<>();
-  private final MutableLiveData<String> errorRazonSocial     = new MutableLiveData<>();
-  private final MutableLiveData<String> errorCuit            = new MutableLiveData<>();
-  private final MutableLiveData<String> errorNombreContacto  = new MutableLiveData<>();
-  private final MutableLiveData<String> errorTelefono        = new MutableLiveData<>();
-  private final MutableLiveData<String> errorDireccion       = new MutableLiveData<>();
+  private final MutableLiveData<String> errorRazonSocial = new MutableLiveData<>();
+  private final MutableLiveData<String> errorCuit = new MutableLiveData<>();
+  private final MutableLiveData<String> errorNombreContacto = new MutableLiveData<>();
+  private final MutableLiveData<String> errorTelefono = new MutableLiveData<>();
+  private final MutableLiveData<String> errorDireccion = new MutableLiveData<>();
 
   // Errores de password
-  private final MutableLiveData<String> errorPassActual  = new MutableLiveData<>();
-  private final MutableLiveData<String> errorPassNuevo   = new MutableLiveData<>();
+  private final MutableLiveData<String> errorPassActual = new MutableLiveData<>();
+  private final MutableLiveData<String> errorPassNuevo = new MutableLiveData<>();
   private final MutableLiveData<String> errorPassConfirm = new MutableLiveData<>();
 
   // Eventos — sin valor inicial, solo emiten cuando el evento ocurre
-  private final MutableLiveData<Boolean> eventShowAvatarOptions     = new MutableLiveData<>();
-  private final MutableLiveData<Boolean> eventShowDeleteConfirmation = new MutableLiveData<>();
-  private final MutableLiveData<Boolean> eventOpenGallery           = new MutableLiveData<>();
-  private final MutableLiveData<String>  eventShowZoomImage         = new MutableLiveData<>();
-  private final MutableLiveData<Boolean> eventConfirmarBaja         = new MutableLiveData<>();
-  private final MutableLiveData<Boolean> eventNavegarAlLogin        = new MutableLiveData<>();
-  private final MutableLiveData<Boolean> eventCerrarDialogPassword  = new MutableLiveData<>();
+  private final SingleLiveEvent<Boolean> eventShowAvatarOptions = new SingleLiveEvent<>();
+  private final SingleLiveEvent<Boolean> eventShowDeleteConfirmation = new SingleLiveEvent<>();
+  private final SingleLiveEvent<Boolean> eventOpenGallery = new SingleLiveEvent<>();
+  private final SingleLiveEvent<String> eventShowZoomImage = new SingleLiveEvent<>();
+  private final SingleLiveEvent<Boolean> eventConfirmarBaja = new SingleLiveEvent<>();
+  private final SingleLiveEvent<Boolean> eventNavegarAlLogin = new SingleLiveEvent<>();
+  private final SingleLiveEvent<Boolean> eventCerrarDialogPassword = new SingleLiveEvent<>();
 
   public PerfilOrganizadorViewModel(@NonNull Application application) {
     super(application);
     repo = new UsuarioRepositorio(application);
   }
 
-  // ─── Getters ────────────────────────────────────────────────────────────────
+  //Getters
+  public LiveData<PerfilUsuarioResponse> getPerfilData() {
+    return perfilData;
+  }
 
-  public LiveData<PerfilUsuarioResponse> getPerfilData()            { return perfilData; }
-  public LiveData<String>  getAvatarUrl()                           { return avatarUrl; }
-  public LiveData<Boolean> getIsEditable()                          { return isEditable; }
-  public LiveData<String>  getBtnText()                             { return btnText; }
-  public LiveData<Integer> getProgressVisibility()                  { return progressVisibility; }
-  public LiveData<String>  getMensajeGlobal()                       { return mensajeGlobal; }
-  public LiveData<Integer> getMensajeVisibility()                   { return mensajeVisibility; }
-  public LiveData<Integer> getMensajeColor()                        { return mensajeColor; }
-  public LiveData<String>  getErrorNombreComercial()                { return errorNombreComercial; }
-  public LiveData<String>  getErrorRazonSocial()                    { return errorRazonSocial; }
-  public LiveData<String>  getErrorCuit()                           { return errorCuit; }
-  public LiveData<String>  getErrorNombreContacto()                 { return errorNombreContacto; }
-  public LiveData<String>  getErrorTelefono()                       { return errorTelefono; }
-  public LiveData<String>  getErrorDireccion()                      { return errorDireccion; }
-  public LiveData<String>  getErrorPassActual()                     { return errorPassActual; }
-  public LiveData<String>  getErrorPassNuevo()                      { return errorPassNuevo; }
-  public LiveData<String>  getErrorPassConfirm()                    { return errorPassConfirm; }
-  public LiveData<Boolean> getEventShowAvatarOptions()              { return eventShowAvatarOptions; }
-  public LiveData<Boolean> getEventShowDeleteConfirmation()         { return eventShowDeleteConfirmation; }
-  public LiveData<Boolean> getEventOpenGallery()                    { return eventOpenGallery; }
-  public LiveData<String>  getEventShowZoomImage()                  { return eventShowZoomImage; }
-  public LiveData<Boolean> getEventConfirmarBaja()                  { return eventConfirmarBaja; }
-  public LiveData<Boolean> getEventNavegarAlLogin()                 { return eventNavegarAlLogin; }
-  public LiveData<Boolean> getEventCerrarDialogPassword()           { return eventCerrarDialogPassword; }
+  public LiveData<String> getAvatarUrl() {
+    return avatarUrl;
+  }
 
-  // ─── Acciones públicas ───────────────────────────────────────────────────────
+  public LiveData<Boolean> getIsEditable() {
+    return isEditable;
+  }
 
+  public LiveData<String> getBtnText() {
+    return btnText;
+  }
+
+  public LiveData<Integer> getProgressVisibility() {
+    return progressVisibility;
+  }
+
+  public LiveData<String> getMensajeGlobal() {
+    return mensajeGlobal;
+  }
+
+  public LiveData<Integer> getMensajeVisibility() {
+    return mensajeVisibility;
+  }
+
+  public LiveData<Integer> getMensajeColor() {
+    return mensajeColor;
+  }
+
+  public LiveData<String> getErrorNombreComercial() {
+    return errorNombreComercial;
+  }
+
+  public LiveData<String> getErrorRazonSocial() {
+    return errorRazonSocial;
+  }
+
+  public LiveData<String> getErrorCuit() {
+    return errorCuit;
+  }
+
+  public LiveData<String> getErrorNombreContacto() {
+    return errorNombreContacto;
+  }
+
+  public LiveData<String> getErrorTelefono() {
+    return errorTelefono;
+  }
+
+  public LiveData<String> getErrorDireccion() {
+    return errorDireccion;
+  }
+
+  public LiveData<String> getErrorPassActual() {
+    return errorPassActual;
+  }
+
+  public LiveData<String> getErrorPassNuevo() {
+    return errorPassNuevo;
+  }
+
+  public LiveData<String> getErrorPassConfirm() {
+    return errorPassConfirm;
+  }
+
+  public LiveData<Boolean> getEventShowAvatarOptions() {
+    return eventShowAvatarOptions;
+  }
+
+  public LiveData<Boolean> getEventShowDeleteConfirmation() {
+    return eventShowDeleteConfirmation;
+  }
+
+  public LiveData<Boolean> getEventOpenGallery() {
+    return eventOpenGallery;
+  }
+
+  public LiveData<String> getEventShowZoomImage() {
+    return eventShowZoomImage;
+  }
+
+  public LiveData<Boolean> getEventConfirmarBaja() {
+    return eventConfirmarBaja;
+  }
+
+  public LiveData<Boolean> getEventNavegarAlLogin() {
+    return eventNavegarAlLogin;
+  }
+
+  public LiveData<Boolean> getEventCerrarDialogPassword() {
+    return eventCerrarDialogPassword;
+  }
+
+  // Acciones publicas
   public void onBotonPrincipalClick(OrganizadorInput input) {
     if (modoEdicion) guardarCambios(input);
     else habilitarEdicion();
   }
 
-  public void btnDarBaja()                  { eventConfirmarBaja.setValue(true); }
-  public void onEditAvatarClicked()         { eventShowAvatarOptions.setValue(true); }
-  public void onChangePhotoOptionSelected() { eventOpenGallery.setValue(true); }
-  public void onDeletePhotoOptionSelected() { eventShowDeleteConfirmation.setValue(true); }
-  public void onDeleteConfirmed()           { borrarFoto(); }
+  public void btnDarBaja() {
+    eventConfirmarBaja.setValue(true);
+  }
+
+  public void onEditAvatarClicked() {
+    eventShowAvatarOptions.setValue(true);
+  }
+
+  public void onChangePhotoOptionSelected() {
+    eventOpenGallery.setValue(true);
+  }
+
+  public void onDeletePhotoOptionSelected() {
+    eventShowDeleteConfirmation.setValue(true);
+  }
+
+  public void onDeleteConfirmed() {
+    borrarFoto();
+  }
 
   public void onAvatarImageClicked() {
     String url = avatarUrl.getValue();
@@ -132,13 +215,28 @@ public class PerfilOrganizadorViewModel extends AndroidViewModel {
     errorPassConfirm.setValue(null);
 
     boolean esValido = true;
-    if (actual.isEmpty())       { errorPassActual.setValue("Requerido");  esValido = false; }
-    if (nueva.isEmpty())        { errorPassNuevo.setValue("Requerido");   esValido = false; }
-    if (confirmacion.isEmpty()) { errorPassConfirm.setValue("Requerido"); esValido = false; }
+    if (actual.isEmpty()) {
+      errorPassActual.setValue("Requerido");
+      esValido = false;
+    }
+    if (nueva.isEmpty()) {
+      errorPassNuevo.setValue("Requerido");
+      esValido = false;
+    }
+    if (confirmacion.isEmpty()) {
+      errorPassConfirm.setValue("Requerido");
+      esValido = false;
+    }
     if (!esValido) return;
 
-    if (nueva.length() < 6)          { errorPassNuevo.setValue("Mínimo 6 caracteres");           return; }
-    if (!nueva.equals(confirmacion)) { errorPassConfirm.setValue("Las contraseñas no coinciden"); return; }
+    if (nueva.length() < 6) {
+      errorPassNuevo.setValue("Mínimo 6 caracteres");
+      return;
+    }
+    if (!nueva.equals(confirmacion)) {
+      errorPassConfirm.setValue("Las contraseñas no coinciden");
+      return;
+    }
 
     setLoading(true);
     repo.cambiarPassword(new CambiarPasswordRequest(actual, nueva, confirmacion), new Callback<Void>() {
@@ -147,25 +245,32 @@ public class PerfilOrganizadorViewModel extends AndroidViewModel {
         setLoading(false);
         if (response.isSuccessful()) {
           eventCerrarDialogPassword.setValue(true);
-          mostrarMensajeGlobal("Contraseña actualizada correctamente", false);
+          mostrarMensajeGlobal("Contraseña actualizada correctamente, cerrando sesión..", false);
+          new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(() -> {
+            repo.cerrarSesion();
+            eventNavegarAlLogin.setValue(true);
+          }, 2000);
         } else {
           String errorMsg = "Credenciales incorrectas";
           try {
             if (response.errorBody() != null) {
               String raw = response.errorBody().string();
               JSONObject json = new JSONObject(raw);
-              if (json.has("message"))     errorMsg = json.getString("message");
-              else if (json.has("title"))  errorMsg = json.getString("title");
+              if (json.has("message")) errorMsg = json.getString("message");
+              else if (json.has("title")) errorMsg = json.getString("title");
               else if (json.has("errors")) {
                 JSONObject errors = json.getJSONObject("errors");
                 java.util.Iterator<String> keys = errors.keys();
                 if (keys.hasNext()) errorMsg = errors.getJSONArray(keys.next()).getString(0);
               }
             }
-          } catch (Exception e) { e.printStackTrace(); }
+          } catch (Exception e) {
+            e.printStackTrace();
+          }
           errorPassActual.setValue(errorMsg);
         }
       }
+
       @Override
       public void onFailure(Call<Void> call, Throwable t) {
         setLoading(false);
@@ -187,6 +292,7 @@ public class PerfilOrganizadorViewModel extends AndroidViewModel {
           mostrarMensajeGlobal("No se pudo dar de baja la cuenta.", true);
         }
       }
+
       @Override
       public void onFailure(Call<Void> call, Throwable t) {
         setLoading(false);
@@ -210,6 +316,7 @@ public class PerfilOrganizadorViewModel extends AndroidViewModel {
           mostrarMensajeGlobal("Error al cargar perfil", true);
         }
       }
+
       @Override
       public void onFailure(Call<PerfilUsuarioResponse> call, Throwable t) {
         setLoading(false);
@@ -231,6 +338,7 @@ public class PerfilOrganizadorViewModel extends AndroidViewModel {
           mostrarMensajeGlobal("Error al subir imagen", true);
         }
       }
+
       @Override
       public void onFailure(Call<PerfilUsuarioResponse> call, Throwable t) {
         setLoading(false);
@@ -252,6 +360,7 @@ public class PerfilOrganizadorViewModel extends AndroidViewModel {
           mostrarMensajeGlobal("Error al eliminar", true);
         }
       }
+
       @Override
       public void onFailure(Call<PerfilUsuarioResponse> call, Throwable t) {
         setLoading(false);
@@ -260,8 +369,7 @@ public class PerfilOrganizadorViewModel extends AndroidViewModel {
     });
   }
 
-  // ─── Privados ────────────────────────────────────────────────────────────────
-
+  //Privados
   private void habilitarEdicion() {
     modoEdicion = true;
     isEditable.setValue(true);
@@ -285,27 +393,33 @@ public class PerfilOrganizadorViewModel extends AndroidViewModel {
     boolean esValido = true;
 
     if (input.nombreComercial == null || input.nombreComercial.trim().length() < 3) {
-      errorNombreComercial.setValue("Mínimo 3 caracteres"); esValido = false;
+      errorNombreComercial.setValue("Mínimo 3 caracteres");
+      esValido = false;
     } else errorNombreComercial.setValue(null);
 
     if (input.razonSocial == null || input.razonSocial.trim().length() < 2) {
-      errorRazonSocial.setValue("Requerido"); esValido = false;
+      errorRazonSocial.setValue("Requerido");
+      esValido = false;
     } else errorRazonSocial.setValue(null);
 
     if (input.cuit == null || !Pattern.matches("^\\d{11}$", input.cuit)) {
-      errorCuit.setValue("Debe tener 11 números sin guiones"); esValido = false;
+      errorCuit.setValue("Debe tener 11 números sin guiones");
+      esValido = false;
     } else errorCuit.setValue(null);
 
     if (input.direccion == null || input.direccion.trim().isEmpty()) {
-      errorDireccion.setValue("Requerido"); esValido = false;
+      errorDireccion.setValue("Requerido");
+      esValido = false;
     } else errorDireccion.setValue(null);
 
     if (input.nombreContacto == null || input.nombreContacto.trim().length() < 3) {
-      errorNombreContacto.setValue("Mínimo 3 caracteres"); esValido = false;
+      errorNombreContacto.setValue("Mínimo 3 caracteres");
+      esValido = false;
     } else errorNombreContacto.setValue(null);
 
     if (input.telefono == null || input.telefono.trim().length() < 7) {
-      errorTelefono.setValue("Mínimo 7 dígitos"); esValido = false;
+      errorTelefono.setValue("Mínimo 7 dígitos");
+      esValido = false;
     } else errorTelefono.setValue(null);
 
     if (!esValido) return;
@@ -333,10 +447,13 @@ public class PerfilOrganizadorViewModel extends AndroidViewModel {
                 if (raw.contains("message"))
                   msg = new JSONObject(raw).getString("message");
               }
-            } catch (Exception e) { e.printStackTrace(); }
+            } catch (Exception e) {
+              e.printStackTrace();
+            }
             mostrarMensajeGlobal(msg, true);
           }
         }
+
         @Override
         public void onFailure(Call<PerfilUsuarioResponse> call, Throwable t) {
           setLoading(false);
@@ -357,7 +474,10 @@ public class PerfilOrganizadorViewModel extends AndroidViewModel {
   }
 
   private void procesarAvatar(String url) {
-    if (url == null || url.isEmpty()) { avatarUrl.setValue(null); return; }
+    if (url == null || url.isEmpty()) {
+      avatarUrl.setValue(null);
+      return;
+    }
     if (url.contains("localhost")) url = url.replace("localhost", "10.0.2.2");
     avatarUrl.setValue(url);
   }
@@ -371,22 +491,46 @@ public class PerfilOrganizadorViewModel extends AndroidViewModel {
         while ((length = in.read(buffer)) > 0) out.write(buffer, 0, length);
       }
       return tempFile;
-    } catch (Exception e) { return null; }
+    } catch (Exception e) {
+      return null;
+    }
   }
 
-  // ─── Input DTO ───────────────────────────────────────────────────────────────
-
+  //Input DTO
   public static class OrganizadorInput {
     public final String nombreComercial, razonSocial, cuit, nombreContacto, telefono, direccion;
 
     public OrganizadorInput(String nombreComercial, String razonSocial, String cuit,
                             String nombreContacto, String telefono, String direccion) {
       this.nombreComercial = nombreComercial;
-      this.razonSocial     = razonSocial;
-      this.cuit            = cuit;
-      this.nombreContacto  = nombreContacto;
-      this.telefono        = telefono;
-      this.direccion       = direccion;
+      this.razonSocial = razonSocial;
+      this.cuit = cuit;
+      this.nombreContacto = nombreContacto;
+      this.telefono = telefono;
+      this.direccion = direccion;
     }
   }
+
+  private static class SingleLiveEvent<T> extends MutableLiveData<T> {
+    private final java.util.concurrent.atomic.AtomicBoolean pending =
+      new java.util.concurrent.atomic.AtomicBoolean(false);
+
+    @Override
+    public void observe(androidx.lifecycle.LifecycleOwner owner,
+                        androidx.lifecycle.Observer<? super T> observer) {
+      super.observe(owner, value -> {
+        if (pending.compareAndSet(true, false)) {
+          observer.onChanged(value);
+        }
+      });
+    }
+
+    @Override
+    public void setValue(T value) {
+      pending.set(true);
+      super.setValue(value);
+    }
+  }
+
+
 }

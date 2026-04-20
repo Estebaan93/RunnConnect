@@ -53,10 +53,10 @@ namespace RunnConnectAPI.Controllers
           return Unauthorized(new { message = "Credenciales invalidas" });
 
         //si las credenciales estan OK, pero el usuario esta desactivado
-        if(!usuario.Estado)
+        if (!usuario.Estado)
         {
           // badRequest para Android esta esperando para mostrar el AlertDialog
-            return BadRequest(new { message = "Tu cuenta se encuentra desactivada." });
+          return BadRequest(new { message = "Tu cuenta se encuentra desactivada." });
         }
 
         //si esta activo, generar token
@@ -423,19 +423,28 @@ namespace RunnConnectAPI.Controllers
         //Guardar cambios
         await _usuarioRepositorio.UpdateAsync(usuario);
 
+        var avatarUrl = _fileService.ObtenerUrlCompleta(usuario.ImgAvatar, Request);
+
         //Retornar respuesta
         return Ok(new
         {
-          message = "Perfil actualizado exitosamente. Ya puedes inscribirte a eventos",
-          usuario = new
-          {
-            idUsuario = usuario.IdUsuario,
-            nombre = usuario.Nombre,
-            email = usuario.Email,
-            telefono = usuario.Telefono,
-            tipoUsuario = usuario.TipoUsuario,
-            perfilCompleto = true
-          }
+          idUsuario = usuario.IdUsuario,
+          nombre = usuario.Nombre,
+          apellido = usuario.PerfilRunner.Apellido,
+          email = usuario.Email,
+          telefono = usuario.Telefono,
+          tipoUsuario = usuario.TipoUsuario,
+          fechaNacimiento = usuario.PerfilRunner.FechaNacimiento,
+          genero = usuario.PerfilRunner.Genero,
+          dni = usuario.PerfilRunner.Dni,
+          localidad = usuario.PerfilRunner.Localidad,
+          agrupacion = usuario.PerfilRunner.Agrupacion,
+          nombreContactoEmergencia = usuario.PerfilRunner.NombreContactoEmergencia,
+          telefonoEmergencia = usuario.PerfilRunner.TelefonoEmergencia,
+          imgAvatar = avatarUrl,
+          estado = usuario.Estado,
+          perfilCompleto = true
+
         });
       }
       catch (Exception ex)
@@ -487,19 +496,24 @@ namespace RunnConnectAPI.Controllers
         //Guardar cambios
         await _usuarioRepositorio.UpdateAsync(usuario);
 
+        var avatarUrl = _fileService.ObtenerUrlCompleta(usuario.ImgAvatar, Request);
+
         //Retornar respuesta
         return Ok(new
         {
-          message = "Perfil actualizado exitosamente. Ya puedes crear eventos",
-          usuario = new
-          {
-            idUsuario = usuario.IdUsuario,
-            nombre = usuario.Nombre,
-            email = usuario.Email,
-            telefono = usuario.Telefono,
-            tipoUsuario = usuario.TipoUsuario,
-            perfilCompleto = true
-          }
+          //message = "Perfil actualizado exitosamente. Ya puedes crear eventos",
+          idUsuario = usuario.IdUsuario,
+          nombre = usuario.Nombre,
+          razonSocial = usuario.PerfilOrganizador.RazonSocial,
+          nombreComercial = usuario.PerfilOrganizador.NombreComercial,
+          cuit = usuario.PerfilOrganizador.CuitTaxId,
+          direccionLegal = usuario.PerfilOrganizador.DireccionLegal,
+          email = usuario.Email,
+          telefono = usuario.Telefono,
+          tipoUsuario = usuario.TipoUsuario,
+          imgAvatar = avatarUrl,
+          estado = usuario.Estado,
+          perfilCompleto = true
         });
       }
       catch (Exception ex)

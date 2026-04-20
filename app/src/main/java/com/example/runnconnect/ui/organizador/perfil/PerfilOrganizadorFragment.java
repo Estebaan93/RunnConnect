@@ -28,7 +28,6 @@ import com.example.runnconnect.R;
 import com.example.runnconnect.databinding.FragmentPerfilOrganizadorBinding;
 
 public class PerfilOrganizadorFragment extends Fragment {
-
   private FragmentPerfilOrganizadorBinding binding;
   private PerfilOrganizadorViewModel mv;
   private ActivityResultLauncher<PickVisualMediaRequest> mediaImagen;
@@ -59,7 +58,6 @@ public class PerfilOrganizadorFragment extends Fragment {
   }
 
   //Listeners
-
   private void setupListeners() {
     binding.btnAccion.setOnClickListener(v ->
       mv.onBotonPrincipalClick(new PerfilOrganizadorViewModel.OrganizadorInput(
@@ -90,7 +88,6 @@ public class PerfilOrganizadorFragment extends Fragment {
   }
 
   //Observers
-
   private void setupObservers() {
 
     mv.getPerfilData().observe(getViewLifecycleOwner(), p -> {
@@ -110,7 +107,7 @@ public class PerfilOrganizadorFragment extends Fragment {
         .circleCrop()
         .into(binding.ivAvatar));
 
-    // El vm ya limpia los errores en deshabilitarEdicion() — el Fragment solo habilita/deshabilita
+    // El vm limpia los errores en deshabilitarEdicion — el Fragment solo habilita/deshabilita
     mv.getIsEditable().observe(getViewLifecycleOwner(), enabled -> {
       binding.etNombreComercial.setEnabled(enabled);
       binding.etRazonSocial.setEnabled(enabled);
@@ -141,7 +138,7 @@ public class PerfilOrganizadorFragment extends Fragment {
     mv.getErrorTelefono().observe(getViewLifecycleOwner(),        binding.etTelefono::setError);
     mv.getErrorDireccion().observe(getViewLifecycleOwner(),       binding.etDireccionLegal::setError);
 
-    // Errores de password — las refs existen porque el vm solo emite con el dialogo abierto
+    // Errores de password
     mv.getErrorPassActual().observe(getViewLifecycleOwner(), e -> {
       etPassActualRef.setError(e);
       etPassActualRef.requestFocus();
@@ -149,7 +146,7 @@ public class PerfilOrganizadorFragment extends Fragment {
     mv.getErrorPassNuevo().observe(getViewLifecycleOwner(),   e -> etPassNuevaRef.setError(e));
     mv.getErrorPassConfirm().observe(getViewLifecycleOwner(), e -> etPassConfirmRef.setError(e));
 
-    // Eventos — pulso, el Fragment solo ejecuta
+    // Eventos
     mv.getEventCerrarDialogPassword().observe(getViewLifecycleOwner(),
       ignored -> dialogPassword.dismiss());
 
@@ -175,7 +172,6 @@ public class PerfilOrganizadorFragment extends Fragment {
   }
 
   //Dialogos
-
   private void mostrarDialogoCambiarPassword() {
     View view = getLayoutInflater().inflate(R.layout.dialog_cambiar_password, null);
 
