@@ -49,7 +49,7 @@ namespace RunnConnectAPI.Services // Define el espacio de nombres donde vive est
         issuer: _config["Jwt:Issuer"],
         audience: _config["Jwt:Audience"],
         claims: claims,
-        expires: DateTime.UtcNow.AddHours(1), //Valido por 1 hora
+        expires: DateTime.UtcNow.AddHours(3), //Valido por 1 hora
         signingCredentials: creds
       );
 

@@ -311,27 +311,39 @@ public class DetalleEventoViewModel extends AndroidViewModel {
       case "CANCELADO": uiEstadoColor.setValue(Color.RED); break;
       default: uiEstadoColor.setValue(Color.BLACK);
     }
-
     if (evento.getCategorias() != null && !evento.getCategorias().isEmpty()) {
-      CategoriaResponse cat = evento.getCategorias().get(0);
 
-      String tipotexto="";
-      // 1. Obtenemos el tipo (ej: "calle") y lo capitalizamos ("Calle")
+      //Juntar todos los nombres de las categorias separadas por coma
+      StringBuilder nombresCategorias = new StringBuilder();
+      for (int i = 0; i < evento.getCategorias().size(); i++) {
+        String nom = evento.getCategorias().get(i).getNombre();
+        nombresCategorias.append(nom != null ? nom : "General");
+        if (i < evento.getCategorias().size() - 1) {
+          nombresCategorias.append(", ");
+        }
+      }
+
+      //Obtenemos el tipo (ej: "calle") y lo capitalizamos ("Calle")
       String tipoTexto = "";
       if (evento.getTipoEvento() != null && !evento.getTipoEvento().isEmpty()) {
         String raw = evento.getTipoEvento();
         tipoTexto = raw.substring(0, 1).toUpperCase() + raw.substring(1);
       }
 
-      // 2. Armamos el texto final: "5K - Calle"
-      String textoFinal = (cat.getNombre() != null ? cat.getNombre() : "General");
+      //Armamos el texto final: "2K, 5K, 10K  |  Calle"
+      String textoFinal = nombresCategorias.toString();
       if (!tipoTexto.isEmpty()) {
         textoFinal += "  |  " + tipoTexto;
       }
 
       uiDistanciaTipo.setValue(textoFinal);
 
-      uiGeneroPrecio.setValue("$" + cat.getPrecio());
+      //Si hay una sola categoria mostramos el precio. Si hay varias, texto generico.
+      if (evento.getCategorias().size() == 1) {
+        uiGeneroPrecio.setValue("$" + evento.getCategorias().get(0).getPrecio());
+      } else {
+        uiGeneroPrecio.setValue("Múltiples categorías y precios");
+      }
 
       uiVisibilidadDatosCategoria.setValue(View.VISIBLE);
 
@@ -382,7 +394,7 @@ public class DetalleEventoViewModel extends AndroidViewModel {
   // MeTODO HELPER PARA MENSAJES TEMPORALES
   private void mostrarMensajeExito(String msg) {
     mensajeGlobal.setValue(msg);
-    // Borrar automáticamente a los 4 segundos
+    // Borrar automaticamente a los 4 segundos
     new Handler(Looper.getMainLooper()).postDelayed(() -> {
       mensajeGlobal.setValue(null);
     }, 4000);
