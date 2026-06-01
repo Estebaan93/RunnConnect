@@ -6,6 +6,7 @@ package com.example.runnconnect.data.conexion;
 import com.example.runnconnect.data.request.ActualizarEventoRequest;
 import com.example.runnconnect.data.request.ActualizarPerfilOrganizadorRequest;
 import com.example.runnconnect.data.request.ActualizarPerfilRunnerRequest;
+import com.example.runnconnect.data.request.CambiarEstadoCategoriaRequest;
 import com.example.runnconnect.data.request.CrearPuntoInteresRequest;
 import com.example.runnconnect.data.request.ReactivarCuentaRequest;
 import com.example.runnconnect.data.request.RecuperarPasswordRequest;
@@ -183,6 +184,15 @@ public interface ApiService {
     @Header("Authorization") String token,
     @Path("id") int id,
     @Body CambiarEstadoRequest request);
+
+  //cambiar estado de una categoria
+  @PUT("Evento/{idEvento}/Categorias/{idCategoria}/CambiarEstado")
+  Call<ResponseBody> cambiarEstadoCategoria(
+    @Header("Authorization") String token,
+    @Path("idEvento") int idEvento,
+    @Path("idCategoria") int idCategoria,
+    @Body CambiarEstadoCategoriaRequest request
+  );
 
   // GET para obtener lista filtrada
   @GET("Evento/{idEvento}/Inscripciones")

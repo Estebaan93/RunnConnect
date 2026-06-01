@@ -9,6 +9,7 @@ import com.example.runnconnect.data.conexion.ApiClient;
 import com.example.runnconnect.data.conexion.ApiService;
 import com.example.runnconnect.data.preferencias.SessionManager;
 import com.example.runnconnect.data.request.ActualizarEventoRequest;
+import com.example.runnconnect.data.request.CambiarEstadoCategoriaRequest;
 import com.example.runnconnect.data.request.CambiarEstadoRequest;
 import com.example.runnconnect.data.request.CrearEventoRequest;
 import com.example.runnconnect.data.request.CrearPuntoInteresRequest;
@@ -71,7 +72,7 @@ public class EventoRepositorio {
   }
 
 
-  //cambiar estado (publicado, cancelado, finalizado)
+  //cambiar estado (publicado, cancelado, finalizado) - del evento
   public void cambiarEstado(int idEvento, CambiarEstadoRequest request, Callback<ResponseBody> callback) {
     String token = sessionManager.leerToken();
     if (token != null) {
@@ -79,6 +80,17 @@ public class EventoRepositorio {
     }
 
   }
+
+  //cambiar estado de las categorias
+  public void cambiarEstadoCategoria(int idEvento, int idCategoria, CambiarEstadoCategoriaRequest request, Callback<ResponseBody> callback) {
+    String token = sessionManager.leerToken();
+    if (token != null && !token.isEmpty()) {
+      apiService.cambiarEstadoCategoria("Bearer " + token, idEvento, idCategoria, request).enqueue(callback);
+    } else {
+      callback.onFailure(null, new Throwable("No hay sesión activa. Por favor inicie sesión nuevamente."));
+    }
+  }
+
   //----EVENTOS PUBLICOS---------
   //obt eventos publicos
   public void obtenerEventosPublicados(int pagina, int tamanio, Callback<EventosPaginadosResponse> callback){
@@ -125,6 +137,8 @@ public class EventoRepositorio {
     // Opción B: Llamada directa (según tu MapaController.cs es público)
     apiService.obtenerPuntosInteres(idEvento).enqueue(callback);
   }
+
+
 
 
 }

@@ -12,6 +12,6 @@ namespace RunnConnectAPI.Models.Dto.Categoria
         public string NuevoEstado { get; set; } = string.Empty;
 
         [StringLength(500, ErrorMessage = "El motivo no puede exceder 500 caracteres")]
-        public string? Motivo { get; set; } // Para la notificacion push específica
+        public string? Motivo { get; set; } // Para la notificacion push especifica
   }
 }

@@ -88,7 +88,7 @@ public class MisEventosFragment extends Fragment {
       public void onScrolled(@NonNull androidx.recyclerview.widget.RecyclerView recyclerView, int dx, int dy) {
         super.onScrolled(recyclerView, dx, dy);
 
-        if (dy > 0) { // Solo si scrollea hacia abajo
+        if (dy > 0) {
           int itemsVisibles = layoutManager.getChildCount();
           int totalItems = layoutManager.getItemCount();
           int primerItemVisible = layoutManager.findFirstVisibleItemPosition();

@@ -8,18 +8,16 @@ import android.net.Uri;
 import android.os.Handler;
 import android.os.Looper;
 import android.provider.OpenableColumns;
-import android.util.Log;
-import android.view.View;
 
 import androidx.annotation.NonNull;
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
-import com.example.runnconnect.R;
 import com.example.runnconnect.data.repositorio.EventoRepositorio;
 import com.example.runnconnect.data.repositorio.InscripcionRepositorio;
 import com.example.runnconnect.data.repositorio.ResultadoRepositorio;
+import com.example.runnconnect.data.request.CambiarEstadoCategoriaRequest;
 import com.example.runnconnect.data.request.CambiarEstadoRequest;
 import com.example.runnconnect.data.response.CategoriaResponse;
 import com.example.runnconnect.data.response.EventoDetalleResponse;
@@ -44,27 +42,50 @@ public class DetalleEventoViewModel extends AndroidViewModel {
   private final EventoRepositorio repositorio;
   private final InscripcionRepositorio inscripcionRepositorio;
   private final ResultadoRepositorio resultadoRepositorio;
+  private CategoriaResponse categoriaSeleccionada;
 
   // --- VARIABLES INTERNAS ---
   private boolean existenResultados = false;
   private File archivoListoParaSubir = null;
 
+  // Enum nativo de Java para evitar Magic Strings en la UI
+  public enum AccionResultados { CARGAR, VER }
+
   // --- LIVE DATA ---
   private final MutableLiveData<String> nombreArchivoSeleccionado = new MutableLiveData<>();
   private final MutableLiveData<Boolean> archivoEsValido = new MutableLiveData<>(false);
-  private final MutableLiveData<String> mensajeCargaArchivo = new MutableLiveData<>();
 
-  // Menú
+  // MVVM Puro: Evento binario de éxito vs Mensajes de error en UI
+  private final MutableLiveData<Boolean> exitoCargaArchivo = new MutableLiveData<>();
+
+  private final MutableLiveData<Boolean> eventShowRunnersDialog = new MutableLiveData<>(false);
+  private final MutableLiveData<Boolean> eventShowCambiarEstadoCategoria = new MutableLiveData<>(false);
+
+  private final MutableLiveData<String[]> estadosCategoriasValidos = new MutableLiveData<>(
+    new String[]{"programada", "retrasada", "cancelada", "finalizada", "suspendido"}
+  );
+  private final MutableLiveData<Integer> posicionPreseleccionadaCategoria = new MutableLiveData<>(0);
+  private final MutableLiveData<String> errorMotivoCategoria = new MutableLiveData<>();
+
   private final MutableLiveData<String[]> opcionesMenuResultados = new MutableLiveData<>();
-  private final MutableLiveData<String> accionNavegacionResultados = new MutableLiveData<>();
+  private final MutableLiveData<AccionResultados> accionNavegacionResultados = new MutableLiveData<>();
 
-  // UI Generales
   private final MutableLiveData<Boolean> isLoading = new MutableLiveData<>(false);
   private final MutableLiveData<String> mensajeGlobal = new MutableLiveData<>();
+  private final MutableLiveData<Integer> mensajeColorTexto = new MutableLiveData<>(Color.BLACK);
+  private final MutableLiveData<Integer> mensajeColorFondo = new MutableLiveData<>(Color.parseColor("#F5F5F5"));
 
-  // Binding
+  private final MutableLiveData<Boolean> habilitarEliminacionRunners = new MutableLiveData<>(true);
+
+  // MVVM Puro: Propiedades expuestas listas para la vista
+  private final MutableLiveData<String> estadoActualEvento = new MutableLiveData<>("");
+
   private final MutableLiveData<EventoDetalleResponse> eventoRaw = new MutableLiveData<>();
-  private final MutableLiveData<Integer> visibilityBtnResultados = new MutableLiveData<>(View.GONE);
+
+  // MVVM Puro: Se usan Booleans en lugar de View.VISIBLE / View.GONE
+  private final MutableLiveData<Boolean> visibilityBtnResultados = new MutableLiveData<>(false);
+  private final MutableLiveData<Boolean> uiVisibilidadDatosCategoria = new MutableLiveData<>(false);
+
   private final MutableLiveData<String> uiTitulo = new MutableLiveData<>();
   private final MutableLiveData<String> uiFecha = new MutableLiveData<>();
   private final MutableLiveData<String> uiLugar = new MutableLiveData<>();
@@ -75,9 +96,7 @@ public class DetalleEventoViewModel extends AndroidViewModel {
   private final MutableLiveData<Integer> uiEstadoColor = new MutableLiveData<>();
   private final MutableLiveData<String> uiDistanciaTipo = new MutableLiveData<>();
   private final MutableLiveData<String> uiGeneroPrecio = new MutableLiveData<>();
-  private final MutableLiveData<Integer> uiVisibilidadDatosCategoria = new MutableLiveData<>(View.GONE);
 
-  // Dialogs
   private final MutableLiveData<String> dialogError = new MutableLiveData<>();
   private final MutableLiveData<Boolean> dialogDismiss = new MutableLiveData<>();
   private final MutableLiveData<List<CategoriaResponse>> listaCategorias = new MutableLiveData<>();
@@ -93,14 +112,20 @@ public class DetalleEventoViewModel extends AndroidViewModel {
   // --- GETTERS ---
   public LiveData<Boolean> getIsLoading() { return isLoading; }
   public LiveData<String> getMensajeGlobal() { return mensajeGlobal; }
+  public LiveData<Integer> getMensajeColorTexto() { return mensajeColorTexto; }
+  public LiveData<Integer> getMensajeColorFondo() { return mensajeColorFondo; }
+  public LiveData<Boolean> getHabilitarEliminacionRunners() { return habilitarEliminacionRunners; }
+  public LiveData<String> getEstadoActualEvento() { return estadoActualEvento; }
+
   public LiveData<String> getNombreArchivoSeleccionado() { return nombreArchivoSeleccionado; }
   public LiveData<Boolean> getArchivoEsValido() { return archivoEsValido; }
-  public LiveData<String> getMensajeCargaArchivo() { return mensajeCargaArchivo; }
+  public LiveData<Boolean> getExitoCargaArchivo() { return exitoCargaArchivo; }
+
   public LiveData<String[]> getOpcionesMenuResultados() { return opcionesMenuResultados; }
-  public LiveData<String> getAccionNavegacionResultados() { return accionNavegacionResultados; }
+  public LiveData<AccionResultados> getAccionNavegacionResultados() { return accionNavegacionResultados; }
 
   public LiveData<EventoDetalleResponse> getEventoRaw() { return eventoRaw; }
-  public LiveData<Integer> getVisibilityBtnResultados() { return visibilityBtnResultados; }
+  public LiveData<Boolean> getVisibilityBtnResultados() { return visibilityBtnResultados; }
 
   public LiveData<String> getUiTitulo() { return uiTitulo; }
   public LiveData<String> getUiFecha() { return uiFecha; }
@@ -112,36 +137,137 @@ public class DetalleEventoViewModel extends AndroidViewModel {
   public LiveData<Integer> getUiEstadoColor() { return uiEstadoColor; }
   public LiveData<String> getUiDistanciaTipo() { return uiDistanciaTipo; }
   public LiveData<String> getUiGeneroPrecio() { return uiGeneroPrecio; }
-  public LiveData<Integer> getUiVisibilidadDatosCategoria() { return uiVisibilidadDatosCategoria; }
+  public LiveData<Boolean> getUiVisibilidadDatosCategoria() { return uiVisibilidadDatosCategoria; }
   public LiveData<String> getDialogError() { return dialogError; }
   public LiveData<Boolean> getDialogDismiss() { return dialogDismiss; }
   public LiveData<List<CategoriaResponse>> getListaCategorias() { return listaCategorias; }
   public LiveData<List<InscriptoEventoResponse>> getListaRunnersDialog() { return listaRunnerDialog; }
 
+  public CategoriaResponse getCategoriaSeleccionada() { return categoriaSeleccionada; }
+  public LiveData<Integer> getPosicionPreseleccionadaCategoria() { return posicionPreseleccionadaCategoria; }
+  public LiveData<String> getErrorMotivoCategoria() { return errorMotivoCategoria; }
+  public LiveData<String[]> getEstadosCategoriasValidos() { return estadosCategoriasValidos; }
 
-  // 1. PROCESAMIENTO DE ARCHIVO (SIN LOADER VISUAL - ANTI ANR)
+  public void observarEventoRunners(androidx.lifecycle.LifecycleOwner owner, Runnable accion) {
+    eventShowRunnersDialog.observe(owner, debeMostrar -> {
+      if (Boolean.TRUE.equals(debeMostrar)) {
+        eventShowRunnersDialog.setValue(false);
+        accion.run();
+      }
+    });
+  }
+
+  public void onCategoriaClickNormal(CategoriaResponse categoria) {
+    if (categoria != null) {
+      this.categoriaSeleccionada = categoria;
+      cargarRunnersDeCategoria(categoria.getIdEvento(), categoria.getIdCategoria());
+      eventShowRunnersDialog.setValue(true);
+    }
+  }
+
+  public void onCategoriaClickLargo(CategoriaResponse categoria) {
+    if (categoria != null) {
+      this.categoriaSeleccionada = categoria;
+      String[] estados = estadosCategoriasValidos.getValue();
+      String estadoActual = categoria.getEstado();
+      int indiceEncontrado = 0;
+
+      if (estados != null && estadoActual != null) {
+        for (int i = 0; i < estados.length; i++) {
+          if (estados[i].equalsIgnoreCase(estadoActual)) {
+            indiceEncontrado = i;
+            break;
+          }
+        }
+      }
+      posicionPreseleccionadaCategoria.setValue(indiceEncontrado);
+      errorMotivoCategoria.setValue(null);
+      eventShowCambiarEstadoCategoria.setValue(true);
+    }
+  }
+
+  public void observarEventoEstadoCategoria(androidx.lifecycle.LifecycleOwner owner, Runnable accion) {
+    eventShowCambiarEstadoCategoria.observe(owner, debeMostrar -> {
+      if (Boolean.TRUE.equals(debeMostrar)) {
+        eventShowCambiarEstadoCategoria.setValue(false);
+        accion.run();
+      }
+    });
+  }
+
+  public void guardarNuevoEstadoCategoria(int posicionSeleccionada, String motivoInput) {
+    if (motivoInput == null || motivoInput.trim().isEmpty()) {
+      errorMotivoCategoria.setValue("El motivo es obligatorio para notificar a los runners");
+      return;
+    }
+
+    if (categoriaSeleccionada == null) return;
+    String[] estados = estadosCategoriasValidos.getValue();
+    if (estados == null || posicionSeleccionada < 0 || posicionSeleccionada >= estados.length) return;
+
+    String nuevoEstado = estados[posicionSeleccionada];
+    isLoading.setValue(true);
+    int idEv = categoriaSeleccionada.getIdEvento();
+    int idCat = categoriaSeleccionada.getIdCategoria();
+
+    CambiarEstadoCategoriaRequest req = new CambiarEstadoCategoriaRequest(nuevoEstado, motivoInput.trim());
+
+    repositorio.cambiarEstadoCategoria(idEv, idCat, req, new Callback<ResponseBody>() {
+      @Override
+      public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+        isLoading.setValue(false);
+        if (response.isSuccessful()) {
+          errorMotivoCategoria.setValue("DISMISS");
+          lanzarMensaje("Estado de categoría actualizado correctamente", 1);
+          cargarDetalle(idEv);
+        } else {
+          String msjError = "No se puede actualizar";
+          try {
+            if (response.errorBody() != null) {
+              String errorJson = response.errorBody().string();
+              JSONObject jsonObject = new JSONObject(errorJson);
+              if (jsonObject.has("message")) msjError = jsonObject.getString("message");
+            }
+          } catch (Exception e) { e.printStackTrace(); }
+          lanzarMensaje(msjError, 2);
+        }
+      }
+      @Override
+      public void onFailure(Call<ResponseBody> call, Throwable t) {
+        isLoading.setValue(false);
+        lanzarMensaje("Error de conexión", 2);
+      }
+    });
+  }
+
+  private void lanzarMensaje(String msg, int tipo) {
+    if (tipo == 1) {
+      mensajeColorTexto.setValue(Color.parseColor("#1B5E20"));
+      mensajeColorFondo.setValue(Color.parseColor("#C8E6C9"));
+    } else if (tipo == 2) {
+      mensajeColorTexto.setValue(Color.parseColor("#B71C1C"));
+      mensajeColorFondo.setValue(Color.parseColor("#FFCDD2"));
+    } else {
+      mensajeColorTexto.setValue(Color.BLACK);
+      mensajeColorFondo.setValue(Color.parseColor("#F5F5F5"));
+    }
+    mensajeGlobal.setValue(msg);
+  }
+
   public void procesarArchivoSeleccionado(Uri uri) {
-    // NO activamos isLoading. Solo mensaje.
-    mensajeGlobal.setValue("Analizando archivo...");
-
+    lanzarMensaje("Analizando archivo...", 0);
     new Thread(() -> {
       Context context = getApplication();
-
-      // 1. Validar tamaño
       if (esArchivoMuyGrande(context, uri)) {
         archivoListoParaSubir = null;
         archivoEsValido.postValue(false);
         mensajeGlobal.postValue("El archivo es demasiado pesado. Máx 5MB.");
         return;
       }
-
-      // 2. Copiar
       File tempFile = copiarUriAArchivo(context, uri);
-
       if (tempFile != null) {
         String nombre = tempFile.getName();
         nombreArchivoSeleccionado.postValue(nombre);
-
         if (nombre.toLowerCase().endsWith(".csv") || nombre.toLowerCase().endsWith(".txt")) {
           archivoListoParaSubir = tempFile;
           archivoEsValido.postValue(true);
@@ -165,10 +291,7 @@ public class DetalleEventoViewModel extends AndroidViewModel {
       cursor = context.getContentResolver().query(uri, null, null, null, null);
       if (cursor != null && cursor.moveToFirst()) {
         int sizeIndex = cursor.getColumnIndex(OpenableColumns.SIZE);
-        if (!cursor.isNull(sizeIndex)) {
-          // Limite de 5MB
-          return cursor.getLong(sizeIndex) > (5 * 1024 * 1024);
-        }
+        if (!cursor.isNull(sizeIndex)) return cursor.getLong(sizeIndex) > (5 * 1024 * 1024);
       }
     } catch (Exception e) { e.printStackTrace(); }
     finally { if (cursor != null) cursor.close(); }
@@ -179,84 +302,57 @@ public class DetalleEventoViewModel extends AndroidViewModel {
     try {
       InputStream is = context.getContentResolver().openInputStream(uri);
       if (is == null) return null;
-
       File temp = new File(context.getCacheDir(), "upload_temp.csv");
       if(temp.exists()) temp.delete();
-
       try (FileOutputStream out = new FileOutputStream(temp)) {
-        // REDUCIMOS EL BUFFER: 16KB
         byte[] buffer = new byte[16 * 1024];
         int len;
-        while ((len = is.read(buffer)) != -1) {
-          out.write(buffer, 0, len);
-        }
+        while ((len = is.read(buffer)) != -1) { out.write(buffer, 0, len); }
         out.flush();
       }
       is.close();
       return temp;
-    } catch (Exception e) {
-      return null;
-    }
+    } catch (Exception e) { return null; }
   }
 
   public void subirArchivoGuardado(int idEvento) {
     if (archivoListoParaSubir == null) return;
-
-    // Solo un mensaje al inicio para no saturar el bus de datos de la UI
-    mensajeGlobal.postValue("Subiendo...");
-
+    lanzarMensaje("Subiendo...", 0);
     resultadoRepositorio.subirArchivoResultados(idEvento, archivoListoParaSubir, new Callback<ResponseBody>() {
       @Override
       public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
-        // Usamos postValue para asegurar que la actualización ocurra en el siguiente ciclo del main loop
         if (response.isSuccessful()) {
           existenResultados = true;
           archivoListoParaSubir = null;
-          mensajeCargaArchivo.postValue("EXITO");
-        } else {
-          mensajeCargaArchivo.postValue("Error en servidor");
-        }
+          exitoCargaArchivo.postValue(true);
+        } else lanzarMensaje("Error en servidor al procesar archivo", 2);
       }
-
-      @Override
-      public void onFailure(Call<ResponseBody> call, Throwable t) {
-        mensajeCargaArchivo.postValue("Fallo de conexión");
-      }
+      @Override public void onFailure(Call<ResponseBody> call, Throwable t) { lanzarMensaje("Fallo de conexión", 2); }
     });
   }
 
-  public void resetMensajeCarga() { mensajeCargaArchivo.setValue(null); }
-
-
-  // 2. GESTION DEL MENU (LOGICA DE BLOQUEO)
+  public void resetExitoCarga() { exitoCargaArchivo.setValue(null); }
 
   public void solicitarMenuResultados() {
-    if (existenResultados) {
-      // SI YA HAY RESULTADOS, SOLO MOSTRAMOS VER
-      opcionesMenuResultados.setValue(new String[]{"Ver Resultados Oficiales"});
-    } else {
-      // SI NO HAY, MOSTRAMOS AMBAS
-      opcionesMenuResultados.setValue(new String[]{"Cargar Resultados (CSV)", "Ver Resultados"});
-    }
+    if (existenResultados) opcionesMenuResultados.setValue(new String[]{"Ver Resultados Oficiales"});
+    else opcionesMenuResultados.setValue(new String[]{"Cargar Resultados (CSV)", "Ver Resultados"});
   }
 
   public void onOpcionMenuSeleccionada(int indice) {
-    if (existenResultados) {
-      // Única opción es VER
-      accionNavegacionResultados.setValue("VER");
-    } else {
-      // Opciones: 0=Cargar, 1=Ver
-      if (indice == 0) accionNavegacionResultados.setValue("CARGAR");
-      else accionNavegacionResultados.setValue("VER");
+    if (existenResultados) accionNavegacionResultados.setValue(AccionResultados.VER);
+    else {
+      if (indice == 0) accionNavegacionResultados.setValue(AccionResultados.CARGAR);
+      else accionNavegacionResultados.setValue(AccionResultados.VER);
     }
   }
 
-  public void resetOpcionesMenu() { opcionesMenuResultados.setValue(null); }
-  public void resetAccionNavegacion() { accionNavegacionResultados.setValue(null); }
+  public void resetOpcionesMenu() {
+    opcionesMenuResultados.setValue(null);
+  }
+  public void resetAccionNavegacion() {
+    accionNavegacionResultados.setValue(null);
+  }
 
-
-
-  // 3. CARGA DE DATOS
   public void cargarDetalle(int idEvento) {
     isLoading.setValue(true);
     repositorio.obtenerDetalleEvento(idEvento, new Callback<EventoDetalleResponse>() {
@@ -267,11 +363,11 @@ public class DetalleEventoViewModel extends AndroidViewModel {
           eventoRaw.setValue(response.body());
           mapearDatosAUI(response.body());
           verificarSiExistenResultados(idEvento);
-        } else mensajeGlobal.setValue("Error al cargar evento");
+        } else lanzarMensaje("Error al cargar evento", 2);
       }
       @Override public void onFailure(Call<EventoDetalleResponse> call, Throwable t) {
         isLoading.setValue(false);
-        mensajeGlobal.setValue("Error de conexión");
+        lanzarMensaje("Error de conexión", 2);
       }
     });
   }
@@ -283,14 +379,9 @@ public class DetalleEventoViewModel extends AndroidViewModel {
         if (response.isSuccessful() && response.body() != null) {
           List<ResultadosEventoResponse.ResultadoEventoItem> lista = response.body().getResultados();
           existenResultados = (lista != null && !lista.isEmpty());
-        } else {
-          existenResultados = false;
-        }
+        } else existenResultados = false;
       }
-      @Override
-      public void onFailure(Call<ResultadosEventoResponse> call, Throwable t) {
-        existenResultados = false;
-      }
+      @Override public void onFailure(Call<ResultadosEventoResponse> call, Throwable t) { existenResultados = false; }
     });
   }
 
@@ -304,6 +395,10 @@ public class DetalleEventoViewModel extends AndroidViewModel {
 
     String estado = (evento.getEstado() != null) ? evento.getEstado().toUpperCase() : "";
     uiEstadoTexto.setValue(estado);
+    estadoActualEvento.setValue(estado.toLowerCase()); // Expone el string limpio sin que la vista pregunte
+
+    habilitarEliminacionRunners.setValue(!("FINALIZADO".equals(estado) || "CANCELADO".equals(estado)));
+
     switch (estado) {
       case "PUBLICADO": uiEstadoColor.setValue(Color.parseColor("#2E7D32")); break;
       case "SUSPENDIDO": uiEstadoColor.setValue(Color.parseColor("#FF9800")); break;
@@ -311,58 +406,37 @@ public class DetalleEventoViewModel extends AndroidViewModel {
       case "CANCELADO": uiEstadoColor.setValue(Color.RED); break;
       default: uiEstadoColor.setValue(Color.BLACK);
     }
-    if (evento.getCategorias() != null && !evento.getCategorias().isEmpty()) {
 
-      //Juntar todos los nombres de las categorias separadas por coma
+    if (evento.getCategorias() != null && !evento.getCategorias().isEmpty()) {
       StringBuilder nombresCategorias = new StringBuilder();
       for (int i = 0; i < evento.getCategorias().size(); i++) {
         String nom = evento.getCategorias().get(i).getNombre();
         nombresCategorias.append(nom != null ? nom : "General");
-        if (i < evento.getCategorias().size() - 1) {
-          nombresCategorias.append(", ");
-        }
+        if (i < evento.getCategorias().size() - 1) nombresCategorias.append(", ");
       }
-
-      //Obtenemos el tipo (ej: "calle") y lo capitalizamos ("Calle")
       String tipoTexto = "";
       if (evento.getTipoEvento() != null && !evento.getTipoEvento().isEmpty()) {
         String raw = evento.getTipoEvento();
         tipoTexto = raw.substring(0, 1).toUpperCase() + raw.substring(1);
       }
-
-      //Armamos el texto final: "2K, 5K, 10K  |  Calle"
       String textoFinal = nombresCategorias.toString();
-      if (!tipoTexto.isEmpty()) {
-        textoFinal += "  |  " + tipoTexto;
-      }
-
+      if (!tipoTexto.isEmpty()) textoFinal += "  |  " + tipoTexto;
       uiDistanciaTipo.setValue(textoFinal);
+      if (evento.getCategorias().size() == 1) uiGeneroPrecio.setValue("$" + evento.getCategorias().get(0).getPrecio());
+      else uiGeneroPrecio.setValue("Múltiples categorías y precios");
 
-      //Si hay una sola categoria mostramos el precio. Si hay varias, texto generico.
-      if (evento.getCategorias().size() == 1) {
-        uiGeneroPrecio.setValue("$" + evento.getCategorias().get(0).getPrecio());
-      } else {
-        uiGeneroPrecio.setValue("Múltiples categorías y precios");
-      }
-
-      uiVisibilidadDatosCategoria.setValue(View.VISIBLE);
-
+      uiVisibilidadDatosCategoria.setValue(true);
     } else {
-      // Si no hay categorias pero hay tipo, mostramos solo el tipo
       if (evento.getTipoEvento() != null) {
         uiDistanciaTipo.setValue(evento.getTipoEvento().toUpperCase());
-        uiVisibilidadDatosCategoria.setValue(View.VISIBLE);
-      } else {
-        uiVisibilidadDatosCategoria.setValue(View.GONE);
-      }
+        uiVisibilidadDatosCategoria.setValue(true);
+      } else uiVisibilidadDatosCategoria.setValue(false);
     }
 
     if (evento.getCategorias() != null) listaCategorias.setValue(evento.getCategorias());
-    visibilityBtnResultados.setValue("FINALIZADO".equals(estado) ? View.VISIBLE : View.GONE);
+    visibilityBtnResultados.setValue("FINALIZADO".equals(estado));
   }
 
-
-  // OTROS METODOS DE APOYO
   public void cargarRunnersDeCategoria(int idEvento, int idCategoria) {
     inscripcionRepositorio.obtenerInscriptos(idEvento, null, 1, 100, new Callback<ListaInscriptosResponse>() {
       @Override
@@ -383,84 +457,50 @@ public class DetalleEventoViewModel extends AndroidViewModel {
       @Override
       public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
         if (response.isSuccessful()) {
-          mensajeGlobal.setValue("Baja exitosa");
+          lanzarMensaje("Baja exitosa", 1);
           cargarRunnersDeCategoria(idEvento, idCat);
           cargarDetalle(idEvento);
-        } else mensajeGlobal.setValue("Error baja");
+        } else lanzarMensaje("Error en la baja", 2);
       }
-      @Override public void onFailure(Call<ResponseBody> call, Throwable t) { mensajeGlobal.setValue("Error conexión"); }
+      @Override public void onFailure(Call<ResponseBody> call, Throwable t) { lanzarMensaje("Error conexión", 2); }
     });
   }
-  // MeTODO HELPER PARA MENSAJES TEMPORALES
-  private void mostrarMensajeExito(String msg) {
-    mensajeGlobal.setValue(msg);
-    // Borrar automaticamente a los 4 segundos
-    new Handler(Looper.getMainLooper()).postDelayed(() -> {
-      mensajeGlobal.setValue(null);
-    }, 4000);
-  }
 
-  public int calcularPreseleccionRadio(String estado) {
-    if(estado==null) return -1;
-    switch (estado.toLowerCase()) {
-      case "publicado": return R.id.rbPublicado;
-      case "suspendido": return R.id.rbSuspendido;
-      case "finalizado": return R.id.rbFinalizado;
-      case "cancelado": return R.id.rbCancelado;
-      default: return -1;
+  public void procesarCambioEstadoEvento(int idEvento, String estadoNuevo, String motivo) {
+    if (estadoNuevo.isEmpty()) {
+      dialogError.setValue("Seleccione un estado válido");
+      return;
     }
-  }
-
-  public void procesarCambioEstado(int idEvento, int radioId, String motivo) {
-    String estadoNuevo = "";
-    if (radioId == R.id.rbPublicado) estadoNuevo = "publicado";
-    else if (radioId == R.id.rbSuspendido) estadoNuevo = "suspendido";
-    else if (radioId == R.id.rbFinalizado) estadoNuevo = "finalizado";
-    else if (radioId == R.id.rbCancelado) estadoNuevo = "cancelado";
-    else { dialogError.setValue("Seleccione una opción"); return; }
-
     dialogDismiss.setValue(true);
     CambiarEstadoRequest req = new CambiarEstadoRequest(estadoNuevo, motivo);
     isLoading.setValue(true);
-    final String estaParaGuardar= estadoNuevo;
+
     repositorio.cambiarEstado(idEvento, req, new Callback<ResponseBody>() {
       @Override
       public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
         isLoading.setValue(false);
-
         if (response.isSuccessful()) {
-          // 1. Mensaje de ÉXITO
-          mostrarMensajeExito("EXITO: Estado actualizado correctamente");
-
-          // Actualizar UI localmente
+          lanzarMensaje("Estado actualizado correctamente", 1);
           EventoDetalleResponse actual = eventoRaw.getValue();
           if (actual != null) {
-            actual.setEstado(estaParaGuardar);
+            actual.setEstado(estadoNuevo);
             mapearDatosAUI(actual);
-          } else {
-            cargarDetalle(idEvento);
-          }
+          } else cargarDetalle(idEvento);
         } else {
-          // 2. Mensaje de ERROR (Capturando JSON)
-          String msjError = "No se puede actualizar: " + response.code();
+          String msjError = "No se puede actualizar";
           try {
             if (response.errorBody() != null) {
               String errorJson = response.errorBody().string();
               JSONObject jsonObject = new JSONObject(errorJson);
-              if (jsonObject.has("message")) {
-                msjError = jsonObject.getString("message");
-              }
+              if (jsonObject.has("error")) msjError = jsonObject.getString("error");
             }
-          } catch (Exception e) {
-            e.printStackTrace();
-          }
-          // IMPORTANTE: Prefijo ERROR
-          mostrarMensajeExito("ERROR: " + msjError);
+          } catch (Exception e) { e.printStackTrace(); }
+          lanzarMensaje(msjError, 2);
         }
       }
       @Override public void onFailure(Call<ResponseBody> call, Throwable t) {
         isLoading.setValue(false);
-        mensajeGlobal.setValue("Error conexión");
+        lanzarMensaje("Error conexión", 2);
       }
     });
   }
@@ -468,6 +508,4 @@ public class DetalleEventoViewModel extends AndroidViewModel {
   public void limpiarMensajeGlobal() {
     mensajeGlobal.setValue(null);
   }
-
-
 }

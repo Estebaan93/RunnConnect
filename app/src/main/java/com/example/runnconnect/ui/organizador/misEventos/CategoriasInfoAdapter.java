@@ -28,11 +28,21 @@ public class CategoriasInfoAdapter extends RecyclerView.Adapter<CategoriasInfoAd
   public interface OnCategoriaClickListener {
     void onCategoriaClick(CategoriaResponse categoria);
   }
+  public interface OnCategoriaLongClickListener {
+    void onCategoriaLongClick(CategoriaResponse categoria);
+  }
 
   private OnCategoriaClickListener listener;
+  private OnCategoriaLongClickListener longListener;
 
+  //click corto
   public void setOnCategoriaClickListener(OnCategoriaClickListener listener) {
     this.listener = listener;
+  }
+
+  //clic largo
+  public void setOnCategoriaLongClickListener(OnCategoriaLongClickListener longListener) {
+    this.longListener = longListener;
   }
 
 
@@ -52,12 +62,25 @@ public class CategoriasInfoAdapter extends RecyclerView.Adapter<CategoriasInfoAd
 
     holder.tvInscriptos.setText("Inscriptos: "+item.getInscriptosActuales());
 
-    holder.itemView.setOnClickListener(v->{
-      if(listener != null) listener.onCategoriaClick(item);
+    holder.itemView.setOnClickListener(v -> {
+      if (listener != null) {
+        listener.onCategoriaClick(item);
+      }
+    });
+
+    // mantener el click largo
+    holder.itemView.setOnLongClickListener(v -> {
+      if(longListener != null) {
+        longListener.onCategoriaLongClick(item);
+        return true;
+      }
+      return false;
     });
   }
 
-  @Override public int getItemCount() { return lista.size(); }
+
+  @Override
+  public int getItemCount() { return lista.size(); }
 
   static class ViewHolder extends RecyclerView.ViewHolder {
     TextView tvNombre, tvPrecio, tvInfo, tvInscriptos;

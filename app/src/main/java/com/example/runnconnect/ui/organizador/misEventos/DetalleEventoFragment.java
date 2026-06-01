@@ -1,7 +1,6 @@
 package com.example.runnconnect.ui.organizador.misEventos;
 
 import android.content.Context;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -9,6 +8,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -39,6 +39,9 @@ public class DetalleEventoFragment extends Fragment {
 
   private AlertDialog dialogRunners;
   private AlertDialog dialogEstado;
+
+  private AlertDialog dialogEstadoCategoria;
+  private android.widget.EditText etMotivoCategoriaDialog;
 
   private CategoriasInfoAdapter categoriasInfoAdapter;
   private RunnerSimpleAdapter runnersAdapterDialog;
@@ -77,44 +80,38 @@ public class DetalleEventoFragment extends Fragment {
   }
 
   private void setupObservers() {
-    // 1. Loader General
     viewModel.getIsLoading().observe(getViewLifecycleOwner(), loading ->
-      binding.progressBar.setVisibility(loading ? View.VISIBLE : View.GONE)
+      binding.progressBar.setVisibility(Boolean.TRUE.equals(loading) ? View.VISIBLE : View.GONE)
     );
 
-    // 2. Mensajes Globales
+    // MVVM Puro: La vista no juzga el texto. Lo recibe y lo pone.
     viewModel.getMensajeGlobal().observe(getViewLifecycleOwner(), msg -> {
-      // Solo actuamos si hay mensaje
       if (msg != null && !msg.isEmpty()) {
         mostrarMensajeEnPantalla(msg);
-        // Limpiamos en el VM inmediatamente para que no se repita
         viewModel.limpiarMensajeGlobal();
       }
-
     });
 
-    // 3. Resultado de subida
-    viewModel.getMensajeCargaArchivo().observe(getViewLifecycleOwner(), msg -> {
-      if (msg == null) return;
+    viewModel.getMensajeColorTexto().observe(getViewLifecycleOwner(), color -> {
+      if(binding != null && binding.tvMensajeGlobal != null && color != null) binding.tvMensajeGlobal.setTextColor(color);
+    });
 
-      if ("EXITO".equals(msg)) {
+    viewModel.getMensajeColorFondo().observe(getViewLifecycleOwner(), color -> {
+      if(binding != null && binding.tvMensajeGlobal != null && color != null) binding.tvMensajeGlobal.setBackgroundColor(color);
+    });
+
+    // MVVM Puro: Reacciona a un booleano en lugar de parsear "EXITO"
+    viewModel.getExitoCargaArchivo().observe(getViewLifecycleOwner(), exito -> {
+      if (exito == null) return;
+      if (Boolean.TRUE.equals(exito)) {
         Toast.makeText(getContext(), "¡Resultados cargados!", Toast.LENGTH_SHORT).show();
-
-        // DEMORA DE SEGURIDAD: Le damos 200ms al sistema para que respire
-        // antes de destruir la ventana del dialogo, evitando el ANR.
         new Handler(Looper.getMainLooper()).postDelayed(() -> {
-          if (dialogCarga != null && dialogCarga.isShowing()) {
-            dialogCarga.dismiss();
-          }
+          if (dialogCarga != null && dialogCarga.isShowing()) dialogCarga.dismiss();
         }, 200);
-
-      } else {
-        Toast.makeText(getContext(), msg, Toast.LENGTH_LONG).show();
       }
-      viewModel.resetMensajeCarga();
+      viewModel.resetExitoCarga();
     });
 
-    // 4. Actualizacion del Dialog
     viewModel.getNombreArchivoSeleccionado().observe(getViewLifecycleOwner(), nombre -> {
       if (tvNombreEnDialog != null && dialogCarga != null && dialogCarga.isShowing()) {
         tvNombreEnDialog.setText(nombre);
@@ -123,31 +120,33 @@ public class DetalleEventoFragment extends Fragment {
 
     viewModel.getArchivoEsValido().observe(getViewLifecycleOwner(), valido -> {
       if (btnSubirEnDialog != null && dialogCarga != null && dialogCarga.isShowing()) {
-        btnSubirEnDialog.setEnabled(valido);
+        btnSubirEnDialog.setEnabled(Boolean.TRUE.equals(valido));
       }
     });
 
-    // 5. Menu Dinamico
     viewModel.getOpcionesMenuResultados().observe(getViewLifecycleOwner(), opciones -> {
       if (opciones != null && opciones.length > 0) {
+        viewModel.resetOpcionesMenu();
         new AlertDialog.Builder(requireContext())
           .setTitle("Gestión de Resultados")
           .setItems(opciones, (dialog, which) -> {
             viewModel.onOpcionMenuSeleccionada(which);
           })
           .show();
-        viewModel.resetOpcionesMenu();
+        viewModel.resetAccionNavegacion();
       }
     });
 
+    // MVVM Puro: Enum en lugar de Magic Strings ("CARGAR", "VER")
     viewModel.getAccionNavegacionResultados().observe(getViewLifecycleOwner(), accion -> {
       if (accion == null) return;
-      if ("CARGAR".equals(accion)) abrirDialogoCarga();
-      else if ("VER".equals(accion)) navegarAVerResultados();
+      viewModel.resetOpcionesMenu();
+      if (accion == DetalleEventoViewModel.AccionResultados.CARGAR) abrirDialogoCarga();
+      else if (accion == DetalleEventoViewModel.AccionResultados.VER) navegarAVerResultados();
       viewModel.resetAccionNavegacion();
     });
 
-    // 6. Binding UI
+    // Binding UI
     viewModel.getUiTitulo().observe(getViewLifecycleOwner(), binding.tvTituloDetalle::setText);
     viewModel.getUiFecha().observe(getViewLifecycleOwner(), binding.tvFechaDetalle::setText);
     viewModel.getUiLugar().observe(getViewLifecycleOwner(), binding.tvLugarDetalle::setText);
@@ -155,20 +154,31 @@ public class DetalleEventoFragment extends Fragment {
     viewModel.getUiInscriptos().observe(getViewLifecycleOwner(), binding.tvInscriptosCount::setText);
     viewModel.getUiCupo().observe(getViewLifecycleOwner(), binding.tvCupoTotal::setText);
     viewModel.getUiEstadoTexto().observe(getViewLifecycleOwner(), binding.tvEstadoDetalle::setText);
-    viewModel.getUiEstadoColor().observe(getViewLifecycleOwner(), c -> binding.tvEstadoDetalle.setTextColor(c));
+    viewModel.getUiEstadoColor().observe(getViewLifecycleOwner(), c -> { if (c != null) binding.tvEstadoDetalle.setTextColor(c); });
     viewModel.getUiDistanciaTipo().observe(getViewLifecycleOwner(), binding.tvDistanciaTipo::setText);
     viewModel.getUiGeneroPrecio().observe(getViewLifecycleOwner(), binding.tvGeneroPrecio::setText);
-    viewModel.getUiVisibilidadDatosCategoria().observe(getViewLifecycleOwner(), v -> {
+
+    // MVVM Puro: Recibe Boolean y lo traduce a View.GONE
+    viewModel.getUiVisibilidadDatosCategoria().observe(getViewLifecycleOwner(), visible -> {
+      int v = Boolean.TRUE.equals(visible) ? View.VISIBLE : View.GONE;
       binding.tvDistanciaTipo.setVisibility(v);
       binding.tvGeneroPrecio.setVisibility(v);
     });
-    viewModel.getVisibilityBtnResultados().observe(getViewLifecycleOwner(), v -> binding.btnResultados.setVisibility(v));
 
-    // 7. Listas
+    viewModel.getVisibilityBtnResultados().observe(getViewLifecycleOwner(), visible ->
+      binding.btnResultados.setVisibility(Boolean.TRUE.equals(visible) ? View.VISIBLE : View.GONE)
+    );
+
+    // Listas
     categoriasInfoAdapter = new CategoriasInfoAdapter();
-    categoriasInfoAdapter.setOnCategoriaClickListener(this::mostrarDialogoRunners);
+    categoriasInfoAdapter.setOnCategoriaClickListener(categoria -> viewModel.onCategoriaClickNormal(categoria));
+    categoriasInfoAdapter.setOnCategoriaLongClickListener(categoria -> viewModel.onCategoriaClickLargo(categoria));
+
     binding.rvCategoriasDetalle.setLayoutManager(new LinearLayoutManager(getContext()));
     binding.rvCategoriasDetalle.setAdapter(categoriasInfoAdapter);
+
+    viewModel.observarEventoRunners(getViewLifecycleOwner(), this::abrirDialogoRunnersDesdeVM);
+    viewModel.observarEventoEstadoCategoria(getViewLifecycleOwner(), this::abrirDialogoEstadoCategoriaDesdeVM);
 
     viewModel.getListaCategorias().observe(getViewLifecycleOwner(), lista -> {
       if (lista != null) categoriasInfoAdapter.setLista(lista);
@@ -179,39 +189,34 @@ public class DetalleEventoFragment extends Fragment {
     });
 
     viewModel.getDialogDismiss().observe(getViewLifecycleOwner(), dismiss -> {
-      if (dismiss && dialogEstado != null && dialogEstado.isShowing()) dialogEstado.dismiss();
+      if (Boolean.TRUE.equals(dismiss) && dialogEstado != null && dialogEstado.isShowing()) dialogEstado.dismiss();
+    });
+
+    // Observador Reactivo Categoria
+    viewModel.getErrorMotivoCategoria().observe(getViewLifecycleOwner(), error -> {
+      if (error == null || dialogEstadoCategoria == null || !dialogEstadoCategoria.isShowing() || etMotivoCategoriaDialog == null) return;
+
+      if ("DISMISS".equals(error)) {
+        try {
+          InputMethodManager imm = (InputMethodManager) requireContext().getSystemService(Context.INPUT_METHOD_SERVICE);
+          imm.hideSoftInputFromWindow(etMotivoCategoriaDialog.getWindowToken(), 0);
+        } catch (Exception e) { e.printStackTrace(); }
+        dialogEstadoCategoria.dismiss();
+      } else {
+        etMotivoCategoriaDialog.setError(error);
+        etMotivoCategoriaDialog.requestFocus();
+      }
     });
   }
+
+  // La Vista ya no parsea texto. Solo lo pinta y lo oculta a los 4 seg.
   private void mostrarMensajeEnPantalla(String msg) {
     if (binding == null || binding.tvMensajeGlobal == null) return;
 
-    // 1. Hacer visible INMEDIATAMENTE
     binding.tvMensajeGlobal.setVisibility(View.VISIBLE);
-    binding.tvMensajeGlobal.bringToFront(); // Asegurar que quede encima si hay solapamiento
+    binding.tvMensajeGlobal.bringToFront();
+    binding.tvMensajeGlobal.setText(msg);
 
-    // 2. Logica de colores
-    if (msg.startsWith("EXITO:")) {
-      // Verde
-      String textoLimpio = msg.replace("EXITO:", "").trim();
-      binding.tvMensajeGlobal.setText(textoLimpio);
-      binding.tvMensajeGlobal.setTextColor(Color.parseColor("#1B5E20")); // Verde oscuro
-      binding.tvMensajeGlobal.setBackgroundColor(Color.parseColor("#C8E6C9")); // Verde claro
-    }
-    else if (msg.startsWith("ERROR:")) {
-      // Rojo
-      String textoLimpio = msg.replace("ERROR:", "").trim();
-      binding.tvMensajeGlobal.setText(textoLimpio);
-      binding.tvMensajeGlobal.setTextColor(Color.parseColor("#B71C1C")); // Rojo oscuro
-      binding.tvMensajeGlobal.setBackgroundColor(Color.parseColor("#FFCDD2")); // Rojo claro
-    }
-    else {
-      // Normal (Gris/Negro)
-      binding.tvMensajeGlobal.setText(msg);
-      binding.tvMensajeGlobal.setTextColor(Color.BLACK);
-      binding.tvMensajeGlobal.setBackgroundColor(Color.parseColor("#F5F5F5"));
-    }
-
-    // 3. Auto-ocultar a los 4 segundos
     new Handler(Looper.getMainLooper()).postDelayed(() -> {
       if (binding != null && binding.tvMensajeGlobal != null) {
         binding.tvMensajeGlobal.setVisibility(View.GONE);
@@ -226,22 +231,19 @@ public class DetalleEventoFragment extends Fragment {
       Bundle args = new Bundle();
       args.putInt("idEvento", idEvento);
 
-      //enviamos el estado tambien
-      if (viewModel.getEventoRaw().getValue() != null) {
-        args.putString("estadoEvento", viewModel.getEventoRaw().getValue().getEstado());
+      // MVVM Puro: Usamos la propiedad preparada por el VM, no le hacemos ".getValue().get..." al raw.
+      String estadoAct = viewModel.getEstadoActualEvento().getValue();
+      if (estadoAct != null && !estadoAct.isEmpty()) {
+        args.putString("estadoEvento", estadoAct);
       }
-
       Navigation.findNavController(v).navigate(R.id.action_detalle_to_gestionInscriptos, args);
-
     });
 
     binding.btnVerMapa.setOnClickListener(v -> {
       Bundle args = new Bundle();
       args.putInt("idEvento", idEvento);
-
-      //enviamos el estado
-      args.putString("estadoEvento", viewModel.getEventoRaw().getValue().getEstado());
-
+      String estadoAct = viewModel.getEstadoActualEvento().getValue();
+      if (estadoAct != null) args.putString("estadoEvento", estadoAct);
       Navigation.findNavController(v).navigate(R.id.action_detalle_to_mapaEditor, args);
     });
 
@@ -254,7 +256,6 @@ public class DetalleEventoFragment extends Fragment {
       }
     });
 
-    // BOTON RESULTADOS
     binding.btnResultados.setOnClickListener(v -> viewModel.solicitarMenuResultados());
   }
 
@@ -301,20 +302,12 @@ public class DetalleEventoFragment extends Fragment {
     View view = getLayoutInflater().inflate(R.layout.dialog_lista_runners, null);
     RecyclerView rv = view.findViewById(R.id.rvRunnersDialog);
 
-    //instancia del adapter
     runnersAdapterDialog = new RunnerSimpleAdapter(runner -> confirmarBajaRunner(runner, categoria.getIdCategoria()));
 
-    //verificamos estado del evento
-    if (viewModel.getEventoRaw().getValue() != null) {
-      String estadoActual = viewModel.getEventoRaw().getValue().getEstado();
+    // VISTA TONTA: Lee directamente el valor de verdad calculado por el VM
+    Boolean permitirEliminar = viewModel.getHabilitarEliminacionRunners().getValue();
+    runnersAdapterDialog.setHabilitarEliminacion(permitirEliminar != null ? permitirEliminar : false);
 
-      // Si es finalizado o cancelado, DESHABILITAR la opcion de borrar runners
-      if ("finalizado".equalsIgnoreCase(estadoActual) || "cancelado".equalsIgnoreCase(estadoActual)) {
-        runnersAdapterDialog.setHabilitarEliminacion(false);
-      } else {
-        runnersAdapterDialog.setHabilitarEliminacion(true);
-      }
-    }
     rv.setLayoutManager(new LinearLayoutManager(getContext()));
     rv.setAdapter(runnersAdapterDialog);
 
@@ -340,9 +333,13 @@ public class DetalleEventoFragment extends Fragment {
     android.widget.RadioGroup rg = view.findViewById(R.id.rgEstado);
     android.widget.EditText et = view.findViewById(R.id.etMotivo);
 
-    if (viewModel.getEventoRaw().getValue() != null) {
-      int idCheck = viewModel.calcularPreseleccionRadio(viewModel.getEventoRaw().getValue().getEstado());
-      if(idCheck != -1) rg.check(idCheck);
+    // VISTA TONTA: Vincula su UI basándose en el string limpio expuesto
+    String est = viewModel.getEstadoActualEvento().getValue();
+    if(est != null) {
+      if ("publicado".equalsIgnoreCase(est)) rg.check(R.id.rbPublicado);
+      else if ("suspendido".equalsIgnoreCase(est)) rg.check(R.id.rbSuspendido);
+      else if ("finalizado".equalsIgnoreCase(est)) rg.check(R.id.rbFinalizado);
+      else if ("cancelado".equalsIgnoreCase(est)) rg.check(R.id.rbCancelado);
     }
 
     builder.setPositiveButton("Guardar", null);
@@ -352,13 +349,78 @@ public class DetalleEventoFragment extends Fragment {
 
     dialogEstado.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
       int selected = rg.getCheckedRadioButtonId();
+      String estadoNuevo = "";
+
+      // La vista lee sus propios controles UI y extrae los datos planos
+      if (selected == R.id.rbPublicado) estadoNuevo = "publicado";
+      else if (selected == R.id.rbSuspendido) estadoNuevo = "suspendido";
+      else if (selected == R.id.rbFinalizado) estadoNuevo = "finalizado";
+      else if (selected == R.id.rbCancelado) estadoNuevo = "cancelado";
+
       String motivo = et.getText().toString();
       try { ((InputMethodManager) requireContext().getSystemService(Context.INPUT_METHOD_SERVICE)).hideSoftInputFromWindow(et.getWindowToken(), 0); } catch(Exception e){}
-      new Handler(Looper.getMainLooper()).postDelayed(() -> viewModel.procesarCambioEstado(idEvento, selected, motivo), 100);
+
+      final String finalNuevo = estadoNuevo;
+      new Handler(Looper.getMainLooper()).postDelayed(() -> viewModel.procesarCambioEstadoEvento(idEvento, finalNuevo, motivo), 100);
     });
 
     viewModel.getDialogError().observe(getViewLifecycleOwner(), error -> {
       if (error != null && dialogEstado.isShowing()) { et.setError(error); et.requestFocus(); }
     });
+  }
+
+  private void abrirDialogoRunnersDesdeVM() {
+    CategoriaResponse categoria = viewModel.getCategoriaSeleccionada();
+    if (categoria != null) {
+      mostrarDialogoRunners(categoria);
+    }
+  }
+
+  private void abrirDialogoEstadoCategoriaDesdeVM() {
+    String[] opcionesEstados = viewModel.getEstadosCategoriasValidos().getValue();
+    if (opcionesEstados == null) return;
+
+    AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
+    builder.setTitle("Cambiar estado de la categoría");
+
+    View dialogView = getLayoutInflater().inflate(R.layout.dialog_cambiar_estado_categoria, null);
+    android.widget.Spinner spEstado = dialogView.findViewById(R.id.spEstadoCategoria);
+    etMotivoCategoriaDialog = dialogView.findViewById(R.id.etMotivoCategoria);
+
+    builder.setView(dialogView);
+
+    ArrayAdapter<String> adapter = new ArrayAdapter<>(
+      requireContext(),
+      android.R.layout.simple_spinner_dropdown_item,
+      opcionesEstados
+    );
+    spEstado.setAdapter(adapter);
+
+    Integer posicionPrevia = viewModel.getPosicionPreseleccionadaCategoria().getValue();
+    spEstado.setSelection(posicionPrevia != null ? posicionPrevia : 0);
+
+    builder.setPositiveButton("Guardar", null);
+    builder.setNegativeButton("Cancelar", (dialog, which) -> dialog.dismiss());
+
+    dialogEstadoCategoria = builder.create();
+
+    dialogEstadoCategoria.setOnDismissListener(d -> {
+      etMotivoCategoriaDialog = null;
+      dialogEstadoCategoria = null;
+    });
+
+    dialogEstadoCategoria.show();
+
+    dialogEstadoCategoria.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
+      int posicionSeleccionada = spEstado.getSelectedItemPosition();
+      String motivoInput = etMotivoCategoriaDialog.getText().toString();
+      viewModel.guardarNuevoEstadoCategoria(posicionSeleccionada, motivoInput);
+    });
+  }
+
+  @Override
+  public void onDestroyView() {
+    super.onDestroyView();
+    binding = null;
   }
 }

@@ -7,6 +7,7 @@ import java.math.BigDecimal;
 public class CategoriaResponse {
   private int idCategoria;
   private String nombre; //ej 5K
+  private int idEvento;
 
   // IMPORTANTE: Mapear el nombre del JSON "costoInscripcion"
   @SerializedName("costoInscripcion")
@@ -19,6 +20,13 @@ public class CategoriaResponse {
 
   // Getters
   public int getIdCategoria() { return idCategoria; }
+  public int getIdEvento() {
+    return idEvento;
+  }
+
+  public void setIdEvento(int idEvento) {
+    this.idEvento = idEvento;
+  }
   public String getNombre() { return nombre; }
   public BigDecimal getPrecio() { return precio; } // Getter cómodo
   public int getEdadMinima() { return edadMinima; }

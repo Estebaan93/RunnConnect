@@ -72,7 +72,7 @@ public class MainActivity extends AppCompatActivity {
 
     // 5. Cargar imagen con Glide
     if (avatarUrl != null && !avatarUrl.isEmpty()) {
-      // Corrección para emulador (si viene localhost)
+      // Correccion para emulador (si viene localhost)
       if (avatarUrl.contains("localhost")) {
         avatarUrl = avatarUrl.replace("localhost", "10.0.2.2");
       }
