@@ -10,7 +10,12 @@ namespace RunnConnectAPI.Models.Dto.Resultado
     public int IdEvento {get;set;}
 
     [Required]
+    public int IdCategoria {get;set;}
+
+    [Required]
     public IFormFile Archivo {get;set;}= null; //Archivo fisico .csv lo provee la entidad que cronometra al evento 
 
   }
+
+  
 }

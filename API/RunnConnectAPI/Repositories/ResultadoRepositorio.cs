@@ -213,7 +213,7 @@ namespace RunnConnectAPI.Repositories
               .ThenInclude(u => u!.PerfilRunner)
           .Include(i => i.Categoria)
           .Include(i => i.Resultado)
-          .Where(i => i.Categoria!.IdEvento == request.IdEvento && i.EstadoPago == "pagado")
+          .Where(i => i.IdCategoria == request.IdCategoria && i.EstadoPago == "pagado")
           .ToListAsync();
 
       foreach (var item in request.Resultados)

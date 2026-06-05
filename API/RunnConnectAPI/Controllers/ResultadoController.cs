@@ -219,6 +219,7 @@ namespace RunnConnectAPI.Controllers
         var requestRepo = new CargarResultadosRequest
         {
           IdEvento = request.IdEvento,
+          IdCategoria = request.IdCategoria,
           Resultados = listaResultados
         };
 

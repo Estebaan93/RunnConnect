@@ -11,6 +11,9 @@ namespace RunnConnectAPI.Models.Dto.Resultado
     [Required(ErrorMessage = "El evento es obligatorio")]
     public int IdEvento { get; set; }
 
+    [Required(ErrorMessage = "La categoría es obligatoria")]
+    public int IdCategoria { get; set; }
+
     // Lista de resultados a cargar
     [Required(ErrorMessage = "Debe incluir al menos un resultado")]
     [MinLength(1, ErrorMessage = "Debe incluir al menos un resultado")]
