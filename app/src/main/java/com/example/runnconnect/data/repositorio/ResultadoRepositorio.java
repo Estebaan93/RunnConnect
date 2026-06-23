@@ -25,13 +25,13 @@ public class ResultadoRepositorio {
   }
 
   // Subir CSV
-  public void subirArchivoResultados(int idEvento, File archivo, Callback<ResponseBody> callback) {
+  public void subirArchivoResultados(int idEvento, int idCategoria, File archivo, Callback<ResponseBody> callback) {
     String token = sessionManager.leerToken();
     if (token == null) return;
 
     // IdEvento como texto plano
     RequestBody idEventoBody = RequestBody.create(MediaType.parse("text/plain"), String.valueOf(idEvento));
-
+    RequestBody idCategoriaBody = RequestBody.create(MediaType.parse("text/plain"), String.valueOf(idCategoria));
     // Archivo como multipart
     // Usamos "multipart/form-data"
     RequestBody requestFile = RequestBody.create(MediaType.parse("multipart/form-data"), archivo);
@@ -39,7 +39,7 @@ public class ResultadoRepositorio {
     // El nombre "archivo" debe coincidir con la propiedad IFormFile del DTO C#
     MultipartBody.Part bodyArchivo = MultipartBody.Part.createFormData("Archivo", archivo.getName(), requestFile);
 
-    apiService.cargarArchivoResultados("Bearer " + token, idEventoBody, bodyArchivo).enqueue(callback);
+    apiService.cargarArchivoResultados("Bearer " + token, idEventoBody, idCategoriaBody, bodyArchivo).enqueue(callback);
   }
 
   // Obtener Lista

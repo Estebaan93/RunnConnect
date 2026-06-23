@@ -255,6 +255,7 @@ public interface ApiService {
   Call<ResponseBody> cargarArchivoResultados(
     @Header("Authorization") String token,
     @Part("IdEvento") RequestBody idEvento,
+    @Part("IdCategoria") RequestBody idCategoria,
     @Part MultipartBody.Part archivo
   );
 

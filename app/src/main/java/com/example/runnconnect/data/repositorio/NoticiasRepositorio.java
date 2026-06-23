@@ -27,6 +27,7 @@ import okhttp3.ResponseBody;
 public class NoticiasRepositorio {
   //feed noticias SL
   private static final String RSS_URL = "https://gist.githubusercontent.com/Estebaan93/46557f304368d30e1ddc4d0e6f0ec202/raw/17dedcf1622104eb0f18f5d94408d3fd084f4c08/gistfile1.txt";
+  private static final String RSS_URL_PRUEBA ="https://sindatos";
   private final OkHttpClient client = new OkHttpClient();
 
   public interface NoticiasCallback {
@@ -43,7 +44,7 @@ public class NoticiasRepositorio {
       } catch (Exception e) {
         e.printStackTrace();
         Log.e("NoticiasError", "Fallo final: " + e.getMessage());
-        callback.onError("No se pudo conectar. El servidor bloquea la solicitud.");
+        callback.onError("No se pudo conectar. Intenta nuevamente");
       }
     });
   }

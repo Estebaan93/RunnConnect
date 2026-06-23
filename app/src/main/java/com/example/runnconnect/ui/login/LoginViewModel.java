@@ -14,6 +14,8 @@ import com.example.runnconnect.MainActivity;
 import com.example.runnconnect.data.repositorio.UsuarioRepositorio;
 import com.example.runnconnect.data.response.LoginResponse;
 import com.example.runnconnect.ui.eventosPublicos.EventosPublicosActivity;
+import com.example.runnconnect.ui.registro.RegisterOrganizadorActivity;
+import com.example.runnconnect.ui.registro.RegisterRunnerActivity;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -26,6 +28,8 @@ public class LoginViewModel extends AndroidViewModel {
   // Estados de Datos
   private final MutableLiveData<Boolean> isLoading = new MutableLiveData<>();
   private final MutableLiveData<Intent> navegacionEvento = new MutableLiveData<>();
+  //nuevo 20-06
+  private final MutableLiveData<Boolean> finalUser = new MutableLiveData<>();
 
   // Estados para el Error (rojo)
   private final MutableLiveData<String> errorMessage = new MutableLiveData<>();
@@ -39,8 +43,6 @@ public class LoginViewModel extends AndroidViewModel {
   private final MutableLiveData<Boolean> pedirConfirmacionReactivacion = new MutableLiveData<>();
 
   //navegar al login
-  private final MutableLiveData<Boolean> navegarAlLogin = new MutableLiveData<>();
-
   public LoginViewModel(@NonNull Application application) {
     super(application);
     repositorio = new UsuarioRepositorio(application);
@@ -53,8 +55,10 @@ public class LoginViewModel extends AndroidViewModel {
   public LiveData<String> getExito() { return exito; }
   public LiveData<Integer> getExitoVisibility() { return exitoVisibility; }
   public LiveData<Intent> getNavegacionEvento() { return navegacionEvento; }
+  //nuevo 20-06
+  public LiveData<Boolean> getFinalUser() { return finalUser; }
   public LiveData<Boolean> getPedirConfirmacionReactivacion() { return pedirConfirmacionReactivacion; }
-  public LiveData<Boolean> getNavegarAlLogin() {return navegarAlLogin; }
+  //public LiveData<Boolean> getNavegarAlLogin() { return navegarAlLogin; }
 
 
   // login
@@ -160,6 +164,7 @@ public class LoginViewModel extends AndroidViewModel {
     //valiacion seguridad
     if (token == null || token.isEmpty()) {
       mostrarError("Enlace de reactivación inválido o corrupto");
+      navegarAlLoginActivity();
       return; // Al llamar a mostrarError, la Activity escuchara y hara finish()
     }
 
@@ -179,6 +184,7 @@ public class LoginViewModel extends AndroidViewModel {
           decidirNavegacionSegunRol();
         } else {
           mostrarError("El token es inválido o ya expiró");
+          navegarAlLoginActivity();
         }
       }
 
@@ -225,7 +231,8 @@ public class LoginViewModel extends AndroidViewModel {
         if (response.isSuccessful()) {
           // La palabra "actualizada" es clave porque la Activity la esta escuchando para cerrarse
           mostrarExito("Contraseña actualizada exitosamente");
-          navegarAlLogin.setValue(true);
+          //navegarAlLogin.setValue(true); //Pasaba directamente al menu hambur
+          navegarAlLoginActivity();
         } else {
           // Intentar capturar el mensaje real de C#
           try {
@@ -250,16 +257,26 @@ public class LoginViewModel extends AndroidViewModel {
     });
   }
 
+  //nuevo 20-06
+  public void onRolSeleccionadoParaRegistro(int indice) {
+    // 0 = Runner, 1 = Organizador
+    Class<?> destino = (indice == 0) ? RegisterRunnerActivity.class : RegisterOrganizadorActivity.class;
+    Intent intent = new Intent(getApplication(), destino);
+    navegacionEvento.setValue(intent);
+    finalUser.setValue(true);
+  }
 
+  //nuevo 21-06
+  private void navegarAlLoginActivity() {
+    Intent intent = new Intent(getApplication(), LoginActivity.class);
+    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+    navegacionEvento.setValue(intent);
+    finalUser.setValue(true);
+  }
 
 
 
   //HELPER PARA LA VISTA
-
-  // Llama a esto desde el Activity para resetear el estado
-  public void confirmarReactivacionMostrada() {
-    pedirConfirmacionReactivacion.setValue(false);
-  }
 
   private void prepararNuevaAccion() {
     errorVisibility.setValue(View.GONE);
@@ -281,29 +298,27 @@ public class LoginViewModel extends AndroidViewModel {
   public void esVisitanteClicked() {
     Intent intent = new Intent(getApplication(), EventosPublicosActivity.class);
     navegacionEvento.setValue(intent);
+    finalUser.setValue(false); //nuevo 20-06 - no cerramos el login
   }
 
   private void decidirNavegacionSegunRol() {
     Intent intent = new Intent(getApplication(), MainActivity.class);
     intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
     navegacionEvento.setValue(intent);
+    finalUser.setValue(true); //nuevo 20-06 - cerrar login
   }
 
   // cuando el usuario toca la flecha atras
   public void volverAtrasClick(){
-    navegarAlLogin.setValue(true);
-  }
-
-  //cuando la vista ya navego resetea el estado
-  public void navegacionALoginCompletada() {
-    navegarAlLogin.setValue(false);
+    navegarAlLoginActivity();
   }
 
   //verificar token
   public void verificarTokenRecuperacion(String token) {
     if (token == null || token.isEmpty()) {
       mostrarError("Enlace inválido o corrupto");
-      navegarAlLogin.setValue(true); // Ordena a la vista que se cierre
+      //navegarAlLogin.setValue(true); // Ordena a la vista que se cierre
+      navegarAlLoginActivity();
     }
   }
 

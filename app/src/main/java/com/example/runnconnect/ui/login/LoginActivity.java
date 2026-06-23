@@ -1,87 +1,66 @@
 package com.example.runnconnect.ui.login;
 
-import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
-import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ProgressBar;
-import android.widget.TextView;
-import android.widget.VideoView;
+
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
 import com.example.runnconnect.R;
-import com.example.runnconnect.ui.registro.RegisterOrganizadorActivity;
-import com.example.runnconnect.ui.registro.RegisterRunnerActivity;
-import com.google.android.material.textfield.TextInputEditText;
+import com.example.runnconnect.databinding.ActivityLoginBinding;
 
 public class LoginActivity extends AppCompatActivity {
 
   private LoginViewModel viewModel;
-  private VideoView videoBackground;
-  private TextInputEditText etEmail, etPassword;
-  private Button btnLogin, btnVisitante;
-  private TextView tvCrearCuenta, tvErrorLogin, tvOlvidePassword, tvSuccessLogin;
-  private ProgressBar progressBar;
+  private ActivityLoginBinding binding;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
-    setContentView(R.layout.activity_login);
+    binding = ActivityLoginBinding.inflate(getLayoutInflater());
+    setContentView(binding.getRoot());
 
     viewModel = new ViewModelProvider(this).get(LoginViewModel.class);
 
-    initViews();
+    //initViews();
     setupVideoBackground();
     setupObservers();
     setupListeners();
   }
 
-  private void initViews() {
-    videoBackground = findViewById(R.id.videoBackground);
-    etEmail = findViewById(R.id.etEmail);
-    etPassword = findViewById(R.id.etPassword);
-    btnLogin = findViewById(R.id.btnLogin);
-    btnVisitante = findViewById(R.id.btnVisitante);
-    tvCrearCuenta = findViewById(R.id.tvCrearCuenta);
-    progressBar = findViewById(R.id.progressBar);
-    tvErrorLogin = findViewById(R.id.tvErrorLogin);
-    tvOlvidePassword = findViewById(R.id.tvOlvidePassword);
-    tvSuccessLogin = findViewById(R.id.tvSuccessLogin);
-  }
-
   private void setupObservers() {
     // Carga
     viewModel.getIsLoading().observe(this, isLoading -> {
-      progressBar.setVisibility(isLoading ? View.VISIBLE : View.GONE);
-      btnLogin.setEnabled(!isLoading);
+      binding.progressBar.setVisibility(isLoading ? View.VISIBLE : View.GONE);
+      binding.btnLogin.setEnabled(!isLoading);
     });
 
     // error (ojo)
-    viewModel.getErrorMessage().observe(this, tvErrorLogin::setText);
-    viewModel.getErrorVisibility().observe(this, tvErrorLogin::setVisibility);
+    viewModel.getErrorMessage().observe(this, binding.tvErrorLogin::setText);
+    viewModel.getErrorVisibility().observe(this, binding.tvErrorLogin::setVisibility);
 
     // exito (verde)
-    viewModel.getExito().observe(this, tvSuccessLogin::setText);
-    viewModel.getExitoVisibility().observe(this, tvSuccessLogin::setVisibility);
+    viewModel.getExito().observe(this, binding.tvSuccessLogin::setText);
+    viewModel.getExitoVisibility().observe(this, binding.tvSuccessLogin::setVisibility);
 
     // evento de cuenta desactivada
     viewModel.getPedirConfirmacionReactivacion().observe(this, debePreguntar -> {
-      if (debePreguntar) {
-        mostrarDialogoPreguntaReactivar();
-        viewModel.confirmarReactivacionMostrada();
-      }
-    });
+       mostrarDialogoPreguntaReactivar();
+     });
 
-    // navegacion
-    viewModel.getNavegacionEvento().observe(this, intent -> {
-      startActivity(intent);
-      if (!(intent.getComponent().getClassName().contains("EventosPublicosActivity"))) {
+
+    //nuevo 20-06
+    viewModel.getNavegacionEvento().observe(this, this::startActivity);
+
+    viewModel.getFinalUser().observe(this, obs -> {
+      if (Boolean.TRUE.equals(obs)) {
         finish();
       }
     });
+
+
   }
 
   private void mostrarDialogoPreguntaReactivar() {
@@ -89,8 +68,8 @@ public class LoginActivity extends AppCompatActivity {
       .setTitle("Cuenta Inhabilitada")
       .setMessage("Detectamos que tu cuenta está desactivada. ¿Quieres recibir un email para reactivarla ahora mismo?")
       .setPositiveButton("Enviar Email", (d, w) -> {
-        String email = etEmail.getText().toString().trim();
-        String pass = etPassword.getText().toString().trim();
+        String email = binding.etEmail.getText().toString().trim();
+        String pass = binding.etPassword.getText().toString().trim();
         viewModel.solicitarReactivacion(email, pass);
       })
       .setNegativeButton("Cancelar", null)
@@ -98,15 +77,15 @@ public class LoginActivity extends AppCompatActivity {
   }
 
   private void setupListeners() {
-    btnLogin.setOnClickListener(v -> {
-      viewModel.login(etEmail.getText().toString().trim(), etPassword.getText().toString().trim());
+    binding.btnLogin.setOnClickListener(v -> {
+      viewModel.login(binding.etEmail.getText().toString().trim(), binding.etPassword.getText().toString().trim());
     });
 
-    btnVisitante.setOnClickListener(v -> viewModel.esVisitanteClicked());
+    binding.btnVisitante.setOnClickListener(v -> viewModel.esVisitanteClicked());
 
-    tvCrearCuenta.setOnClickListener(v -> mostrarDialogoSeleccionRol());
+    binding.tvCrearCuenta.setOnClickListener(v -> mostrarDialogoSeleccionRol());
 
-    tvOlvidePassword.setOnClickListener(v -> {
+    binding.tvOlvidePassword.setOnClickListener(v -> {
       EditText etEmailPopUp = new EditText(this);
       etEmailPopUp.setHint("Tu correo registrado");
       etEmailPopUp.setPadding(60, 40, 60, 40);
@@ -121,36 +100,37 @@ public class LoginActivity extends AppCompatActivity {
     });
   }
 
+  //nuevo 20-06
   private void mostrarDialogoSeleccionRol() {
     String[] opciones = {"Soy Corredor (Runner)", "Soy Organizador"};
     new AlertDialog.Builder(this)
       .setTitle("Crear Cuenta")
       .setItems(opciones, (dialog, which) -> {
-        Class<?> target = (which == 0) ? RegisterRunnerActivity.class : RegisterOrganizadorActivity.class;
-        startActivity(new Intent(this, target));
+        viewModel.onRolSeleccionadoParaRegistro(which);
       })
-      .setNegativeButton("Cancelar", null).show();
+      .setNegativeButton("Cancelar", null)
+      .show();
   }
 
   private void setupVideoBackground() {
     try {
       Uri uri = Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.background_video_login);
-      videoBackground.setVideoURI(uri);
+      binding.videoBackground.setVideoURI(uri);
 
       // fijar tamaño de pantalla
       android.util.DisplayMetrics metrics = new android.util.DisplayMetrics();
       getWindowManager().getDefaultDisplay().getRealMetrics(metrics);
-      android.view.ViewGroup.LayoutParams params = videoBackground.getLayoutParams();
+      android.view.ViewGroup.LayoutParams params = binding.videoBackground.getLayoutParams();
       params.width = metrics.widthPixels;
       params.height = metrics.heightPixels;
-      videoBackground.setLayoutParams(params);
+      binding.videoBackground.setLayoutParams(params);
 
-      videoBackground.setOnPreparedListener(mp -> {
+      binding.videoBackground.setOnPreparedListener(mp -> {
         mp.setLooping(true);
 
         Runnable escalarVideo = () -> {
-          int viewWidth = videoBackground.getWidth();
-          int viewHeight = videoBackground.getHeight();
+          int viewWidth = binding.videoBackground.getWidth();
+          int viewHeight = binding.videoBackground.getHeight();
 
           if (viewWidth == 0 || viewHeight == 0) return;
 
@@ -172,14 +152,14 @@ public class LoginActivity extends AppCompatActivity {
 
           scale = scale * 1.02f;
 
-          videoBackground.setScaleX(scale);
-          videoBackground.setScaleY(scale);
+          binding.videoBackground.setScaleX(scale);
+          binding.videoBackground.setScaleY(scale);
         };
 
         escalarVideo.run();
       });
 
-      videoBackground.start();
+      binding.videoBackground.start();
     } catch (Exception e) {
       e.printStackTrace();
     }
@@ -188,6 +168,6 @@ public class LoginActivity extends AppCompatActivity {
   @Override
   protected void onResume() {
     super.onResume();
-    if (videoBackground != null) videoBackground.start();
+    if (binding.videoBackground != null) binding.videoBackground.start();
   }
 }

@@ -46,6 +46,7 @@ public class DetalleEventoViewModel extends AndroidViewModel {
 
   // --- VARIABLES INTERNAS ---
   private boolean existenResultados = false;
+  private boolean todosLosResultadosCargados = false;
   private File archivoListoParaSubir = null;
 
   // Enum nativo de Java para evitar Magic Strings en la UI
@@ -57,6 +58,10 @@ public class DetalleEventoViewModel extends AndroidViewModel {
 
   // MVVM Puro: Evento binario de éxito vs Mensajes de error en UI
   private final MutableLiveData<Boolean> exitoCargaArchivo = new MutableLiveData<>();
+
+
+  // NUEVO: LiveData para el resumen detallado de la carga (errores de DNI)
+  private final MutableLiveData<String> resumenCargaArchivo = new MutableLiveData<>();
 
   private final MutableLiveData<Boolean> eventShowRunnersDialog = new MutableLiveData<>(false);
   private final MutableLiveData<Boolean> eventShowCambiarEstadoCategoria = new MutableLiveData<>(false);
@@ -70,6 +75,9 @@ public class DetalleEventoViewModel extends AndroidViewModel {
   private final MutableLiveData<String[]> opcionesMenuResultados = new MutableLiveData<>();
   private final MutableLiveData<AccionResultados> accionNavegacionResultados = new MutableLiveData<>();
 
+
+  // NUEVO: Lista de categorías que aún NO tienen CSV cargado
+  private final MutableLiveData<List<CategoriaResponse>> categoriasPendientesCarga = new MutableLiveData<>();
   private final MutableLiveData<Boolean> isLoading = new MutableLiveData<>(false);
   private final MutableLiveData<String> mensajeGlobal = new MutableLiveData<>();
   private final MutableLiveData<Integer> mensajeColorTexto = new MutableLiveData<>(Color.BLACK);
@@ -120,9 +128,11 @@ public class DetalleEventoViewModel extends AndroidViewModel {
   public LiveData<String> getNombreArchivoSeleccionado() { return nombreArchivoSeleccionado; }
   public LiveData<Boolean> getArchivoEsValido() { return archivoEsValido; }
   public LiveData<Boolean> getExitoCargaArchivo() { return exitoCargaArchivo; }
+  public LiveData<String> getResumenCargaArchivo() { return resumenCargaArchivo; }
 
   public LiveData<String[]> getOpcionesMenuResultados() { return opcionesMenuResultados; }
   public LiveData<AccionResultados> getAccionNavegacionResultados() { return accionNavegacionResultados; }
+  public LiveData<List<CategoriaResponse>> getCategoriasPendientesCarga() { return categoriasPendientesCarga; }
 
   public LiveData<EventoDetalleResponse> getEventoRaw() { return eventoRaw; }
   public LiveData<Boolean> getVisibilityBtnResultados() { return visibilityBtnResultados; }
@@ -240,7 +250,7 @@ public class DetalleEventoViewModel extends AndroidViewModel {
     });
   }
 
-  private void lanzarMensaje(String msg, int tipo) {
+  public void lanzarMensaje(String msg, int tipo) {
     if (tipo == 1) {
       mensajeColorTexto.setValue(Color.parseColor("#1B5E20"));
       mensajeColorFondo.setValue(Color.parseColor("#C8E6C9"));
@@ -315,34 +325,86 @@ public class DetalleEventoViewModel extends AndroidViewModel {
     } catch (Exception e) { return null; }
   }
 
-  public void subirArchivoGuardado(int idEvento) {
+  public void subirArchivoGuardado(int idEvento, int idCategoria) {
     if (archivoListoParaSubir == null) return;
     lanzarMensaje("Subiendo...", 0);
-    resultadoRepositorio.subirArchivoResultados(idEvento, archivoListoParaSubir, new Callback<ResponseBody>() {
+
+    resultadoRepositorio.subirArchivoResultados(idEvento, idCategoria, archivoListoParaSubir, new Callback<ResponseBody>() {
       @Override
       public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
         if (response.isSuccessful()) {
           existenResultados = true;
           archivoListoParaSubir = null;
           exitoCargaArchivo.postValue(true);
-        } else lanzarMensaje("Error en servidor al procesar archivo", 2);
+
+          lanzarMensaje("Resultados cargados!",1);
+
+          // Refrescamos las listas para recalcular qué categorías faltan
+          verificarSiExistenResultados(idEvento);
+
+          // NUEVO: Capturar y parsear el detalle de fallidos del JSON
+          try {
+            if (response.body() != null) {
+              String jsonStr = response.body().string();
+              JSONObject jsonObj = new JSONObject(jsonStr);
+
+              String mensajeGral = jsonObj.optString("message", "Carga completada");
+              StringBuilder resumen = new StringBuilder(mensajeGral);
+
+              if (jsonObj.has("detalles")) {
+                JSONObject detalles = jsonObj.getJSONObject("detalles");
+                int fallidos = detalles.optInt("fallidos", 0);
+
+                if (fallidos > 0 && detalles.has("errores")) {
+                  resumen.append("\n\nDetalle de errores:\n");
+                  org.json.JSONArray erroresArr = detalles.getJSONArray("errores");
+
+                  for (int i = 0; i < erroresArr.length(); i++) {
+                    JSONObject err = erroresArr.getJSONObject(i);
+                    resumen.append("• DNI ").append(err.getInt("dni"))
+                      .append(": ").append(err.getString("motivo")).append("\n");
+                  }
+                }
+              }
+              // Enviamos el resumen a la Vista
+              resumenCargaArchivo.postValue(resumen.toString());
+            }
+          } catch (Exception e) {
+            e.printStackTrace();
+          }
+
+        } else {
+          lanzarMensaje("Error en servidor al procesar archivo", 2);
+        }
       }
-      @Override public void onFailure(Call<ResponseBody> call, Throwable t) { lanzarMensaje("Fallo de conexión", 2); }
+      @Override public void onFailure(Call<ResponseBody> call, Throwable t) {
+        lanzarMensaje("Fallo de conexión", 2);
+      }
     });
   }
 
+  public void resetResumenCargaArchivo() { resumenCargaArchivo.setValue(null); }
   public void resetExitoCarga() { exitoCargaArchivo.setValue(null); }
 
   public void solicitarMenuResultados() {
-    if (existenResultados) opcionesMenuResultados.setValue(new String[]{"Ver Resultados Oficiales"});
-    else opcionesMenuResultados.setValue(new String[]{"Cargar Resultados (CSV)", "Ver Resultados"});
+    if (todosLosResultadosCargados) {
+      // Si tod se cargo, ocultamos el boton de carga del menu
+      opcionesMenuResultados.setValue(new String[]{"Ver Resultados Oficiales"});
+    } else {
+      // Aún hay categorías sin CSV cargados
+      if (existenResultados) {
+        opcionesMenuResultados.setValue(new String[]{"Cargar Resultados (CSV)", "Ver Resultados Oficiales"});
+      } else {
+        opcionesMenuResultados.setValue(new String[]{"Cargar Resultados (CSV)"});
+      }
+    }
   }
 
-  public void onOpcionMenuSeleccionada(int indice) {
-    if (existenResultados) accionNavegacionResultados.setValue(AccionResultados.VER);
-    else {
-      if (indice == 0) accionNavegacionResultados.setValue(AccionResultados.CARGAR);
-      else accionNavegacionResultados.setValue(AccionResultados.VER);
+  public void onOpcionMenuSeleccionada(String opcionSeleccionada) {
+    if (opcionSeleccionada.contains("Cargar")) {
+      accionNavegacionResultados.setValue(AccionResultados.CARGAR);
+    } else {
+      accionNavegacionResultados.setValue(AccionResultados.VER);
     }
   }
 
@@ -377,11 +439,39 @@ public class DetalleEventoViewModel extends AndroidViewModel {
       @Override
       public void onResponse(Call<ResultadosEventoResponse> call, Response<ResultadosEventoResponse> response) {
         if (response.isSuccessful() && response.body() != null) {
-          List<ResultadosEventoResponse.ResultadoEventoItem> lista = response.body().getResultados();
-          existenResultados = (lista != null && !lista.isEmpty());
-        } else existenResultados = false;
+          List<ResultadosEventoResponse.ResultadoEventoItem> listaRes = response.body().getResultados();
+          existenResultados = (listaRes != null && !listaRes.isEmpty());
+
+          // Comparamos los resultados existentes contra todas las categorías
+          List<CategoriaResponse> todas = listaCategorias.getValue();
+          if (todas != null && !todas.isEmpty()) {
+            List<CategoriaResponse> pendientes = new ArrayList<>();
+            for (CategoriaResponse cat : todas) {
+              boolean cargada = false;
+              if (listaRes != null) {
+                for (ResultadosEventoResponse.ResultadoEventoItem r : listaRes) {
+                  if (cat.getNombre().equalsIgnoreCase(r.getNombreCategoria())) {
+                    cargada = true;
+                    break;
+                  }
+                }
+              }
+              if (!cargada) pendientes.add(cat);
+            }
+            categoriasPendientesCarga.setValue(pendientes);
+            todosLosResultadosCargados = pendientes.isEmpty(); // Si no hay pendientes, ya subió todo
+          }
+        } else {
+          existenResultados = false;
+          todosLosResultadosCargados = false;
+          categoriasPendientesCarga.setValue(listaCategorias.getValue());
+        }
       }
-      @Override public void onFailure(Call<ResultadosEventoResponse> call, Throwable t) { existenResultados = false; }
+      @Override public void onFailure(Call<ResultadosEventoResponse> call, Throwable t) {
+        existenResultados = false;
+        todosLosResultadosCargados = false;
+        categoriasPendientesCarga.setValue(listaCategorias.getValue());
+      }
     });
   }
 

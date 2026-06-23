@@ -28,6 +28,9 @@ import com.example.runnconnect.data.response.CategoriaResponse;
 import com.example.runnconnect.data.response.InscriptoEventoResponse;
 import com.example.runnconnect.databinding.FragmentDetalleEventoBinding;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class DetalleEventoFragment extends Fragment {
   private FragmentDetalleEventoBinding binding;
   private DetalleEventoViewModel viewModel;
@@ -104,12 +107,24 @@ public class DetalleEventoFragment extends Fragment {
     viewModel.getExitoCargaArchivo().observe(getViewLifecycleOwner(), exito -> {
       if (exito == null) return;
       if (Boolean.TRUE.equals(exito)) {
-        Toast.makeText(getContext(), "¡Resultados cargados!", Toast.LENGTH_SHORT).show();
+        //Toast.makeText(getContext(), "¡Resultados cargados!", Toast.LENGTH_SHORT).show();
         new Handler(Looper.getMainLooper()).postDelayed(() -> {
           if (dialogCarga != null && dialogCarga.isShowing()) dialogCarga.dismiss();
         }, 200);
       }
       viewModel.resetExitoCarga();
+    });
+
+    // NUEVO: Observador para mostrar el resumen de la carga (errores de DNI)
+    viewModel.getResumenCargaArchivo().observe(getViewLifecycleOwner(), resumen -> {
+      if (resumen != null) {
+        new AlertDialog.Builder(requireContext())
+          .setTitle("Resultado de la carga")
+          .setMessage(resumen)
+          .setPositiveButton("Entendido", null)
+          .show();
+        viewModel.resetResumenCargaArchivo();
+      }
     });
 
     viewModel.getNombreArchivoSeleccionado().observe(getViewLifecycleOwner(), nombre -> {
@@ -130,20 +145,22 @@ public class DetalleEventoFragment extends Fragment {
         new AlertDialog.Builder(requireContext())
           .setTitle("Gestión de Resultados")
           .setItems(opciones, (dialog, which) -> {
-            viewModel.onOpcionMenuSeleccionada(which);
+            // AHORA PASAMOS EL TEXTO, NO EL INDICE
+            viewModel.onOpcionMenuSeleccionada(opciones[which]);
           })
           .show();
-        viewModel.resetAccionNavegacion();
       }
     });
 
     // MVVM Puro: Enum en lugar de Magic Strings ("CARGAR", "VER")
     viewModel.getAccionNavegacionResultados().observe(getViewLifecycleOwner(), accion -> {
       if (accion == null) return;
-      viewModel.resetOpcionesMenu();
+
+      // ESTE ES EL CORRECTO PARA LIMPIAR LA NAVEGACION (Evita el bucle infinito)
+      viewModel.resetAccionNavegacion();
+
       if (accion == DetalleEventoViewModel.AccionResultados.CARGAR) abrirDialogoCarga();
       else if (accion == DetalleEventoViewModel.AccionResultados.VER) navegarAVerResultados();
-      viewModel.resetAccionNavegacion();
     });
 
     // Binding UI
@@ -267,15 +284,43 @@ public class DetalleEventoFragment extends Fragment {
     btnSubirEnDialog = view.findViewById(R.id.btnSubirArchivo);
     tvNombreEnDialog = view.findViewById(R.id.tvNombreArchivo);
 
+    // NUEVO: Vinculamos el Spinner
+    android.widget.Spinner spCategoriaResultados = view.findViewById(R.id.spCategoriaResultados);
+
+    // Recuperamos SOLO las categorías que no tienen resultados
+    List<CategoriaResponse> pendientes = viewModel.getCategoriasPendientesCarga().getValue();
+
+    // Validacion de seguridad (no deberia pasar por la regla del menú, pero por las dudas)
+    if (pendientes == null || pendientes.isEmpty()) {
+      //Toast.makeText(getContext(), "Todas las categorías tienen resultados", Toast.LENGTH_SHORT).show();
+      viewModel.lanzarMensaje("Todas las categorias tienen resultados",0);
+      return;
+    }
+
+    // Configuramos el Spinner visualmente extrayendo solo los nombres
+    List<String> nombresCat = new ArrayList<>();
+    for(CategoriaResponse c : pendientes) {
+      nombresCat.add(c.getNombre());
+    }
+    ArrayAdapter<String> adapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_dropdown_item, nombresCat);
+    spCategoriaResultados.setAdapter(adapter);
+
     btnSubirEnDialog.setEnabled(false);
     tvNombreEnDialog.setText("Selecciona un archivo CSV");
 
     btnElegir.setOnClickListener(v -> selectorArchivo.launch("*/*"));
 
     btnSubirEnDialog.setOnClickListener(v -> {
+      // Leemos qué posición seleccionó el usuario en el Spinner
+      int pos = spCategoriaResultados.getSelectedItemPosition();
+      // Buscamos el ID real de esa categoría en nuestra lista 'pendientes'
+      int idCatSeleccionada = pendientes.get(pos).getIdCategoria();
+
       btnSubirEnDialog.setEnabled(false);
       btnSubirEnDialog.setText("Enviando...");
-      viewModel.subirArchivoGuardado(idEvento);
+
+      // Enviamos AMBOS datos al ViewModel
+      viewModel.subirArchivoGuardado(idEvento, idCatSeleccionada);
     });
 
     builder.setView(view);

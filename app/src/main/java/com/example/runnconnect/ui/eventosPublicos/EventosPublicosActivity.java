@@ -4,7 +4,6 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.MenuItem; //
 import android.view.View;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -31,7 +30,6 @@ public class EventosPublicosActivity extends AppCompatActivity {
       getSupportActionBar().setTitle("Próximos Eventos"); // Título
       getSupportActionBar().setDisplayHomeAsUpEnabled(true); // Flecha activada
     }
-    // -----------------------------------------
 
     viewModel = new ViewModelProvider(this).get(EventosPublicosViewModel.class);
 
@@ -51,7 +49,6 @@ public class EventosPublicosActivity extends AppCompatActivity {
     }
     return super.onOptionsItemSelected(item);
   }
-  // -------------------------------------------------------------
 
   private void setupRecyclerView() {
     adapter = new EventosPublicosAdapter(idEvento -> viewModel.seleccionarEvento(idEvento));
@@ -63,27 +60,28 @@ public class EventosPublicosActivity extends AppCompatActivity {
     viewModel.getIsLoading().observe(this, loading ->
       binding.progressBar.setVisibility(loading ? View.VISIBLE : View.GONE));
 
-    viewModel.getListaEventos().observe(this, lista -> {
+    /*viewModel.getListaEventos().observe(this, lista -> {
       if (lista != null) adapter.setLista(lista);
-    });
+    });*/
+
+    viewModel.getListaEventos().observe(this, lista -> adapter.setLista(lista));
 
     viewModel.getIsVacio().observe(this, vacio ->
       binding.tvVacio.setVisibility(vacio ? View.VISIBLE : View.GONE));
 
-    viewModel.getMostrarToast().observe(this, msg -> {
-      if (msg != null) {
-        // Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
-        viewModel.resetToast();
-      }
+    viewModel.getMostrarMensaje().observe(this, msg -> {
+      binding.tvError.setText(msg);
+      binding.tvError.setVisibility(View.VISIBLE);
+
+      binding.recyclerEventos.setVisibility(View.GONE);
+      binding.tvVacio.setVisibility(View.GONE);
     });
 
     viewModel.getNavegarADetalle().observe(this, idEvento -> {
-      if (idEvento != null) {
-        Intent intent = new Intent(EventosPublicosActivity.this, DetalleEventoPublicoActivity.class);
-        intent.putExtra("idEvento", idEvento);
-        startActivity(intent);
-        viewModel.resetNavegacion();
-      }
+      Intent intent = new Intent(EventosPublicosActivity.this, DetalleEventoPublicoActivity.class);
+      intent.putExtra("idEvento", idEvento);
+      startActivity(intent);
+      //viewModel.resetNavegacion();
     });
   }
 }

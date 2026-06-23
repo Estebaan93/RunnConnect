@@ -2,8 +2,6 @@ package com.example.runnconnect.ui.login;
 
 import android.net.Uri;
 import android.os.Bundle;
-import android.util.Log;
-
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
 
@@ -37,19 +35,17 @@ public class ReactivarCuentaActivity extends AppCompatActivity {
     return null; // Si no hay link, devolvemos null y que el ViewModel se encargue
   }
 
+  //nuevo 21-06
   private void setupObservers() {
-    // Si tiene exito, navega al MainActivity
-    viewModel.getNavegacionEvento().observe(this, intent -> {
-      startActivity(intent);
-      finish();
-    });
+    // Navegacion (por ejemplo, a MainActivity tras reactivar)
+    viewModel.getNavegacionEvento().observe(this, this::startActivity);
 
-    // Si hay error, registramos y cerramos para que vuelva al Login
-    viewModel.getErrorMessage().observe(this, error -> {
-      if (error != null && !error.isEmpty()) {
-        Log.d("ErrorTokenReactivacion", "VER ERROR: " + error);
+    // Cerrar la Activity solo si el ViewModel lo indica
+    viewModel.getFinalUser().observe(this, finish -> {
+      if (Boolean.TRUE.equals(finish)) {
         finish();
       }
     });
   }
+
 }

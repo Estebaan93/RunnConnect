@@ -13,61 +13,52 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ProgressBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
-import com.example.runnconnect.R;
+import com.example.runnconnect.databinding.FragmentInicioBinding;
 
 public class InicioFragment extends Fragment {
+  private FragmentInicioBinding binding;
   private InicioViewModel viewModel;
-  private RecyclerView rvNoticias;
   private NoticiaAdapter adapter;
-  private ProgressBar progressBar;
-  private TextView tvEstado;
-
 
   public View onCreateView(@NonNull LayoutInflater inflater,
                            ViewGroup container, Bundle savedInstanceState) {
 
-    View root = inflater.inflate(R.layout.fragment_inicio, container, false);
+    //inflar el binding
+    binding= FragmentInicioBinding.inflate(inflater, container, false);
+    View root= binding.getRoot();
 
-    // UI References
-    rvNoticias = root.findViewById(R.id.rvNoticias);
-    progressBar = root.findViewById(R.id.progressBarInicio);
-    tvEstado = root.findViewById(R.id.tvEstado);
-
-    // Configuración RecyclerView
-    rvNoticias.setLayoutManager(new LinearLayoutManager(getContext()));
+    // Configuracion RecyclerView
+    binding.rvNoticias.setLayoutManager(new LinearLayoutManager(getContext()));
     adapter = new NoticiaAdapter(url -> abrirNoticiaEnNavegador(url));
-    rvNoticias.setAdapter(adapter);
+    binding.rvNoticias.setAdapter(adapter);
 
     // ViewModel
     viewModel = new ViewModelProvider(this).get(InicioViewModel.class);
 
     // Observadores
     viewModel.getIsLoading().observe(getViewLifecycleOwner(), loading ->
-            progressBar.setVisibility(loading ? View.VISIBLE : View.GONE)
+            binding.progressBarInicio.setVisibility(loading ? View.VISIBLE : View.GONE)
     );
-
-    viewModel.getListaNoticias().observe(getViewLifecycleOwner(), noticias -> {
-      if (noticias != null && !noticias.isEmpty()) {
-        tvEstado.setVisibility(View.GONE);
-        rvNoticias.setVisibility(View.VISIBLE);
-        adapter.setNoticias(noticias);
-      } else {
-        tvEstado.setVisibility(View.VISIBLE);
-        rvNoticias.setVisibility(View.GONE);
-      }
+    //nuevo 22-06
+    viewModel.getListaVacia().observe(getViewLifecycleOwner(), empty -> {
+      binding.tvEstado.setVisibility(empty ? View.VISIBLE : View.GONE);
+      binding.rvNoticias.setVisibility(empty ? View.GONE : View.VISIBLE);
     });
 
-    viewModel.getMensajeError().observe(getViewLifecycleOwner(), error -> {
-      if(error != null) Toast.makeText(getContext(), error, Toast.LENGTH_LONG).show();
-    });
+    //nuevo 22-06
+    viewModel.getListaNoticias().observe(getViewLifecycleOwner(), adapter::setNoticias);
+
+    viewModel.getErrorText().observe(getViewLifecycleOwner(), binding.tvErrorLoad::setText);
+    viewModel.getErrorVisibility().observe(getViewLifecycleOwner(), binding.tvErrorLoad::setVisibility);
 
     return root;
   }
@@ -80,9 +71,17 @@ public class InicioFragment extends Fragment {
       CustomTabsIntent customTabsIntent = builder.build();
       customTabsIntent.launchUrl(requireContext(), Uri.parse(url));
     } catch (Exception e) {
-      Toast.makeText(getContext(), "No se pudo abrir el enlace", Toast.LENGTH_SHORT).show();
+      binding.tvErrorAbrir.setText("No se pudo abrir el enlace");
+      binding.tvErrorAbrir.setVisibility(View.VISIBLE);
       Log.d("Error abrir card", "abrirNoticiaEnNavegador: " +e.getMessage());
+
+      // Ocultamos despues de 3 segundos
+      new Handler(Looper.getMainLooper()).postDelayed(() ->
+        binding.tvErrorAbrir.setVisibility(View.GONE), 5000);
     }
+
+
+
   }
 
 }
