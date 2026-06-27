@@ -23,7 +23,7 @@ public class LogoutFragment extends Fragment {
   @Override
   public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                            @Nullable Bundle savedInstanceState) {
-    // Inflamos un layout vacío o simple, ya que el protagonismo es del Dialog
+    // Inflamos un layout vacio o simple
     return inflater.inflate(R.layout.fragment_logout, container, false);
   }
 
@@ -62,7 +62,7 @@ public class LogoutFragment extends Fragment {
 
   private void navegarAlLogin() {
     Intent intent = new Intent(requireActivity(), LoginActivity.class);
-    // Flags para limpiar la pila de actividades (que no pueda volver atrás con botón físico)
+    // Flags para limpiar la pila de actividades (que no pueda volver atras con botn fisico)
     intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
     startActivity(intent);
     requireActivity().finish();

@@ -234,7 +234,7 @@ public class LoginViewModel extends AndroidViewModel {
           //navegarAlLogin.setValue(true); //Pasaba directamente al menu hambur
           navegarAlLoginActivity();
         } else {
-          // Intentar capturar el mensaje real de C#
+          // Intentar capturar el mensaje real de la api
           try {
             String errorReal = response.errorBody() != null ? response.errorBody().string() : "";
             Log.d("ErrorTokenRecuperarPass", "Response: " + errorReal);
@@ -259,7 +259,7 @@ public class LoginViewModel extends AndroidViewModel {
 
   //nuevo 20-06
   public void onRolSeleccionadoParaRegistro(int indice) {
-    // 0 = Runner, 1 = Organizador
+    // 0 = runner, 1 = organizador
     Class<?> destino = (indice == 0) ? RegisterRunnerActivity.class : RegisterOrganizadorActivity.class;
     Intent intent = new Intent(getApplication(), destino);
     navegacionEvento.setValue(intent);
@@ -277,7 +277,6 @@ public class LoginViewModel extends AndroidViewModel {
 
 
   //HELPER PARA LA VISTA
-
   private void prepararNuevaAccion() {
     errorVisibility.setValue(View.GONE);
     exitoVisibility.setValue(View.GONE);

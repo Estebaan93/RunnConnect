@@ -3,14 +3,12 @@ package com.example.runnconnect.ui.eventosPublicos.detalle;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
-import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.example.runnconnect.databinding.ActivityDetalleEventoPublicoBinding;
-import com.example.runnconnect.ui.eventosPublicos.mapa.MapaPublicoActivity; // Importar nueva activity
 
 public class DetalleEventoPublicoActivity extends AppCompatActivity {
 
@@ -33,11 +31,9 @@ public class DetalleEventoPublicoActivity extends AppCompatActivity {
     setupObservers();
     setupListeners();
 
-    if (idEvento != 0) {
-      viewModel.cargarDetalle(idEvento);
-    } else {
-      finish();
-    }
+    //
+    viewModel.inicializar(idEvento);
+
   }
 
   private void setupRecyclerView() {
@@ -51,56 +47,36 @@ public class DetalleEventoPublicoActivity extends AppCompatActivity {
     viewModel.getIsLoading().observe(this, loading ->
       binding.progressBar.setVisibility(loading ? View.VISIBLE : View.GONE));
 
-    viewModel.getMensajeError().observe(this, msg -> {
-      if (msg != null) {
-        // Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
-        viewModel.resetMensajeError();
+    //error
+    viewModel.getErrorText().observe(this, binding.tvError::setText);
+    viewModel.getErrorVisibility().observe(this, binding.tvError::setVisibility);
+
+    viewModel.getNombre().observe(this, binding.tvTituloDetalle::setText);
+    viewModel.getFechaHora().observe(this, binding.tvFechaHora::setText);
+    viewModel.getLugar().observe(this, binding.tvLugar::setText);
+    viewModel.getDescripcion().observe(this, binding.tvDescripcion::setText);
+    viewModel.getEstado().observe(this, binding.tvEstado::setText);
+    viewModel.getCupos().observe(this, binding.tvCupos::setText);
+    viewModel.getNombreOrganizador().observe(this, binding.tvNombreOrganizador::setText);
+
+    // categorias
+    viewModel.getCategorias().observe(this, adapter::setLista);
+
+    // navegacion
+    viewModel.getNavegacionEvento().observe(this, this::startActivity);
+    viewModel.getFinalUser().observe(this, finish -> {
+      if (Boolean.TRUE.equals(finish)) {
+        finish();
       }
     });
 
-    viewModel.getEvento().observe(this, evento -> {
-      if (evento != null) {
-        binding.tvTituloDetalle.setText(evento.getNombre());
-
-        String fecha = (evento.getFechaHora() != null) ? evento.getFechaHora().replace("T", " ") : "-";
-        binding.tvFechaHora.setText("Fecha: " + fecha);
-
-        binding.tvLugar.setText("Lugar: " + evento.getLugar());
-        binding.tvDescripcion.setText(evento.getDescripcion());
-
-        String estado = (evento.getEstado() != null) ? evento.getEstado().toUpperCase() : "";
-        binding.tvEstado.setText("Estado: " + estado);
-
-        int disponibles = evento.getCuposDisponibles();
-        int total = (evento.getCupoTotal() != null) ? evento.getCupoTotal() : 0;
-        binding.tvCupos.setText("Cupos: " + disponibles + " / " + total);
-
-        if (evento.getOrganizador() != null) {
-          binding.tvNombreOrganizador.setText(evento.getOrganizador().getNombre());
-        }
-
-        if (evento.getCategorias() != null) {
-          adapter.setLista(evento.getCategorias());
-        }
-      }
-    });
   }
 
   private void setupListeners() {
-    // 1. Botón "Iniciar Sesion para Inscribirme"
-    binding.btnIrALogin.setOnClickListener(v -> {
-      Intent intent = new Intent(this, com.example.runnconnect.ui.login.LoginActivity.class);
-      // FLAGS IMPORTANTES: Borran la pila para que al dar "Atrás" no vuelva aquí
-      intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
-      startActivity(intent);
-      finish();
-    });
-
-    // 2. Boton "Ver Recorrido" (NUEVO)
-    binding.btnVerMapa.setOnClickListener(v -> {
-      Intent i = new Intent(this, MapaPublicoActivity.class);
-      i.putExtra("idEvento", idEvento);
-      startActivity(i);
-    });
+    binding.btnIrALogin.setOnClickListener(v -> viewModel.onLoginClicked());
+    binding.btnVerMapa.setOnClickListener(v -> viewModel.onVerMapaClicked(
+      getIntent().getIntExtra("idEvento", 0)
+    ));
   }
+
 }

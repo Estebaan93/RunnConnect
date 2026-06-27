@@ -3,7 +3,7 @@ package com.example.runnconnect.ui.eventosPublicos.mapa;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.view.MenuItem;
-import android.widget.Toast;
+import android.view.View;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -27,7 +27,7 @@ public class MapaPublicoActivity extends AppCompatActivity implements OnMapReady
   private ActivityMapaPublicoBinding binding;
   private MapaPublicoViewModel viewModel;
   private GoogleMap mMap;
-  private int idEvento;
+  //private int idEvento;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -35,16 +35,16 @@ public class MapaPublicoActivity extends AppCompatActivity implements OnMapReady
     binding = ActivityMapaPublicoBinding.inflate(getLayoutInflater());
     setContentView(binding.getRoot());
 
-    // Configurar Barra Superior
+    //configurar Barra Superior
     if (getSupportActionBar() != null) {
       getSupportActionBar().setTitle("Recorrido del Evento");
       getSupportActionBar().setDisplayHomeAsUpEnabled(true);
     }
 
-    idEvento = getIntent().getIntExtra("idEvento", 0);
+    //idEvento = getIntent().getIntExtra("idEvento", 0);
     viewModel = new ViewModelProvider(this).get(MapaPublicoViewModel.class);
 
-    // Iniciar Mapa
+    //iniciar Mapa
     SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
       .findFragmentById(R.id.map);
     if (mapFragment != null) {
@@ -59,44 +59,45 @@ public class MapaPublicoActivity extends AppCompatActivity implements OnMapReady
   }
 
   private void setupObservers() {
-    //Dibujar Ruta
+    // carga
+    viewModel.getIsLoading().observe(this, loading ->
+      binding.progressBar.setVisibility(loading ? View.VISIBLE : View.GONE));
+
+    //error
+    viewModel.getErrorText().observe(this, binding.tvError::setText);
+    viewModel.getErrorVisibility().observe(this, binding.tvError::setVisibility);
+
+    //tipo de mapa (siempre se recibe con el mapa listo)
+    viewModel.getTipoMapa().observe(this, tipo ->mMap.setMapType(tipo));
+
+    //ruta
     viewModel.getPuntosRuta().observe(this, this::dibujarRutaEnMapa);
 
-    viewModel.getTipoMapa().observe(this, tipo -> {
-      if (mMap != null) {
-        mMap.setMapType(tipo);
-      }
+    //distancia (se muestra en un TextView especifico)
+    viewModel.getTextoDistancia().observe(this, binding.tvDistancia::setText);
+
+    //meta (marcador adicional)
+    viewModel.getPuntoMeta().observe(this, latLng -> {
+      mMap.addMarker(new MarkerOptions()
+        .position(latLng)
+        .title("Meta")
+        .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)));
     });
 
-    //Hacer Zoom Automatico
-    viewModel.getOrdenHacerZoomRuta().observe(this, bounds -> {
-      if (mMap != null && bounds != null) {
-        try {
-          // Padding de 100px para que la ruta no toque los bordes
-          mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, 100));
-        } catch (Exception e) {
-          e.printStackTrace();
-        }
-      }
-    });
+    //zoom automatico
+    viewModel.getOrdenHacerZoomRuta().observe(this, bounds ->
+      mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, 100)));
 
-    //Fallback Centrar
-    viewModel.getOrdenCentrarCamara().observe(this, latLng -> {
-      if (mMap != null && latLng != null) {
-        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15));
-      }
-    });
+    //centrar (fallback)
+    viewModel.getOrdenCentrarCamara().observe(this, latLng ->
+      mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15)));
 
-    //Mostrar Distancia en el subtitulo
-    viewModel.getTextoDistancia().observe(this, dist -> {
-      if (!dist.isEmpty() && getSupportActionBar() != null) {
-        getSupportActionBar().setSubtitle("Distancia total: " + dist);
-      }
-    });
+    //flecha de volver (sin if)
+    viewModel.getVolverAtras().observe(this, signal -> finish());
 
-    //Errores
-    viewModel.getMensajeError().observe(this, msg -> {
-      if (msg != null) Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
+    //finalizacion
+    viewModel.getFinalUser().observe(this, finish -> {
+      if (Boolean.TRUE.equals(finish)) finish();
     });
   }
 
@@ -104,51 +105,34 @@ public class MapaPublicoActivity extends AppCompatActivity implements OnMapReady
   public void onMapReady(GoogleMap googleMap) {
     mMap = googleMap;
     mMap.getUiSettings().setZoomControlsEnabled(true);
-    mMap.setMapType(GoogleMap.MAP_TYPE_NORMAL); // Mapa ligero no satelital
+    //mMap.setMapType(GoogleMap.MAP_TYPE_NORMAL); // Mapa ligero no satelital
+    int idEvento = getIntent().getIntExtra("idEvento", 0);
+    viewModel.onMapaListo(idEvento);
 
-    if (idEvento != 0) {
-      viewModel.cargarRuta(idEvento);
-    } else {
-      Toast.makeText(this, "Error: Evento no identificado", Toast.LENGTH_SHORT).show();
-    }
-
-    if (viewModel.getTipoMapa().getValue() != null) {
-      mMap.setMapType(viewModel.getTipoMapa().getValue());
-    }
   }
 
   private void dibujarRutaEnMapa(List<LatLng> puntos) {
-    if (mMap == null || puntos == null || puntos.isEmpty()) return;
-
-    mMap.clear();
-
-    // Linea Poligonal
+    // Polyline
     PolylineOptions poly = new PolylineOptions()
       .addAll(puntos)
       .width(12)
-      .color(Color.BLUE) // Azul clasico de rutas
+      .color(Color.BLUE)
       .geodesic(true);
     mMap.addPolyline(poly);
 
-    // Marcador Inicio
+    // Marcador inicio (siempre el primer punto)
     mMap.addMarker(new MarkerOptions()
       .position(puntos.get(0))
       .title("Largada")
       .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)));
+    // El marcador de meta se añade por separado mediante puntoMeta
 
-    // Marcador Fin (Solo si hay mas de 1 punto)
-    if (puntos.size() > 1) {
-      mMap.addMarker(new MarkerOptions()
-        .position(puntos.get(puntos.size() - 1))
-        .title("Meta")
-        .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)));
-    }
   }
 
   @Override
   public boolean onOptionsItemSelected(@NonNull MenuItem item) {
     if (item.getItemId() == android.R.id.home) {
-      finish();
+      viewModel.flechaVolverAtras();
       return true;
     }
     return super.onOptionsItemSelected(item);

@@ -24,7 +24,6 @@ public class LoginActivity extends AppCompatActivity {
 
     viewModel = new ViewModelProvider(this).get(LoginViewModel.class);
 
-    //initViews();
     setupVideoBackground();
     setupObservers();
     setupListeners();

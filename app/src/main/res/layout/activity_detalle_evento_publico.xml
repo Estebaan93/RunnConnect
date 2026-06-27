@@ -202,4 +202,13 @@
       android:layout_gravity="center"
       android:visibility="gone"/>
 
+    <TextView
+        android:id="@+id/tvError"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:textColor="@android:color/holo_red_dark"
+        android:visibility="gone"
+        android:layout_marginTop="8dp"/>
+
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
