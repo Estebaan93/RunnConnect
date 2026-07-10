@@ -43,7 +43,30 @@ public class UsuarioRepositorio {
   public void login(String email, String password, Callback<LoginResponse> callback) {
     LoginRequest request = new LoginRequest(email, password);
     Call<LoginResponse> call = apiService.login(request);
-    call.enqueue(callback); //Le pasamos al viewModel
+    call.enqueue(new Callback<LoginResponse>() {
+      @Override
+      public void onResponse(Call<LoginResponse> call, retrofit2.Response<LoginResponse> response) {
+        if (response.isSuccessful() && response.body() != null) {
+          callback.onResponse(call, response);
+        } else {
+          try {
+            String errorBody = response.errorBody() != null ? response.errorBody().string() : "";
+            if (errorBody.contains("desactivada") || errorBody.contains("inhabilitada")) {
+              callback.onFailure(call, new Exception("CUENTA_DESACTIVADA"));
+            } else {
+              callback.onFailure(call, new Exception("Usuario o contraseña incorrectos"));
+            }
+          } catch (Exception e) {
+            callback.onFailure(call, new Exception("Error en las credenciales"));
+          }
+        }
+      }
+
+      @Override
+      public void onFailure(Call<LoginResponse> call, Throwable t) {
+        callback.onFailure(call, new Exception("Error de conexión: " + t.getMessage()));
+      }
+    });
   }
 
   //guardamos la sesion - guarda token y datos del usuario como tipoUsuario, email etc
@@ -148,22 +171,83 @@ public class UsuarioRepositorio {
 
   //recuperar password (orga/runner)
   public void recuperarPassword(String email, Callback<Void> callback){
-    apiService.recuperarPassword(new RecuperarPasswordRequest(email)).enqueue(callback);
+    apiService.recuperarPassword(new RecuperarPasswordRequest(email)).enqueue(new Callback<Void>() {
+      @Override
+      public void onResponse(Call<Void> call, retrofit2.Response<Void> response) {
+        if (response.isSuccessful()) {
+          callback.onResponse(call, response);
+        } else {
+          callback.onFailure(call, new Exception("No se encontró su cuenta de email"));
+        }
+      }
+      @Override
+      public void onFailure(Call<Void> call, Throwable t) {
+        callback.onFailure(call, new Exception("Error de conexión con el servidor"));
+      }
+    });
   }
 
   //restablecer desde el enlace email
   public void restablecerPassword(String token, String passwordNueva, String confirmarPassword, Callback<Void> callback){
-    apiService.restablecerPassword(new RestablecerPasswordRequest(token, passwordNueva, confirmarPassword)).enqueue(callback);
+    apiService.restablecerPassword(new RestablecerPasswordRequest(token, passwordNueva, confirmarPassword)).enqueue(new Callback<Void>() {
+      @Override
+      public void onResponse(Call<Void> call, retrofit2.Response<Void> response) {
+        if (response.isSuccessful()) {
+          callback.onResponse(call, response);
+        } else {
+          try {
+            String errorReal = response.errorBody() != null ? response.errorBody().string() : "";
+            if (errorReal.contains("expirado")) {
+              callback.onFailure(call, new Exception("El enlace ha expirado. Solicita uno nuevo."));
+            } else {
+              callback.onFailure(call, new Exception("El enlace es inválido o ya fue utilizado."));
+            }
+          } catch (Exception e) {
+            callback.onFailure(call, new Exception("El enlace es inválido o ya fue utilizado."));
+          }
+        }
+      }
+      @Override
+      public void onFailure(Call<Void> call, Throwable t) {
+        callback.onFailure(call, new Exception("Error de conexión: " + t.getMessage()));
+      }
+    });
   }
 
   //solicitar reactivacion (automatico)
   public void solicitarReactivacion(String email, String password, Callback<Void> callback) {
-    apiService.solicitarReactivacion(new SolicitarReactivacionRequest(email, password)).enqueue(callback);
+    apiService.solicitarReactivacion(new SolicitarReactivacionRequest(email, password)).enqueue(new Callback<Void>() {
+      @Override
+      public void onResponse(Call<Void> call, retrofit2.Response<Void> response) {
+        if (response.isSuccessful()) {
+          callback.onResponse(call, response);
+        } else {
+          callback.onFailure(call, new Exception("Credenciales inválidas o cuenta ya activa"));
+        }
+      }
+      @Override
+      public void onFailure(Call<Void> call, Throwable t) {
+        callback.onFailure(call, new Exception("Error de servidor"));
+      }
+    });
   }
 
   //confirmar reactivacion usando el token de recuperacion del deep link (abrir links en android)
   public void confirmarReactivacion(String token, Callback<LoginResponse> callback) {
-    apiService.confirmarReactivacion(new ReactivarCuentaRequest(token)).enqueue(callback);
+    apiService.confirmarReactivacion(new ReactivarCuentaRequest(token)).enqueue(new Callback<LoginResponse>() {
+      @Override
+      public void onResponse(Call<LoginResponse> call, retrofit2.Response<LoginResponse> response) {
+        if (response.isSuccessful() && response.body() != null) {
+          callback.onResponse(call, response);
+        } else {
+          callback.onFailure(call, new Exception("El token es inválido o ya expiró"));
+        }
+      }
+      @Override
+      public void onFailure(Call<LoginResponse> call, Throwable t) {
+        callback.onFailure(call, new Exception("Error de conexión al reactivar: " + t.getMessage()));
+      }
+    });
   }
 
   //dar de baja (orga/runner)

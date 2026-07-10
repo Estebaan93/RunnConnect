@@ -75,29 +75,18 @@ public class LoginViewModel extends AndroidViewModel {
       @Override
       public void onResponse(Call<LoginResponse> call, Response<LoginResponse> response) {
         isLoading.setValue(false);
-        if (response.isSuccessful() && response.body() != null) {
-          repositorio.guardarSesion(response.body());
-          decidirNavegacionSegunRol();
-        } else {
-          // REVISAR SI EL ERROR ES POR CUENTA DESACTIVADA
-          try {
-            String errorBody = response.errorBody().string();
-            if (errorBody.contains("desactivada") || errorBody.contains("inhabilitada")) {
-              // Disparamos el evento para que la vista pregunte
-              pedirConfirmacionReactivacion.setValue(true);
-            } else {
-              mostrarError("Usuario o contraseña incorrectos");
-            }
-          } catch (Exception e) {
-            mostrarError("Error en las credenciales");
-          }
-        }
+        repositorio.guardarSesion(response.body());
+        decidirNavegacionSegunRol();
       }
 
       @Override
       public void onFailure(Call<LoginResponse> call, Throwable t) {
         isLoading.setValue(false);
-        mostrarError("Error de conexión: " + t.getMessage());
+        if ("CUENTA_DESACTIVADA".equals(t.getMessage())) {
+          pedirConfirmacionReactivacion.setValue(true);
+        } else {
+          mostrarError(t.getMessage());
+        }
       }
     });
   }
@@ -115,17 +104,13 @@ public class LoginViewModel extends AndroidViewModel {
       @Override
       public void onResponse(Call<Void> call, Response<Void> response) {
         isLoading.setValue(false);
-        if (response.isSuccessful()) {
-          mostrarExito("Email enviado. Revisa tu bandeja de entrada");
-        } else {
-          mostrarError("No se encontró su cuenta de email");
-        }
+        mostrarExito("Email enviado. Revisa tu bandeja de entrada");
       }
 
       @Override
       public void onFailure(Call<Void> call, Throwable t) {
         isLoading.setValue(false);
-        mostrarError("Error de conexión con el servidor");
+        mostrarError(t.getMessage());
       }
     });
   }
@@ -143,17 +128,13 @@ public class LoginViewModel extends AndroidViewModel {
       @Override
       public void onResponse(Call<Void> call, Response<Void> response) {
         isLoading.setValue(false);
-        if (response.isSuccessful()) {
-          mostrarExito("Solicitud enviada. Revisa tu email para reactivar");
-        } else {
-          mostrarError("Credenciales inválidas o cuenta ya activa");
-        }
+        mostrarExito("Solicitud enviada. Revisa tu email para reactivar");
       }
 
       @Override
       public void onFailure(Call<Void> call, Throwable t) {
         isLoading.setValue(false);
-        mostrarError("Error de servidor");
+        mostrarError(t.getMessage());
       }
     });
   }
@@ -176,23 +157,19 @@ public class LoginViewModel extends AndroidViewModel {
       @Override
       public void onResponse(Call<LoginResponse> call, Response<LoginResponse> response) {
         isLoading.setValue(false);
-        if (response.isSuccessful() && response.body() != null) {
-          // Guardamos la sesiin (token JWT) que nos dio el servidor
-          repositorio.guardarSesion(response.body());
+        // Guardamos la sesion (token JWT) que nos dio el servidor
+        repositorio.guardarSesion(response.body());
 
-          // Mandamos al MainActivity (Ya esta activo y logueado)
-          decidirNavegacionSegunRol();
-        } else {
-          mostrarError("El token es inválido o ya expiró");
-          navegarAlLoginActivity();
-        }
+        // Mandamos al MainActivity (Ya esta activo y logueado)
+        decidirNavegacionSegunRol();
       }
 
       @Override
       public void onFailure(Call<LoginResponse> call, Throwable t) {
         isLoading.setValue(false);
-        mostrarError("Error de conexión al reactivar: "+ t.getMessage());
+        mostrarError(t.getMessage());
         Log.e("API_ERROR", "Falla en reactivacion", t);
+        navegarAlLoginActivity();
       }
     });
   }
@@ -228,31 +205,15 @@ public class LoginViewModel extends AndroidViewModel {
       @Override
       public void onResponse(Call<Void> call, Response<Void> response) {
         isLoading.setValue(false);
-        if (response.isSuccessful()) {
-          // La palabra "actualizada" es clave porque la Activity la esta escuchando para cerrarse
-          mostrarExito("Contraseña actualizada exitosamente");
-          //navegarAlLogin.setValue(true); //Pasaba directamente al menu hambur
-          navegarAlLoginActivity();
-        } else {
-          // Intentar capturar el mensaje real de la api
-          try {
-            String errorReal = response.errorBody() != null ? response.errorBody().string() : "";
-            Log.d("ErrorTokenRecuperarPass", "Response: " + errorReal);
-            if (errorReal.contains("expirado")) {
-              mostrarError("El enlace ha expirado. Solicita uno nuevo.");
-            } else {
-              mostrarError("El enlace es inválido o ya fue utilizado.");
-            }
-          } catch (Exception e) {
-            mostrarError("El enlace es inválido o ya fue utilizado.");
-          }
-        }
+        // La palabra "actualizada" es clave porque la Activity la esta escuchando para cerrarse
+        mostrarExito("Contraseña actualizada exitosamente");
+        navegarAlLoginActivity();
       }
 
       @Override
       public void onFailure(Call<Void> call, Throwable t) {
         isLoading.setValue(false);
-        mostrarError("Error de conexión: " + t.getMessage());
+        mostrarError(t.getMessage());
       }
     });
   }
