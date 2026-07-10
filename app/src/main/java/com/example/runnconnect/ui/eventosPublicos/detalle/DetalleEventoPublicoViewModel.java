@@ -9,7 +9,9 @@ import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
-import com.example.runnconnect.data.repositorio.EventoRepositorio;
+import com.example.runnconnect.data.conexion.ApiClient;
+import com.example.runnconnect.data.conexion.ApiService;
+import com.example.runnconnect.data.preferencias.SessionManager;
 import com.example.runnconnect.data.response.CategoriaResponse;
 import com.example.runnconnect.data.response.EventoDetalleResponse;
 import com.example.runnconnect.ui.eventosPublicos.mapa.MapaPublicoActivity;
@@ -23,7 +25,7 @@ import retrofit2.Response;
 
 public class DetalleEventoPublicoViewModel extends AndroidViewModel {
 
-  private final EventoRepositorio repositorio;
+  private final ApiService apiService;
 
   // Estados de UI
   private final MutableLiveData<Boolean> isLoading = new MutableLiveData<>(false);
@@ -44,7 +46,7 @@ public class DetalleEventoPublicoViewModel extends AndroidViewModel {
 
   public DetalleEventoPublicoViewModel(@NonNull Application application) {
     super(application);
-    repositorio = new EventoRepositorio(application);
+    this.apiService = ApiClient.getApiService();
   }
 
   // Getters
@@ -74,7 +76,7 @@ public class DetalleEventoPublicoViewModel extends AndroidViewModel {
     isLoading.setValue(true);
     ocultarError();
 
-    repositorio.obtenerDetalleEventoPublico(idEvento, new Callback<EventoDetalleResponse>() {
+    apiService.obtenerEventoPorIdPublico(idEvento).enqueue(new Callback<EventoDetalleResponse>() {
       @Override
       public void onResponse(Call<EventoDetalleResponse> call, Response<EventoDetalleResponse> response) {
         isLoading.setValue(false);
@@ -92,6 +94,9 @@ public class DetalleEventoPublicoViewModel extends AndroidViewModel {
           nombreOrganizador.setValue(e.getOrganizador() != null ? e.getOrganizador().getNombre() : "");
           categorias.setValue(e.getCategorias());
         } else {
+          try {
+            response.errorBody().string();
+          } catch(Exception e){}
           mostrarError("No se pudo cargar la información del evento.");
         }
       }

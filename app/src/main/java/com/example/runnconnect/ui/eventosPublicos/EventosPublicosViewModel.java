@@ -11,7 +11,9 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Observer;
 
-import com.example.runnconnect.data.repositorio.EventoRepositorio;
+import com.example.runnconnect.data.conexion.ApiClient;
+import com.example.runnconnect.data.conexion.ApiService;
+import com.example.runnconnect.data.preferencias.SessionManager;
 import com.example.runnconnect.data.response.EventoResumenResponse;
 import com.example.runnconnect.data.response.EventosPaginadosResponse;
 
@@ -51,20 +53,20 @@ public class EventosPublicosViewModel extends AndroidViewModel {
     }
   }
 
-  private final EventoRepositorio repositorio;
+  private final ApiService apiService;
 
   // Estados de UI (Mantienen el estado constante)
   private final MutableLiveData<List<EventoResumenResponse>> listaEventos = new MutableLiveData<>(new ArrayList<>());
   private final MutableLiveData<Boolean> isLoading = new MutableLiveData<>(false);
   private final MutableLiveData<Boolean> isVacio = new MutableLiveData<>(false);
 
-  // Eventos únicos (Se consumen una vez, no requieren reset manual)
+  // Eventos unicos (Se consumen una vez, no requieren reset manual)
   private final SingleLiveEvent<String> mostrarMensaje = new SingleLiveEvent<>();
   private final SingleLiveEvent<Integer> navegarADetalle = new SingleLiveEvent<>();
 
   public EventosPublicosViewModel(@NonNull Application application) {
     super(application);
-    repositorio = new EventoRepositorio(application);
+    this.apiService = ApiClient.getApiService();
   }
 
   // Getters
@@ -79,7 +81,7 @@ public class EventosPublicosViewModel extends AndroidViewModel {
   public void cargarEventos() {
     isLoading.setValue(true);
 
-    repositorio.obtenerEventosPublicados(1, 50, new Callback<EventosPaginadosResponse>() {
+    apiService.obtenerEventosPublicados(1, 50).enqueue(new Callback<EventosPaginadosResponse>() {
       @Override
       public void onResponse(Call<EventosPaginadosResponse> call, Response<EventosPaginadosResponse> response) {
         isLoading.setValue(false);
@@ -89,7 +91,11 @@ public class EventosPublicosViewModel extends AndroidViewModel {
           isVacio.setValue(eventos == null || eventos.isEmpty());
         } else {
           mostrarMensaje.setValue("Error al cargar eventos: " + response.code());
-          Log.d("ErrorEventoPublico", "ErrorObtener: "+ response.errorBody().toString());
+          try {
+            Log.d("ErrorEventoPublico", "ErrorObtener: "+ response.errorBody().string());
+          } catch (Exception e) {
+            e.printStackTrace();
+          }
         }
       }
 

@@ -10,19 +10,25 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
 import com.example.runnconnect.MainActivity;
-import com.example.runnconnect.data.repositorio.UsuarioRepositorio;
+import com.example.runnconnect.data.conexion.ApiClient;
+import com.example.runnconnect.data.conexion.ApiService;
+import com.example.runnconnect.data.preferencias.SessionManager;
 import com.example.runnconnect.data.response.LoginResponse;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 
+import okhttp3.MediaType;
+import okhttp3.MultipartBody;
+import okhttp3.RequestBody;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
 public class RegisterRunnerViewModel extends AndroidViewModel {
-  private final UsuarioRepositorio repositorio;
+  private final ApiService apiService;
+  private final SessionManager sessionManager;
 
   // Estados
   private final MutableLiveData<Boolean> isLoading = new MutableLiveData<>(false);
@@ -32,7 +38,8 @@ public class RegisterRunnerViewModel extends AndroidViewModel {
 
   public RegisterRunnerViewModel(@NonNull Application application) {
     super(application);
-    repositorio = new UsuarioRepositorio(application);
+    apiService = ApiClient.getApiService();
+    sessionManager = new SessionManager(application);
   }
 
   // Getters
@@ -67,14 +74,26 @@ public class RegisterRunnerViewModel extends AndroidViewModel {
       fileAvatar = convertirUriAFile(avatarUri.getValue());
     }
 
+    RequestBody rbNombre = RequestBody.create(MediaType.parse("text/plain"), nombre);
+    RequestBody rbApellido = RequestBody.create(MediaType.parse("text/plain"), apellido);
+    RequestBody rbEmail = RequestBody.create(MediaType.parse("text/plain"), email);
+    RequestBody rbPass = RequestBody.create(MediaType.parse("text/plain"), pass);
+    RequestBody rbConfirm = RequestBody.create(MediaType.parse("text/plain"), confirm);
+
+    MultipartBody.Part bodyAvatar = null;
+    if (fileAvatar != null) {
+      RequestBody reqFile = RequestBody.create(MediaType.parse("image/*"), fileAvatar);
+      bodyAvatar = MultipartBody.Part.createFormData("ImgAvatar", fileAvatar.getName(), reqFile);
+    }
+
     // Llamada al Repo (registrarRunner)
-    repositorio.registrarRunner(nombre, apellido, email, pass, confirm, fileAvatar, new Callback<LoginResponse>() {
+    apiService.registrarRunner(rbNombre, rbApellido, rbEmail, rbPass, rbConfirm, bodyAvatar).enqueue(new Callback<LoginResponse>() {
       @Override
       public void onResponse(Call<LoginResponse> call, Response<LoginResponse> response) {
         isLoading.setValue(false);
         if (response.isSuccessful() && response.body() != null) {
           // Guardar sesión y navegar
-          repositorio.guardarSesion(response.body());
+          sessionManager.guardarSesionUsuario(response.body());
 
           Intent intent = new Intent(getApplication(), MainActivity.class);
           intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);

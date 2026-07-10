@@ -14,9 +14,13 @@ import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
-import com.example.runnconnect.data.repositorio.EventoRepositorio;
-import com.example.runnconnect.data.repositorio.InscripcionRepositorio;
-import com.example.runnconnect.data.repositorio.ResultadoRepositorio;
+import com.example.runnconnect.data.conexion.ApiClient;
+import com.example.runnconnect.data.conexion.ApiService;
+import com.example.runnconnect.data.preferencias.SessionManager;
+import com.example.runnconnect.data.request.MotivoBajaRequest;
+import okhttp3.MediaType;
+import okhttp3.MultipartBody;
+import okhttp3.RequestBody;
 import com.example.runnconnect.data.request.CambiarEstadoCategoriaRequest;
 import com.example.runnconnect.data.request.CambiarEstadoRequest;
 import com.example.runnconnect.data.response.CategoriaResponse;
@@ -39,9 +43,8 @@ import retrofit2.Callback;
 import retrofit2.Response;
 
 public class DetalleEventoViewModel extends AndroidViewModel {
-  private final EventoRepositorio repositorio;
-  private final InscripcionRepositorio inscripcionRepositorio;
-  private final ResultadoRepositorio resultadoRepositorio;
+  private final ApiService apiService;
+  private final SessionManager sessionManager;
   private CategoriaResponse categoriaSeleccionada;
 
   // --- VARIABLES INTERNAS ---
@@ -112,9 +115,8 @@ public class DetalleEventoViewModel extends AndroidViewModel {
 
   public DetalleEventoViewModel(@NonNull Application application) {
     super(application);
-    repositorio = new EventoRepositorio(application);
-    inscripcionRepositorio = new InscripcionRepositorio(application);
-    resultadoRepositorio = new ResultadoRepositorio(application);
+    apiService = ApiClient.getApiService();
+    sessionManager = new SessionManager(application);
   }
 
   // --- GETTERS ---
@@ -222,32 +224,38 @@ public class DetalleEventoViewModel extends AndroidViewModel {
 
     CambiarEstadoCategoriaRequest req = new CambiarEstadoCategoriaRequest(nuevoEstado, motivoInput.trim());
 
-    repositorio.cambiarEstadoCategoria(idEv, idCat, req, new Callback<ResponseBody>() {
-      @Override
-      public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
-        isLoading.setValue(false);
-        if (response.isSuccessful()) {
-          errorMotivoCategoria.setValue("DISMISS");
-          lanzarMensaje("Estado de categoría actualizado correctamente", 1);
-          cargarDetalle(idEv);
-        } else {
-          String msjError = "No se puede actualizar";
-          try {
-            if (response.errorBody() != null) {
-              String errorJson = response.errorBody().string();
-              JSONObject jsonObject = new JSONObject(errorJson);
-              if (jsonObject.has("message")) msjError = jsonObject.getString("message");
-            }
-          } catch (Exception e) { e.printStackTrace(); }
-          lanzarMensaje(msjError, 2);
+    String token = sessionManager.leerToken();
+    if (token != null && !token.isEmpty()) {
+      apiService.cambiarEstadoCategoria("Bearer " + token, idEv, idCat, req).enqueue(new Callback<ResponseBody>() {
+        @Override
+        public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+          isLoading.setValue(false);
+          if (response.isSuccessful()) {
+            errorMotivoCategoria.setValue("DISMISS");
+            lanzarMensaje("Estado de categoría actualizado correctamente", 1);
+            cargarDetalle(idEv);
+          } else {
+            String msjError = "No se puede actualizar";
+            try {
+              if (response.errorBody() != null) {
+                String errorJson = response.errorBody().string();
+                JSONObject jsonObject = new JSONObject(errorJson);
+                if (jsonObject.has("message")) msjError = jsonObject.getString("message");
+              }
+            } catch (Exception e) { e.printStackTrace(); }
+            lanzarMensaje(msjError, 2);
+          }
         }
-      }
-      @Override
-      public void onFailure(Call<ResponseBody> call, Throwable t) {
-        isLoading.setValue(false);
-        lanzarMensaje("Error de conexión", 2);
-      }
-    });
+        @Override
+        public void onFailure(Call<ResponseBody> call, Throwable t) {
+          isLoading.setValue(false);
+          lanzarMensaje("Error de conexión", 2);
+        }
+      });
+    } else {
+      isLoading.setValue(false);
+      lanzarMensaje("No hay sesión activa. Por favor inicie sesión nuevamente.", 2);
+    }
   }
 
   public void lanzarMensaje(String msg, int tipo) {
@@ -329,7 +337,18 @@ public class DetalleEventoViewModel extends AndroidViewModel {
     if (archivoListoParaSubir == null) return;
     lanzarMensaje("Subiendo...", 0);
 
-    resultadoRepositorio.subirArchivoResultados(idEvento, idCategoria, archivoListoParaSubir, new Callback<ResponseBody>() {
+    String token = sessionManager.leerToken();
+    if (token == null) {
+      lanzarMensaje("No hay sesión activa", 2);
+      return;
+    }
+
+    RequestBody idEventoBody = RequestBody.create(MediaType.parse("text/plain"), String.valueOf(idEvento));
+    RequestBody idCategoriaBody = RequestBody.create(MediaType.parse("text/plain"), String.valueOf(idCategoria));
+    RequestBody requestFile = RequestBody.create(MediaType.parse("multipart/form-data"), archivoListoParaSubir);
+    MultipartBody.Part bodyArchivo = MultipartBody.Part.createFormData("Archivo", archivoListoParaSubir.getName(), requestFile);
+
+    apiService.cargarArchivoResultados("Bearer " + token, idEventoBody, idCategoriaBody, bodyArchivo).enqueue(new Callback<ResponseBody>() {
       @Override
       public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
         if (response.isSuccessful()) {
@@ -417,25 +436,31 @@ public class DetalleEventoViewModel extends AndroidViewModel {
 
   public void cargarDetalle(int idEvento) {
     isLoading.setValue(true);
-    repositorio.obtenerDetalleEvento(idEvento, new Callback<EventoDetalleResponse>() {
-      @Override
-      public void onResponse(Call<EventoDetalleResponse> call, Response<EventoDetalleResponse> response) {
-        isLoading.setValue(false);
-        if (response.isSuccessful() && response.body() != null) {
-          eventoRaw.setValue(response.body());
-          mapearDatosAUI(response.body());
-          verificarSiExistenResultados(idEvento);
-        } else lanzarMensaje("Error al cargar evento", 2);
-      }
-      @Override public void onFailure(Call<EventoDetalleResponse> call, Throwable t) {
-        isLoading.setValue(false);
-        lanzarMensaje("Error de conexión", 2);
-      }
-    });
+    String token = sessionManager.leerToken();
+    if(token != null) {
+      apiService.obtenerEventoPorId("Bearer " + token, idEvento).enqueue(new Callback<EventoDetalleResponse>() {
+        @Override
+        public void onResponse(Call<EventoDetalleResponse> call, Response<EventoDetalleResponse> response) {
+          isLoading.setValue(false);
+          if (response.isSuccessful() && response.body() != null) {
+            eventoRaw.setValue(response.body());
+            mapearDatosAUI(response.body());
+            verificarSiExistenResultados(idEvento);
+          } else lanzarMensaje("Error al cargar evento", 2);
+        }
+        @Override public void onFailure(Call<EventoDetalleResponse> call, Throwable t) {
+          isLoading.setValue(false);
+          lanzarMensaje("Error de conexión", 2);
+        }
+      });
+    } else {
+      isLoading.setValue(false);
+      lanzarMensaje("No hay sesión activa", 2);
+    }
   }
 
   private void verificarSiExistenResultados(int idEvento) {
-    resultadoRepositorio.obtenerResultadosEvento(idEvento, new Callback<ResultadosEventoResponse>() {
+    apiService.obtenerResultadosEvento(idEvento).enqueue(new Callback<ResultadosEventoResponse>() {
       @Override
       public void onResponse(Call<ResultadosEventoResponse> call, Response<ResultadosEventoResponse> response) {
         if (response.isSuccessful() && response.body() != null) {
@@ -528,32 +553,43 @@ public class DetalleEventoViewModel extends AndroidViewModel {
   }
 
   public void cargarRunnersDeCategoria(int idEvento, int idCategoria) {
-    inscripcionRepositorio.obtenerInscriptos(idEvento, null, 1, 100, new Callback<ListaInscriptosResponse>() {
-      @Override
-      public void onResponse(Call<ListaInscriptosResponse> call, Response<ListaInscriptosResponse> response) {
-        if (response.isSuccessful() && response.body() != null && response.body().getInscripciones() != null) {
-          List<InscriptoEventoResponse> f = new ArrayList<>();
-          for(InscriptoEventoResponse i : response.body().getInscripciones())
-            if(i.getIdCategoria() == idCategoria && "pagado".equalsIgnoreCase(i.getEstadoPago())) f.add(i);
-          listaRunnerDialog.setValue(f);
-        } else listaRunnerDialog.setValue(new ArrayList<>());
-      }
-      @Override public void onFailure(Call<ListaInscriptosResponse> call, Throwable t) { listaRunnerDialog.setValue(new ArrayList<>()); }
-    });
+    String token = sessionManager.leerToken();
+    if (token != null) {
+      apiService.obtenerInscriptos("Bearer " + token, idEvento, null, 1, 100).enqueue(new Callback<ListaInscriptosResponse>() {
+        @Override
+        public void onResponse(Call<ListaInscriptosResponse> call, Response<ListaInscriptosResponse> response) {
+          if (response.isSuccessful() && response.body() != null && response.body().getInscripciones() != null) {
+            List<InscriptoEventoResponse> f = new ArrayList<>();
+            for(InscriptoEventoResponse i : response.body().getInscripciones())
+              if(i.getIdCategoria() == idCategoria && "pagado".equalsIgnoreCase(i.getEstadoPago())) f.add(i);
+            listaRunnerDialog.setValue(f);
+          } else listaRunnerDialog.setValue(new ArrayList<>());
+        }
+        @Override public void onFailure(Call<ListaInscriptosResponse> call, Throwable t) { listaRunnerDialog.setValue(new ArrayList<>()); }
+      });
+    } else {
+      listaRunnerDialog.setValue(new ArrayList<>());
+    }
   }
 
   public void darDeBajaRunner(int idInsc, String motivo, int idEvento, int idCat) {
-    inscripcionRepositorio.darDeBajaRunner(idInsc, motivo, new Callback<ResponseBody>() {
-      @Override
-      public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
-        if (response.isSuccessful()) {
-          lanzarMensaje("Baja exitosa", 1);
-          cargarRunnersDeCategoria(idEvento, idCat);
-          cargarDetalle(idEvento);
-        } else lanzarMensaje("Error en la baja", 2);
-      }
-      @Override public void onFailure(Call<ResponseBody> call, Throwable t) { lanzarMensaje("Error conexión", 2); }
-    });
+    String token = sessionManager.leerToken();
+    if(token != null) {
+      MotivoBajaRequest request = new MotivoBajaRequest(motivo);
+      apiService.darDeBajaRunner("Bearer "+token, idInsc, request).enqueue(new Callback<ResponseBody>() {
+        @Override
+        public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+          if (response.isSuccessful()) {
+            lanzarMensaje("Baja exitosa", 1);
+            cargarRunnersDeCategoria(idEvento, idCat);
+            cargarDetalle(idEvento);
+          } else lanzarMensaje("Error en la baja", 2);
+        }
+        @Override public void onFailure(Call<ResponseBody> call, Throwable t) { lanzarMensaje("Error conexión", 2); }
+      });
+    } else {
+      lanzarMensaje("No hay sesión activa", 2);
+    }
   }
 
   public void procesarCambioEstadoEvento(int idEvento, String estadoNuevo, String motivo) {
@@ -565,34 +601,40 @@ public class DetalleEventoViewModel extends AndroidViewModel {
     CambiarEstadoRequest req = new CambiarEstadoRequest(estadoNuevo, motivo);
     isLoading.setValue(true);
 
-    repositorio.cambiarEstado(idEvento, req, new Callback<ResponseBody>() {
-      @Override
-      public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
-        isLoading.setValue(false);
-        if (response.isSuccessful()) {
-          lanzarMensaje("Estado actualizado correctamente", 1);
-          EventoDetalleResponse actual = eventoRaw.getValue();
-          if (actual != null) {
-            actual.setEstado(estadoNuevo);
-            mapearDatosAUI(actual);
-          } else cargarDetalle(idEvento);
-        } else {
-          String msjError = "No se puede actualizar";
-          try {
-            if (response.errorBody() != null) {
-              String errorJson = response.errorBody().string();
-              JSONObject jsonObject = new JSONObject(errorJson);
-              if (jsonObject.has("error")) msjError = jsonObject.getString("error");
-            }
-          } catch (Exception e) { e.printStackTrace(); }
-          lanzarMensaje(msjError, 2);
+    String token = sessionManager.leerToken();
+    if (token != null) {
+      apiService.cambiarEstado("Bearer " + token, idEvento, req).enqueue(new Callback<ResponseBody>() {
+        @Override
+        public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+          isLoading.setValue(false);
+          if (response.isSuccessful()) {
+            lanzarMensaje("Estado actualizado correctamente", 1);
+            EventoDetalleResponse actual = eventoRaw.getValue();
+            if (actual != null) {
+              actual.setEstado(estadoNuevo);
+              mapearDatosAUI(actual);
+            } else cargarDetalle(idEvento);
+          } else {
+            String msjError = "No se puede actualizar";
+            try {
+              if (response.errorBody() != null) {
+                String errorJson = response.errorBody().string();
+                JSONObject jsonObject = new JSONObject(errorJson);
+                if (jsonObject.has("error")) msjError = jsonObject.getString("error");
+              }
+            } catch (Exception e) { e.printStackTrace(); }
+            lanzarMensaje(msjError, 2);
+          }
         }
-      }
-      @Override public void onFailure(Call<ResponseBody> call, Throwable t) {
-        isLoading.setValue(false);
-        lanzarMensaje("Error conexión", 2);
-      }
-    });
+        @Override public void onFailure(Call<ResponseBody> call, Throwable t) {
+          isLoading.setValue(false);
+          lanzarMensaje("Error conexión", 2);
+        }
+      });
+    } else {
+      isLoading.setValue(false);
+      lanzarMensaje("No hay sesión activa", 2);
+    }
   }
 
   public void limpiarMensajeGlobal() {

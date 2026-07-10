@@ -8,7 +8,9 @@ import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
-import com.example.runnconnect.data.repositorio.EventoRepositorio;
+import com.example.runnconnect.data.conexion.ApiClient;
+import com.example.runnconnect.data.conexion.ApiService;
+import com.example.runnconnect.data.preferencias.SessionManager;
 import com.example.runnconnect.data.request.ActualizarEventoRequest;
 import com.example.runnconnect.data.request.CrearCategoriaRequest;
 import com.example.runnconnect.data.request.CrearEventoRequest;
@@ -28,7 +30,8 @@ import retrofit2.Callback;
 import retrofit2.Response;
 
 public class CrearEventoViewModel extends AndroidViewModel {
-  private final EventoRepositorio repositorio;
+  private final ApiService apiService;
+  private final SessionManager sessionManager;
 
   // --- ESTADOS GENERALES ---
   private final MutableLiveData<Boolean> isLoading = new MutableLiveData<>(false);
@@ -85,7 +88,8 @@ public class CrearEventoViewModel extends AndroidViewModel {
 
   public CrearEventoViewModel(@NonNull Application application) {
     super(application);
-    repositorio = new EventoRepositorio(application);
+    apiService = ApiClient.getApiService();
+    sessionManager = new SessionManager(application);
     configurarModoCrear();
   }
 
@@ -298,58 +302,70 @@ public class CrearEventoViewModel extends AndroidViewModel {
 
   private void ejecutarActualizacion(ActualizarEventoRequest request) {
     isLoading.setValue(true);
-    repositorio.actualizarEvento(idEventoEdicion, request, new Callback<ResponseBody>() {
-      @Override
-      public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
-        isLoading.setValue(false);
-        if (response.isSuccessful()) {
-          mensajeGlobal.setValue("¡Cambios guardados con éxito!");
-          new android.os.Handler().postDelayed(() -> navegacionExito.setValue(2), 800);
-        } else {
-          manejarErrorApi(response);
+    String token = sessionManager.leerToken();
+    if (token != null) {
+      apiService.actualizarEvento("Bearer " + token, idEventoEdicion, request).enqueue(new Callback<ResponseBody>() {
+        @Override
+        public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+          isLoading.setValue(false);
+          if (response.isSuccessful()) {
+            mensajeGlobal.setValue("¡Cambios guardados con éxito!");
+            new android.os.Handler().postDelayed(() -> navegacionExito.setValue(2), 800);
+          } else {
+            manejarErrorApi(response);
+          }
         }
-      }
-      @Override
-      public void onFailure(Call<ResponseBody> call, Throwable t) {
-        isLoading.setValue(false);
-        mensajeGlobal.setValue("Error de conexión");
-      }
-    });
+        @Override
+        public void onFailure(Call<ResponseBody> call, Throwable t) {
+          isLoading.setValue(false);
+          mensajeGlobal.setValue("Error de conexión");
+        }
+      });
+    } else {
+      isLoading.setValue(false);
+      mensajeGlobal.setValue("No hay sesión activa.");
+    }
   }
 
   private void ejecutarCreacion(CrearEventoRequest request) {
     isLoading.setValue(true);
-    repositorio.crearEvento(request, new Callback<ResponseBody>() {
-      @Override
-      public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
-        isLoading.setValue(false);
-        if (response.isSuccessful()) {
-          try {
-            String raw = response.body().string();
-            JSONObject json = new JSONObject(raw);
-            if (json.has("evento")) {
-              int idNuevo = json.getJSONObject("evento").getInt("idEvento");
+    String token = sessionManager.leerToken();
+    if (token != null && !token.isEmpty()) {
+      apiService.crearEvento("Bearer " + token, request).enqueue(new Callback<ResponseBody>() {
+        @Override
+        public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+          isLoading.setValue(false);
+          if (response.isSuccessful()) {
+            try {
+              String raw = response.body().string();
+              JSONObject json = new JSONObject(raw);
+              if (json.has("evento")) {
+                int idNuevo = json.getJSONObject("evento").getInt("idEvento");
 
-              esEdicion=true;
-              idEventoEdicion=idNuevo;
+                esEdicion=true;
+                idEventoEdicion=idNuevo;
 
-              uiTituloPagina.setValue("Editar evento");
-              uiTextoBoton.setValue("Guardar cambios");
+                uiTituloPagina.setValue("Editar evento");
+                uiTextoBoton.setValue("Guardar cambios");
 
-              mensajeGlobal.setValue("¡Evento creado! Redirigiendo al mapa...");
-              navegacionExito.setValue(idNuevo);
-            }
-          } catch (Exception e) { mensajeGlobal.setValue("Evento creado, pero hubo error leyendo la respuesta."); }
-        } else {
-          manejarErrorApi(response);
+                mensajeGlobal.setValue("¡Evento creado! Redirigiendo al mapa...");
+                navegacionExito.setValue(idNuevo);
+              }
+            } catch (Exception e) { mensajeGlobal.setValue("Evento creado, pero hubo error leyendo la respuesta."); }
+          } else {
+            manejarErrorApi(response);
+          }
         }
-      }
-      @Override
-      public void onFailure(Call<ResponseBody> call, Throwable t) {
-        isLoading.setValue(false);
-        mensajeGlobal.setValue("No se pudo conectar con el servidor.");
-      }
-    });
+        @Override
+        public void onFailure(Call<ResponseBody> call, Throwable t) {
+          isLoading.setValue(false);
+          mensajeGlobal.setValue("No se pudo conectar con el servidor.");
+        }
+      });
+    } else {
+      isLoading.setValue(false);
+      mensajeGlobal.setValue("No hay sesión activa.");
+    }
   }
 
   private void manejarErrorApi(Response<ResponseBody> response) {
@@ -410,19 +426,25 @@ public class CrearEventoViewModel extends AndroidViewModel {
     idEventoEdicion = idEvento;
     configurarModoEditar();
     isLoading.setValue(true);
-    repositorio.obtenerDetalleEvento(idEvento, new Callback<EventoDetalleResponse>() {
-      @Override
-      public void onResponse(Call<EventoDetalleResponse> call, Response<EventoDetalleResponse> response) {
-        isLoading.setValue(false);
-        if (response.isSuccessful() && response.body() != null) mapearEventoAUI(response.body());
-        else mensajeGlobal.setValue("Error cargando datos.");
-      }
-      @Override
-      public void onFailure(Call<EventoDetalleResponse> call, Throwable t) {
-        isLoading.setValue(false);
-        mensajeGlobal.setValue("Error de conexión.");
-      }
-    });
+    String token= sessionManager.leerToken();
+    if(token!= null){
+      apiService.obtenerEventoPorId("Bearer " + token, idEvento).enqueue(new Callback<EventoDetalleResponse>() {
+        @Override
+        public void onResponse(Call<EventoDetalleResponse> call, Response<EventoDetalleResponse> response) {
+          isLoading.setValue(false);
+          if (response.isSuccessful() && response.body() != null) mapearEventoAUI(response.body());
+          else mensajeGlobal.setValue("Error cargando datos.");
+        }
+        @Override
+        public void onFailure(Call<EventoDetalleResponse> call, Throwable t) {
+          isLoading.setValue(false);
+          mensajeGlobal.setValue("Error de conexión.");
+        }
+      });
+    } else {
+      isLoading.setValue(false);
+      mensajeGlobal.setValue("No hay sesión activa.");
+    }
   }
 
   private void mapearEventoAUI(EventoDetalleResponse evento) {

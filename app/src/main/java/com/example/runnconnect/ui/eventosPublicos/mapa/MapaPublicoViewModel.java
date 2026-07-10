@@ -10,8 +10,9 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
 import com.example.runnconnect.R;
-import com.example.runnconnect.data.repositorio.EventoRepositorio;
-import com.example.runnconnect.data.repositorio.RutaRepositorio;
+import com.example.runnconnect.data.conexion.ApiClient;
+import com.example.runnconnect.data.conexion.ApiService;
+import com.example.runnconnect.data.preferencias.SessionManager;
 import com.example.runnconnect.data.response.MapaEventoResponse;
 import com.example.runnconnect.data.response.PuntoInteresResponse;
 import com.example.runnconnect.data.response.PuntosInteresEventoResponse;
@@ -35,8 +36,7 @@ import retrofit2.Response;
 
 public class MapaPublicoViewModel extends AndroidViewModel {
 
-  private final RutaRepositorio repositorio;
-  private final EventoRepositorio eventoRepositorio;
+  private final ApiService apiService;
 
   // estados de UI
   private final MutableLiveData<Boolean> isLoading = new MutableLiveData<>(false);
@@ -57,8 +57,7 @@ public class MapaPublicoViewModel extends AndroidViewModel {
   
   public MapaPublicoViewModel(@NonNull Application application) {
     super(application);
-    repositorio = new RutaRepositorio(application);
-    eventoRepositorio = new EventoRepositorio(application);
+    this.apiService = ApiClient.getApiService();
   }
 
   // Getters
@@ -92,7 +91,7 @@ public class MapaPublicoViewModel extends AndroidViewModel {
   }
 
   public void cargarPuntosInteres(int idEvento) {
-    eventoRepositorio.obtenerPuntosInteres(idEvento, new Callback<PuntosInteresEventoResponse>() {
+    apiService.obtenerPuntosInteres(idEvento).enqueue(new Callback<PuntosInteresEventoResponse>() {
       @Override
       public void onResponse(Call<PuntosInteresEventoResponse> call, Response<PuntosInteresEventoResponse> response) {
         if (response.isSuccessful() && response.body() != null) {
@@ -111,6 +110,10 @@ public class MapaPublicoViewModel extends AndroidViewModel {
             }
           }
           listaPuntosInteres.setValue(uiPuntos);
+        } else {
+          try {
+            response.errorBody().string();
+          } catch(Exception e){}
         }
       }
       @Override
@@ -124,7 +127,7 @@ public class MapaPublicoViewModel extends AndroidViewModel {
     ocultarError();
 
     //usamos el metodo publico del repositorio
-    repositorio.obtenerRutaPublica(idEvento, new Callback<MapaEventoResponse>() {
+    apiService.obtenerMapaPublico(idEvento).enqueue(new Callback<MapaEventoResponse>() {
       @Override
       public void onResponse(Call<MapaEventoResponse> call, Response<MapaEventoResponse> response) {
         isLoading.setValue(false);
@@ -175,6 +178,9 @@ public class MapaPublicoViewModel extends AndroidViewModel {
           }
 
         } else {
+          try {
+            response.errorBody().string();
+          } catch(Exception e){}
           mostrarError("No se pudo cargar el mapa. Código: " + response.code());
         }
       }

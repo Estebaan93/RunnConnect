@@ -11,7 +11,14 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
 import com.example.runnconnect.MainActivity;
-import com.example.runnconnect.data.repositorio.UsuarioRepositorio;
+import com.example.runnconnect.data.conexion.ApiClient;
+import com.example.runnconnect.data.conexion.ApiService;
+import com.example.runnconnect.data.preferencias.SessionManager;
+import com.example.runnconnect.data.request.LoginRequest;
+import com.example.runnconnect.data.request.ReactivarCuentaRequest;
+import com.example.runnconnect.data.request.RecuperarPasswordRequest;
+import com.example.runnconnect.data.request.RestablecerPasswordRequest;
+import com.example.runnconnect.data.request.SolicitarReactivacionRequest;
 import com.example.runnconnect.data.response.LoginResponse;
 import com.example.runnconnect.ui.eventosPublicos.EventosPublicosActivity;
 import com.example.runnconnect.ui.registro.RegisterOrganizadorActivity;
@@ -23,7 +30,8 @@ import retrofit2.Response;
 
 public class LoginViewModel extends AndroidViewModel {
 
-  private final UsuarioRepositorio repositorio;
+  private final ApiService apiService;
+  private final SessionManager sessionManager;
 
   // Estados de Datos
   private final MutableLiveData<Boolean> isLoading = new MutableLiveData<>();
@@ -45,7 +53,8 @@ public class LoginViewModel extends AndroidViewModel {
   //navegar al login
   public LoginViewModel(@NonNull Application application) {
     super(application);
-    repositorio = new UsuarioRepositorio(application);
+    apiService = ApiClient.getApiService();
+    sessionManager = new SessionManager(application);
   }
 
   // Getters
@@ -71,22 +80,32 @@ public class LoginViewModel extends AndroidViewModel {
     }
 
     isLoading.setValue(true);
-    repositorio.login(email, password, new Callback<LoginResponse>() {
+    LoginRequest request = new LoginRequest(email, password);
+    apiService.login(request).enqueue(new Callback<LoginResponse>() {
       @Override
       public void onResponse(Call<LoginResponse> call, Response<LoginResponse> response) {
         isLoading.setValue(false);
-        repositorio.guardarSesion(response.body());
-        decidirNavegacionSegunRol();
+        if (response.isSuccessful() && response.body() != null) {
+          sessionManager.guardarSesionUsuario(response.body());
+          decidirNavegacionSegunRol();
+        } else {
+          try {
+            String errorBody = response.errorBody() != null ? response.errorBody().string() : "";
+            if (errorBody.contains("desactivada") || errorBody.contains("inhabilitada")) {
+              pedirConfirmacionReactivacion.setValue(true);
+            } else {
+              mostrarError("Usuario o contraseña incorrectos");
+            }
+          } catch (Exception e) {
+            mostrarError("Error en las credenciales");
+          }
+        }
       }
 
       @Override
       public void onFailure(Call<LoginResponse> call, Throwable t) {
         isLoading.setValue(false);
-        if ("CUENTA_DESACTIVADA".equals(t.getMessage())) {
-          pedirConfirmacionReactivacion.setValue(true);
-        } else {
-          mostrarError(t.getMessage());
-        }
+        mostrarError("Error de conexión: " + t.getMessage());
       }
     });
   }
@@ -100,17 +119,21 @@ public class LoginViewModel extends AndroidViewModel {
     }
 
     isLoading.setValue(true);
-    repositorio.recuperarPassword(email, new Callback<Void>() {
+    apiService.recuperarPassword(new RecuperarPasswordRequest(email)).enqueue(new Callback<Void>() {
       @Override
       public void onResponse(Call<Void> call, Response<Void> response) {
         isLoading.setValue(false);
-        mostrarExito("Email enviado. Revisa tu bandeja de entrada");
+        if (response.isSuccessful()) {
+          mostrarExito("Email enviado. Revisa tu bandeja de entrada");
+        } else {
+          mostrarError("No se encontró su cuenta de email");
+        }
       }
 
       @Override
       public void onFailure(Call<Void> call, Throwable t) {
         isLoading.setValue(false);
-        mostrarError(t.getMessage());
+        mostrarError("Error de conexión con el servidor");
       }
     });
   }
@@ -124,17 +147,21 @@ public class LoginViewModel extends AndroidViewModel {
     }
 
     isLoading.setValue(true);
-    repositorio.solicitarReactivacion(email, password, new Callback<Void>() {
+    apiService.solicitarReactivacion(new SolicitarReactivacionRequest(email, password)).enqueue(new Callback<Void>() {
       @Override
       public void onResponse(Call<Void> call, Response<Void> response) {
         isLoading.setValue(false);
-        mostrarExito("Solicitud enviada. Revisa tu email para reactivar");
+        if (response.isSuccessful()) {
+          mostrarExito("Solicitud enviada. Revisa tu email para reactivar");
+        } else {
+          mostrarError("Credenciales inválidas o cuenta ya activa");
+        }
       }
 
       @Override
       public void onFailure(Call<Void> call, Throwable t) {
         isLoading.setValue(false);
-        mostrarError(t.getMessage());
+        mostrarError("Error de servidor");
       }
     });
   }
@@ -153,21 +180,23 @@ public class LoginViewModel extends AndroidViewModel {
     isLoading.setValue(true);
 
     //
-    repositorio.confirmarReactivacion(token, new Callback<LoginResponse>() {
+    apiService.confirmarReactivacion(new ReactivarCuentaRequest(token)).enqueue(new Callback<LoginResponse>() {
       @Override
       public void onResponse(Call<LoginResponse> call, Response<LoginResponse> response) {
         isLoading.setValue(false);
-        // Guardamos la sesion (token JWT) que nos dio el servidor
-        repositorio.guardarSesion(response.body());
-
-        // Mandamos al MainActivity (Ya esta activo y logueado)
-        decidirNavegacionSegunRol();
+        if (response.isSuccessful() && response.body() != null) {
+          sessionManager.guardarSesionUsuario(response.body());
+          decidirNavegacionSegunRol();
+        } else {
+          mostrarError("El token es inválido o ya expiró");
+          navegarAlLoginActivity();
+        }
       }
 
       @Override
       public void onFailure(Call<LoginResponse> call, Throwable t) {
         isLoading.setValue(false);
-        mostrarError(t.getMessage());
+        mostrarError("Error de conexión al reactivar: " + t.getMessage());
         Log.e("API_ERROR", "Falla en reactivacion", t);
         navegarAlLoginActivity();
       }
@@ -201,19 +230,31 @@ public class LoginViewModel extends AndroidViewModel {
 
     // 2. Peticion a la API
     isLoading.setValue(true);
-    repositorio.restablecerPassword(token, pass1, pass2, new Callback<Void>() {
+    apiService.restablecerPassword(new RestablecerPasswordRequest(token, pass1, pass2)).enqueue(new Callback<Void>() {
       @Override
       public void onResponse(Call<Void> call, Response<Void> response) {
         isLoading.setValue(false);
-        // La palabra "actualizada" es clave porque la Activity la esta escuchando para cerrarse
-        mostrarExito("Contraseña actualizada exitosamente");
-        navegarAlLoginActivity();
+        if (response.isSuccessful()) {
+          mostrarExito("Contraseña actualizada exitosamente");
+          navegarAlLoginActivity();
+        } else {
+          try {
+            String errorReal = response.errorBody() != null ? response.errorBody().string() : "";
+            if (errorReal.contains("expirado")) {
+              mostrarError("El enlace ha expirado. Solicita uno nuevo.");
+            } else {
+              mostrarError("El enlace es inválido o ya fue utilizado.");
+            }
+          } catch (Exception e) {
+            mostrarError("El enlace es inválido o ya fue utilizado.");
+          }
+        }
       }
 
       @Override
       public void onFailure(Call<Void> call, Throwable t) {
         isLoading.setValue(false);
-        mostrarError(t.getMessage());
+        mostrarError("Error de conexión: " + t.getMessage());
       }
     });
   }

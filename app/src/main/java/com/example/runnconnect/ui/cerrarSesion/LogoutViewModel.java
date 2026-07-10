@@ -8,15 +8,19 @@ import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
-import com.example.runnconnect.data.repositorio.UsuarioRepositorio;
+import com.example.runnconnect.data.conexion.ApiClient;
+import com.example.runnconnect.data.conexion.ApiService;
+import com.example.runnconnect.data.preferencias.SessionManager;
 
 public class LogoutViewModel extends AndroidViewModel {
-  private final UsuarioRepositorio repo;
+  private final ApiService apiService;
+  private final SessionManager sessionManager;
   private final MutableLiveData<Boolean> navigarAlLogin= new MutableLiveData<>();
   private final MutableLiveData<Boolean> ordenCerrarDialogo = new MutableLiveData<>();
   public LogoutViewModel(@NonNull Application application) {
     super(application);
-    this.repo = new UsuarioRepositorio(application);
+    this.apiService = ApiClient.getApiService();
+    this.sessionManager = new SessionManager(application);
   }
 
   public LiveData<Boolean>getNavegarAlLogin(){
@@ -28,7 +32,7 @@ public class LogoutViewModel extends AndroidViewModel {
 
   public void cerrarSesion(){
     //destruimos el token
-    repo.cerrarSesion();
+    sessionManager.cerrarSesion();
 
     //nav al login con exito
     navigarAlLogin.setValue(true);

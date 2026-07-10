@@ -10,7 +10,9 @@ import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
-import com.example.runnconnect.data.repositorio.UsuarioRepositorio;
+import com.example.runnconnect.data.conexion.ApiClient;
+import com.example.runnconnect.data.conexion.ApiService;
+import com.example.runnconnect.data.preferencias.SessionManager;
 import com.example.runnconnect.data.request.ActualizarPerfilRunnerRequest;
 import com.example.runnconnect.data.request.CambiarPasswordRequest;
 import com.example.runnconnect.data.response.PerfilUsuarioResponse;
@@ -24,13 +26,17 @@ import java.util.Calendar;
 import java.util.Locale;
 import java.util.regex.Pattern;
 
+import okhttp3.MediaType;
+import okhttp3.MultipartBody;
+import okhttp3.RequestBody;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
 public class PerfilRunnerViewModel extends AndroidViewModel {
 
-  private final UsuarioRepositorio repo;
+  private final ApiService apiService;
+  private final SessionManager sessionManager;
 
   // Estado interno
   private boolean modoEdicion = false;
@@ -83,7 +89,8 @@ public class PerfilRunnerViewModel extends AndroidViewModel {
 
   public PerfilRunnerViewModel(@NonNull Application application) {
     super(application);
-    repo = new UsuarioRepositorio(application);
+    apiService = ApiClient.getApiService();
+    sessionManager = new SessionManager(application);
   }
 
   //Getters
@@ -288,7 +295,8 @@ public class PerfilRunnerViewModel extends AndroidViewModel {
     }
 
     setLoading(true);
-    repo.cambiarPassword(new CambiarPasswordRequest(actual, nueva, confirmacion), new Callback<Void>() {
+    String token = sessionManager.leerToken();
+    apiService.cambiarPassword("Bearer " + token, new CambiarPasswordRequest(actual, nueva, confirmacion)).enqueue(new Callback<Void>() {
       @Override
       public void onResponse(Call<Void> call, Response<Void> response) {
         setLoading(false);
@@ -296,7 +304,7 @@ public class PerfilRunnerViewModel extends AndroidViewModel {
           eventCerrarDialogPassword.setValue(true);
           mostrarMensajeGlobal("Contraseña actualizada correctamente, cerrando sesión", false);
           new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(() -> {
-            repo.cerrarSesion();
+            sessionManager.cerrarSesion();
             eventNavegarAlLogin.setValue(true);
           }, 2000);
         } else {
@@ -330,12 +338,13 @@ public class PerfilRunnerViewModel extends AndroidViewModel {
 
   public void confirmarDarDeBaja() {
     setLoading(true);
-    repo.eliminarCuenta(new Callback<Void>() {
+    String token = sessionManager.leerToken();
+    apiService.eliminarCuenta("Bearer " + token).enqueue(new Callback<Void>() {
       @Override
       public void onResponse(Call<Void> call, Response<Void> response) {
         setLoading(false);
         if (response.isSuccessful()) {
-          repo.cerrarSesion();
+          sessionManager.cerrarSesion();
           eventNavegarAlLogin.setValue(true);
         } else {
           mostrarMensajeGlobal("No se pudo dar de baja la cuenta.", true);
@@ -353,7 +362,8 @@ public class PerfilRunnerViewModel extends AndroidViewModel {
   public void cargarPerfil() {
     setLoading(true);
     mostrarMensajeGlobal(null, false);
-    repo.obtenerPerfil(new Callback<PerfilUsuarioResponse>() {
+    String token = sessionManager.leerToken();
+    apiService.obtenerPerfil("Bearer " + token).enqueue(new Callback<PerfilUsuarioResponse>() {
       @Override
       public void onResponse(Call<PerfilUsuarioResponse> call, Response<PerfilUsuarioResponse> response) {
         setLoading(false);
@@ -377,7 +387,10 @@ public class PerfilRunnerViewModel extends AndroidViewModel {
 
   public void subirNuevaFoto(File archivo) {
     setLoading(true);
-    repo.subirAvatar(archivo, new Callback<PerfilUsuarioResponse>() {
+    String token = sessionManager.leerToken();
+    RequestBody requestFile = RequestBody.create(MediaType.parse("image/*"), archivo);
+    MultipartBody.Part body = MultipartBody.Part.createFormData("imagen", archivo.getName(), requestFile);
+    apiService.subirAvatar("Bearer " + token, body).enqueue(new Callback<PerfilUsuarioResponse>() {
       @Override
       public void onResponse(Call<PerfilUsuarioResponse> call, Response<PerfilUsuarioResponse> response) {
         setLoading(false);
@@ -399,7 +412,8 @@ public class PerfilRunnerViewModel extends AndroidViewModel {
 
   public void borrarFoto() {
     setLoading(true);
-    repo.eliminarAvatar(new Callback<PerfilUsuarioResponse>() {
+    String token = sessionManager.leerToken();
+    apiService.eliminarAvatar("Bearer " + token).enqueue(new Callback<PerfilUsuarioResponse>() {
       @Override
       public void onResponse(Call<PerfilUsuarioResponse> call, Response<PerfilUsuarioResponse> response) {
         setLoading(false);
@@ -517,12 +531,12 @@ public class PerfilRunnerViewModel extends AndroidViewModel {
     mostrarMensajeGlobal(null, false);
 
     final int dniFinal = dniInt;
-    repo.actualizarRunner(
+    String token = sessionManager.leerToken();
+    apiService.actualizarPerfilRunner("Bearer " + token,
       new ActualizarPerfilRunnerRequest(
         input.nombre, input.apellido, input.telefono, input.fechaNac,
         input.genero, dniFinal, input.localidad, input.agrupacion,
-        input.nombreContacto, input.telContacto),
-      new Callback<PerfilUsuarioResponse>() {
+        input.nombreContacto, input.telContacto)).enqueue(new Callback<PerfilUsuarioResponse>() {
         @Override
         public void onResponse(Call<PerfilUsuarioResponse> call, Response<PerfilUsuarioResponse> response) {
           if (response.isSuccessful()) {

@@ -9,7 +9,10 @@ import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
-import com.example.runnconnect.data.repositorio.InscripcionRepositorio;
+import com.example.runnconnect.data.conexion.ApiClient;
+import com.example.runnconnect.data.conexion.ApiService;
+import com.example.runnconnect.data.preferencias.SessionManager;
+import com.example.runnconnect.data.request.MotivoBajaRequest;
 import com.example.runnconnect.data.request.CambiarEstadoPagoRequest;
 import com.example.runnconnect.data.response.InscriptoEventoResponse;
 import com.example.runnconnect.data.response.ListaInscriptosResponse;
@@ -23,7 +26,8 @@ import retrofit2.Callback;
 import retrofit2.Response;
 
 public class GestionInscriptosViewModel extends AndroidViewModel {
-  private final InscripcionRepositorio repositorio;
+  private final ApiService apiService;
+  private final SessionManager sessionManager;
 
   // --- ESTADOS DE DATOS ---
   private final MutableLiveData<List<InscriptoEventoResponse>> listaInscriptos = new MutableLiveData<>();
@@ -41,7 +45,8 @@ public class GestionInscriptosViewModel extends AndroidViewModel {
 
   public GestionInscriptosViewModel(@NonNull Application application) {
     super(application);
-    repositorio = new InscripcionRepositorio(application);
+    apiService = ApiClient.getApiService();
+    sessionManager = new SessionManager(application);
   }
 
   // --- GETTERS ---
@@ -97,52 +102,66 @@ public class GestionInscriptosViewModel extends AndroidViewModel {
   private void ejecutarCambioEstado(int idInscripcion, String nuevoEstado, String motivo) {
     isLoading.setValue(true);
     CambiarEstadoPagoRequest request = new CambiarEstadoPagoRequest(nuevoEstado, motivo);
-
-    repositorio.cambiarEstadoPago(idInscripcion, request, new Callback<ResponseBody>() {
-      @Override
-      public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
-        isLoading.setValue(false);
-        if (response.isSuccessful()) {
-          mensajeToast.setValue("pagado".equals(nuevoEstado) ? "Pago Aprobado" : "Pago Rechazado");
-          ejecutarConsulta(); // Recargar lista
-        } else {
-          mensajeToast.setValue("Error al procesar: " + response.code());
+    
+    String token = sessionManager.leerToken();
+    if (token != null) {
+      apiService.cambiarEstadoPago("Bearer " + token, idInscripcion, request).enqueue(new Callback<ResponseBody>() {
+        @Override
+        public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+          isLoading.setValue(false);
+          if (response.isSuccessful()) {
+            mensajeToast.setValue("pagado".equals(nuevoEstado) ? "Pago Aprobado" : "Pago Rechazado");
+            ejecutarConsulta(); // Recargar lista
+          } else {
+            mensajeToast.setValue("Error al procesar: " + response.code());
+          }
         }
-      }
-      @Override
-      public void onFailure(Call<ResponseBody> call, Throwable t) {
-        isLoading.setValue(false);
-        mensajeToast.setValue("Error de conexión");
-      }
-    });
+        @Override
+        public void onFailure(Call<ResponseBody> call, Throwable t) {
+          isLoading.setValue(false);
+          mensajeToast.setValue("Error de conexión");
+        }
+      });
+    } else {
+      isLoading.setValue(false);
+      mensajeToast.setValue("No hay sesión activa.");
+    }
   }
 
   private void ejecutarConsulta() {
     if (idEventoActual == 0) return;
     isLoading.setValue(true);
 
-    repositorio.obtenerInscriptos(idEventoActual, filtroEstado, 1, 100, new Callback<ListaInscriptosResponse>() {
-      @Override
-      public void onResponse(Call<ListaInscriptosResponse> call, Response<ListaInscriptosResponse> response) {
-        isLoading.setValue(false);
-        if (response.isSuccessful() && response.body() != null) {
-          List<InscriptoEventoResponse> lista = response.body().getInscripciones();
-          listaInscriptos.setValue(lista);
-          esListaVacia.setValue(lista.isEmpty());
-        } else {
+    String token = sessionManager.leerToken();
+    if (token != null) {
+      apiService.obtenerInscriptos("Bearer " + token, idEventoActual, filtroEstado, 1, 100).enqueue(new Callback<ListaInscriptosResponse>() {
+        @Override
+        public void onResponse(Call<ListaInscriptosResponse> call, Response<ListaInscriptosResponse> response) {
+          isLoading.setValue(false);
+          if (response.isSuccessful() && response.body() != null) {
+            List<InscriptoEventoResponse> lista = response.body().getInscripciones();
+            listaInscriptos.setValue(lista);
+            esListaVacia.setValue(lista.isEmpty());
+          } else {
+            listaInscriptos.setValue(new ArrayList<>());
+            esListaVacia.setValue(true);
+            if (response.code() != 404) mensajeToast.setValue("Error cargando lista.");
+          }
+        }
+        @Override
+        public void onFailure(Call<ListaInscriptosResponse> call, Throwable t) {
+          isLoading.setValue(false);
+          mensajeToast.setValue("Error de conexión");
           listaInscriptos.setValue(new ArrayList<>());
           esListaVacia.setValue(true);
-          if (response.code() != 404) mensajeToast.setValue("Error cargando lista.");
         }
-      }
-      @Override
-      public void onFailure(Call<ListaInscriptosResponse> call, Throwable t) {
-        isLoading.setValue(false);
-        mensajeToast.setValue("Error de conexión");
-        listaInscriptos.setValue(new ArrayList<>());
-        esListaVacia.setValue(true);
-      }
-    });
+      });
+    } else {
+      isLoading.setValue(false);
+      mensajeToast.setValue("No hay sesión activa.");
+      listaInscriptos.setValue(new ArrayList<>());
+      esListaVacia.setValue(true);
+    }
   }
 
   //Dar de baja
@@ -153,27 +172,34 @@ public class GestionInscriptosViewModel extends AndroidViewModel {
     String motivo= "Baja solicitada por el organizador en gestion de inscripciones";
 
     //lamamos al repo
-    repositorio.darDeBajaRunner(idInscripcion, motivo, new Callback<ResponseBody>(){
-      @Override
-      public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
-        isLoading.setValue(false);
-        
-        if(response.isSuccessful()){
-          mensajeToast.setValue("Runner dado de baja exitosamente");
-          ejecutarConsulta(); //Recarga la lista para ver cambios
+    String token = sessionManager.leerToken();
+    if (token != null) {
+      MotivoBajaRequest request = new MotivoBajaRequest(motivo);
+      apiService.darDeBajaRunner("Bearer " + token, idInscripcion, request).enqueue(new Callback<ResponseBody>() {
+        @Override
+        public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+          isLoading.setValue(false);
+          
+          if(response.isSuccessful()){
+            mensajeToast.setValue("Runner dado de baja exitosamente");
+            ejecutarConsulta(); //Recarga la lista para ver cambios
 
-        }else{
-          mensajeToast.setValue("Error al dar de baja:");
-          Log.d("GestionInscriptosVM", "Error al dar de baja: " + response.code());
+          }else{
+            mensajeToast.setValue("Error al dar de baja:");
+            Log.d("GestionInscriptosVM", "Error al dar de baja: " + response.code());
+          }
+        
         }
-      
-      }
-      @Override
-      public void onFailure(Call<ResponseBody> call, Throwable t) {
-        isLoading.setValue(false);
-        mensajeToast.setValue("Error de conexión");
-      }
-    });
+        @Override
+        public void onFailure(Call<ResponseBody> call, Throwable t) {
+          isLoading.setValue(false);
+          mensajeToast.setValue("Error de conexión");
+        }
+      });
+    } else {
+      isLoading.setValue(false);
+      mensajeToast.setValue("No hay sesión activa.");
+    }
     
 
 

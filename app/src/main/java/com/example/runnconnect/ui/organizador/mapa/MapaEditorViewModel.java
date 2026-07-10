@@ -11,8 +11,9 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
 import com.example.runnconnect.R;
-import com.example.runnconnect.data.repositorio.EventoRepositorio;
-import com.example.runnconnect.data.repositorio.RutaRepositorio;
+import com.example.runnconnect.data.conexion.ApiClient;
+import com.example.runnconnect.data.conexion.ApiService;
+import com.example.runnconnect.data.preferencias.SessionManager;
 import com.example.runnconnect.data.request.CrearPuntoInteresRequest;
 import com.example.runnconnect.data.request.GuardarRutaRequest;
 import com.example.runnconnect.data.request.RutaPuntoRequest;
@@ -41,8 +42,8 @@ import retrofit2.Response;
 
 public class MapaEditorViewModel extends AndroidViewModel {
 
-  private final RutaRepositorio rutaRepositorio;
-  private final EventoRepositorio eventoRepositorio;
+  private final ApiService apiService;
+  private final SessionManager sessionManager;
 
   // --- ESTADOS DE LA VISTA ---
   private final MutableLiveData<List<LatLng>> puntosRuta = new MutableLiveData<>(new ArrayList<>());
@@ -78,8 +79,8 @@ public class MapaEditorViewModel extends AndroidViewModel {
   private final String[] NOMBRES_PUNTO_UI = {"Hidratación", "Primeros Auxilios", "Punto Energético", "Otro"};
   public MapaEditorViewModel(@NonNull Application application) {
     super(application);
-    rutaRepositorio = new RutaRepositorio(application);
-    eventoRepositorio = new EventoRepositorio(application);
+    apiService = ApiClient.getApiService();
+    sessionManager = new SessionManager(application);
   }
 
   // --- GETTERS ---
@@ -244,38 +245,43 @@ public class MapaEditorViewModel extends AndroidViewModel {
     String tipoApi = tipo.toLowerCase().trim();
     CrearPuntoInteresRequest request = new CrearPuntoInteresRequest(tipoApi, nombre,latLng.latitude, latLng.longitude);
 
-    eventoRepositorio.crearPuntoInteres(idEvento, request, new Callback<ResponseBody>() {
-      @Override
-      public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
-        isLoading.setValue(false);
-        if (response.isSuccessful()) {
-          mostrarError("Punto de interes agregado!");
-          cargarPuntosInteres(idEvento);
-        } else {
-          String errorMsg = "Error desconocido";
-          try {
-            // Leemos el stream del error UNA sola vez
-            if (response.errorBody() != null) {
-              errorMsg = response.errorBody().string();
+    String token = sessionManager.leerToken();
+    if (token != null && !token.isEmpty()) {
+      apiService.crearPuntoInteres("Bearer " + token, idEvento, request).enqueue(new Callback<ResponseBody>() {
+        @Override
+        public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+          isLoading.setValue(false);
+          if (response.isSuccessful()) {
+            mostrarError("Punto de interes agregado!");
+            cargarPuntosInteres(idEvento);
+          } else {
+            String errorMsg = "Error desconocido";
+            try {
+              if (response.errorBody() != null) {
+                errorMsg = response.errorBody().string();
+              }
+            } catch (Exception e) {
+              e.printStackTrace();
             }
-          } catch (Exception e) {
-            e.printStackTrace();
+            String logMsg = "Código: " + response.code() + " | Mensaje: " + errorMsg;
+            Log.e("ERROR_PUNTO", logMsg);
+            mostrarError("Error al guardar: " + response.code());
           }
-          String logMsg = "Código: " + response.code() + " | Mensaje: " + errorMsg;
-          Log.e("ERROR_PUNTO", logMsg);
-          mostrarError("Error al guardar: " + response.code());
         }
-      }
-      @Override
-      public void onFailure(Call<ResponseBody> call, Throwable t) {
-        isLoading.setValue(false);
-        mostrarError("Error de conexión");
-      }
-    });
+        @Override
+        public void onFailure(Call<ResponseBody> call, Throwable t) {
+          isLoading.setValue(false);
+          mostrarError("Error de conexión");
+        }
+      });
+    } else {
+      isLoading.setValue(false);
+      mostrarError("Sesion expirada.");
+    }
   }
 
   public void cargarPuntosInteres(int idEvento) {
-    eventoRepositorio.obtenerPuntosInteres(idEvento, new Callback<PuntosInteresEventoResponse>() {
+    apiService.obtenerPuntosInteres(idEvento).enqueue(new Callback<PuntosInteresEventoResponse>() {
       @Override
       public void onResponse(Call<PuntosInteresEventoResponse> call, Response<PuntosInteresEventoResponse> response) {
         if (response.isSuccessful() && response.body() != null) {
@@ -315,7 +321,8 @@ public class MapaEditorViewModel extends AndroidViewModel {
     }
 
     isLoading.setValue(true);
-    rutaRepositorio.guardarRuta(idEvento, new GuardarRutaRequest(dtos), new Callback<ResponseBody>() {
+    String token = sessionManager.leerToken();
+    apiService.guardarRuta("Bearer " + token, idEvento, new GuardarRutaRequest(dtos)).enqueue(new Callback<ResponseBody>() {
       @Override
       public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
         isLoading.setValue(false);
@@ -341,38 +348,44 @@ public class MapaEditorViewModel extends AndroidViewModel {
 
   private void cargarRutaBackend(int idEvento) {
     isLoading.setValue(true);
-    rutaRepositorio.obtenerRuta(idEvento, new Callback<MapaEventoResponse>() {
-      @Override
-      public void onResponse(Call<MapaEventoResponse> call, Response<MapaEventoResponse> response) {
-        isLoading.setValue(false);
-        if (response.isSuccessful() && response.body() != null) {
-          List<LatLng> puntos = new ArrayList<>();
-          LatLngBounds.Builder builder = new LatLngBounds.Builder();
-          if (response.body().getRuta() != null) {
-            for (RutaPuntoResponse p : response.body().getRuta()) {
-              LatLng latLng = new LatLng(p.getLatitud(), p.getLongitud());
-              puntos.add(latLng);
-              builder.include(latLng);
+    String token = sessionManager.leerToken();
+    if(token != null) {
+      apiService.obtenerMapaCompleto("Bearer "+token, idEvento).enqueue(new Callback<MapaEventoResponse>() {
+        @Override
+        public void onResponse(Call<MapaEventoResponse> call, Response<MapaEventoResponse> response) {
+          isLoading.setValue(false);
+          if (response.isSuccessful() && response.body() != null) {
+            List<LatLng> puntos = new ArrayList<>();
+            LatLngBounds.Builder builder = new LatLngBounds.Builder();
+            if (response.body().getRuta() != null) {
+              for (RutaPuntoResponse p : response.body().getRuta()) {
+                LatLng latLng = new LatLng(p.getLatitud(), p.getLongitud());
+                puntos.add(latLng);
+                builder.include(latLng);
+              }
+            }
+            puntosRuta.setValue(puntos);
+            actualizarCalculosRuta(puntos);
+
+            if (!puntos.isEmpty()) {
+              modoPuntosInteres = true;
+              try { ordenHacerZoomRuta.setValue(builder.build()); }
+              catch (Exception e) { ordenCentrarCamara.setValue(puntos.get(0)); }
+            } else {
+              ordenCentrarCamara.setValue(new LatLng(-33.29501, -66.33563));
             }
           }
-          puntosRuta.setValue(puntos);
-          actualizarCalculosRuta(puntos);
-
-          if (!puntos.isEmpty()) {
-            modoPuntosInteres = true;
-            try { ordenHacerZoomRuta.setValue(builder.build()); }
-            catch (Exception e) { ordenCentrarCamara.setValue(puntos.get(0)); }
-          } else {
-            ordenCentrarCamara.setValue(new LatLng(-33.29501, -66.33563));
-          }
         }
-      }
-      @Override
-      public void onFailure(Call<MapaEventoResponse> call, Throwable t) {
-        isLoading.setValue(false);
-        mostrarError("No se pudo recuperar la ruta");
-      }
-    });
+        @Override
+        public void onFailure(Call<MapaEventoResponse> call, Throwable t) {
+          isLoading.setValue(false);
+          mostrarError("No se pudo recuperar la ruta");
+        }
+      });
+    } else {
+      isLoading.setValue(false);
+      mostrarError("No se pudo recuperar la ruta (Sin sesión)");
+    }
   }
 
 

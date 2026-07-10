@@ -8,7 +8,9 @@ import androidx.annotation.NonNull;
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
-import com.example.runnconnect.data.repositorio.EventoRepositorio;
+import com.example.runnconnect.data.conexion.ApiClient;
+import com.example.runnconnect.data.conexion.ApiService;
+import com.example.runnconnect.data.preferencias.SessionManager;
 import com.example.runnconnect.data.response.EventoResumenResponse;
 import com.example.runnconnect.data.response.EventosPaginadosResponse;
 
@@ -23,7 +25,8 @@ public class MisEventosViewModel extends AndroidViewModel {
   private final MutableLiveData<List<EventoResumenResponse>> listaEventos = new MutableLiveData<>();
   private final MutableLiveData<Boolean> isLoading = new MutableLiveData<>(false);
   private final MutableLiveData<String> errorMsg = new MutableLiveData<>();
-  private final EventoRepositorio repositorio;
+  private final ApiService apiService;
+  private final SessionManager sessionManager;
 
   private final MutableLiveData<String> mensajeExito= new MutableLiveData<>(null);
 
@@ -34,7 +37,8 @@ public class MisEventosViewModel extends AndroidViewModel {
 
   public MisEventosViewModel(@NonNull Application application) {
     super(application);
-    repositorio = new EventoRepositorio(application);
+    this.apiService = ApiClient.getApiService();
+    this.sessionManager = new SessionManager(application);
   }
 
   public LiveData<List<EventoResumenResponse>> getListaEventos() { return listaEventos; }
@@ -95,40 +99,47 @@ public class MisEventosViewModel extends AndroidViewModel {
     isLoadingMore = true;
 
     // Llamamos al repositorio
-    repositorio.obtenerMisEventos(paginaActual,new Callback<EventosPaginadosResponse>() {
-      @Override
-      public void onResponse(Call<EventosPaginadosResponse> call, Response<EventosPaginadosResponse> response) {
-        isLoading.setValue(false);
-        isLoadingMore = false;
+    String token = sessionManager.leerToken();
+    if (token != null) {
+      apiService.obtenerMisEventos("Bearer " + token, paginaActual, 10).enqueue(new Callback<EventosPaginadosResponse>() {
+        @Override
+        public void onResponse(Call<EventosPaginadosResponse> call, Response<EventosPaginadosResponse> response) {
+          isLoading.setValue(false);
+          isLoadingMore = false;
 
-        if (response.isSuccessful() && response.body() != null) {
-          //listaEventos.setValue(response.body().getEventos());
-          EventosPaginadosResponse data= response.body();
+          if (response.isSuccessful() && response.body() != null) {
+            //listaEventos.setValue(response.body().getEventos());
+            EventosPaginadosResponse data= response.body();
 
-          //verifica si llega la final para pedir datos
-          if(paginaActual>= data.getTotalPaginas()){
-            esUltimaPagina= true;
+            //verifica si llega la final para pedir datos
+            if(paginaActual>= data.getTotalPaginas()){
+              esUltimaPagina= true;
+            }
+
+            //enviamos la lista al fragment
+            listaEventos.setValue(data.getEventos());
+          } else {
+            // Si el servidor devuelve error (ej: 401, 500)
+            errorMsg.setValue("Error del servidor: " + response.code());
+            Log.d("ErrorServidor", "onResponse: " + response.code());
           }
-
-          //enviamos la lista al fragment
-          listaEventos.setValue(data.getEventos());
-        } else {
-          // Si el servidor devuelve error (ej: 401, 500)
-          errorMsg.setValue("Error del servidor: " + response.code());
-          Log.d("ErrorServidor", "onResponse: " + response.code());
         }
-      }
 
-      @Override
-      public void onFailure(Call<EventosPaginadosResponse> call, Throwable t) {
-        isLoading.setValue(false);
-        isLoadingMore= false;
-        if(paginaActual>1) paginaActual--; //si falla retrocedemos
+        @Override
+        public void onFailure(Call<EventosPaginadosResponse> call, Throwable t) {
+          isLoading.setValue(false);
+          isLoadingMore= false;
+          if(paginaActual>1) paginaActual--; //si falla retrocedemos
 
-        errorMsg.setValue("Error de conexion: " + t.getMessage());
-        Log.e("MisEventosVM", "Error API: " + t.getMessage());
-      }
-    });
+          errorMsg.setValue("Error de conexion: " + t.getMessage());
+          Log.e("MisEventosVM", "Error API: " + t.getMessage());
+        }
+      });
+    } else {
+      isLoading.setValue(false);
+      isLoadingMore= false;
+      errorMsg.setValue("No hay sesion activa");
+    }
   }
 
 }
