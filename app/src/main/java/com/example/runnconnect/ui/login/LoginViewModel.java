@@ -263,7 +263,7 @@ public class LoginViewModel extends AndroidViewModel {
     Class<?> destino = (indice == 0) ? RegisterRunnerActivity.class : RegisterOrganizadorActivity.class;
     Intent intent = new Intent(getApplication(), destino);
     navegacionEvento.setValue(intent);
-    finalUser.setValue(true);
+    finalUser.setValue(false);
   }
 
   //nuevo 21-06

@@ -2,6 +2,7 @@ package com.example.runnconnect.ui.registro;
 
 import android.net.Uri;
 import android.os.Bundle;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -38,6 +39,11 @@ public class RegisterOrganizadorActivity extends AppCompatActivity {
     setContentView(R.layout.activity_register_organizador);
 
     viewModel = new ViewModelProvider(this).get(RegisterOrganizadorViewModel.class);
+
+    if (getSupportActionBar() != null) {
+      getSupportActionBar().setTitle("Cuenta Organizador");
+      getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+    }
 
     initViews();
     setupVideo();
@@ -115,6 +121,15 @@ public class RegisterOrganizadorActivity extends AppCompatActivity {
     });
 
     tvVolver.setOnClickListener(v -> finish());
+  }
+
+  @Override
+  public boolean onOptionsItemSelected( MenuItem item) {
+    if (item.getItemId() == android.R.id.home) {
+      finish();
+      return true;
+    }
+    return super.onOptionsItemSelected(item);
   }
 
   private void setupVideo() {

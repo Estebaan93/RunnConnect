@@ -23,7 +23,6 @@ import retrofit2.Response;
 
 public class RegisterOrganizadorViewModel extends AndroidViewModel {
   private final UsuarioRepositorio repositorio;
-
   private final MutableLiveData<Boolean> isLoading = new MutableLiveData<>(false);
   private final MutableLiveData<String> errorMessage = new MutableLiveData<>();
   private final MutableLiveData<Uri> avatarUri = new MutableLiveData<>();
