@@ -81,7 +81,6 @@ public class EventosPublicosActivity extends AppCompatActivity {
       Intent intent = new Intent(EventosPublicosActivity.this, DetalleEventoPublicoActivity.class);
       intent.putExtra("idEvento", idEvento);
       startActivity(intent);
-      //viewModel.resetNavegacion();
     });
   }
 }

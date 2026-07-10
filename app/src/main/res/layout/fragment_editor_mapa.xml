@@ -23,6 +23,36 @@
       android:textStyle="bold"
       app:layout_constraintTop_toTopOf="parent" />
 
+  <LinearLayout
+      android:id="@+id/errorContainer"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:orientation="horizontal"
+      android:background="#FFCDD2"
+      android:padding="8dp"
+      android:visibility="gone"
+      android:elevation="4dp"
+      app:layout_constraintTop_toBottomOf="@id/tvInstruccion">
+
+      <TextView
+          android:id="@+id/tvErrorText"
+          android:layout_width="0dp"
+          android:layout_height="wrap_content"
+          android:layout_weight="1"
+          android:textColor="#C62828"
+          android:textStyle="bold"
+          android:gravity="center_vertical"
+          tools:text="Error message" />
+
+      <ImageButton
+          android:id="@+id/btnCloseError"
+          android:layout_width="24dp"
+          android:layout_height="24dp"
+          android:background="?attr/selectableItemBackgroundBorderless"
+          android:src="@android:drawable/ic_menu_close_clear_cancel"
+          app:tint="#C62828" />
+  </LinearLayout>
+
   <androidx.cardview.widget.CardView
       android:id="@+id/cardDistancia"
       android:layout_width="wrap_content"
@@ -32,7 +62,7 @@
       app:cardCornerRadius="8dp"
       app:cardElevation="6dp"
       app:cardBackgroundColor="#FFFFFF"
-      app:layout_constraintTop_toBottomOf="@id/tvInstruccion"
+      app:layout_constraintTop_toBottomOf="@id/errorContainer"
       app:layout_constraintEnd_toEndOf="parent">
 
     <LinearLayout

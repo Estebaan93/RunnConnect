@@ -25,4 +25,6 @@ mysql-data/
 .DS_Store
 Thumbs.db
 
+.agents
+
 API/RunnConnectAPI/runnConnect.json
