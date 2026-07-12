@@ -51,17 +51,13 @@ public class NoticiaAdapter extends RecyclerView.Adapter<NoticiaAdapter.NoticiaV
     Noticia noticia = noticias.get(position);
     holder.titulo.setText(noticia.getTitulo());
 
-    if (noticia.getImagenUrl() != null) {
-      Glide.with(context)
-              .load(noticia.getImagenUrl())
-              .centerCrop()
-              .placeholder(android.R.drawable.ic_menu_gallery)
-              .error(android.R.drawable.ic_delete)
-              .into(holder.imagen);
-    } else {
-      // Imagen por defecto si no hay en el RSS
-      holder.imagen.setImageResource(android.R.drawable.ic_menu_gallery);
-    }
+    Glide.with(context)
+            .load(noticia.getImagenUrl())
+            .centerCrop()
+            .placeholder(android.R.drawable.ic_menu_gallery)
+            .fallback(android.R.drawable.ic_menu_gallery) // Para cuando la URL es null
+            .error(android.R.drawable.ic_delete)
+            .into(holder.imagen);
 
     holder.itemView.setOnClickListener(v -> {
       if (listener != null) listener.onNoticiaClick(noticia.getLink());

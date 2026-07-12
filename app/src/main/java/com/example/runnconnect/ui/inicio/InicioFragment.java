@@ -38,11 +38,12 @@ public class InicioFragment extends Fragment {
 
     // Configuracion RecyclerView
     binding.rvNoticias.setLayoutManager(new LinearLayoutManager(getContext()));
-    adapter = new NoticiaAdapter(url -> abrirNoticiaEnNavegador(url));
-    binding.rvNoticias.setAdapter(adapter);
-
+    
     // ViewModel
     viewModel = new ViewModelProvider(this).get(InicioViewModel.class);
+
+    adapter = new NoticiaAdapter(url -> viewModel.onNoticiaClicked(url));
+    binding.rvNoticias.setAdapter(adapter);
 
     // Observadores
     viewModel.getIsLoading().observe(getViewLifecycleOwner(), loading ->
@@ -60,28 +61,28 @@ public class InicioFragment extends Fragment {
     viewModel.getErrorText().observe(getViewLifecycleOwner(), binding.tvErrorLoad::setText);
     viewModel.getErrorVisibility().observe(getViewLifecycleOwner(), binding.tvErrorLoad::setVisibility);
 
+    // Navegacion y Errores
+    viewModel.getAbrirNavegador().observe(getViewLifecycleOwner(), url -> {
+      if (url != null && !url.isEmpty()) {
+        abrirNoticiaEnNavegador(url);
+      }
+    });
+    viewModel.getErrorNavegacionText().observe(getViewLifecycleOwner(), binding.tvErrorAbrir::setText);
+    viewModel.getErrorNavegacionVisibility().observe(getViewLifecycleOwner(), binding.tvErrorAbrir::setVisibility);
+
     return root;
   }
 
   private void abrirNoticiaEnNavegador(String url) {
     try {
       CustomTabsIntent.Builder builder = new CustomTabsIntent.Builder();
-
       builder.setToolbarColor(ContextCompat.getColor(requireContext(), android.R.color.darker_gray));
       CustomTabsIntent customTabsIntent = builder.build();
       customTabsIntent.launchUrl(requireContext(), Uri.parse(url));
     } catch (Exception e) {
-      binding.tvErrorAbrir.setText("No se pudo abrir el enlace");
-      binding.tvErrorAbrir.setVisibility(View.VISIBLE);
-      Log.d("Error abrir card", "abrirNoticiaEnNavegador: " +e.getMessage());
-
-      // Ocultamos despues de 3 segundos
-      new Handler(Looper.getMainLooper()).postDelayed(() ->
-        binding.tvErrorAbrir.setVisibility(View.GONE), 5000);
+      Log.d("Error abrir card", "abrirNoticiaEnNavegador: " + e.getMessage());
+      viewModel.onErrorAlAbrirNavegador();
     }
-
-
-
   }
 
 }
