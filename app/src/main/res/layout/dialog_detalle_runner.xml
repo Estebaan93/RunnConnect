@@ -1,157 +1,194 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    app:cardCornerRadius="16dp"
-    app:cardElevation="8dp">
+    android:padding="24dp"
+    android:background="@android:color/white">
 
-  <ScrollView
-      android:layout_width="match_parent"
-      android:layout_height="wrap_content">
-
-    <LinearLayout
-        android:layout_width="match_parent"
+    <TextView
+        android:id="@+id/tvTituloFicha"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="24dp">
+        android:text="Ficha del Corredor"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:textColor="@android:color/black"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
 
-      <TextView
-          android:layout_width="wrap_content"
-          android:layout_height="wrap_content"
-          android:text="Ficha del Corredor"
-          android:textSize="20sp"
-          android:textStyle="bold"
-          android:textColor="@android:color/black"
-          android:layout_gravity="center_horizontal"/>
+    <TextView
+        android:id="@+id/tvNombreCompleto"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:textColor="#1565C0"
+        android:layout_marginTop="16dp"
+        app:layout_constraintTop_toBottomOf="@id/tvTituloFicha"
+        app:layout_constraintStart_toStartOf="parent"
+        tools:text="Juan Perez" />
 
-      <TextView
-          android:id="@+id/tvNombreCompleto"
-          android:layout_width="wrap_content"
-          android:layout_height="wrap_content"
-          android:textSize="18sp"
-          android:textStyle="bold"
-          android:textColor="#1565C0"
-          android:layout_marginTop="16dp"
-          tools:text="Juan Perez"/>
+    <TextView
+        android:id="@+id/tvDniSexoEdad"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="#757575"
+        android:layout_marginTop="4dp"
+        app:layout_constraintTop_toBottomOf="@id/tvNombreCompleto"
+        app:layout_constraintStart_toStartOf="parent"
+        tools:text="DNI: 12345678 | Masc | 30 Años" />
 
-      <TextView
-          android:id="@+id/tvDniSexoEdad"
-          android:layout_width="wrap_content"
-          android:layout_height="wrap_content"
-          android:textColor="#757575"
-          android:layout_marginTop="4dp"
-          tools:text="DNI: 12345678 | Masc | 30 Años"/>
+    <TextView
+        android:id="@+id/tvLocalidad"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="#757575"
+        android:layout_marginTop="4dp"
+        app:layout_constraintTop_toBottomOf="@id/tvDniSexoEdad"
+        app:layout_constraintStart_toStartOf="parent"
+        tools:text="San Luis, Capital" />
 
-      <TextView
-          android:id="@+id/tvLocalidad"
-          android:layout_width="wrap_content"
-          android:layout_height="wrap_content"
-          android:textColor="#757575"
-          android:layout_marginTop="4dp"
-          tools:text="San Luis, Capital"/>
+    <View
+        android:id="@+id/separador1"
+        android:layout_width="0dp"
+        android:layout_height="1dp"
+        android:background="#E0E0E0"
+        android:layout_marginTop="12dp"
+        app:layout_constraintTop_toBottomOf="@id/tvLocalidad"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
 
-      <View
-          android:layout_width="match_parent"
-          android:layout_height="1dp"
-          android:background="#E0E0E0"
-          android:layout_marginVertical="12dp"/>
+    <TextView
+        android:id="@+id/tvTituloInscripcion"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Inscripción"
+        android:textStyle="bold"
+        android:textColor="#424242"
+        android:layout_marginTop="12dp"
+        app:layout_constraintTop_toBottomOf="@id/separador1"
+        app:layout_constraintStart_toStartOf="parent" />
 
-      <TextView
-          android:layout_width="wrap_content"
-          android:layout_height="wrap_content"
-          android:text="Inscripción"
-          android:textStyle="bold"
-          android:textColor="#424242"/>
+    <TextView
+        android:id="@+id/tvCategoriaTalle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        app:layout_constraintTop_toBottomOf="@id/tvTituloInscripcion"
+        app:layout_constraintStart_toStartOf="parent"
+        tools:text="Categoría: 10K Calle | Talle: L" />
 
-      <TextView
-          android:id="@+id/tvCategoriaTalle"
-          android:layout_width="wrap_content"
-          android:layout_height="wrap_content"
-          android:layout_marginTop="4dp"
-          tools:text="Categoría: 10K Calle | Talle: L"/>
+    <View
+        android:id="@+id/separador2"
+        android:layout_width="0dp"
+        android:layout_height="1dp"
+        android:background="#E0E0E0"
+        android:layout_marginTop="12dp"
+        app:layout_constraintTop_toBottomOf="@id/tvCategoriaTalle"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
 
-      <View
-          android:layout_width="match_parent"
-          android:layout_height="1dp"
-          android:background="#E0E0E0"
-          android:layout_marginVertical="12dp"/>
+    <TextView
+        android:id="@+id/tvTituloContacto"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Contacto Directo"
+        android:textStyle="bold"
+        android:textColor="#424242"
+        android:layout_marginTop="12dp"
+        app:layout_constraintTop_toBottomOf="@id/separador2"
+        app:layout_constraintStart_toStartOf="parent" />
 
-      <TextView
-          android:layout_width="wrap_content"
-          android:layout_height="wrap_content"
-          android:text="Contacto Directo"
-          android:textStyle="bold"
-          android:textColor="#424242"/>
+    <ImageView
+        android:id="@+id/ivEmail"
+        android:layout_width="20dp"
+        android:layout_height="20dp"
+        android:src="@android:drawable/sym_action_email"
+        app:tint="#757575"
+        android:layout_marginTop="8dp"
+        app:layout_constraintTop_toBottomOf="@id/tvTituloContacto"
+        app:layout_constraintStart_toStartOf="parent" />
 
-      <LinearLayout
-          android:layout_width="match_parent"
-          android:layout_height="wrap_content"
-          android:orientation="horizontal"
-          android:layout_marginTop="8dp">
-        <ImageView
-            android:layout_width="20dp"
-            android:layout_height="20dp"
-            android:src="@android:drawable/sym_action_email"
-            app:tint="#757575"/>
-        <TextView
-            android:id="@+id/tvEmail"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            tools:text="juan@mail.com"/>
-      </LinearLayout>
+    <TextView
+        android:id="@+id/tvEmail"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        app:layout_constraintTop_toTopOf="@id/ivEmail"
+        app:layout_constraintBottom_toBottomOf="@id/ivEmail"
+        app:layout_constraintStart_toEndOf="@id/ivEmail"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:gravity="center_vertical"
+        tools:text="juan@mail.com" />
 
-      <LinearLayout
-          android:layout_width="match_parent"
-          android:layout_height="wrap_content"
-          android:orientation="horizontal"
-          android:layout_marginTop="8dp">
-        <ImageView
-            android:layout_width="20dp"
-            android:layout_height="20dp"
-            android:src="@android:drawable/sym_action_call"
-            app:tint="#757575"/>
-        <TextView
-            android:id="@+id/tvTelefono"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            tools:text="+54 266 4555555"/>
-      </LinearLayout>
+    <ImageView
+        android:id="@+id/ivTelefono"
+        android:layout_width="20dp"
+        android:layout_height="20dp"
+        android:src="@android:drawable/sym_action_call"
+        app:tint="#757575"
+        android:layout_marginTop="8dp"
+        app:layout_constraintTop_toBottomOf="@id/ivEmail"
+        app:layout_constraintStart_toStartOf="parent" />
 
-      <View
-          android:layout_width="match_parent"
-          android:layout_height="1dp"
-          android:background="#E0E0E0"
-          android:layout_marginVertical="12dp"/>
+    <TextView
+        android:id="@+id/tvTelefono"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        app:layout_constraintTop_toTopOf="@id/ivTelefono"
+        app:layout_constraintBottom_toBottomOf="@id/ivTelefono"
+        app:layout_constraintStart_toEndOf="@id/ivTelefono"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:gravity="center_vertical"
+        tools:text="+54 266 4555555" />
 
-      <TextView
-          android:layout_width="wrap_content"
-          android:layout_height="wrap_content"
-          android:text="En caso de Emergencia"
-          android:textStyle="bold"
-          android:textColor="#D32F2F"/>
+    <View
+        android:id="@+id/separador3"
+        android:layout_width="0dp"
+        android:layout_height="1dp"
+        android:background="#E0E0E0"
+        android:layout_marginTop="12dp"
+        app:layout_constraintTop_toBottomOf="@id/ivTelefono"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
 
-      <TextView
-          android:id="@+id/tvContactoEmergencia"
-          android:layout_width="wrap_content"
-          android:layout_height="wrap_content"
-          android:layout_marginTop="8dp"
-          android:textStyle="bold"
-          tools:text="Contacto: María Perez"/>
+    <TextView
+        android:id="@+id/tvTituloEmergencia"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="En caso de Emergencia"
+        android:textStyle="bold"
+        android:textColor="#D32F2F"
+        android:layout_marginTop="12dp"
+        app:layout_constraintTop_toBottomOf="@id/separador3"
+        app:layout_constraintStart_toStartOf="parent" />
 
-      <TextView
-          android:id="@+id/tvTelEmergencia"
-          android:layout_width="wrap_content"
-          android:layout_height="wrap_content"
-          android:layout_marginTop="4dp"
-          tools:text="Tel: +54 266 4111222"/>
+    <TextView
+        android:id="@+id/tvContactoEmergencia"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:textStyle="bold"
+        app:layout_constraintTop_toBottomOf="@id/tvTituloEmergencia"
+        app:layout_constraintStart_toStartOf="parent"
+        tools:text="Contacto: María Perez" />
 
-      <TextView
+    <TextView
+        android:id="@+id/tvTelEmergencia"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        app:layout_constraintTop_toBottomOf="@id/tvContactoEmergencia"
+        app:layout_constraintStart_toStartOf="parent"
+        tools:text="Tel: +54 266 4111222" />
+
+    <TextView
         android:id="@+id/tvMensajeBaja"
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:gravity="center"
         android:padding="8dp"
@@ -159,28 +196,36 @@
         android:textStyle="bold"
         android:textColor="@android:color/holo_red_dark"
         android:visibility="gone"
-        android:layout_marginBottom="8dp"
+        android:layout_marginTop="12dp"
+        app:layout_constraintTop_toBottomOf="@id/tvTelEmergencia"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
         tools:text="Inscripción dada de baja correctamente"
-        tools:visibility="visible"/>
+        tools:visibility="visible" />
 
-      <Button
-          android:id="@+id/btnDarDeBaja"
-          android:layout_width="match_parent"
-          android:layout_height="wrap_content"
-          android:layout_marginTop="24dp"
-          android:text="Dar de Baja"
-          android:textColor="#D32F2F"
-          style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-          app:strokeColor="#D32F2F" />
+    <Button
+        android:id="@+id/btnDarDeBaja"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
+        android:text="Dar de Baja"
+        android:textColor="#D32F2F"
+        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+        app:strokeColor="#D32F2F"
+        app:layout_constraintTop_toBottomOf="@id/tvMensajeBaja"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
 
-      <Button
-          android:id="@+id/btnCerrarDetalle"
-          android:layout_width="match_parent"
-          android:layout_height="wrap_content"
-          android:layout_marginTop="24dp"
-          android:text="Cerrar"
-          style="@style/Widget.MaterialComponents.Button.OutlinedButton"/>
+    <Button
+        android:id="@+id/btnCerrarDetalle"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
+        android:text="Cerrar"
+        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+        app:layout_constraintTop_toBottomOf="@id/btnDarDeBaja"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent" />
 
-    </LinearLayout>
-  </ScrollView>
-</androidx.cardview.widget.CardView>
+</androidx.constraintlayout.widget.ConstraintLayout>
