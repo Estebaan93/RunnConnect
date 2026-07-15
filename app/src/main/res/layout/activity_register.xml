@@ -6,22 +6,25 @@
     android:layout_height="match_parent"
     android:background="@android:color/black">
 
-    <VideoView
-        android:id="@+id/videoBackground"
+    <!-- Imagen de fondo -->
+    <ImageView
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:alpha="0.4"
+        android:src="@drawable/runner"
+        android:scaleType="centerCrop"
+        android:alpha="0.3"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
+    <!-- Título -->
     <TextView
         android:id="@+id/tvTitulo"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Cuenta Runner"
-        android:textColor="@android:color/black"
+        android:textColor="@android:color/white"
         android:textSize="26sp"
         android:textStyle="bold"
         android:layout_marginTop="32dp"
@@ -29,36 +32,27 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <FrameLayout
+    <!-- Avatar (sin FrameLayout) -->
+    <androidx.cardview.widget.CardView
         android:id="@+id/layoutAvatar"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="90dp"
+        android:layout_height="90dp"
         android:layout_marginTop="16dp"
+        app:cardCornerRadius="45dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/tvTitulo">
 
-        <androidx.cardview.widget.CardView
-            android:layout_width="90dp"
-            android:layout_height="90dp"
-            app:cardCornerRadius="45dp">
-            <ImageView
-                android:id="@+id/ivAvatar"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:src="@android:drawable/ic_menu_camera"
-                android:scaleType="centerCrop"
-                android:background="#E0E0E0"/>
-        </androidx.cardview.widget.CardView>
-
         <ImageView
-            android:layout_width="28dp"
-            android:layout_height="28dp"
-            android:src="@android:drawable/ic_menu_edit"
-            android:padding="4dp"
-            android:layout_gravity="bottom|end"/>
-    </FrameLayout>
+            android:id="@+id/ivAvatar"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="#E0E0E0"
+            android:scaleType="centerCrop"
+            android:src="@android:drawable/ic_menu_camera" />
+    </androidx.cardview.widget.CardView>
 
+    <!-- Hint del avatar -->
     <TextView
         android:id="@+id/tvHintAvatar"
         android:layout_width="wrap_content"
@@ -71,105 +65,107 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/layoutAvatar" />
 
-    <com.google.android.material.textfield.TextInputLayout
-        android:id="@+id/tilNombre"
+    <!-- Nombre -->
+    <EditText
+        android:id="@+id/etNombre"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:hint="Nombre"
         android:textColorHint="#BDBDBD"
+        android:inputType="textPersonName"
+        android:textColor="@android:color/white"
+        android:background="#40000000"
+        android:padding="16dp"
         android:layout_marginTop="16dp"
         android:layout_marginStart="24dp"
         android:layout_marginEnd="24dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/tvHintAvatar">
+        app:layout_constraintTop_toBottomOf="@id/tvHintAvatar" />
 
-        <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/etNombre"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:inputType="textPersonName"
-            android:textColor="@android:color/black"/>
-    </com.google.android.material.textfield.TextInputLayout>
-
-    <com.google.android.material.textfield.TextInputLayout
-        android:id="@+id/tilApellido"
+    <!-- Apellido -->
+    <EditText
+        android:id="@+id/etApellido"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:hint="Apellido"
         android:textColorHint="#BDBDBD"
+        android:inputType="textPersonName"
+        android:textColor="@android:color/white"
+        android:background="#40000000"
+        android:padding="16dp"
         android:layout_marginTop="8dp"
-        app:layout_constraintEnd_toEndOf="@id/tilNombre"
-        app:layout_constraintStart_toStartOf="@id/tilNombre"
-        app:layout_constraintTop_toBottomOf="@id/tilNombre">
+        app:layout_constraintEnd_toEndOf="@id/etNombre"
+        app:layout_constraintStart_toStartOf="@id/etNombre"
+        app:layout_constraintTop_toBottomOf="@id/etNombre" />
 
-        <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/etApellido"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:inputType="textPersonName"
-            android:textColor="@android:color/black"/>
-    </com.google.android.material.textfield.TextInputLayout>
-
-    <com.google.android.material.textfield.TextInputLayout
-        android:id="@+id/tilEmail"
+    <!-- Email -->
+    <EditText
+        android:id="@+id/etEmail"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:hint="Email"
         android:textColorHint="#BDBDBD"
+        android:inputType="textEmailAddress"
+        android:textColor="@android:color/white"
+        android:background="#40000000"
+        android:padding="16dp"
         android:layout_marginTop="8dp"
-        app:layout_constraintEnd_toEndOf="@id/tilNombre"
-        app:layout_constraintStart_toStartOf="@id/tilNombre"
-        app:layout_constraintTop_toBottomOf="@id/tilApellido">
+        app:layout_constraintEnd_toEndOf="@id/etNombre"
+        app:layout_constraintStart_toStartOf="@id/etNombre"
+        app:layout_constraintTop_toBottomOf="@id/etApellido" />
 
-        <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/etEmail"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:inputType="textEmailAddress"
-            android:textColor="@android:color/black"/>
-    </com.google.android.material.textfield.TextInputLayout>
-
+    <!-- Contraseña -->
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/tilPassword"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:hint="Contraseña"
         android:textColorHint="#BDBDBD"
+        app:hintTextColor="@android:color/white"
+        app:boxStrokeColor="@android:color/white"
+        app:passwordToggleTint="@android:color/white"
         android:layout_marginTop="8dp"
         app:passwordToggleEnabled="true"
-        app:layout_constraintEnd_toEndOf="@id/tilNombre"
-        app:layout_constraintStart_toStartOf="@id/tilNombre"
-        app:layout_constraintTop_toBottomOf="@id/tilEmail">
+        app:layout_constraintEnd_toEndOf="@id/etNombre"
+        app:layout_constraintStart_toStartOf="@id/etNombre"
+        app:layout_constraintTop_toBottomOf="@id/etEmail">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/etPassword"
+            android:background="#40000000"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:inputType="textPassword"
-            android:textColor="@android:color/black"/>
+            android:textColor="@android:color/white"/>
     </com.google.android.material.textfield.TextInputLayout>
 
+    <!-- Repetir Contraseña -->
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/tilConfirm"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:hint="Repetir Contraseña"
         android:textColorHint="#BDBDBD"
+        app:hintTextColor="@android:color/white"
+        app:boxStrokeColor="@android:color/white"
+        app:passwordToggleTint="@android:color/white"
         android:layout_marginTop="8dp"
         app:passwordToggleEnabled="true"
-        app:layout_constraintEnd_toEndOf="@id/tilNombre"
-        app:layout_constraintStart_toStartOf="@id/tilNombre"
+        app:layout_constraintEnd_toEndOf="@id/etNombre"
+        app:layout_constraintStart_toStartOf="@id/etNombre"
         app:layout_constraintTop_toBottomOf="@id/tilPassword">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/etConfirmPassword"
             android:layout_width="match_parent"
+            android:background="#40000000"
             android:layout_height="wrap_content"
             android:inputType="textPassword"
-            android:textColor="@android:color/black"/>
+            android:textColor="@android:color/white"/>
     </com.google.android.material.textfield.TextInputLayout>
 
+    <!-- Error -->
     <TextView
         android:id="@+id/tvErrorRegister"
         android:layout_width="wrap_content"
@@ -185,16 +181,18 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/tilConfirm" />
 
+    <!-- Botón Registrarse -->
     <Button
         android:id="@+id/btnRegistrar"
         android:layout_width="0dp"
         android:layout_height="55dp"
         android:text="Registrarse"
         android:layout_marginTop="16dp"
-        app:layout_constraintEnd_toEndOf="@id/tilNombre"
-        app:layout_constraintStart_toStartOf="@id/tilNombre"
+        app:layout_constraintEnd_toEndOf="@id/etNombre"
+        app:layout_constraintStart_toStartOf="@id/etNombre"
         app:layout_constraintTop_toBottomOf="@id/tvErrorRegister" />
 
+    <!-- ProgressBar -->
     <ProgressBar
         android:id="@+id/progressBar"
         android:layout_width="wrap_content"
@@ -205,6 +203,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
+    <!-- Volver al Login -->
     <TextView
         android:id="@+id/tvVolverLogin"
         android:layout_width="wrap_content"

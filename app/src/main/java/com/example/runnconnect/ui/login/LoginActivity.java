@@ -24,7 +24,6 @@ public class LoginActivity extends AppCompatActivity {
 
     viewModel = new ViewModelProvider(this).get(LoginViewModel.class);
 
-    setupVideoBackground();
     setupObservers();
     setupListeners();
   }
@@ -167,6 +166,18 @@ public class LoginActivity extends AppCompatActivity {
   @Override
   protected void onResume() {
     super.onResume();
-    if (binding.videoBackground != null) binding.videoBackground.start();
+    if (binding.videoBackground != null) {
+      binding.videoBackground.setVisibility(View.VISIBLE);
+    }
+    setupVideoBackground();
+  }
+
+  @Override
+  protected void onPause() {
+    super.onPause();
+    if (binding.videoBackground != null) {
+      binding.videoBackground.stopPlayback();
+      binding.videoBackground.setVisibility(View.GONE);
+    }
   }
 }

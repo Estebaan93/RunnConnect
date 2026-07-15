@@ -5,11 +5,10 @@ import android.os.Bundle;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
-import android.widget.VideoView;
-
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.PickVisualMediaRequest;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -25,13 +24,12 @@ public class RegisterOrganizadorActivity extends AppCompatActivity {
   private ActivityResultLauncher<PickVisualMediaRequest> mediaPicker;
 
   // UI Específica de Organizador
-  private TextInputEditText etRazonSocial, etNombreComercial;
-  private TextInputEditText etEmail, etPassword, etConfirm;
+  private EditText etRazonSocial, etNombreComercial;
+  private EditText etEmail, etPassword, etConfirm;
   private ImageView ivAvatar;
   private TextView tvError, tvVolver;
   private Button btnRegistrar;
   private ProgressBar progressBar;
-  private VideoView videoBackground;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -46,7 +44,6 @@ public class RegisterOrganizadorActivity extends AppCompatActivity {
     }
 
     initViews();
-    setupVideo();
     setupPickMedia();
     setupObservers();
     setupListeners();
@@ -67,7 +64,6 @@ public class RegisterOrganizadorActivity extends AppCompatActivity {
     tvVolver = findViewById(R.id.tvVolverLogin);
     btnRegistrar = findViewById(R.id.btnRegistrar);
     progressBar = findViewById(R.id.progressBar);
-    videoBackground = findViewById(R.id.videoBackground);
   }
 
   private void setupPickMedia() {
@@ -131,46 +127,5 @@ public class RegisterOrganizadorActivity extends AppCompatActivity {
     }
     return super.onOptionsItemSelected(item);
   }
-
-  private void setupVideo() {
-    try {
-      Uri uri = Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.background_video_login);
-      videoBackground.setVideoURI(uri);
-
-      // Fijar tamaño real de pantalla (Fix bordes negros)
-      android.util.DisplayMetrics metrics = new android.util.DisplayMetrics();
-      getWindowManager().getDefaultDisplay().getRealMetrics(metrics);
-      android.view.ViewGroup.LayoutParams params = videoBackground.getLayoutParams();
-      params.width = metrics.widthPixels;
-      params.height = metrics.heightPixels;
-      videoBackground.setLayoutParams(params);
-
-      videoBackground.setOnPreparedListener(mp -> {
-        mp.setLooping(true);
-        Runnable escalarVideo = () -> {
-          int viewWidth = videoBackground.getWidth();
-          int viewHeight = videoBackground.getHeight();
-          if (viewWidth == 0 || viewHeight == 0) return;
-
-          float videoWidth = mp.getVideoWidth();
-          float videoHeight = mp.getVideoHeight();
-          float videoRatio = videoWidth / videoHeight;
-          float viewRatio = (float) viewWidth / viewHeight;
-          float scale = 1f;
-
-          if (videoRatio > viewRatio) scale = videoRatio / viewRatio;
-          else scale = viewRatio / videoRatio;
-
-          scale = scale * 1.02f; // Over-scale 2%
-          videoBackground.setScaleX(scale);
-          videoBackground.setScaleY(scale);
-        };
-        escalarVideo.run();
-      });
-      videoBackground.start();
-    } catch (Exception e) { e.printStackTrace(); }
-  }
-
-
 
 }
