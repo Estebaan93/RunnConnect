@@ -1,17 +1,13 @@
 package com.example.runnconnect.ui.organizador.buscarInscripciones;
 
 import android.app.Dialog;
-import android.graphics.Color;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.Button;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -21,7 +17,6 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.example.runnconnect.R;
-import com.example.runnconnect.data.response.BusquedaInscripcionResponse;
 import com.example.runnconnect.databinding.FragmentBuscarInscripcionesBinding;
 
 import java.util.ArrayList;
@@ -32,16 +27,27 @@ public class BuscarInscripcionesFragment extends Fragment {
   private FragmentBuscarInscripcionesBinding binding;
   private BuscarAdapter adapter;
 
-  // Referencia global al diálogo para que el Observer pueda cerrarlo
   private Dialog dialogDetalleActual;
+  private TextView tvMensajeFeedback;
+  private Button btnDarDeBajaGlobal;
+  private BuscarInscripcionesViewModel.DetalleUiState detalleStateGlobal;
+  
+  private TextView tvNombreDialog;
+  private TextView tvDniSexoDialog;
+  private TextView tvLocalidadDialog;
+  private TextView tvCatTalleDialog;
+  private TextView tvEmailDialog;
+  private TextView tvTelDialog;
+  private TextView tvEmergenciaDialog;
+  private TextView tvTelEmergenciaDialog;
 
   @Nullable
   @Override
-  public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
-                           @Nullable Bundle savedInstanceState) {
+  public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
     binding = FragmentBuscarInscripcionesBinding.inflate(inflater, container, false);
     mViewModel = new ViewModelProvider(this).get(BuscarInscripcionesViewModel.class);
 
+    initDialog();
     setupRecyclerView();
     setupObservers();
     setupSearchView();
@@ -52,20 +58,14 @@ public class BuscarInscripcionesFragment extends Fragment {
   @Override
   public void onResume() {
     super.onResume();
-    // 1. Limpiamos datos en el ViewModel
     mViewModel.limpiarBusqueda();
-
-    // 2. Limpiamos la caja visualmente
-    if (binding != null) {
-      binding.searchViewBusqueda.setQuery("", false);
-      binding.searchViewBusqueda.clearFocus();
-    }
+    binding.searchViewBusqueda.setQuery("", false);
+    binding.searchViewBusqueda.clearFocus();
   }
 
   private void setupRecyclerView() {
-    // Al hacer click en un item, abrimos el diálogo detallado
     adapter = new BuscarAdapter(new ArrayList<>(), item -> {
-      mostrarDetalleRunner(item);
+      mViewModel.seleccionarItem(item);
     });
 
     binding.recyclerViewBusqueda.setLayoutManager(new LinearLayoutManager(getContext()));
@@ -73,60 +73,51 @@ public class BuscarInscripcionesFragment extends Fragment {
   }
 
   private void setupObservers() {
-// 1. Resultados de búsqueda
-    mViewModel.getResultados().observe(getViewLifecycleOwner(), resultados -> {
-      if (resultados != null) {
-        adapter.setResultados(resultados);
-      }
+    mViewModel.getResultadosUi().observe(getViewLifecycleOwner(), resultados -> {
+      adapter.setResultados(resultados);
     });
 
-    // 2. Mensajes de Error (Feedback en Dialog o Toast)
-    mViewModel.getMensajeError().observe(getViewLifecycleOwner(), error -> {
-      if (error != null && !error.isEmpty()) {
-        if (dialogDetalleActual != null && dialogDetalleActual.isShowing()) {
-          TextView tvMensaje = dialogDetalleActual.findViewById(R.id.tvMensajeBaja);
-          if (tvMensaje != null) {
-            tvMensaje.setText(error);
-            tvMensaje.setTextColor(Color.RED);
-            tvMensaje.setVisibility(View.VISIBLE);
-          }
-        } else {
-          Toast.makeText(getContext(), error, Toast.LENGTH_LONG).show();
-        }
-      }
+    mViewModel.getEstadoBusquedaMensaje().observe(getViewLifecycleOwner(), msg -> {
+      binding.tvEstadoBusqueda.setText(msg);
     });
 
-    // 3. Mensajes de Éxito (Baja confirmada)
-    mViewModel.getMensajeExito().observe(getViewLifecycleOwner(), msg -> {
-      if (msg != null && !msg.isEmpty()) {
-        // Verificamos si el diálogo está abierto para mostrar el feedback ahí
-        if (dialogDetalleActual != null && dialogDetalleActual.isShowing()) {
+    mViewModel.getEstadoBusquedaVisibilidad().observe(getViewLifecycleOwner(), visibilidad -> {
+      binding.tvEstadoBusqueda.setVisibility(visibilidad);
+    });
 
-          TextView tvMensaje = dialogDetalleActual.findViewById(R.id.tvMensajeBaja);
-          Button btnBaja = dialogDetalleActual.findViewById(R.id.btnDarDeBaja);
+    mViewModel.getOcultarDialog().observe(getViewLifecycleOwner(), signal -> dialogDetalleActual.dismiss());
 
-          if (tvMensaje != null) {
-            // Feedback visual VERDE dentro del diálogo
-            tvMensaje.setText("Dado de baja correctamente");
-            tvMensaje.setTextColor(Color.parseColor("#2E7D32"));
-            tvMensaje.setVisibility(View.VISIBLE);
+    mViewModel.getDetalleUiState().observe(getViewLifecycleOwner(), state -> {
+      detalleStateGlobal = state;
+      
+      tvNombreDialog.setText(state.nombre);
+      tvDniSexoDialog.setText(state.dniSexo);
+      tvLocalidadDialog.setText(state.localidad);
+      tvCatTalleDialog.setText(state.eventoCatTalle);
+      tvEmailDialog.setText(state.email);
+      tvTelDialog.setText(state.telefono);
+      tvEmergenciaDialog.setText(state.emergencia);
+      tvTelEmergenciaDialog.setText(state.telEmergencia);
+      
+      btnDarDeBajaGlobal.setVisibility(state.btnBajaVisible ? View.VISIBLE : View.GONE);
+      
+      dialogDetalleActual.show();
+    });
 
-            // Bloquear botón para evitar doble click
-            if (btnBaja != null) btnBaja.setEnabled(false);
+    mViewModel.getFeedbackDialogMensaje().observe(getViewLifecycleOwner(), msg -> {
+      tvMensajeFeedback.setText(msg);
+    });
 
-            // Cerrar automáticamente después de 1.5 segundos
-            new Handler(Looper.getMainLooper()).postDelayed(() -> {
-              if (dialogDetalleActual != null && dialogDetalleActual.isShowing()) {
-                dialogDetalleActual.dismiss();
-                dialogDetalleActual = null;
-              }
-            }, 1500);
-          }
-        } else {
-          // Fallback si el diálogo se cerró antes
-          Toast.makeText(getContext(), msg, Toast.LENGTH_SHORT).show();
-        }
-      }
+    mViewModel.getFeedbackDialogVisibilidad().observe(getViewLifecycleOwner(), vis -> {
+      tvMensajeFeedback.setVisibility(vis);
+    });
+
+    mViewModel.getFeedbackDialogColor().observe(getViewLifecycleOwner(), color -> {
+      tvMensajeFeedback.setTextColor(color);
+    });
+
+    mViewModel.getBtnBajaHabilitado().observe(getViewLifecycleOwner(), hab -> {
+      btnDarDeBajaGlobal.setEnabled(hab);
     });
   }
 
@@ -134,115 +125,69 @@ public class BuscarInscripcionesFragment extends Fragment {
     binding.searchViewBusqueda.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
       @Override
       public boolean onQueryTextSubmit(String query) {
-        if (query != null && !query.trim().isEmpty()) {
-          mViewModel.buscar(query);
-        }
+        mViewModel.buscar(query);
         binding.searchViewBusqueda.clearFocus();
         return true;
       }
 
       @Override
       public boolean onQueryTextChange(String newText) {
-        if (newText == null || newText.trim().isEmpty()) {
-          adapter.setResultados(new ArrayList<>());
-        }
+        mViewModel.onTextoBuscadorCambiado(newText);
         return false;
       }
     });
   }
 
-  // --- METODO PARA MOSTRAR LA FICHA (DIALOGO) ---
-  private void mostrarDetalleRunner(BusquedaInscripcionResponse item) {
+  private void initDialog() {
     dialogDetalleActual = new Dialog(requireContext());
     dialogDetalleActual.requestWindowFeature(Window.FEATURE_NO_TITLE);
     dialogDetalleActual.setContentView(R.layout.dialog_detalle_runner);
-    dialogDetalleActual.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+    if (dialogDetalleActual.getWindow() != null) {
+      dialogDetalleActual.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+    }
 
-    // Bindings
-    TextView tvNombre = dialogDetalleActual.findViewById(R.id.tvNombreCompleto);
-    TextView tvDniSexo = dialogDetalleActual.findViewById(R.id.tvDniSexoEdad);
-    TextView tvLocalidad = dialogDetalleActual.findViewById(R.id.tvLocalidad);
-    TextView tvCatTalle = dialogDetalleActual.findViewById(R.id.tvCategoriaTalle);
-    TextView tvEmail = dialogDetalleActual.findViewById(R.id.tvEmail);
-    TextView tvTel = dialogDetalleActual.findViewById(R.id.tvTelefono);
-    TextView tvEmergencia = dialogDetalleActual.findViewById(R.id.tvContactoEmergencia);
-    TextView tvTelEmergencia = dialogDetalleActual.findViewById(R.id.tvTelEmergencia);
     Button btnCerrar = dialogDetalleActual.findViewById(R.id.btnCerrarDetalle);
-    Button btnDarDeBaja = dialogDetalleActual.findViewById(R.id.btnDarDeBaja);
-
-    // Ocultar mensaje interno
-    TextView tvMensaje = dialogDetalleActual.findViewById(R.id.tvMensajeBaja);
-    if(tvMensaje != null) tvMensaje.setVisibility(View.GONE);
-
-    BusquedaInscripcionResponse.RunnerSimpleInfo r = item.getRunner();
-
-    if (r != null) {
-      tvNombre.setText(r.getNombreCompleto());
-
-      // DNI y Sexo
-      String dni = r.getDni() != null ? r.getDni() : "-";
-      String genero = r.getGenero() != null ? r.getGenero() : "-";
-      tvDniSexo.setText(String.format("DNI: %s | Sexo: %s", dni, genero));
-
-      // Localidad
-      tvLocalidad.setText(r.getLocalidad() != null ? r.getLocalidad() : "Localidad no especificada");
-
-      // Contacto
-      tvEmail.setText(r.getEmail());
-      tvTel.setText(r.getTelefono() != null ? r.getTelefono() : "-");
-
-      // Emergencia
-      String contacto = r.getNombreContactoEmergencia() != null ? r.getNombreContactoEmergencia() : "No informado";
-      tvEmergencia.setText("Contacto: " + contacto);
-
-      String telEmerg = r.getTelefonoEmergencia() != null ? r.getTelefonoEmergencia() : "-";
-      tvTelEmergencia.setText("Tel: " + telEmerg);
-    } else {
-      tvNombre.setText("Usuario Desconocido");
-    }
-
-    // Datos de Inscripcion
-    String talle = item.getTalleRemera() != null ? item.getTalleRemera() : "-";
-    String categoria = item.getNombreCategoria() != null ? item.getNombreCategoria() : "Sin Cat.";
-    String evento = item.getNombreEvento();
-
-    // Agregamos el nombre del evento para dar contexto en búsqueda global
-    tvCatTalle.setText("Evento: " + evento + "\nCat: " + categoria + " | Talle: " + talle);
-
-    //logica de btn baja, si el evento esta finalizado se oculta
-    String estadoDelEvento= item.getEstadoEvento();
-
-    //Verificamos si ESTE evento en particular finalizo
-    boolean eventoCerrado = "finalizado".equalsIgnoreCase(estadoDelEvento) || "cancelado".equalsIgnoreCase(estadoDelEvento);
-
-
-    // Boton Baja
-    if (eventoCerrado) {
-      btnDarDeBaja.setVisibility(View.GONE);
-    } else {
-      btnDarDeBaja.setVisibility(View.VISIBLE);
-
-      // Asignamos listener solo si es visible
-      btnDarDeBaja.setOnClickListener(v -> {
-        new androidx.appcompat.app.AlertDialog.Builder(requireContext())
-          .setTitle("Confirmar baja")
-          .setMessage("¿Estás seguro de eliminar a " + (r != null ? r.getNombreCompleto() : "este usuario") + "?")
-          .setPositiveButton("Sí, eliminar", (d, w) -> {
-            String textoBusqueda = binding.searchViewBusqueda.getQuery().toString();
-            mViewModel.darDeBaja(item.getIdInscripcion(), "Cancelado desde Búsqueda", textoBusqueda);
-          })
-          .setNegativeButton("Cancelar", null)
-          .show();
-      });
-    }
+    btnDarDeBajaGlobal = dialogDetalleActual.findViewById(R.id.btnDarDeBaja);
+    tvMensajeFeedback = dialogDetalleActual.findViewById(R.id.tvMensajeBaja);
+    
+    tvNombreDialog = dialogDetalleActual.findViewById(R.id.tvNombreCompleto);
+    tvDniSexoDialog = dialogDetalleActual.findViewById(R.id.tvDniSexoEdad);
+    tvLocalidadDialog = dialogDetalleActual.findViewById(R.id.tvLocalidad);
+    tvCatTalleDialog = dialogDetalleActual.findViewById(R.id.tvCategoriaTalle);
+    tvEmailDialog = dialogDetalleActual.findViewById(R.id.tvEmail);
+    tvTelDialog = dialogDetalleActual.findViewById(R.id.tvTelefono);
+    tvEmergenciaDialog = dialogDetalleActual.findViewById(R.id.tvContactoEmergencia);
+    tvTelEmergenciaDialog = dialogDetalleActual.findViewById(R.id.tvTelEmergencia);
 
     btnCerrar.setOnClickListener(v -> dialogDetalleActual.dismiss());
-    dialogDetalleActual.show();
+
+    btnDarDeBajaGlobal.setOnClickListener(v -> {
+      new androidx.appcompat.app.AlertDialog.Builder(requireContext())
+        .setTitle("Confirmar baja")
+        .setMessage("¿Estás seguro de eliminar a " + detalleStateGlobal.nombre + "?")
+        .setPositiveButton("Sí, eliminar", (d, w) -> {
+          String textoBusqueda = binding.searchViewBusqueda.getQuery().toString();
+          mViewModel.confirmarBaja(detalleStateGlobal.idInscripcion, detalleStateGlobal.nombre, textoBusqueda);
+        })
+        .setNegativeButton("Cancelar", null)
+        .show();
+    });
   }
 
   @Override
   public void onDestroyView() {
     super.onDestroyView();
     binding = null;
+    dialogDetalleActual = null;
+    tvMensajeFeedback = null;
+    btnDarDeBajaGlobal = null;
+    tvNombreDialog = null;
+    tvDniSexoDialog = null;
+    tvLocalidadDialog = null;
+    tvCatTalleDialog = null;
+    tvEmailDialog = null;
+    tvTelDialog = null;
+    tvEmergenciaDialog = null;
+    tvTelEmergenciaDialog = null;
   }
 }
