@@ -136,6 +136,16 @@ public class BuscarInscripcionesFragment extends Fragment {
         return false;
       }
     });
+
+    binding.chipGroupFiltros.setOnCheckedStateChangeListener((group, checkedIds) -> {
+      if (!checkedIds.isEmpty()) {
+        int checkedId = checkedIds.get(0);
+        com.google.android.material.chip.Chip chip = binding.getRoot().findViewById(checkedId);
+        if (chip != null) {
+          mViewModel.setFiltroEstado(chip.getText().toString());
+        }
+      }
+    });
   }
 
   private void initDialog() {

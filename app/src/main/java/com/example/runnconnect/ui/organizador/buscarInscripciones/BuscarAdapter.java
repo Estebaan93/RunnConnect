@@ -60,6 +60,7 @@ public class BuscarAdapter extends RecyclerView.Adapter<BuscarAdapter.BusquedaVi
     public void bind(final BusquedaItemUiModel item) {
       binding.tvRunnerNombre.setText(item.nombreCompleto);
       binding.tvRunnerDni.setText(item.dni);
+      binding.tvFechaInscripcion.setText(item.fechaInscripcionTexto);
       binding.tvEventoCategoria.setText(item.eventoCategoria);
       binding.tvEstadoPago.setText(item.estadoPagoTexto);
       binding.tvEstadoPago.setTextColor(item.estadoPagoColor);

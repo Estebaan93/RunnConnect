@@ -17,6 +17,7 @@ public class BusquedaInscripcionResponse {
 
   // Getters
   public int getIdInscripcion() { return idInscripcion; }
+  public String getFechaInscripcion() { return fechaInscripcion; }
   public String getEstadoPago() { return estadoPago; }
   public String getNombreEvento() { return nombreEvento; }
   public String getEstadoEvento() {return estadoEvento; }

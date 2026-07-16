@@ -42,6 +42,9 @@ public class BuscarInscripcionesViewModel extends AndroidViewModel {
   private final MutableLiveData<Integer> feedbackDialogVisibilidad = new MutableLiveData<>(View.GONE);
   private final MutableLiveData<Integer> feedbackDialogColor = new MutableLiveData<>(Color.BLACK);
   private final MutableLiveData<Boolean> btnBajaHabilitado = new MutableLiveData<>(true);
+  
+  private List<BusquedaItemUiModel> listaMaestra = new ArrayList<>();
+  private String filtroEstado = "Todos";
 
   public BuscarInscripcionesViewModel(@NonNull Application application) {
     super(application);
@@ -68,6 +71,43 @@ public class BuscarInscripcionesViewModel extends AndroidViewModel {
     }
   }
 
+  public void setFiltroEstado(String estado) {
+    this.filtroEstado = estado;
+    aplicarFiltro();
+  }
+
+  private void aplicarFiltro() {
+    if (listaMaestra.isEmpty()) {
+      return;
+    }
+    List<BusquedaItemUiModel> filtrada = new ArrayList<>();
+    for (BusquedaItemUiModel item : listaMaestra) {
+      if ("Todos".equals(filtroEstado)) {
+        filtrada.add(item);
+      } else {
+        String estadoBuscado = filtroEstado;
+        if (filtroEstado.equals("Pagados")) estadoBuscado = "pagado";
+        if (filtroEstado.equals("Procesando")) estadoBuscado = "procesando";
+        if (filtroEstado.equals("Pendientes")) estadoBuscado = "pendiente";
+        if (filtroEstado.equals("Cancelados")) estadoBuscado = "cancelado";
+        if (filtroEstado.equals("Rechazados")) estadoBuscado = "rechazado";
+        if (filtroEstado.equals("Reembolsados")) estadoBuscado = "reembolsado";
+        
+        if (item.original.getEstadoPago().equalsIgnoreCase(estadoBuscado)) {
+          filtrada.add(item);
+        }
+      }
+    }
+    
+    resultadosUi.setValue(filtrada);
+    if (filtrada.isEmpty()) {
+      estadoBusquedaMensaje.setValue("No hay resultados para '" + filtroEstado + "'");
+      estadoBusquedaVisibilidad.setValue(View.VISIBLE);
+    } else {
+      estadoBusquedaVisibilidad.setValue(View.GONE);
+    }
+  }
+
   public void buscar(String termino) {
     if (termino == null || termino.trim().isEmpty())
       return;
@@ -80,32 +120,51 @@ public class BuscarInscripcionesViewModel extends AndroidViewModel {
         public void onResponse(Call<List<BusquedaInscripcionResponse>> call, Response<List<BusquedaInscripcionResponse>> response) {
           isLoading.setValue(false);
           if (response.isSuccessful() && response.body() != null) {
-            List<BusquedaItemUiModel> uiModels = new ArrayList<>();
-            for (BusquedaInscripcionResponse item : response.body()) {
-              if ("pagado".equalsIgnoreCase(item.getEstadoPago())) {
-                String nombre = item.getRunner() != null ? item.getRunner().getNombreCompleto() : "Usuario Desconocido";
-                String dni = item.getRunner() != null && item.getRunner().getDni() != null ? "DNI: " + item.getRunner().getDni() : "DNI: -";
-                String eventoCategoria = item.getNombreEvento() + " (" + item.getNombreCategoria() + ")";
-                
-                String estado = item.getEstadoPago() != null ? item.getEstadoPago().toUpperCase() : "-";
-                int color = Color.parseColor("#FF9800"); // Default Naranja
-                if ("PAGADO".equals(estado)) {
-                  color = Color.parseColor("#2E7D32"); // Verde
-                } else if ("CANCELADO".equals(estado)) {
-                  color = Color.RED;
-                }
-                
-                uiModels.add(new BusquedaItemUiModel(item.getIdInscripcion(), item, nombre, dni, eventoCategoria, estado, color));
-              }
-            }
-            if (uiModels.isEmpty()) {
+            if (response.body().isEmpty()) {
+              listaMaestra.clear();
+              resultadosUi.setValue(new ArrayList<>());
               estadoBusquedaMensaje.setValue("No se encontraron resultados");
               estadoBusquedaVisibilidad.setValue(View.VISIBLE);
             } else {
-              estadoBusquedaMensaje.setValue("");
-              estadoBusquedaVisibilidad.setValue(View.GONE);
+              List<BusquedaItemUiModel> tempMaestra = new ArrayList<>();
+              for (BusquedaInscripcionResponse item : response.body()) {
+                String nombre = item.getRunner().getNombreCompleto();
+                String dni = "DNI: " + item.getRunner().getDni();
+                String eventoCategoria = item.getNombreEvento() + " (" + item.getNombreCategoria() + ")";
+                
+                String estado = item.getEstadoPago() != null ? item.getEstadoPago().toUpperCase() : "-";
+                int color = Color.parseColor("#FF9800"); // Naranja
+                if ("PAGADO".equals(estado)) {
+                  color = Color.parseColor("#2E7D32"); // Verde
+                } else if ("CANCELADO".equals(estado) || "RECHAZADO".equals(estado) || "REEMBOLSADO".equals(estado)) {
+                  color = Color.RED;
+                } else if ("PENDIENTE".equals(estado) || "PROCESANDO".equals(estado)) {
+                  color = Color.parseColor("#FF9800"); // Naranja
+                }
+                
+                String fechaInscripcion = item.getFechaInscripcion();
+                String fechaFormateada = "";
+                if (fechaInscripcion != null && fechaInscripcion.length() >= 10) {
+                    String[] parts = fechaInscripcion.substring(0, 10).split("-");
+                    if (parts.length == 3) {
+                        fechaFormateada = "Inscripción: " + parts[2] + "/" + parts[1] + "/" + parts[0];
+                    }
+                }
+                
+                tempMaestra.add(new BusquedaItemUiModel(
+                    item.getIdInscripcion(),
+                    item,
+                    nombre,
+                    dni,
+                    eventoCategoria,
+                    estado,
+                    color,
+                    fechaFormateada
+                ));
+              }
+              listaMaestra = tempMaestra;
+              aplicarFiltro();
             }
-            resultadosUi.setValue(uiModels);
           } else {
             resultadosUi.setValue(new ArrayList<>());
             estadoBusquedaMensaje.setValue("Error al realizar la búsqueda");
@@ -131,22 +190,18 @@ public class BuscarInscripcionesViewModel extends AndroidViewModel {
     BusquedaInscripcionResponse item = itemUi.original;
     BusquedaInscripcionResponse.RunnerSimpleInfo r = item.getRunner();
 
-    String nombre = r != null ? r.getNombreCompleto() : "Usuario Desconocido";
-    String dni = r != null && r.getDni() != null ? r.getDni() : "-";
-    String genero = r != null && r.getGenero() != null ? r.getGenero() : "-";
-    String dniSexo = String.format("DNI: %s | Sexo: %s", dni, genero);
+    String nombre = r.getNombreCompleto();
+    String dniSexo = String.format("DNI: %s | Sexo: %s", r.getDni(), r.getGenero());
     
-    String localidad = r != null && r.getLocalidad() != null ? r.getLocalidad() : "Localidad no especificada";
-    String email = r != null && r.getEmail() != null ? r.getEmail() : "";
-    String telefono = r != null && r.getTelefono() != null ? r.getTelefono() : "-";
+    String localidad = r.getLocalidad();
+    String email = r.getEmail();
+    String telefono = r.getTelefono();
     
-    String nomEmergencia = r != null && r.getNombreContactoEmergencia() != null ? r.getNombreContactoEmergencia() : "No informado";
-    String emergencia = "Contacto: " + nomEmergencia;
-    String tEmergencia = r != null && r.getTelefonoEmergencia() != null ? r.getTelefonoEmergencia() : "-";
-    String telEmergencia = "Tel: " + tEmergencia;
+    String emergencia = "Contacto: " + r.getNombreContactoEmergencia();
+    String telEmergencia = "Tel: " + r.getTelefonoEmergencia();
 
     String talle = item.getTalleRemera() != null ? item.getTalleRemera() : "-";
-    String categoria = item.getNombreCategoria() != null ? item.getNombreCategoria() : "Sin Cat.";
+    String categoria = item.getNombreCategoria();
     String evento = item.getNombreEvento();
     String eventoCatTalle = "Evento: " + evento + "\nCat: " + categoria + " | Talle: " + talle;
 
@@ -210,8 +265,8 @@ public class BuscarInscripcionesViewModel extends AndroidViewModel {
   }
 
   public void limpiarBusqueda() {
+    listaMaestra.clear();
     resultadosUi.setValue(new ArrayList<>());
-    estadoBusquedaMensaje.setValue("");
     estadoBusquedaVisibilidad.setValue(View.GONE);
   }
 
@@ -224,8 +279,9 @@ public class BuscarInscripcionesViewModel extends AndroidViewModel {
     public final String eventoCategoria;
     public final String estadoPagoTexto;
     public final int estadoPagoColor;
+    public final String fechaInscripcionTexto;
 
-    public BusquedaItemUiModel(int idInscripcion, BusquedaInscripcionResponse original, String nombreCompleto, String dni, String eventoCategoria, String estadoPagoTexto, int estadoPagoColor) {
+    public BusquedaItemUiModel(int idInscripcion, BusquedaInscripcionResponse original, String nombreCompleto, String dni, String eventoCategoria, String estadoPagoTexto, int estadoPagoColor, String fechaInscripcionTexto) {
       this.idInscripcion = idInscripcion;
       this.original = original;
       this.nombreCompleto = nombreCompleto;
@@ -233,6 +289,7 @@ public class BuscarInscripcionesViewModel extends AndroidViewModel {
       this.eventoCategoria = eventoCategoria;
       this.estadoPagoTexto = estadoPagoTexto;
       this.estadoPagoColor = estadoPagoColor;
+      this.fechaInscripcionTexto = fechaInscripcionTexto;
     }
   }
 
