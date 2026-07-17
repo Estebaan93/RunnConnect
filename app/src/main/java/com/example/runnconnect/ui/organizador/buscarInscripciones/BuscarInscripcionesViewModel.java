@@ -268,6 +268,11 @@ public class BuscarInscripcionesViewModel extends AndroidViewModel {
     listaMaestra.clear();
     resultadosUi.setValue(new ArrayList<>());
     estadoBusquedaVisibilidad.setValue(View.GONE);
+    limpiarDetalle();
+  }
+
+  public void limpiarDetalle() {
+    detalleUiState.setValue(null);
   }
 
   // UI States

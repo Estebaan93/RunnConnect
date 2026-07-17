@@ -88,6 +88,8 @@ public class BuscarInscripcionesFragment extends Fragment {
     mViewModel.getOcultarDialog().observe(getViewLifecycleOwner(), signal -> dialogDetalleActual.dismiss());
 
     mViewModel.getDetalleUiState().observe(getViewLifecycleOwner(), state -> {
+      if (state == null) return;
+      
       detalleStateGlobal = state;
       
       tvNombreDialog.setText(state.nombre);
@@ -170,6 +172,10 @@ public class BuscarInscripcionesFragment extends Fragment {
     tvTelEmergenciaDialog = dialogDetalleActual.findViewById(R.id.tvTelEmergencia);
 
     btnCerrar.setOnClickListener(v -> dialogDetalleActual.dismiss());
+
+    dialogDetalleActual.setOnDismissListener(dialog -> {
+      mViewModel.limpiarDetalle();
+    });
 
     btnDarDeBajaGlobal.setOnClickListener(v -> {
       new androidx.appcompat.app.AlertDialog.Builder(requireContext())
