@@ -505,7 +505,7 @@ public class DetalleEventoViewModel extends AndroidViewModel {
     uiLugar.setValue(evento.getLugar());
     uiDescripcion.setValue(evento.getDescripcion());
     uiInscriptos.setValue(String.valueOf(evento.getInscriptosActuales()));
-    uiCupo.setValue(String.valueOf(evento.getCupoTotal()));
+    uiCupo.setValue(evento.getCupoTotal() != null ? String.valueOf(evento.getCupoTotal()) : "Ilimitado");
     if (evento.getFechaHora() != null) uiFecha.setValue(evento.getFechaHora().replace("T", " "));
 
     String estado = (evento.getEstado() != null) ? evento.getEstado().toUpperCase() : "";

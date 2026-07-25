@@ -52,7 +52,7 @@ public class EventoAdapter extends RecyclerView.Adapter<EventoAdapter.EventoView
     holder.tvFecha.setText("Fecha: " + fecha);
     holder.tvLugar.setText("Lugar: " + lugar);
     holder.tvInscriptos.setText("Inscriptos: "+evento.getInscriptosActuales());
-    holder.tvCupo.setText("Cupo Total: " + evento.getCupoTotal());
+    holder.tvCupo.setText("Cupo Total: " + (evento.getCupoTotal() != null ? String.valueOf(evento.getCupoTotal()) : "Ilimitado"));
     holder.tvEstado.setText(estado);
 
     // Logica de colores segura

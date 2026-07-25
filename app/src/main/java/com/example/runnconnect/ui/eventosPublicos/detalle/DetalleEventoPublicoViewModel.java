@@ -89,8 +89,8 @@ public class DetalleEventoPublicoViewModel extends AndroidViewModel {
           descripcion.setValue(e.getDescripcion());
           estado.setValue("Estado: " + (e.getEstado() != null ? e.getEstado().toUpperCase() : ""));
           int disponibles = e.getCuposDisponibles();
-          int total = (e.getCupoTotal() != null) ? e.getCupoTotal() : 0;
-          cupos.setValue("Cupos: " + disponibles + " / " + total);
+          String cuposDisplay = (e.getCupoTotal() == null) ? "Cupos: Ilimitados" : "Cupos: " + disponibles + " / " + e.getCupoTotal();
+          cupos.setValue(cuposDisplay);
           nombreOrganizador.setValue(e.getOrganizador() != null ? e.getOrganizador().getNombre() : "");
           categorias.setValue(e.getCategorias());
         } else {

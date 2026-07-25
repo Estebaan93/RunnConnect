@@ -5,12 +5,12 @@ import java.math.BigDecimal;
 public class CrearCategoriaRequest {
   private String nombre;
   private BigDecimal costoInscripcion;
-  private int cupoCategoria;
+  private Integer cupoCategoria;
   private int edadMinima;
   private int edadMaxima;
   private String genero;
 
-  public CrearCategoriaRequest(String nombre, BigDecimal costoInscripcion, int cupoCategoria) {
+  public CrearCategoriaRequest(String nombre, BigDecimal costoInscripcion, Integer cupoCategoria) {
     this.nombre = nombre;
     this.costoInscripcion = costoInscripcion;
     this.cupoCategoria = cupoCategoria;

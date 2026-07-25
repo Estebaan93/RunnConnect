@@ -7,12 +7,12 @@ public class CrearEventoRequest {
   private String descripcion;
   private String fechaHora; // Formato ISO "2025-12-05T09:00:00"
   private String lugar;
-  private int cupoTotal;
+  private Integer cupoTotal;
   private String urlPronosticoClima;
   private String datosPago; // el precio/CBU temporalmente
   private String tipoEvento;
   private List<CrearCategoriaRequest> categorias;
-  public CrearEventoRequest(String nombre, String descripcion, String fechaHora, String lugar, int cupoTotal, String urlPronosticoClima, String datosPago, String tipoEvento, List<CrearCategoriaRequest> categorias) {
+  public CrearEventoRequest(String nombre, String descripcion, String fechaHora, String lugar, Integer cupoTotal, String urlPronosticoClima, String datosPago, String tipoEvento, List<CrearCategoriaRequest> categorias) {
     this.nombre = nombre;
     this.descripcion = descripcion;
     this.fechaHora = fechaHora;

@@ -44,14 +44,6 @@ public class CrearEventoFragment extends Fragment {
   }
 
   private void setupUI() {
-    String[] tiposEvento = {"Calle", "Trail", "Cross", "Aventura", "Obstáculos", "Correcaminata", "Kids", "Triatlón"};
-    ArrayAdapter<String> adapterMod = new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_dropdown_item, tiposEvento);
-    binding.spTipoEventoGlobal.setAdapter(adapterMod);
-
-    String[] generosVisual = {"Mixto / General", "Femenino", "Masculino"};
-    ArrayAdapter<String> adapterGen = new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_dropdown_item, generosVisual);
-    binding.spGeneroCat.setAdapter(adapterGen);
-
     //recycler categorias
     categoriasAdapter = new CategoriasTemporalAdapter(pos -> viewModel.eliminarCategoriaLocal(pos));
     binding.rvCategoriasAgregadas.setLayoutManager(new LinearLayoutManager(requireContext()));
@@ -61,9 +53,18 @@ public class CrearEventoFragment extends Fragment {
 
   private void setupObservers() {
     // 1. Lista de categorias (RecyclerView)
-    viewModel.getCategoriasLive().observe(getViewLifecycleOwner(), lista -> {
-      categoriasAdapter.setLista(lista);
-      binding.rvCategoriasAgregadas.setVisibility(lista.isEmpty() ? View.GONE : View.VISIBLE);
+    viewModel.getCategoriasLive().observe(getViewLifecycleOwner(), categoriasAdapter::setLista);
+    viewModel.getCategoriasVisibilidad().observe(getViewLifecycleOwner(), binding.rvCategoriasAgregadas::setVisibility);
+
+    // 1.5. Listas para Spinners
+    viewModel.getListaTiposEvento().observe(getViewLifecycleOwner(), lista -> {
+      ArrayAdapter<String> adapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_dropdown_item, lista);
+      binding.spTipoEventoGlobal.setAdapter(adapter);
+    });
+
+    viewModel.getListaGeneros().observe(getViewLifecycleOwner(), lista -> {
+      ArrayAdapter<String> adapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_dropdown_item, lista);
+      binding.spGeneroCat.setAdapter(adapter);
     });
 
     // 2. Visibilidad del formulario de categorias (Se oculta al Editar)
@@ -73,34 +74,31 @@ public class CrearEventoFragment extends Fragment {
     });
 
     // 3. NUEVO: Bloqueo de campos en modo Edicion
-    // Esto es lo que faltaba para cumplir el punto 1
     viewModel.getUiCamposHabilitados().observe(getViewLifecycleOwner(), habilitado -> {
       // Campos que NO se pueden editar si el evento ya existe
       binding.etTitulo.setEnabled(habilitado);
       binding.etUbicacion.setEnabled(habilitado);
       binding.etCupo.setEnabled(habilitado);
 
-      // Efecto visual (grisaceo) para indicar que estan bloqueados
-      float alpha = habilitado ? 1.0f : 0.5f;
-      binding.etTitulo.setAlpha(alpha);
-      binding.etUbicacion.setAlpha(alpha);
-      binding.etCupo.setAlpha(alpha);
-
       // Campos que SIEMPRE se pueden editar
       binding.etDescripcion.setEnabled(true);
       binding.etDatosPago.setEnabled(true);
-
-      // Observer para pre-seleccionar el Spinner en modo Edicion
-      viewModel.getTipoEventoGlobal().observe(getViewLifecycleOwner(), tipo -> {
-        setSpinnerSelection(binding.spTipoEventoGlobal, tipo);
-      });
-
-      // Fecha y Hora siempre habilitadas (manejan su propio click listener)
-      binding.etFecha.setEnabled(true);
-      binding.etHora.setEnabled(true);
-      binding.etFecha.setClickable(true);
-      binding.etHora.setClickable(true);
     });
+
+    viewModel.getUiCamposAlpha().observe(getViewLifecycleOwner(), alpha -> {
+      binding.etTitulo.setAlpha(alpha);
+      binding.etUbicacion.setAlpha(alpha);
+      binding.etCupo.setAlpha(alpha);
+    });
+    
+    // Observer para pre-seleccionar el Spinner en modo Edicion
+    viewModel.getTipoEventoGlobalPosicion().observe(getViewLifecycleOwner(), binding.spTipoEventoGlobal::setSelection);
+
+    // Fecha y Hora siempre habilitadas (manejan su propio click listener)
+    binding.etFecha.setEnabled(true);
+    binding.etHora.setEnabled(true);
+    binding.etFecha.setClickable(true);
+    binding.etHora.setClickable(true);
 
     // 4. Textos estaticos
     viewModel.getUiTituloPagina().observe(getViewLifecycleOwner(), binding.tvTituloPagina::setText);
@@ -121,76 +119,52 @@ public class CrearEventoFragment extends Fragment {
     viewModel.getPrecio().observe(getViewLifecycleOwner(), s -> binding.etCatPrecio.setText(s));
 
     // 6. Manejo de Errores en Inputs
-    viewModel.getErrorTitulo().observe(getViewLifecycleOwner(), e -> {
-      if(e!=null) { binding.etTitulo.setError(e); binding.etTitulo.requestFocus(); }
-    });
-    viewModel.getErrorUbicacion().observe(getViewLifecycleOwner(), e -> {
-      if(e!=null) { binding.etUbicacion.setError(e); binding.etUbicacion.requestFocus(); }
-    });
-    viewModel.getErrorDistancia().observe(getViewLifecycleOwner(), e -> {
-      if(e!=null) { binding.etDistanciaValor.setError(e); binding.etDistanciaValor.requestFocus(); }
-    });
-    viewModel.getErrorPrecio().observe(getViewLifecycleOwner(), e -> {
-      if(e!=null) { binding.etCatPrecio.setError(e); binding.etCatPrecio.requestFocus(); }
-    });
+    viewModel.getErrorTitulo().observe(getViewLifecycleOwner(), binding.etTitulo::setError);
+    viewModel.getErrorUbicacion().observe(getViewLifecycleOwner(), binding.etUbicacion::setError);
+    viewModel.getErrorDistancia().observe(getViewLifecycleOwner(), binding.etDistanciaValor::setError);
+    viewModel.getErrorPrecio().observe(getViewLifecycleOwner(), binding.etCatPrecio::setError);
     viewModel.getErrorEdad().observe(getViewLifecycleOwner(), error -> {
-      if (error != null) {
-        binding.etEdadMin.setError(error);
-        binding.etEdadMax.setError(error);
-        // Opcional: Toast si prefieres mensaje flotante
-        // Toast.makeText(getContext(), error, Toast.LENGTH_SHORT).show();
-      } else {
-        binding.etEdadMin.setError(null);
-        binding.etEdadMax.setError(null);
-      }
+      binding.etEdadMin.setError(error);
+      binding.etEdadMax.setError(error);
     });
 
     // 7. Mensajes Globales y Loading
-    viewModel.getMensajeGlobal().observe(getViewLifecycleOwner(), msg -> {
-      if (msg != null && !msg.isEmpty()) {
-        binding.tvMensajeGlobal.setText(msg);
-        binding.tvMensajeGlobal.setVisibility(View.VISIBLE);
-        if (msg.contains("!") || msg.toLowerCase().contains("exito") || msg.toLowerCase().contains("mapa")) {
-          binding.tvMensajeGlobal.setTextColor(getResources().getColor(android.R.color.holo_green_dark));
-        } else {
-          binding.tvMensajeGlobal.setTextColor(getResources().getColor(android.R.color.holo_red_dark));
-        }
-      } else {
-        binding.tvMensajeGlobal.setVisibility(View.GONE);
-      }
-    });
+    viewModel.getMensajeGlobal().observe(getViewLifecycleOwner(), binding.tvMensajeGlobal::setText);
+    
+    viewModel.getMensajeGlobalColor().observe(getViewLifecycleOwner(), binding.tvMensajeGlobal::setTextColor);
+    
+    viewModel.getMensajeGlobalVisibilidad().observe(getViewLifecycleOwner(), binding.tvMensajeGlobal::setVisibility);
 
-    // Lista de categorias
-    viewModel.getCategoriasLive().observe(getViewLifecycleOwner(), lista -> {
-      categoriasAdapter.setLista(lista);
-      binding.rvCategoriasAgregadas.setVisibility(lista.isEmpty() ? View.GONE : View.VISIBLE);
-    });
+    viewModel.getChipSeleccionadoId().observe(getViewLifecycleOwner(), binding.chipGroupDistancias::check);
 
     viewModel.getIsLoading().observe(getViewLifecycleOwner(), loading -> {
       binding.progressBar.setVisibility(loading ? View.VISIBLE : View.GONE);
       binding.btnContinuarMapa.setEnabled(!loading);
     });
 
-    // 8. Navegacion tras exito
-    viewModel.getNavegacionExito().observe(getViewLifecycleOwner(), code -> {
-      if (code == 0) return;
-      if (code == 2) { // Edicion exitosa -> Volver atras
+    viewModel.getNavegarAtrasSignal().observe(getViewLifecycleOwner(), navegar -> {
+      if (navegar != null && navegar) {
         Navigation.findNavController(requireView()).popBackStack();
-      } else { // Creacion exitosa -> Ir a mapa (code es el ID del nuevo evento)
+        viewModel.resetNavegacion();
+      }
+    });
+
+    viewModel.getNavegarMapaSignal().observe(getViewLifecycleOwner(), idEvento -> {
+      if (idEvento != null) {
         Bundle args = new Bundle();
-        args.putInt("idEvento", code);
+        args.putInt("idEvento", idEvento);
         try {
           Navigation.findNavController(requireView()).navigate(R.id.action_crear_a_mapaEditor, args);
-        } catch (Exception e) {}
+        } catch (Exception ignored) {}
+        viewModel.resetNavegacion();
       }
-      viewModel.resetearNavegacion();
     });
   }
 
   private void setupListeners() {
     // BOTON AGREGAR CATEGORIA A LA LISTA
     binding.btnAgregarCategoria.setOnClickListener(v -> {
-      boolean exito = viewModel.agregarCategoriaLocal(
+      viewModel.agregarCategoriaLocal(
         binding.etDistanciaValor.getText().toString(),
         binding.spGeneroCat.getSelectedItem().toString(),
         binding.etEdadMin.getText().toString(),
@@ -198,14 +172,6 @@ public class CrearEventoFragment extends Fragment {
         binding.etCatPrecio.getText().toString(),
         binding.etCupo.getText().toString()
       );
-
-      if (exito) {
-        // Limpiar campos para cargar otra
-        binding.etDistanciaValor.setText("");
-        binding.etCatPrecio.setText("");
-        binding.chipGroupDistancias.clearCheck();
-        Toast.makeText(getContext(), "Categoria agregada", Toast.LENGTH_SHORT).show();
-      }
     });
 
     // --- BOTON FINAL (GUARDAR TODeO) ---
@@ -224,11 +190,9 @@ public class CrearEventoFragment extends Fragment {
     });
 
     // --- CHIPS Y FECHAS ---
-    binding.chipGroupDistancias.setOnCheckedStateChangeListener((group, checkedIds) -> {
-      if (!checkedIds.isEmpty()) {
-        Chip chip = group.findViewById(checkedIds.get(0));
-        if (chip != null) viewModel.onChipDistanciaSelected(chip.getText().toString());
-      }
+    binding.chipGroupDistancias.setOnCheckedChangeListener((group, checkedId) -> {
+      Chip chip = group.findViewById(checkedId);
+      viewModel.setChipSeleccionado(checkedId, chip != null ? chip.getText().toString() : null);
     });
 
     binding.etFecha.setOnClickListener(v -> {
@@ -246,12 +210,5 @@ public class CrearEventoFragment extends Fragment {
         (view, h, m) -> viewModel.onHoraSelected(h, m),
         c.get(Calendar.HOUR_OF_DAY), c.get(Calendar.MINUTE), true).show();
     });
-  }
-
-  private void setSpinnerSelection(Spinner spinner, String value) {
-    if (value == null) return;
-    ArrayAdapter<String> adapter = (ArrayAdapter<String>) spinner.getAdapter();
-    int pos = adapter.getPosition(value);
-    if (pos >= 0) spinner.setSelection(pos);
   }
 }

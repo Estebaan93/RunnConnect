@@ -8,7 +8,7 @@ public class EventoResumenResponse {
   private String fechaHora; // Viene como string ISO (2025-12-05T09:00:00)
   private String lugar;
   private String estado; // "publicado", "finalizado", "cancelado" etc.
-  private int cupoTotal;
+  private Integer cupoTotal;
   private int inscriptosActuales;
   private int cantidadCategorias;
   private String tipoEvento; //
@@ -23,7 +23,7 @@ public class EventoResumenResponse {
   public String getFechaHora() { return fechaHora; }
   public String getLugar() { return lugar; }
   public String getEstado() { return estado; }
-  public int getCupoTotal() { return cupoTotal; }
+  public Integer getCupoTotal() { return cupoTotal; }
   public int getInscriptosActuales() { return inscriptosActuales; }
   public String getTipoEvento() { return tipoEvento; }
   public String getDatosPago() { return datosPago; }

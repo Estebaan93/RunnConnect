@@ -21,6 +21,7 @@ import org.json.JSONObject;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 
@@ -36,6 +37,24 @@ public class CrearEventoViewModel extends AndroidViewModel {
   // --- ESTADOS GENERALES ---
   private final MutableLiveData<Boolean> isLoading = new MutableLiveData<>(false);
   private final MutableLiveData<String> mensajeGlobal = new MutableLiveData<>(); // Para errores generales (API, Conexión)
+  private final MutableLiveData<Integer> mensajeGlobalColor = new MutableLiveData<>(android.graphics.Color.BLACK);
+  private final MutableLiveData<Integer> mensajeGlobalVisibilidad = new MutableLiveData<>(View.GONE);
+
+  private void mostrarError(String msg) {
+    mensajeGlobal.setValue(msg);
+    mensajeGlobalColor.setValue(android.graphics.Color.parseColor("#D32F2F")); // Rojo
+    mensajeGlobalVisibilidad.setValue(View.VISIBLE);
+  }
+
+  private void mostrarExito(String msg) {
+    mensajeGlobal.setValue(msg);
+    mensajeGlobalColor.setValue(android.graphics.Color.parseColor("#388E3C")); // Verde
+    mensajeGlobalVisibilidad.setValue(View.VISIBLE);
+  }
+
+  private void limpiarMensaje() {
+    mensajeGlobalVisibilidad.setValue(View.GONE);
+  }
 
   // --- ERRORES DE CAMPOS ESPECIFICOS (Para setError y focus) ---
   private final MutableLiveData<String> errorTitulo = new MutableLiveData<>();
@@ -65,7 +84,7 @@ public class CrearEventoViewModel extends AndroidViewModel {
   private final MutableLiveData<String> seleccionModalidad = new MutableLiveData<>();
   private final MutableLiveData<String> seleccionGenero = new MutableLiveData<>();
 
-  private final MutableLiveData<String> tipoEventoGlobal = new MutableLiveData<>();
+  private final MutableLiveData<Integer> tipoEventoGlobalPosicion = new MutableLiveData<>(0);
 
   // --- CONTROL UI ---
   private final MutableLiveData<String> uiTituloPagina = new MutableLiveData<>();
@@ -74,9 +93,17 @@ public class CrearEventoViewModel extends AndroidViewModel {
   private final MutableLiveData<Integer> uiVisibilidadCamposExtra = new MutableLiveData<>();
   private final MutableLiveData<Integer> uiVisibilidadChips = new MutableLiveData<>();
   private final MutableLiveData<Boolean> uiCamposHabilitados = new MutableLiveData<>();
-  private final MutableLiveData<Integer> navegacionExito = new MutableLiveData<>(0);
+  private final MutableLiveData<Float> uiCamposAlpha = new MutableLiveData<>(1.0f);
+  private final MutableLiveData<Boolean> navegarAtrasSignal = new MutableLiveData<>(false);
+  private final MutableLiveData<Integer> navegarMapaSignal = new MutableLiveData<>(null);
+  private final MutableLiveData<Integer> chipSeleccionadoId = new MutableLiveData<>(View.NO_ID);
   private final List<CrearCategoriaRequest> categoriasTemporales= new ArrayList<>();
   private final MutableLiveData<List<CrearCategoriaRequest>> categoriasLive = new MutableLiveData<>(new ArrayList<>());
+  private final MutableLiveData<Integer> categoriasVisibilidad = new MutableLiveData<>(View.GONE);
+
+  // --- DATOS DE SELECTORES (Spinners) ---
+  private final MutableLiveData<List<String>> listaTiposEvento = new MutableLiveData<>(Arrays.asList( "Calle", "Trail", "Cross", "Aventura", "Obstáculos", "Correcaminata", "Kids", "Triatlón"));
+  private final MutableLiveData<List<String>> listaGeneros = new MutableLiveData<>(Arrays.asList("Mixto / General", "Femenino", "Masculino"));
 
 
   // Estado Interno
@@ -96,6 +123,8 @@ public class CrearEventoViewModel extends AndroidViewModel {
   // --- GETTERS ---
   public LiveData<Boolean> getIsLoading() { return isLoading; }
   public LiveData<String> getMensajeGlobal() { return mensajeGlobal; }
+  public LiveData<Integer> getMensajeGlobalColor() { return mensajeGlobalColor; }
+  public LiveData<Integer> getMensajeGlobalVisibilidad() { return mensajeGlobalVisibilidad; }
 
   // Getters de Errores
   public LiveData<String> getErrorTitulo() { return errorTitulo; }
@@ -126,24 +155,30 @@ public class CrearEventoViewModel extends AndroidViewModel {
   public LiveData<Integer> getUiVisibilidadCamposExtra() { return uiVisibilidadCamposExtra; }
   public LiveData<Integer> getUiVisibilidadChips() { return uiVisibilidadChips; }
   public LiveData<Boolean> getUiCamposHabilitados() { return uiCamposHabilitados; }
-  public LiveData<Integer> getNavegacionExito() { return navegacionExito; }
+  public LiveData<Float> getUiCamposAlpha() { return uiCamposAlpha; }
+  public LiveData<Boolean> getNavegarAtrasSignal() { return navegarAtrasSignal; }
+  public LiveData<Integer> getNavegarMapaSignal() { return navegarMapaSignal; }
+  public LiveData<Integer> getChipSeleccionadoId() { return chipSeleccionadoId; }
 
   //Getter de categoria
   public LiveData<List<CrearCategoriaRequest>> getCategoriasLive() { return categoriasLive; }
+  public LiveData<Integer> getCategoriasVisibilidad() { return categoriasVisibilidad; }
 
-  public LiveData<String> getTipoEventoGlobal() { return tipoEventoGlobal; }
+  public LiveData<List<String>> getListaTiposEvento() { return listaTiposEvento; }
+  public LiveData<List<String>> getListaGeneros() { return listaGeneros; }
+
+  public LiveData<Integer> getTipoEventoGlobalPosicion() { return tipoEventoGlobalPosicion; }
 
   //agregar categoria
-  public boolean agregarCategoriaLocal(String distanciaIn, String generoIn,
-                                    String edadMinIn, String edadMaxIn, String precioIn, String cupoEvento) {
+  public void agregarCategoriaLocal(String distanciaIn, String generoIn, String edadMinIn, String edadMaxIn, String precioIn, String cupoEvento) {
     // 1. Validaciones basicas de la categoría
     if (distanciaIn.trim().isEmpty()) {
       errorDistancia.setValue("Indica la distancia");
-      return false;
+      return;
     }
     if (precioIn.trim().isEmpty()) {
       errorPrecio.setValue("Indica el precio");
-      return false;
+      return;
     }
 
     BigDecimal precioDec;
@@ -151,13 +186,13 @@ public class CrearEventoViewModel extends AndroidViewModel {
       precioDec = new BigDecimal(precioIn.trim());
     } catch (Exception e) {
       errorPrecio.setValue("Precio inválido");
-      return false;
+      return;
     }
 
     //validacion edad
     if(edadMinIn.trim().isEmpty() || edadMaxIn.trim().isEmpty()){
       errorEdad.setValue("Define el rango de edad");
-      return false;
+      return;
     }
     int eMin, eMax;
     try{
@@ -165,11 +200,11 @@ public class CrearEventoViewModel extends AndroidViewModel {
       eMax= Integer.parseInt(edadMaxIn.trim());
     }catch (NumberFormatException e){
       errorEdad.setValue("Edades invalidas");
-      return false;
+      return;
     }
     if (eMin>eMax){
       errorEdad.setValue("La edad minima no puede ser mayor que la maxima");
-      return false;
+      return;
     }
 
     // 2. Construir Nombre y Datos
@@ -186,7 +221,11 @@ public class CrearEventoViewModel extends AndroidViewModel {
 
     // Cupo: Usamos el cupo total del evento como limite individual
     Integer cupoInt = null;
-    try { cupoInt = Integer.parseInt(cupoEvento); } catch(Exception e){}
+    try { 
+        if (cupoEvento != null && !cupoEvento.trim().isEmpty()) {
+            cupoInt = Integer.parseInt(cupoEvento.trim()); 
+        }
+    } catch(Exception e){}
 
     // 3. Crear Objeto Request
     CrearCategoriaRequest nuevaCat = new CrearCategoriaRequest(
@@ -201,28 +240,40 @@ public class CrearEventoViewModel extends AndroidViewModel {
     // 4. Agregar a la lista y notificar
     categoriasTemporales.add(nuevaCat);
     categoriasLive.setValue(new ArrayList<>(categoriasTemporales)); // Copia nueva para activar observer
+    categoriasVisibilidad.setValue(View.VISIBLE);
 
-    // 5. Limpiar errores (exito)
+    // 5. Limpiar errores y campos (exito)
     errorDistancia.setValue(null);
     errorPrecio.setValue(null);
     errorEdad.setValue(null);
-    return true;
+    
+    distancia.setValue("");
+    precio.setValue("");
+    chipSeleccionadoId.setValue(View.NO_ID);
+    
+    mostrarExito("Categoría agregada exitosamente");
+  }
+
+  public void resetNavegacion() { 
+      navegarAtrasSignal.setValue(false);
+      navegarMapaSignal.setValue(null);
   }
 
   public void eliminarCategoriaLocal(int posicion) {
     if (posicion >= 0 && posicion < categoriasTemporales.size()) {
       categoriasTemporales.remove(posicion);
       categoriasLive.setValue(new ArrayList<>(categoriasTemporales));
+      categoriasVisibilidad.setValue(categoriasTemporales.isEmpty() ? View.GONE : View.VISIBLE);
     }
   }
 
-  public void resetearNavegacion() { navegacionExito.setValue(0); }
+
 
   // LOGICA DE VALIDACION Y GUARDADO
   public void guardarEvento(String tituloIn, String descripcionIn, String lugarIn, String datosPagoIn, String cupoIn,String tipoEventoIn) {
 
     // 1. Limpiar errores previos (Solo los del evento)
-    mensajeGlobal.setValue(null);
+    limpiarMensaje();
     errorTitulo.setValue(null);
     errorUbicacion.setValue(null);
     errorCupo.setValue(null);
@@ -244,7 +295,7 @@ public class CrearEventoViewModel extends AndroidViewModel {
 
     // Validaciones de fecha
     if (fechaIso.isEmpty() || horaIso.isEmpty()) {
-      mensajeGlobal.setValue("Debes seleccionar fecha y hora");
+      mostrarError("Debes seleccionar fecha y hora");
       return;
     }
 
@@ -279,7 +330,7 @@ public class CrearEventoViewModel extends AndroidViewModel {
     //  RAMA CREACION (Aqui usamos el modelo CrearCategoriaRequest)
     // VALIDACION CLAVE: la lista tiene datos?
     if (categoriasTemporales.isEmpty()) {
-      mensajeGlobal.setValue("Debes agregar al menos una categoría con el botón '+'.");
+      mostrarError("Debes agregar al menos una categoría con el botón '+'.");
       return;
     }
 
@@ -309,8 +360,8 @@ public class CrearEventoViewModel extends AndroidViewModel {
         public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
           isLoading.setValue(false);
           if (response.isSuccessful()) {
-            mensajeGlobal.setValue("¡Cambios guardados con éxito!");
-            new android.os.Handler().postDelayed(() -> navegacionExito.setValue(2), 800);
+            mostrarExito("¡Cambios guardados con éxito!");
+            new android.os.Handler().postDelayed(() -> navegarAtrasSignal.setValue(true), 800);
           } else {
             manejarErrorApi(response);
           }
@@ -318,12 +369,12 @@ public class CrearEventoViewModel extends AndroidViewModel {
         @Override
         public void onFailure(Call<ResponseBody> call, Throwable t) {
           isLoading.setValue(false);
-          mensajeGlobal.setValue("Error de conexión");
+          mostrarError("Error de conexión");
         }
       });
     } else {
       isLoading.setValue(false);
-      mensajeGlobal.setValue("No hay sesión activa.");
+      mostrarError("No hay sesión activa.");
     }
   }
 
@@ -348,10 +399,10 @@ public class CrearEventoViewModel extends AndroidViewModel {
                 uiTituloPagina.setValue("Editar evento");
                 uiTextoBoton.setValue("Guardar cambios");
 
-                mensajeGlobal.setValue("¡Evento creado! Redirigiendo al mapa...");
-                navegacionExito.setValue(idNuevo);
+                mostrarExito("¡Evento creado! Redirigiendo al mapa...");
+                navegarMapaSignal.setValue(idNuevo);
               }
-            } catch (Exception e) { mensajeGlobal.setValue("Evento creado, pero hubo error leyendo la respuesta."); }
+            } catch (Exception e) { mostrarError("Evento creado, pero hubo error leyendo la respuesta."); }
           } else {
             manejarErrorApi(response);
           }
@@ -359,12 +410,12 @@ public class CrearEventoViewModel extends AndroidViewModel {
         @Override
         public void onFailure(Call<ResponseBody> call, Throwable t) {
           isLoading.setValue(false);
-          mensajeGlobal.setValue("No se pudo conectar con el servidor.");
+          mostrarError("No se pudo conectar con el servidor.");
         }
       });
     } else {
       isLoading.setValue(false);
-      mensajeGlobal.setValue("No hay sesión activa.");
+      mostrarError("No hay sesión activa.");
     }
   }
 
@@ -383,7 +434,7 @@ public class CrearEventoViewModel extends AndroidViewModel {
         }
       }
     } catch (Exception e) { }
-    mensajeGlobal.setValue(msg);
+    mostrarError(msg);
   }
 
   //  CONFIGURACION UI
@@ -394,6 +445,7 @@ public class CrearEventoViewModel extends AndroidViewModel {
     uiVisibilidadCamposExtra.setValue(View.VISIBLE);
     uiVisibilidadChips.setValue(View.VISIBLE);
     uiCamposHabilitados.setValue(true);
+    uiCamposAlpha.setValue(1.0f);
   }
 
   private void configurarModoEditar() {
@@ -403,11 +455,16 @@ public class CrearEventoViewModel extends AndroidViewModel {
     uiVisibilidadCamposExtra.setValue(View.GONE);
     uiVisibilidadChips.setValue(View.GONE);
     uiCamposHabilitados.setValue(false);
+    uiCamposAlpha.setValue(0.5f);
   }
 
   // Inputs UI
-  public void onChipDistanciaSelected(String textoChip) {
-    if (textoChip != null) distancia.setValue(textoChip.replace("K", "").trim());
+  public void setChipSeleccionado(int id, String textoChip) {
+    if (chipSeleccionadoId.getValue() != null && chipSeleccionadoId.getValue() == id) return;
+    chipSeleccionadoId.setValue(id);
+    if (textoChip != null) {
+      distancia.setValue(textoChip.replace("K", "").trim());
+    }
   }
   public void onFechaSelected(int year, int month, int day) {
     this.selYear = year; this.selMonth = month; this.selDay = day;
@@ -433,26 +490,34 @@ public class CrearEventoViewModel extends AndroidViewModel {
         public void onResponse(Call<EventoDetalleResponse> call, Response<EventoDetalleResponse> response) {
           isLoading.setValue(false);
           if (response.isSuccessful() && response.body() != null) mapearEventoAUI(response.body());
-          else mensajeGlobal.setValue("Error cargando datos.");
+          else mostrarError("Error cargando datos.");
         }
         @Override
         public void onFailure(Call<EventoDetalleResponse> call, Throwable t) {
           isLoading.setValue(false);
-          mensajeGlobal.setValue("Error de conexión.");
+          mostrarError("Error de conexión.");
         }
       });
     } else {
       isLoading.setValue(false);
-      mensajeGlobal.setValue("No hay sesión activa.");
+      mostrarError("No hay sesión activa.");
     }
   }
 
   private void mapearEventoAUI(EventoDetalleResponse evento) {
+    if (evento.getTipoEvento() != null && listaTiposEvento.getValue() != null) {
+      int pos = listaTiposEvento.getValue().indexOf(evento.getTipoEvento());
+      if (pos >= 0) tipoEventoGlobalPosicion.setValue(pos);
+    }
     titulo.setValue(evento.getNombre());
     descripcion.setValue(evento.getDescripcion());
     ubicacion.setValue(evento.getLugar());
     if (evento.getDatosPago() != null) datosPago.setValue(evento.getDatosPago());
-    if (evento.getCupoTotal() != null) cupo.setValue(String.valueOf(evento.getCupoTotal()));
+    if (evento.getCupoTotal() != null) {
+      cupo.setValue(String.valueOf(evento.getCupoTotal()));
+    } else {
+      cupo.setValue("");
+    }
     if (evento.getFechaHora() != null && evento.getFechaHora().contains("T")) {
       try {
         String[] partes = evento.getFechaHora().split("T");
