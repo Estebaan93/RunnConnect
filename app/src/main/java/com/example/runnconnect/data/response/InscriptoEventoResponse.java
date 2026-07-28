@@ -25,6 +25,11 @@ public class InscriptoEventoResponse {
     return talleRemera;
   }
 
+  // Helpers para la Vista
+  public String getCategoriaTalleFormateado() {
+    return "Categoría: " + nombreCategoria + " | Talle: " + talleRemera;
+  }
+
   public static class RunnerInscriptoInfo {
     private int idUsuario;
     private String nombre;
@@ -43,6 +48,8 @@ public class InscriptoEventoResponse {
     public String getApellido () { return apellido; }
     public String getNombreCompleto() { return nombre + " " + (apellido != null ? apellido : ""); }
     public String getDni() { return String.valueOf(dni); }
+    public String getDniFormateado() { return "DNI: " + dni; }
+    public String getDniSexoFormateado() { return "DNI: " + dni + " | Sexo: " + genero; }
     public String getEmail() { return email; }
     public String getLocalidad() { return localidad; }
     public String getGenero() { return genero; }
@@ -53,7 +60,9 @@ public class InscriptoEventoResponse {
 
     public String getFechaNacimiento() { return fechaNacimiento; }
     public String getNombreContactoEmergencia() { return nombreContactoEmergencia; }
+    public String getContactoEmergenciaFormateado() { return "Contacto: " + nombreContactoEmergencia; }
     public String getTelefonoEmergencia() { return telefonoEmergencia; }
+    public String getTelEmergenciaFormateado() { return "Tel: " + telefonoEmergencia; }
   }
 
 }

@@ -13,6 +13,8 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.runnconnect.R;
 import com.example.runnconnect.data.response.InscriptoEventoResponse;
 
+import com.example.runnconnect.ui.organizador.inscriptos.GestionInscriptosViewModel.InscriptoItemUIState;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -20,17 +22,17 @@ public class InscriptosAdapter extends RecyclerView.Adapter<InscriptosAdapter.Vi
 
   // Interface para manejar el click desde el Fragment
   public interface OnItemClickListener {
-    void onItemClick(InscriptoEventoResponse item);
+    void onItemClick(InscriptoItemUIState item);
   }
 
-  private List<InscriptoEventoResponse> lista = new ArrayList<>();
+  private List<InscriptoItemUIState> lista = new ArrayList<>();
   private final OnItemClickListener listener;
 
   public InscriptosAdapter(OnItemClickListener listener) {
     this.listener = listener;
   }
 
-  public void setLista(List<InscriptoEventoResponse> nuevaLista) {
+  public void setLista(List<InscriptoItemUIState> nuevaLista) {
     this.lista = new ArrayList<>(nuevaLista);
     notifyDataSetChanged();
   }
@@ -45,50 +47,24 @@ public class InscriptosAdapter extends RecyclerView.Adapter<InscriptosAdapter.Vi
 
   @Override
   public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-    InscriptoEventoResponse item = lista.get(position);
+    InscriptoItemUIState uiState = lista.get(position);
+    InscriptoEventoResponse.RunnerInscriptoInfo r = uiState.data.getRunner();
 
-    // Datos del Runner (Nombre y DNI)
-    if (item.getRunner() != null) {
-      holder.tvNombre.setText(item.getRunner().getNombreCompleto());
-      holder.tvDni.setText("DNI: " + item.getRunner().getDni());
-    } else {
-      holder.tvNombre.setText("Usuario Desconocido");
-      holder.tvDni.setText("-");
-    }
+    // Datos del Runner (Garantizados por el negocio)
+    holder.tvNombre.setText(r.getNombreCompleto());
+    holder.tvDni.setText(r.getDniFormateado());
 
     // Datos de Inscripción
-    holder.tvCategoria.setText(item.getNombreCategoria());
+    holder.tvCategoria.setText(uiState.data.getNombreCategoria());
+    holder.tvTalle.setText("Talle: " + uiState.data.getTalleRemera());
 
-    String talle = item.getTalleRemera();
-    holder.tvTalle.setText(talle != null ? "Talle: " + talle : "Talle: -");
-
-    // Lógica visual del Estado
-    String estado = item.getEstadoPago() != null ? item.getEstadoPago().toLowerCase() : "pendiente";
-    holder.tvEstado.setText(estado.toUpperCase());
-
-    switch (estado) {
-      case "pagado":
-        holder.tvEstado.setTextColor(Color.parseColor("#2E7D32")); // Verde
-        holder.imgAction.setVisibility(View.GONE); // Ya no requiere acción
-        break;
-      case "procesando":
-        holder.tvEstado.setTextColor(Color.parseColor("#EF6C00")); // Naranja
-        holder.imgAction.setVisibility(View.VISIBLE); // Lupa para revisar
-        break;
-      case "rechazado":
-        holder.tvEstado.setTextColor(Color.parseColor("#C62828")); // Rojo
-        holder.imgAction.setVisibility(View.GONE);
-        break;
-      default: // pendiente
-        holder.tvEstado.setTextColor(Color.GRAY);
-        holder.imgAction.setVisibility(View.GONE);
-        break;
-    }
+    // UI pre-calculada
+    holder.tvEstado.setText(uiState.estadoTexto);
+    holder.tvEstado.setTextColor(uiState.estadoColor);
+    holder.imgAction.setVisibility(uiState.actionVisibility);
 
     // Click Listener
-    holder.itemView.setOnClickListener(v -> {
-      if (listener != null) listener.onItemClick(item);
-    });
+    holder.itemView.setOnClickListener(v -> listener.onItemClick(uiState));
   }
 
   @Override
