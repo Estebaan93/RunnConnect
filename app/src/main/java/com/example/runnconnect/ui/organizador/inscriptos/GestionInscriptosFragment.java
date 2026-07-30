@@ -169,13 +169,12 @@ public class GestionInscriptosFragment extends Fragment {
     tvNombre.setText(r.getNombreCompleto());
     tvDni.setText(r.getDniFormateado());
 
-    if (item.getComprobantePagoURL() != null && !item.getComprobantePagoURL().isEmpty()) {
-      Glide.with(this).load(item.getComprobantePagoURL())
-        .placeholder(R.drawable.ic_launcher_background)
-        .error(R.drawable.ic_launcher_foreground).into(imgComprobante);
-    } else {
-      imgComprobante.setImageResource(R.drawable.ic_launcher_foreground);
-    }
+    Glide.with(this)
+      .load(item.getComprobantePagoURL())
+      .placeholder(R.drawable.ic_launcher_background)
+      .fallback(R.drawable.ic_launcher_foreground)
+      .error(R.drawable.ic_launcher_foreground)
+      .into(imgComprobante);
 
     btnAceptar.setOnClickListener(v -> {
       viewModel.aprobarPago(item.getIdInscripcion());

@@ -127,6 +127,7 @@ public class GestionInscriptosViewModel extends AndroidViewModel {
 
   public void cambiarFiltro(String nuevoEstado) {
     this.filtroEstado = nuevoEstado;
+    limpiarMensajes();
     ejecutarConsulta();
   }
 
