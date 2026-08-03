@@ -36,12 +36,10 @@ public class GestionInscriptosFragment extends Fragment {
     binding = FragmentGestionInscriptosBinding.inflate(inflater, container, false);
     viewModel = new ViewModelProvider(this).get(GestionInscriptosViewModel.class);
 
-    if (getArguments() != null) {
-      idEvento = getArguments().getInt("idEvento", 0);
-    }
-
+    // se envio bundle desde detalleEventoFragmen binding.btnGestionInscriptos
+    idEvento = getArguments().getInt("idEvento", 0);
     //recuperamos el estado cuando enviamos el bundle, si el estado es finalizado se ocultara el bnt "dar de baja"
-    estadoEvento= getArguments().getString("estadoEvento", "");
+    estadoEvento = getArguments().getString("estadoEvento", "");
 
     setupRecyclerView();
     setupListeners();
