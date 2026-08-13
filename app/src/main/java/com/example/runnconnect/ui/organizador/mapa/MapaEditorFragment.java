@@ -83,9 +83,7 @@ public class MapaEditorFragment extends Fragment implements OnMapReadyCallback {
 
     viewModel.getTextoDistancia().observe(getViewLifecycleOwner(), binding.tvDistanciaReal::setText);
 
-    viewModel.getTipoMapa().observe(getViewLifecycleOwner(), tipo -> {
-      if (mMap != null) mMap.setMapType(tipo);
-    });
+    viewModel.getTipoMapa().observe(getViewLifecycleOwner(), mMap::setMapType);
 
     viewModel.getLineaRuta().observe(getViewLifecycleOwner(), poly -> {
       mMap.clear();
