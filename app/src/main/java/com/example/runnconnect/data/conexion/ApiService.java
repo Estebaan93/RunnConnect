@@ -122,7 +122,7 @@ public interface ApiService {
   Call<LoginResponse> confirmarReactivacion(@Body ReactivarCuentaRequest request);
 
 
-  //--------------EVENTOS------------------
+  //EVENTOS
   //crear evento (POST api/Evento)- orga
   @POST("Evento")
   Call<ResponseBody> crearEvento(
@@ -234,6 +234,7 @@ public interface ApiService {
     @Query("busqueda") String termino
   );
 
+  //PUNTOS DE INTERES
   //agregar puntos de interes
   @POST("Evento/{idEvento}/PuntosInteres")
   Call<ResponseBody> crearPuntoInteres(
@@ -241,6 +242,14 @@ public interface ApiService {
     @Path("idEvento") int idEvento,
     @Body CrearPuntoInteresRequest request
     );
+
+  //eliminar punto de interes
+  @DELETE("Evento/{idEvento}/PuntosInteres/{idPunto}")
+  Call<ResponseBody> eliminarPuntoInteres(
+    @Header("Authorization") String token,
+    @Path("idEvento") int idEvento,
+    @Path("idPunto") int idPunto
+  );
 
   //obtener puntos de interes
   @GET("Evento/{idEvento}/PuntosInteres")

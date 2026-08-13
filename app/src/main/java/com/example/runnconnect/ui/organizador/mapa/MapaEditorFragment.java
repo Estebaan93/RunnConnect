@@ -29,6 +29,7 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class MapaEditorFragment extends Fragment implements OnMapReadyCallback {
@@ -37,6 +38,7 @@ public class MapaEditorFragment extends Fragment implements OnMapReadyCallback {
   private MapaEditorViewModel viewModel;
   private GoogleMap mMap;
   private int idEvento = 0;
+  private List<com.google.android.gms.maps.model.Marker> marcadoresPoiActivos = new ArrayList<>();
 
   private String estadoEvento="";
 
@@ -52,9 +54,9 @@ public class MapaEditorFragment extends Fragment implements OnMapReadyCallback {
     viewModel = new ViewModelProvider(this).get(MapaEditorViewModel.class);
 
     SupportMapFragment mapFragment = (SupportMapFragment) getChildFragmentManager().findFragmentById(R.id.map);
-    if (mapFragment != null) {
+    //if (mapFragment != null) {
       mapFragment.getMapAsync(this);
-    }
+    //}
 
     setupListeners();
 
@@ -74,13 +76,9 @@ public class MapaEditorFragment extends Fragment implements OnMapReadyCallback {
       binding.btnGuardarRuta.setEnabled(!loading);
     });
 
-    viewModel.getIsSoloLectura().observe(getViewLifecycleOwner(), soloLectura -> {
-      int visibility = soloLectura ? View.GONE : View.VISIBLE;
-      binding.btnGuardarRuta.setVisibility(visibility);
-      binding.fabUndo.setVisibility(visibility);
-      if (mMap != null) {
-        mMap.setOnMapClickListener(soloLectura ? null : latLng -> viewModel.procesarClickMapa(latLng));
-      }
+    viewModel.getVisibilidadEdicion().observe(getViewLifecycleOwner(), visibilidad -> {
+      binding.btnGuardarRuta.setVisibility(visibilidad);
+      binding.fabUndo.setVisibility(visibilidad);
     });
 
     viewModel.getTextoDistancia().observe(getViewLifecycleOwner(), binding.tvDistanciaReal::setText);
@@ -119,12 +117,40 @@ public class MapaEditorFragment extends Fragment implements OnMapReadyCallback {
     viewModel.getOrdenNavegarSalida().observe(getViewLifecycleOwner(), this::navegarAlListado);
 
     viewModel.getOrdenPedirDatosPI().observe(getViewLifecycleOwner(), this::mostrarDialogoPuntoInteres);
+
+    viewModel.getMostrarConfirmacionEliminarSignal().observe(getViewLifecycleOwner(), signal -> {
+      Integer idPunto = viewModel.getIdPuntoAEliminar().getValue();
+      new AlertDialog.Builder(requireContext())
+        .setTitle("Eliminar Punto de Interés")
+        .setMessage("¿Deseas eliminar este punto?")
+        .setPositiveButton("Sí", (d, w) -> viewModel.eliminarPuntoInteres(idEvento, idPunto))
+        .setNegativeButton("No", null)
+        .show();
+    });
   }
 
+  /*@Override
+  public void onMapReady(@NonNull GoogleMap googleMap) {
+    mMap = googleMap;
+    mMap.getUiSettings().setZoomControlsEnabled(true);
+    mMap.setOnMapClickListener(latLng -> viewModel.procesarClickMapa(latLng));
+    
+    mMap.setOnInfoWindowClickListener(marker -> {
+      if (marker.getTag() instanceof Integer) {
+        viewModel.evaluarClickEnPuntoInteres((Integer) marker.getTag());
+      }
+    });
+
+    setupObservers();
+
+    viewModel.onMapReady(idEvento, estadoEvento);
+  }*/
   @Override
   public void onMapReady(@NonNull GoogleMap googleMap) {
     mMap = googleMap;
     mMap.getUiSettings().setZoomControlsEnabled(true);
+    mMap.setOnMapClickListener(latLng -> viewModel.procesarClickMapa(latLng));
+    mMap.setOnInfoWindowClickListener(marker -> viewModel.onMarkerClick(marker.getTag()));
 
     setupObservers();
 
@@ -137,8 +163,15 @@ public class MapaEditorFragment extends Fragment implements OnMapReadyCallback {
     opciones.forEach(mMap::addMarker);
   }
 
-  private void dibujarMarcadoresPOI(List<MarkerOptions> opciones) {
-    opciones.forEach(mMap::addMarker);
+  private void dibujarMarcadoresPOI(List<MapaEditorViewModel.PoiMarkerUIState> opciones) {
+    marcadoresPoiActivos.forEach(com.google.android.gms.maps.model.Marker::remove);
+    marcadoresPoiActivos.clear();
+    
+    opciones.forEach(poi -> {
+      com.google.android.gms.maps.model.Marker m = mMap.addMarker(poi.options);
+      m.setTag(poi.id);
+      marcadoresPoiActivos.add(m);
+    });
   }
 
   private void mostrarDialogoPuntoInteres(LatLng latLng) {
@@ -164,18 +197,14 @@ public class MapaEditorFragment extends Fragment implements OnMapReadyCallback {
   }
 
   private void navegarAlListado(String mensajeExito) {
-    NavController navController = Navigation.findNavController(requireView());
-    try {
-      androidx.navigation.NavBackStackEntry entry = navController.getBackStackEntry(R.id.nav_mis_eventos);
-      entry.getSavedStateHandle().set("mensaje_exito", mensajeExito);
-      navController.popBackStack(R.id.nav_mis_eventos, false);
-    } catch (IllegalArgumentException e) {
-      NavOptions options = new NavOptions.Builder()
-        .setPopUpTo(R.id.nav_crear_evento, true)
-        .setLaunchSingleTop(true).build();
-      Bundle args = new Bundle();
-      args.putString("mensaje_arg", mensajeExito);
-      navController.navigate(R.id.nav_mis_eventos, args, options);
-    }
+    Bundle args = new Bundle();
+    args.putString("mensaje_arg", mensajeExito);
+    
+    NavOptions options = new NavOptions.Builder()
+      .setPopUpTo(R.id.nav_mis_eventos, true)
+      .setLaunchSingleTop(true)
+      .build();
+
+    Navigation.findNavController(requireView()).navigate(R.id.nav_mis_eventos, args, options);
   }
 }

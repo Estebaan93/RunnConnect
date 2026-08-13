@@ -45,6 +45,15 @@ public class MapaEditorViewModel extends AndroidViewModel {
   private final ApiService apiService;
   private final SessionManager sessionManager;
 
+  public static class PoiMarkerUIState {
+    public final int id;
+    public final MarkerOptions options;
+    public PoiMarkerUIState(int id, MarkerOptions options) {
+      this.id = id;
+      this.options = options;
+    }
+  }
+
   // --- ESTADOS DE LA VISTA ---
   private final MutableLiveData<List<LatLng>> puntosRuta = new MutableLiveData<>(new ArrayList<>());
   private final MutableLiveData<PolylineOptions> lineaRuta = new MutableLiveData<>(new PolylineOptions());
@@ -67,9 +76,13 @@ public class MapaEditorViewModel extends AndroidViewModel {
   private final MutableLiveData<LatLng> ordenCentrarCamara = new MutableLiveData<>();
   private final MutableLiveData<LatLng> ordenPedirDatosPI = new MutableLiveData<>();
 
-  private final MutableLiveData<Boolean> isSoloLectura = new MutableLiveData<>(false);
+  private final MutableLiveData<Integer> visibilidadEdicion = new MutableLiveData<>(View.VISIBLE);
+  private boolean isSoloLecturaInterno = false;
 
-  private final MutableLiveData<List<MarkerOptions>> listaPuntosInteres = new MutableLiveData<>(new ArrayList<>());
+  private final MutableLiveData<List<PoiMarkerUIState>> listaPuntosInteres = new MutableLiveData<>(new ArrayList<>());
+  //private final MutableLiveData<Integer> ordenConfirmarEliminarPoi = new MutableLiveData<>();
+  private final MutableLiveData<Integer> idPuntoAEliminar = new MutableLiveData<>();
+  private final MutableLiveData<Boolean> mostrarConfirmacionEliminarSignal = new MutableLiveData<>();
 
   private boolean datosCargados = false;
   private boolean modoPuntosInteres = false;
@@ -99,10 +112,14 @@ public class MapaEditorViewModel extends AndroidViewModel {
   public LiveData<LatLngBounds> getOrdenHacerZoomRuta() { return ordenHacerZoomRuta; }
   public LiveData<LatLng> getOrdenCentrarCamara() { return ordenCentrarCamara; }
   public LiveData<LatLng> getOrdenPedirDatosPI() { return ordenPedirDatosPI; }
-  public LiveData<Boolean> getIsSoloLectura() { return isSoloLectura; }
-  public LiveData<List<MarkerOptions>> getListaPuntosInteres() { return listaPuntosInteres; }
+  public LiveData<Integer> getVisibilidadEdicion() { return visibilidadEdicion; }
+  public LiveData<List<PoiMarkerUIState>> getListaPuntosInteres() { return listaPuntosInteres; }
+  //public LiveData<Integer> getOrdenConfirmarEliminarPoi() { return ordenConfirmarEliminarPoi; }
+  public LiveData<Integer> getIdPuntoAEliminar() { return idPuntoAEliminar; }
+  public LiveData<Boolean> getMostrarConfirmacionEliminarSignal() { return mostrarConfirmacionEliminarSignal; }
 
   // --- RESETS ---
+  //public void resetOrdenConfirmarEliminarPoi() { ordenConfirmarEliminarPoi.setValue(null); }
 
   public void ocultarError() {
     errorVisibility.setValue(View.GONE);
@@ -113,13 +130,19 @@ public class MapaEditorViewModel extends AndroidViewModel {
     errorVisibility.setValue(View.VISIBLE);
   }
 
+  public void onMarkerClick(Object tag) {
+    if (tag instanceof Integer) {
+      evaluarClickEnPuntoInteres((Integer) tag);
+    }
+  }
+
   // --- LOGICA DE NEGOCIO ---
   public void onMapReady(int idEvento, String estadoEvento) {
     if (datosCargados) return;
     datosCargados = true;
     
-    boolean readOnly = "finalizado".equalsIgnoreCase(estadoEvento) || "cancelado".equalsIgnoreCase(estadoEvento);
-    isSoloLectura.setValue(readOnly);
+    isSoloLecturaInterno = "finalizado".equalsIgnoreCase(estadoEvento) || "cancelado".equalsIgnoreCase(estadoEvento);
+    visibilidadEdicion.setValue(isSoloLecturaInterno ? View.GONE : View.VISIBLE);
 
     if (idEvento != 0) {
       cargarRutaBackend(idEvento);
@@ -130,10 +153,20 @@ public class MapaEditorViewModel extends AndroidViewModel {
   }
 
   public void procesarClickMapa(LatLng punto) {
+    if (isSoloLecturaInterno) return;
+    
     if (modoPuntosInteres) {
       validarPuntoInteres(punto);
     } else {
       agregarPuntoRuta(punto);
+    }
+  }
+
+  public void evaluarClickEnPuntoInteres(int idPunto) {
+    if (!isSoloLecturaInterno) {
+      idPuntoAEliminar.setValue(idPunto);
+      //ordenConfirmarEliminarPoi.setValue(idPunto);
+      mostrarConfirmacionEliminarSignal.setValue(true);
     }
   }
 
@@ -286,7 +319,7 @@ public class MapaEditorViewModel extends AndroidViewModel {
       public void onResponse(Call<PuntosInteresEventoResponse> call, Response<PuntosInteresEventoResponse> response) {
         if (response.isSuccessful() && response.body() != null) {
           List<PuntoInteresResponse> puntos = response.body().getPuntosInteres();
-          List<MarkerOptions> uiPuntos = new ArrayList<>();
+          List<PoiMarkerUIState> uiPuntos = new ArrayList<>();
           if (puntos != null) {
             for (PuntoInteresResponse p : puntos) {
               if (p.getLatitud() == null || p.getLongitud() == null) continue;
@@ -298,7 +331,7 @@ public class MapaEditorViewModel extends AndroidViewModel {
                       .title(p.getNombre())
                       .icon(BitmapDescriptorFactory.fromResource(resourceId))
                       .anchor(0.5f, 0.5f);
-              uiPuntos.add(poiMarker);
+              uiPuntos.add(new PoiMarkerUIState(p.getIdPuntoInteres(), poiMarker));
             }
           }
           listaPuntosInteres.setValue(uiPuntos);
@@ -307,6 +340,30 @@ public class MapaEditorViewModel extends AndroidViewModel {
       @Override
       public void onFailure(Call<PuntosInteresEventoResponse> call, Throwable t) {}
     });
+  }
+
+  public void eliminarPuntoInteres(int idEvento, int idPunto) {
+    isLoading.setValue(true);
+    String token = sessionManager.leerToken();
+    if(token != null) {
+      apiService.eliminarPuntoInteres("Bearer " + token, idEvento, idPunto).enqueue(new Callback<ResponseBody>() {
+        @Override
+        public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+          isLoading.setValue(false);
+          if (response.isSuccessful()) {
+            mostrarError("Punto de interes eliminado!");
+            cargarPuntosInteres(idEvento);
+          } else {
+            mostrarError("Error al eliminar: " + response.code());
+          }
+        }
+        @Override
+        public void onFailure(Call<ResponseBody> call, Throwable t) {
+          isLoading.setValue(false);
+          mostrarError("Error de conexión");
+        }
+      });
+    }
   }
 
   public void guardarRuta(int idEvento) {

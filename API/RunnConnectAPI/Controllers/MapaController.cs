@@ -274,7 +274,7 @@ namespace RunnConnectAPI.Controllers
     }
 
     /// Elimina un punto de interes
-     [Authorize(Roles="organizador")]
+    [Authorize(Roles="organizador")]
     [HttpDelete("PuntosInteres/{idPunto}")]
     public async Task<IActionResult> EliminarPuntoInteres(int idEvento, int idPunto)
     {
