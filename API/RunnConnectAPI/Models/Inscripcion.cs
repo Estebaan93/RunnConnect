@@ -9,32 +9,38 @@ namespace RunnConnectAPI.Models
   public class Inscripcion
   {
     [Key]
+    [Column("idInscripcion")]
     public int IdInscripcion {get;set;}
 
     [Required]
+    [Column("idUsuario")]
     public int IdUsuario {get;set;}
 
     [Required]
+    [Column("idCategoria")]
     public int IdCategoria {get;set;}
 
+    [Column("fechaInscripcion")]
     public DateTime FechaInscripcion {get;set;}= DateTime.Now;
 
     [Required]
-    [Column(TypeName="varchar(20)")]
+    [Column("estadoPago", TypeName="varchar(20)")]
     public string EstadoPago {get;set;}= "pendiente";
     
-    [Column(TypeName="varchar(10)")]
-    public string TalleRemera {get;set;} //xs, s, m , l ,xl, xxl 
+    [Column("talleRemera", TypeName="varchar(10)")]
+    public string? TalleRemera {get;set;} //xs, s, m , l ,xl, xxl 
     /*Ver disponibilidad del evento y ver si el evento entrega las remeras*/
 
     [Required]
-    [Column(TypeName="tinyint(1)")]
+    [Column("aceptoDeslinde", TypeName="tinyint(1)")]
     public bool AceptoDeslinde {get; set;}= false;
 
     [StringLength(255)]
+    [Column("comprobantePagoURL")]
     public string? ComprobantePagoURL {get;set;}
 
     [StringLength(250)]
+    [Column("observacion")]
     public string Observacion { get; set; } = "Inscripcion creada. Pago pendiente";//observacion del estado pago
 
 

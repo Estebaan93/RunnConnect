@@ -33,7 +33,7 @@ namespace RunnConnectAPI.Repositories
     // Obtiene inscripciones activas (pendiente o confirmado) de un runner
     public async Task<List<Inscripcion>> ObtenerActivasPorRunnerAsync(int idUsuario)
     {
-      var estadosActivos = new[] { "pendiente", "procesando", "pagado" };
+      var estadosActivos = new List<string> { "pendiente", "procesando", "pagado" };
 
       return await _context.Inscripciones
           .Include(i => i.Categoria)
@@ -58,10 +58,9 @@ namespace RunnConnectAPI.Repositories
     // Verifica si un runner ya esta inscripto en una categoria
     public async Task<bool> ExisteInscripcionAsync(int idUsuario, int idEvento)
     {
-      var estadosActivos = new[] { "pendiente", "procesando", "pagado" };
+      var estadosActivos = new List<string> { "pendiente", "procesando", "pagado" };
 
       return await _context.Inscripciones
-          .Include(i => i.Categoria)
           .AnyAsync(i => i.IdUsuario == idUsuario
               && i.Categoria != null
               && i.Categoria.IdEvento == idEvento
@@ -72,10 +71,9 @@ namespace RunnConnectAPI.Repositories
     // Verifica si un runner ya esta inscripto en el mismo evento (cualquier categoria)
     public async Task<bool> ExisteInscripcionEnEventoAsync(int idUsuario, int idEvento)
     {
-      var estadosActivos = new[] { "pendiente", "procesando", "pagado" };
+      var estadosActivos = new List<string> { "pendiente", "procesando", "pagado" };
 
       return await _context.Inscripciones
-          .Include(i => i.Categoria)
           .AnyAsync(i => i.IdUsuario == idUsuario
               && i.Categoria != null
               && i.Categoria.IdEvento == idEvento
@@ -162,7 +160,7 @@ namespace RunnConnectAPI.Repositories
     {
       inscripcion.FechaInscripcion = DateTime.Now;
       inscripcion.EstadoPago = "pendiente"; //Estado inicial
-      inscripcion.TalleRemera = inscripcion.TalleRemera?.ToUpper().Trim();
+      inscripcion.TalleRemera = string.IsNullOrWhiteSpace(inscripcion.TalleRemera) ? null : inscripcion.TalleRemera.ToUpper().Trim();
 
       _context.Inscripciones.Add(inscripcion);
       await _context.SaveChangesAsync();
@@ -173,7 +171,7 @@ namespace RunnConnectAPI.Repositories
     /// Actualiza una inscripcion existente
     public async Task ActualizarAsync(Inscripcion inscripcion)
     {
-      inscripcion.TalleRemera = inscripcion.TalleRemera?.ToUpper().Trim();
+      inscripcion.TalleRemera = string.IsNullOrWhiteSpace(inscripcion.TalleRemera) ? null : inscripcion.TalleRemera.ToUpper().Trim();
 
       _context.Inscripciones.Update(inscripcion);
       await _context.SaveChangesAsync();
@@ -325,13 +323,13 @@ namespace RunnConnectAPI.Repositories
         return (false, $"Su edad ({edad} años) no está dentro del rango permitido ({categoria.EdadMinima}-{categoria.EdadMaxima} años)");
 
       // Validar genero (si la categoria no es mixta)
-      if (categoria.Genero != "X")
+      if (!string.Equals(categoria.Genero?.Trim(), "X", StringComparison.OrdinalIgnoreCase))
       {
         if (string.IsNullOrEmpty(usuario.PerfilRunner.Genero))
           return (false, "Debe completar su género en el perfil");
 
-        if (usuario.PerfilRunner.Genero != categoria.Genero)
-          return (false, $"Esta categoría es solo para género {(categoria.Genero == "F" ? "Femenino" : "Masculino")}");
+        if (!string.Equals(usuario.PerfilRunner.Genero.Trim(), categoria.Genero?.Trim(), StringComparison.OrdinalIgnoreCase))
+          return (false, $"Esta categoría es solo para género {(string.Equals(categoria.Genero?.Trim(), "F", StringComparison.OrdinalIgnoreCase) ? "Femenino" : "Masculino")}");
       }
 
       return (true, null);

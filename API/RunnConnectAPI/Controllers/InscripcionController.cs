@@ -64,13 +64,13 @@ namespace RunnConnectAPI.Controllers
         if (evento == null)
           return NotFound(new { message = "Evento no encontrado" });
 
-        if (evento.Estado != "publicado") //validacion de estado del evento
+        if (!string.Equals(evento.Estado?.Trim(), "publicado", StringComparison.OrdinalIgnoreCase))
           return BadRequest(new { message = "El evento no está disponible para inscripciones" });
 
-        //validacion de categoria, solo permitido estado "publicado"
-        if (categoria.Estado.ToLower().Trim() != "programada")
+        //validacion de categoria, solo permitido estado "programada"
+        if (!string.Equals(categoria.Estado?.Trim(), "programada", StringComparison.OrdinalIgnoreCase))
         {
-          return BadRequest(new { message = $"No te puedes inscribir. Esta categoria se encuentra: {categoria.Estado.ToUpper()}." });
+          return BadRequest(new { message = $"No te puedes inscribir. Esta categoria se encuentra: {categoria.Estado?.ToUpper()}." });
         }
 
         DateTime fechaCierre = evento.FechaHora.AddHours(-24); //validacion de 24 hs antes
@@ -81,7 +81,7 @@ namespace RunnConnectAPI.Controllers
             message = "Las inscripciones cerraron 24 hs antes del inicio programado del evento",
             cierre = fechaCierre,
             actual = DateTime.Now
-          });  
+          });
         }
 
         if (evento.FechaHora <= DateTime.Now)
@@ -143,7 +143,7 @@ namespace RunnConnectAPI.Controllers
       }
       catch (Exception ex)
       {
-        return StatusCode(500, new { message = "Error al crear la inscripcion", error = ex.Message });
+        return StatusCode(500, new { message = "Error al crear la inscripcion", error = ex.Message, detalle = ex.InnerException?.Message });
       }
     }
 
@@ -156,7 +156,7 @@ namespace RunnConnectAPI.Controllers
     {
       try
       {
-        
+
         int userId = User.ObtenerUserId();
 
         var inscripciones = soloActivas
@@ -205,7 +205,7 @@ namespace RunnConnectAPI.Controllers
 
     /// Obtiene el detalle de una inscripcion
     /// GET: api/Inscripcion/{id}
-    [HttpGet("{id}")]
+    [HttpGet("{id}", Name = "ObtenerInscripcion")]
     public async Task<IActionResult> ObtenerInscripcion(int id)
     {
       try
@@ -323,7 +323,7 @@ namespace RunnConnectAPI.Controllers
     {
       try
       {
-        int userId= User.ObtenerUserId();  
+        int userId= User.ObtenerUserId();
 
         var inscripcion = await _inscripcionRepositorio.ObtenerPorIdAsync(id);
 
@@ -473,7 +473,7 @@ namespace RunnConnectAPI.Controllers
           return BadRequest(new { message = "Debe colocar el motivo del rechazo del pago" });
         }
 
-        // El repositorio validara si 'pagado' o 'rechazado' 
+        // El repositorio validara si 'pagado' o 'rechazado'
         await _inscripcionRepositorio.CambiarEstadoPagoAsync(id, estadoFinal, request.Motivo);
 
         //crear las noti para el runner
@@ -502,7 +502,7 @@ namespace RunnConnectAPI.Controllers
           Mensaje= notificacion.Mensaje
         },userId, notificacion.IdUsuarioDestino);
 
-        
+
 
         return Ok(new
         {

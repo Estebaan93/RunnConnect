@@ -9,7 +9,7 @@ using RunnConnectAPI.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 //para que siempre escuche en todas las redes
-builder.WebHost.UseUrls("http://0.0.0.0:5213");
+builder.WebHost.UseUrls("http://localhost:5213");
 
 
 var config = builder.Configuration; //Obtenemos la confi para usarla
@@ -150,11 +150,10 @@ app.UseAuthentication();
 //Aplicar Autorizacion
 app.UseAuthorization();
 
-//Mapear los Controllers 
+//Mapear los Controllers
 app.MapControllers();
 
 app.Run();
 
 //Escuchar en todas las interfaces
 app.Urls.Add("http://0.0.0.0:5213");
-

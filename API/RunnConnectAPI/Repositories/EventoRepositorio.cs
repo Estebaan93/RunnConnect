@@ -64,7 +64,7 @@ namespace RunnConnectAPI.Repositories
     public async Task<List<Evento>> ObtenerPorOrganizadorPublicoAsync(int idOrganizador)
     {
       var fechaLimite = DateTime.Now.AddMonths(-6);
-      var estadosVisibles = new[] { "publicado", "finalizado" };
+      var estadosVisibles = new List<string> { "publicado", "finalizado" };
 
       return await _context.Eventos
           .Where(e => e.IdOrganizador == idOrganizador

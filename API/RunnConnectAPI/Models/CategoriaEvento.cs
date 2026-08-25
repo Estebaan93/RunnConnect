@@ -9,31 +9,37 @@ namespace RunnConnectAPI.Models
   public class CategoriaEvento
   {
     [Key]
+    [Column("idCategoria")]
     public int IdCategoria{get;set;}
 
     [Required]
+    [Column("idEvento")]
     public int IdEvento{get;set;}
 
     [Required(ErrorMessage ="El nombre de la categoria es requerido")]
     [StringLength(100, MinimumLength =2, ErrorMessage ="El nombre debe tener mas de 2 caracteres")]
-    public string Nombre {get;set;}
+    [Column("nombre")]
+    public string Nombre {get;set;} = string.Empty;
 
     [Required]
-    [Column(TypeName ="decimal(10,2)")]
+    [Column("costoInscripcion", TypeName ="decimal(10,2)")]
     [Range(0, 999999.99, ErrorMessage ="El costo debe ser mayor o igual a 0")]
     public decimal CostoInscripcion {get;set;}= 0.00M;
 
     [Range(1,10000, ErrorMessage ="El cupo debe estar en 1 y 10000")]
+    [Column("cupoCategoria")]
     public int? CupoCategoria {get;set;}
 
     [Range(14, 90, ErrorMessage ="La edad minima es 14")]
+    [Column("edadMinima")]
     public int EdadMinima {get;set;}
 
     [Range(14, 90, ErrorMessage ="La edad Maxima es 95")]
+    [Column("edadMaxima")]
     public int EdadMaxima {get;set;}
 
     [Required]
-    [Column(TypeName="varchar(1)")] //F, M , X
+    [Column("genero", TypeName="varchar(1)")] //F, M , X
     public string Genero {get;set;}= "X";
 
     [Column("estado")]
