@@ -28,7 +28,7 @@ namespace RunnConnectAPI.Controllers
       _notificacionRepo = notificacionRepo;
     }
 
-    //ENDPOINTS PUBLICOS 
+    //ENDPOINTS PUBLICOS
     /* Obtiene todas las categorias de un evento, endpoint publico - cualquiera puede ver las categorias
      incluye informacion de cupos disponibles*/
     [AllowAnonymous]
@@ -117,7 +117,7 @@ namespace RunnConnectAPI.Controllers
       }
     }
 
-    /*Obtiene categorias disponibles para un runner segun su edad y genero, endpoint publico - 
+    /*Obtiene categorias disponibles para un runner segun su edad y genero, endpoint publico -
     el runner puede ver en qu categorias puede inscribirse - filtra por edad, genero y cupo disponible*/
     [AllowAnonymous]
     [HttpGet("Disponibles")]
@@ -187,7 +187,7 @@ namespace RunnConnectAPI.Controllers
     }
 
 
-    //ENDPOINTS ORGANIZADOR 
+    //ENDPOINTS ORGANIZADOR
     /* Crea una nueva categoria en un evento, requiere: Token JWT de Organizador (dueño del evento)
     No permite crear si el evento esta cancelado o finalizado */
     [Authorize(Roles = "organizador")]
@@ -431,7 +431,7 @@ namespace RunnConnectAPI.Controllers
 
         //validamos URL idEvento coincida con la categoria
         if(categoria.IdEvento !=idEvento)
-          return BadRequest(new {message = "La categoria no pertenece al evento especifico"});  
+          return BadRequest(new {message = "La categoria no pertenece al evento especifico"});
 
         // Validar que el evento padre pertenezca al organizador
         if (categoria.Evento == null || categoria.Evento.IdOrganizador != userId)
@@ -448,6 +448,12 @@ namespace RunnConnectAPI.Controllers
             return BadRequest(new { message = $"Acción denegada: No se puede modificar una categoría que ya está {estadoActualCategoria}." });
 
         string nuevoEstado = request.NuevoEstado.ToLower();
+
+        // Validacion de fecha para finalizar la categoria
+        if (nuevoEstado == "finalizada" && DateTime.Now.Date < categoria.Evento.FechaHora.Date)
+        {
+            return BadRequest(new { message = $"Acción denegada: Solo puedes finalizar la categoría el día de la carrera o en fechas posteriores ({categoria.Evento.FechaHora.ToString("dd/MM/yyyy")})." });
+        }
 
         // Actualizar el estado de la Categoria (Usando Repo)
         categoria.Estado = nuevoEstado;
