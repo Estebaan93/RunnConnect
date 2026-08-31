@@ -102,14 +102,18 @@ public class MisEventosFragment extends Fragment {
 
     //implementacion de accion al hacer click
     adapter.setOnEventoClickListener(idEvento -> {
+      android.util.Log.d("DEBUG_EVENTO", "Click en MisEventosFragment para idEvento: " + idEvento);
       //navegamos al detalle pasando el ID
       Bundle bundle= new Bundle();
       bundle.putInt("idEvento", idEvento);
 
       //fragment_mis_eventos ->fragment_detalle_evento
-      Navigation.findNavController(binding.getRoot())
-        .navigate(R.id.action_misEventos_to_detalleEvento, bundle);
-
+      try {
+        Navigation.findNavController(requireView())
+          .navigate(R.id.action_misEventos_to_detalleEvento, bundle);
+      } catch (Exception e) {
+        android.util.Log.e("DEBUG_EVENTO", "Error de navegación", e);
+      }
     });
     binding.recyclerEventos.setAdapter(adapter);
   }

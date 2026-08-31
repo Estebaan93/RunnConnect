@@ -8,6 +8,7 @@ import android.net.Uri;
 import android.os.Handler;
 import android.os.Looper;
 import android.provider.OpenableColumns;
+import android.view.View;
 
 import androidx.annotation.NonNull;
 import androidx.lifecycle.AndroidViewModel;
@@ -52,9 +53,6 @@ public class DetalleEventoViewModel extends AndroidViewModel {
   private boolean todosLosResultadosCargados = false;
   private File archivoListoParaSubir = null;
 
-  // Enum nativo de Java para evitar Magic Strings en la UI
-  public enum AccionResultados { CARGAR, VER }
-
   // --- LIVE DATA ---
   private final MutableLiveData<String> nombreArchivoSeleccionado = new MutableLiveData<>();
   private final MutableLiveData<Boolean> archivoEsValido = new MutableLiveData<>(false);
@@ -66,23 +64,32 @@ public class DetalleEventoViewModel extends AndroidViewModel {
   // NUEVO: LiveData para el resumen detallado de la carga (errores de DNI)
   private final MutableLiveData<String> resumenCargaArchivo = new MutableLiveData<>();
 
-  private final MutableLiveData<Boolean> eventShowRunnersDialog = new MutableLiveData<>(false);
-  private final MutableLiveData<Boolean> eventShowCambiarEstadoCategoria = new MutableLiveData<>(false);
+  private final MutableLiveData<Integer> uiVisibilidadRunners = new MutableLiveData<>(View.GONE);
+  private final MutableLiveData<Integer> uiVisibilidadEstadoCategoria = new MutableLiveData<>(View.GONE);
 
   private final MutableLiveData<String[]> estadosCategoriasValidos = new MutableLiveData<>(
     new String[]{"programada", "retrasada", "cancelada", "finalizada", "suspendido"}
   );
+  
+  private final String[] estadosEventoValidos = {"publicado", "suspendido", "finalizado", "cancelado"};
   private final MutableLiveData<Integer> posicionPreseleccionadaCategoria = new MutableLiveData<>(0);
-  private final MutableLiveData<String> errorMotivoCategoria = new MutableLiveData<>();
+  private final MutableLiveData<String> errorMotivoCategoriaTexto = new MutableLiveData<>("");
+  private final MutableLiveData<Integer> errorMotivoCategoriaVisibilidad = new MutableLiveData<>(View.GONE);
 
   private final MutableLiveData<String[]> opcionesMenuResultados = new MutableLiveData<>();
-  private final MutableLiveData<AccionResultados> accionNavegacionResultados = new MutableLiveData<>();
+  private final MutableLiveData<Boolean> eventVerResultados = new MutableLiveData<>();
+
+  // Estado para la confirmación de baja
+  private final MutableLiveData<String> textoConfirmacionBaja = new MutableLiveData<>();
+  private InscriptoEventoResponse runnerBajaPendiente = null;
+  private int idCatBajaPendiente = 0;
 
 
   // NUEVO: Lista de categorías que aún NO tienen CSV cargado
   private final MutableLiveData<List<CategoriaResponse>> categoriasPendientesCarga = new MutableLiveData<>();
   private final MutableLiveData<Boolean> isLoading = new MutableLiveData<>(false);
   private final MutableLiveData<String> mensajeGlobal = new MutableLiveData<>();
+  private final MutableLiveData<Integer> mensajeGlobalVisibilidad = new MutableLiveData<>(View.GONE);
   private final MutableLiveData<Integer> mensajeColorTexto = new MutableLiveData<>(Color.BLACK);
   private final MutableLiveData<Integer> mensajeColorFondo = new MutableLiveData<>(Color.parseColor("#F5F5F5"));
 
@@ -107,10 +114,13 @@ public class DetalleEventoViewModel extends AndroidViewModel {
   private final MutableLiveData<Integer> uiEstadoColor = new MutableLiveData<>();
   private final MutableLiveData<String> uiDistanciaTipo = new MutableLiveData<>();
   private final MutableLiveData<String> uiGeneroPrecio = new MutableLiveData<>();
+  private final MutableLiveData<Integer> uiVisibilidadCarga = new MutableLiveData<>(View.GONE);
+  private final MutableLiveData<String[]> opcionesSpinnerCategoria = new MutableLiveData<>();
 
-  private final MutableLiveData<String> dialogError = new MutableLiveData<>();
-  private final MutableLiveData<Boolean> dialogDismiss = new MutableLiveData<>();
+  private final MutableLiveData<String> dialogErrorTexto = new MutableLiveData<>("");
+  private final MutableLiveData<Integer> dialogErrorVisibilidad = new MutableLiveData<>(View.GONE);
   private final MutableLiveData<List<CategoriaResponse>> listaCategorias = new MutableLiveData<>();
+  private final MutableLiveData<List<CategoriasInfoAdapter.CategoriaUI>> listaCategoriasUI = new MutableLiveData<>();
   private final MutableLiveData<List<InscriptoEventoResponse>> listaRunnerDialog = new MutableLiveData<>();
 
   public DetalleEventoViewModel(@NonNull Application application) {
@@ -120,60 +130,218 @@ public class DetalleEventoViewModel extends AndroidViewModel {
   }
 
   // --- GETTERS ---
-  public LiveData<Boolean> getIsLoading() { return isLoading; }
-  public LiveData<String> getMensajeGlobal() { return mensajeGlobal; }
-  public LiveData<Integer> getMensajeColorTexto() { return mensajeColorTexto; }
-  public LiveData<Integer> getMensajeColorFondo() { return mensajeColorFondo; }
-  public LiveData<Boolean> getHabilitarEliminacionRunners() { return habilitarEliminacionRunners; }
-  public LiveData<String> getEstadoActualEvento() { return estadoActualEvento; }
+  public LiveData<Boolean> getIsLoading() {
+    return isLoading;
+  }
 
-  public LiveData<String> getNombreArchivoSeleccionado() { return nombreArchivoSeleccionado; }
-  public LiveData<Boolean> getArchivoEsValido() { return archivoEsValido; }
-  public LiveData<Boolean> getExitoCargaArchivo() { return exitoCargaArchivo; }
-  public LiveData<String> getResumenCargaArchivo() { return resumenCargaArchivo; }
+  public LiveData<String> getMensajeGlobal() {
+    return mensajeGlobal;
+  }
 
-  public LiveData<String[]> getOpcionesMenuResultados() { return opcionesMenuResultados; }
-  public LiveData<AccionResultados> getAccionNavegacionResultados() { return accionNavegacionResultados; }
-  public LiveData<List<CategoriaResponse>> getCategoriasPendientesCarga() { return categoriasPendientesCarga; }
+  public LiveData<Integer> getMensajeGlobalVisibilidad() {
+    return mensajeGlobalVisibilidad;
+  }
 
-  public LiveData<EventoDetalleResponse> getEventoRaw() { return eventoRaw; }
-  public LiveData<Boolean> getVisibilityBtnResultados() { return visibilityBtnResultados; }
+  public LiveData<Integer> getMensajeColorTexto() {
+    return mensajeColorTexto;
+  }
 
-  public LiveData<String> getUiTitulo() { return uiTitulo; }
-  public LiveData<String> getUiFecha() { return uiFecha; }
-  public LiveData<String> getUiLugar() { return uiLugar; }
-  public LiveData<String> getUiDescripcion() { return uiDescripcion; }
-  public LiveData<String> getUiInscriptos() { return uiInscriptos; }
-  public LiveData<String> getUiCupo() { return uiCupo; }
-  public LiveData<String> getUiEstadoTexto() { return uiEstadoTexto; }
-  public LiveData<Integer> getUiEstadoColor() { return uiEstadoColor; }
-  public LiveData<String> getUiDistanciaTipo() { return uiDistanciaTipo; }
-  public LiveData<String> getUiGeneroPrecio() { return uiGeneroPrecio; }
-  public LiveData<Boolean> getUiVisibilidadDatosCategoria() { return uiVisibilidadDatosCategoria; }
-  public LiveData<String> getDialogError() { return dialogError; }
-  public LiveData<Boolean> getDialogDismiss() { return dialogDismiss; }
-  public LiveData<List<CategoriaResponse>> getListaCategorias() { return listaCategorias; }
+  public LiveData<Integer> getMensajeColorFondo() {
+    return mensajeColorFondo;
+  }
+
+  public LiveData<Boolean> getHabilitarEliminacionRunners() {
+    return habilitarEliminacionRunners;
+  }
+
+  public LiveData<String> getEstadoActualEvento() {
+    return estadoActualEvento;
+  }
+
+  public LiveData<String> getNombreArchivoSeleccionado() {
+    return nombreArchivoSeleccionado;
+  }
+
+  public LiveData<Boolean> getArchivoEsValido() {
+    return archivoEsValido;
+  }
+
+  public LiveData<Boolean> getExitoCargaArchivo() {
+    return exitoCargaArchivo;
+  }
+
+  public LiveData<String> getResumenCargaArchivo() {
+    return resumenCargaArchivo;
+  }
+
+  public LiveData<String[]> getOpcionesMenuResultados() {
+    return opcionesMenuResultados;
+  }
+
+  public LiveData<Boolean> getEventVerResultados() {
+    return eventVerResultados;
+  }
+
+  public LiveData<String> getTextoConfirmacionBaja() {
+    return textoConfirmacionBaja;
+  }
+
+  public LiveData<List<CategoriaResponse>> getCategoriasPendientesCarga() {
+    return categoriasPendientesCarga;
+  }
+
+  public LiveData<EventoDetalleResponse> getEventoRaw() {
+    return eventoRaw;
+  }
+
+  public LiveData<Boolean> getVisibilityBtnResultados() {
+    return visibilityBtnResultados;
+  }
+
+  public LiveData<String> getUiTitulo() {
+    return uiTitulo;
+  }
+
+  public LiveData<String> getUiFecha() {
+    return uiFecha;
+  }
+
+  public LiveData<String> getUiLugar() {
+    return uiLugar;
+  }
+
+  public LiveData<String> getUiDescripcion() {
+    return uiDescripcion;
+  }
+
+  public LiveData<String> getUiInscriptos() {
+    return uiInscriptos;
+  }
+
+  public LiveData<String> getUiCupo() {
+    return uiCupo;
+  }
+
+  public LiveData<String> getUiEstadoTexto() {
+    return uiEstadoTexto;
+  }
+
+  public LiveData<Integer> getUiEstadoColor() {
+    return uiEstadoColor;
+  }
+
+  public LiveData<String> getUiDistanciaTipo() {
+    return uiDistanciaTipo;
+  }
+
+  public LiveData<Integer> getUiVisibilidadRunners() {
+    return uiVisibilidadRunners;
+  }
+
+  public LiveData<Integer> getUiVisibilidadEstadoCategoria() {
+    return uiVisibilidadEstadoCategoria;
+  }
+
+  public LiveData<String> getDialogErrorTexto() { return dialogErrorTexto; }
+  public LiveData<Integer> getDialogErrorVisibilidad() { return dialogErrorVisibilidad; }
+
+  public LiveData<String> getUiGeneroPrecio() {
+    return uiGeneroPrecio;
+  }
+
+  public LiveData<Boolean> getUiVisibilidadDatosCategoria() {
+    return uiVisibilidadDatosCategoria;
+  }
+
+
+  /*public LiveData<Boolean> getDialogDismiss() {
+    return dialogDismiss;
+  } 27-08*/
+
+  public LiveData<List<CategoriaResponse>> getListaCategorias() {
+    return listaCategorias;
+  }
+
+  public LiveData<List<CategoriasInfoAdapter.CategoriaUI>> getListaCategoriasUI() { return listaCategoriasUI; }
   public LiveData<List<InscriptoEventoResponse>> getListaRunnersDialog() { return listaRunnerDialog; }
+  public LiveData<Integer> getUiVisibilidadCarga() { return uiVisibilidadCarga; }
+  public LiveData<String[]> getOpcionesSpinnerCategoria() { return opcionesSpinnerCategoria; }
 
-  public CategoriaResponse getCategoriaSeleccionada() { return categoriaSeleccionada; }
-  public LiveData<Integer> getPosicionPreseleccionadaCategoria() { return posicionPreseleccionadaCategoria; }
-  public LiveData<String> getErrorMotivoCategoria() { return errorMotivoCategoria; }
-  public LiveData<String[]> getEstadosCategoriasValidos() { return estadosCategoriasValidos; }
+  public CategoriaResponse getCategoriaSeleccionada() {
+    return categoriaSeleccionada;
+  }
 
-  public void observarEventoRunners(androidx.lifecycle.LifecycleOwner owner, Runnable accion) {
-    eventShowRunnersDialog.observe(owner, debeMostrar -> {
-      if (Boolean.TRUE.equals(debeMostrar)) {
-        eventShowRunnersDialog.setValue(false);
-        accion.run();
+  public LiveData<Integer> getPosicionPreseleccionadaCategoria() {
+    return posicionPreseleccionadaCategoria;
+  }
+
+  public LiveData<String> getErrorMotivoCategoriaTexto() {
+    return errorMotivoCategoriaTexto;
+  }
+
+  public LiveData<Integer> getErrorMotivoCategoriaVisibilidad() {
+    return errorMotivoCategoriaVisibilidad;
+  }
+
+  public LiveData<String[]> getEstadosCategoriasValidos() {
+    return estadosCategoriasValidos;
+  }
+
+  public void cerrarRunnersOverlay() {
+    uiVisibilidadRunners.setValue(View.GONE);
+  }
+
+  private final MutableLiveData<Integer> posicionEstadoEvento = new MutableLiveData<>(0);
+  private final MutableLiveData<Integer> uiVisibilidadEstado = new MutableLiveData<>(View.GONE);
+  private final MutableLiveData<String> motivoEventoTexto = new MutableLiveData<>("");
+
+  public LiveData<Integer> getPosicionEstadoEvento() { return posicionEstadoEvento; }
+  public LiveData<Integer> getUiVisibilidadEstado() { return uiVisibilidadEstado; }
+  public LiveData<String> getMotivoEventoTexto() { return motivoEventoTexto; }
+
+  public void prepararDialogoEstado() {
+    String actual = estadoActualEvento.getValue();
+    int index = 0;
+    if (actual != null) {
+      for (int i = 0; i < estadosEventoValidos.length; i++) {
+        if (estadosEventoValidos[i].equalsIgnoreCase(actual)) {
+          index = i;
+          break;
+        }
       }
-    });
+    }
+    posicionEstadoEvento.setValue(index);
+    dialogErrorTexto.setValue("");
+    dialogErrorVisibilidad.setValue(View.GONE);
+    uiVisibilidadEstado.setValue(View.VISIBLE);
+  }
+
+  public void solicitarConfirmacionBaja(InscriptoEventoResponse runner, int idCat) {
+    if (runner != null && runner.getRunner() != null) {
+      this.runnerBajaPendiente = runner;
+      this.idCatBajaPendiente = idCat;
+      textoConfirmacionBaja.setValue("¿Confirmar baja de " + runner.getRunner().getNombre() + "?");
+    }
+  }
+
+  public void confirmarBajaRunnerPendiente() {
+    if (runnerBajaPendiente != null && categoriaSeleccionada != null) {
+      darDeBajaRunner(runnerBajaPendiente.getIdInscripcion(), "Baja organizador", categoriaSeleccionada.getIdEvento(), idCatBajaPendiente);
+    }
+    limpiarConfirmacionBaja();
+  }
+
+  public void limpiarConfirmacionBaja() {
+    runnerBajaPendiente = null;
+    idCatBajaPendiente = 0;
+    textoConfirmacionBaja.setValue(null);
   }
 
   public void onCategoriaClickNormal(CategoriaResponse categoria) {
     if (categoria != null) {
       this.categoriaSeleccionada = categoria;
       cargarRunnersDeCategoria(categoria.getIdEvento(), categoria.getIdCategoria());
-      eventShowRunnersDialog.setValue(true);
+      uiVisibilidadRunners.setValue(View.VISIBLE);
     }
   }
 
@@ -193,29 +361,29 @@ public class DetalleEventoViewModel extends AndroidViewModel {
         }
       }
       posicionPreseleccionadaCategoria.setValue(indiceEncontrado);
-      errorMotivoCategoria.setValue(null);
-      eventShowCambiarEstadoCategoria.setValue(true);
+      errorMotivoCategoriaTexto.setValue(null);
+      uiVisibilidadEstadoCategoria.setValue(View.VISIBLE);
     }
   }
 
-  public void observarEventoEstadoCategoria(androidx.lifecycle.LifecycleOwner owner, Runnable accion) {
-    eventShowCambiarEstadoCategoria.observe(owner, debeMostrar -> {
-      if (Boolean.TRUE.equals(debeMostrar)) {
-        eventShowCambiarEstadoCategoria.setValue(false);
-        accion.run();
-      }
-    });
+  public void cerrarEstadoCategoria() {
+    uiVisibilidadEstadoCategoria.setValue(View.GONE);
+    errorMotivoCategoriaVisibilidad.setValue(View.GONE);
   }
 
   public void guardarNuevoEstadoCategoria(int posicionSeleccionada, String motivoInput) {
     if (motivoInput == null || motivoInput.trim().isEmpty()) {
-      errorMotivoCategoria.setValue("El motivo es obligatorio para notificar a los runners");
+      errorMotivoCategoriaTexto.setValue("El motivo es obligatorio para notificar a los runners");
+      errorMotivoCategoriaVisibilidad.setValue(View.VISIBLE);
       return;
     }
 
+    errorMotivoCategoriaVisibilidad.setValue(View.GONE);
+
     if (categoriaSeleccionada == null) return;
     String[] estados = estadosCategoriasValidos.getValue();
-    if (estados == null || posicionSeleccionada < 0 || posicionSeleccionada >= estados.length) return;
+    if (estados == null || posicionSeleccionada < 0 || posicionSeleccionada >= estados.length)
+      return;
 
     String nuevoEstado = estados[posicionSeleccionada];
     isLoading.setValue(true);
@@ -231,7 +399,8 @@ public class DetalleEventoViewModel extends AndroidViewModel {
         public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
           isLoading.setValue(false);
           if (response.isSuccessful()) {
-            errorMotivoCategoria.setValue("DISMISS");
+            errorMotivoCategoriaTexto.setValue(null);
+            uiVisibilidadEstadoCategoria.setValue(View.GONE);
             lanzarMensaje("Estado de categoría actualizado correctamente", 1);
             cargarDetalle(idEv);
           } else {
@@ -242,19 +411,25 @@ public class DetalleEventoViewModel extends AndroidViewModel {
                 JSONObject jsonObject = new JSONObject(errorJson);
                 if (jsonObject.has("message")) msjError = jsonObject.getString("message");
               }
-            } catch (Exception e) { e.printStackTrace(); }
-            lanzarMensaje(msjError, 2);
+            } catch (Exception e) {
+              e.printStackTrace();
+            }
+            errorMotivoCategoriaTexto.setValue(msjError);
+            errorMotivoCategoriaVisibilidad.setValue(View.VISIBLE);
           }
         }
+
         @Override
         public void onFailure(Call<ResponseBody> call, Throwable t) {
           isLoading.setValue(false);
-          lanzarMensaje("Error de conexión", 2);
+          errorMotivoCategoriaTexto.setValue("Error de conexión");
+          errorMotivoCategoriaVisibilidad.setValue(View.VISIBLE);
         }
       });
     } else {
       isLoading.setValue(false);
-      lanzarMensaje("No hay sesión activa. Por favor inicie sesión nuevamente.", 2);
+      errorMotivoCategoriaTexto.setValue("No hay sesión activa. Por favor inicie sesión nuevamente.");
+      errorMotivoCategoriaVisibilidad.setValue(View.VISIBLE);
     }
   }
 
@@ -270,9 +445,15 @@ public class DetalleEventoViewModel extends AndroidViewModel {
       mensajeColorFondo.setValue(Color.parseColor("#F5F5F5"));
     }
     mensajeGlobal.setValue(msg);
+    mensajeGlobalVisibilidad.setValue(View.VISIBLE);
+
+    new Handler(Looper.getMainLooper()).postDelayed(() -> {
+      mensajeGlobalVisibilidad.setValue(View.GONE);
+    }, 5000);
   }
 
   public void procesarArchivoSeleccionado(Uri uri) {
+    if (uri == null) return;
     lanzarMensaje("Analizando archivo...", 0);
     new Thread(() -> {
       Context context = getApplication();
@@ -311,8 +492,11 @@ public class DetalleEventoViewModel extends AndroidViewModel {
         int sizeIndex = cursor.getColumnIndex(OpenableColumns.SIZE);
         if (!cursor.isNull(sizeIndex)) return cursor.getLong(sizeIndex) > (5 * 1024 * 1024);
       }
-    } catch (Exception e) { e.printStackTrace(); }
-    finally { if (cursor != null) cursor.close(); }
+    } catch (Exception e) {
+      e.printStackTrace();
+    } finally {
+      if (cursor != null) cursor.close();
+    }
     return false;
   }
 
@@ -321,16 +505,29 @@ public class DetalleEventoViewModel extends AndroidViewModel {
       InputStream is = context.getContentResolver().openInputStream(uri);
       if (is == null) return null;
       File temp = new File(context.getCacheDir(), "upload_temp.csv");
-      if(temp.exists()) temp.delete();
+      if (temp.exists()) temp.delete();
       try (FileOutputStream out = new FileOutputStream(temp)) {
         byte[] buffer = new byte[16 * 1024];
         int len;
-        while ((len = is.read(buffer)) != -1) { out.write(buffer, 0, len); }
+        while ((len = is.read(buffer)) != -1) {
+          out.write(buffer, 0, len);
+        }
         out.flush();
       }
       is.close();
       return temp;
-    } catch (Exception e) { return null; }
+    } catch (Exception e) {
+      return null;
+    }
+  }
+
+  public void procesarSubidaArchivo(int idEvento, int posicionSeleccionada) {
+    List<CategoriaResponse> pendientes = categoriasPendientesCarga.getValue();
+    if (pendientes != null && posicionSeleccionada >= 0 && posicionSeleccionada < pendientes.size()) {
+      int idCategoria = pendientes.get(posicionSeleccionada).getIdCategoria();
+      archivoEsValido.setValue(false); // Deshabilita el botón
+      subirArchivoGuardado(idEvento, idCategoria);
+    }
   }
 
   public void subirArchivoGuardado(int idEvento, int idCategoria) {
@@ -354,10 +551,7 @@ public class DetalleEventoViewModel extends AndroidViewModel {
         if (response.isSuccessful()) {
           existenResultados = true;
           archivoListoParaSubir = null;
-          exitoCargaArchivo.postValue(true);
-
-          lanzarMensaje("Resultados cargados!",1);
-
+          
           // Refrescamos las listas para recalcular qué categorías faltan
           verificarSiExistenResultados(idEvento);
 
@@ -385,8 +579,10 @@ public class DetalleEventoViewModel extends AndroidViewModel {
                   }
                 }
               }
-              // Enviamos el resumen a la Vista
+              uiVisibilidadCarga.postValue(View.GONE);
+              exitoCargaArchivo.postValue(true);
               resumenCargaArchivo.postValue(resumen.toString());
+              cargarDetalle(idEvento);
             }
           } catch (Exception e) {
             e.printStackTrace();
@@ -396,14 +592,21 @@ public class DetalleEventoViewModel extends AndroidViewModel {
           lanzarMensaje("Error en servidor al procesar archivo", 2);
         }
       }
-      @Override public void onFailure(Call<ResponseBody> call, Throwable t) {
+
+      @Override
+      public void onFailure(Call<ResponseBody> call, Throwable t) {
         lanzarMensaje("Fallo de conexión", 2);
       }
     });
   }
 
-  public void resetResumenCargaArchivo() { resumenCargaArchivo.setValue(null); }
-  public void resetExitoCarga() { exitoCargaArchivo.setValue(null); }
+  public void resetResumenCargaArchivo() {
+    resumenCargaArchivo.setValue(null);
+  }
+
+  public void resetExitoCarga() {
+    exitoCargaArchivo.setValue(null);
+  }
 
   public void solicitarMenuResultados() {
     if (todosLosResultadosCargados) {
@@ -419,25 +622,42 @@ public class DetalleEventoViewModel extends AndroidViewModel {
     }
   }
 
-  public void onOpcionMenuSeleccionada(String opcionSeleccionada) {
-    if (opcionSeleccionada.contains("Cargar")) {
-      accionNavegacionResultados.setValue(AccionResultados.CARGAR);
-    } else {
-      accionNavegacionResultados.setValue(AccionResultados.VER);
+  public void procesarSeleccionMenuResultados(String opcion) {
+    if (opcion == null) return;
+    if (opcion.contains("Cargar")) {
+      List<CategoriaResponse> pendientes = categoriasPendientesCarga.getValue();
+      if (pendientes == null || pendientes.isEmpty()) {
+        lanzarMensaje("Todas las categorias tienen resultados", 0);
+      } else {
+        String[] nombres = new String[pendientes.size()];
+        for(int i = 0; i < pendientes.size(); i++) nombres[i] = pendientes.get(i).getNombre();
+        opcionesSpinnerCategoria.setValue(nombres);
+        uiVisibilidadCarga.setValue(View.VISIBLE);
+      }
+    } else if (opcion.contains("Ver")) {
+      eventVerResultados.setValue(true);
     }
+  }
+
+  public void cerrarCarga() {
+    uiVisibilidadCarga.setValue(View.GONE);
+    archivoListoParaSubir = null;
+    archivoEsValido.setValue(false);
+    nombreArchivoSeleccionado.setValue("Ningún archivo seleccionado");
+  }
+
+  public void resetEventVerResultados() {
+    eventVerResultados.setValue(null);
   }
 
   public void resetOpcionesMenu() {
     opcionesMenuResultados.setValue(null);
   }
-  public void resetAccionNavegacion() {
-    accionNavegacionResultados.setValue(null);
-  }
 
   public void cargarDetalle(int idEvento) {
     isLoading.setValue(true);
     String token = sessionManager.leerToken();
-    if(token != null) {
+    if (token != null) {
       apiService.obtenerEventoPorId("Bearer " + token, idEvento).enqueue(new Callback<EventoDetalleResponse>() {
         @Override
         public void onResponse(Call<EventoDetalleResponse> call, Response<EventoDetalleResponse> response) {
@@ -448,7 +668,9 @@ public class DetalleEventoViewModel extends AndroidViewModel {
             verificarSiExistenResultados(idEvento);
           } else lanzarMensaje("Error al cargar evento", 2);
         }
-        @Override public void onFailure(Call<EventoDetalleResponse> call, Throwable t) {
+
+        @Override
+        public void onFailure(Call<EventoDetalleResponse> call, Throwable t) {
           isLoading.setValue(false);
           lanzarMensaje("Error de conexión", 2);
         }
@@ -484,7 +706,7 @@ public class DetalleEventoViewModel extends AndroidViewModel {
               if (!cargada) pendientes.add(cat);
             }
             categoriasPendientesCarga.setValue(pendientes);
-            todosLosResultadosCargados = pendientes.isEmpty(); // Si no hay pendientes, ya subió todo
+            todosLosResultadosCargados = pendientes.isEmpty(); // Si no hay pendientes, ya subio tod
           }
         } else {
           existenResultados = false;
@@ -492,7 +714,9 @@ public class DetalleEventoViewModel extends AndroidViewModel {
           categoriasPendientesCarga.setValue(listaCategorias.getValue());
         }
       }
-      @Override public void onFailure(Call<ResultadosEventoResponse> call, Throwable t) {
+
+      @Override
+      public void onFailure(Call<ResultadosEventoResponse> call, Throwable t) {
         existenResultados = false;
         todosLosResultadosCargados = false;
         categoriasPendientesCarga.setValue(listaCategorias.getValue());
@@ -515,11 +739,20 @@ public class DetalleEventoViewModel extends AndroidViewModel {
     habilitarEliminacionRunners.setValue(!("FINALIZADO".equals(estado) || "CANCELADO".equals(estado)));
 
     switch (estado) {
-      case "PUBLICADO": uiEstadoColor.setValue(Color.parseColor("#2E7D32")); break;
-      case "SUSPENDIDO": uiEstadoColor.setValue(Color.parseColor("#FF9800")); break;
-      case "FINALIZADO": uiEstadoColor.setValue(Color.GRAY); break;
-      case "CANCELADO": uiEstadoColor.setValue(Color.RED); break;
-      default: uiEstadoColor.setValue(Color.BLACK);
+      case "PUBLICADO":
+        uiEstadoColor.setValue(Color.parseColor("#2E7D32"));
+        break;
+      case "SUSPENDIDO":
+        uiEstadoColor.setValue(Color.parseColor("#FF9800"));
+        break;
+      case "FINALIZADO":
+        uiEstadoColor.setValue(Color.GRAY);
+        break;
+      case "CANCELADO":
+        uiEstadoColor.setValue(Color.RED);
+        break;
+      default:
+        uiEstadoColor.setValue(Color.BLACK);
     }
 
     if (evento.getCategorias() != null && !evento.getCategorias().isEmpty()) {
@@ -537,7 +770,8 @@ public class DetalleEventoViewModel extends AndroidViewModel {
       String textoFinal = nombresCategorias.toString();
       if (!tipoTexto.isEmpty()) textoFinal += "  |  " + tipoTexto;
       uiDistanciaTipo.setValue(textoFinal);
-      if (evento.getCategorias().size() == 1) uiGeneroPrecio.setValue("$" + evento.getCategorias().get(0).getPrecio());
+      if (evento.getCategorias().size() == 1)
+        uiGeneroPrecio.setValue("$" + evento.getCategorias().get(0).getPrecio());
       else uiGeneroPrecio.setValue("Múltiples categorías y precios");
 
       uiVisibilidadDatosCategoria.setValue(true);
@@ -548,7 +782,33 @@ public class DetalleEventoViewModel extends AndroidViewModel {
       } else uiVisibilidadDatosCategoria.setValue(false);
     }
 
-    if (evento.getCategorias() != null) listaCategorias.setValue(evento.getCategorias());
+    if (evento.getCategorias() != null) {
+      listaCategorias.setValue(evento.getCategorias());
+      List<CategoriasInfoAdapter.CategoriaUI> uiList = new ArrayList<>();
+      evento.getCategorias().forEach(item -> {
+        String precio = "$ " + item.getPrecio();
+        String genero = "Mixto";
+        if ("F".equalsIgnoreCase(item.getGenero())) genero = "Fem";
+        if ("M".equalsIgnoreCase(item.getGenero())) genero = "Masc";
+        String info = item.getEdadMinima() + "-" + item.getEdadMaxima() + " años | " + genero;
+        String inscriptos = "Inscriptos: " + item.getInscriptosActuales();
+        String est = item.getEstado() != null ? item.getEstado().toLowerCase() : "";
+        int colorFondo = android.graphics.Color.WHITE;
+        switch (est) {
+            case "programada": colorFondo = android.graphics.Color.parseColor("#4CAF50"); break;
+            case "retrasada": colorFondo = android.graphics.Color.parseColor("#FFC107"); break;
+            case "cancelada": colorFondo = android.graphics.Color.parseColor("#F44336"); break;
+            case "finalizada": colorFondo = android.graphics.Color.parseColor("#9E9E9E"); break;
+            case "suspendida": 
+            case "suspendido": colorFondo = android.graphics.Color.parseColor("#FF9800"); break;
+        }
+
+        uiList.add(new CategoriasInfoAdapter.CategoriaUI(
+          item.getNombre() != null ? item.getNombre() : "General",
+          precio, info, inscriptos, colorFondo, item));
+      });
+      listaCategoriasUI.setValue(uiList);
+    }
     visibilityBtnResultados.setValue("FINALIZADO".equals(estado));
   }
 
@@ -560,12 +820,17 @@ public class DetalleEventoViewModel extends AndroidViewModel {
         public void onResponse(Call<ListaInscriptosResponse> call, Response<ListaInscriptosResponse> response) {
           if (response.isSuccessful() && response.body() != null && response.body().getInscripciones() != null) {
             List<InscriptoEventoResponse> f = new ArrayList<>();
-            for(InscriptoEventoResponse i : response.body().getInscripciones())
-              if(i.getIdCategoria() == idCategoria && "pagado".equalsIgnoreCase(i.getEstadoPago())) f.add(i);
+            for (InscriptoEventoResponse i : response.body().getInscripciones())
+              if (i.getIdCategoria() == idCategoria && "pagado".equalsIgnoreCase(i.getEstadoPago()))
+                f.add(i);
             listaRunnerDialog.setValue(f);
           } else listaRunnerDialog.setValue(new ArrayList<>());
         }
-        @Override public void onFailure(Call<ListaInscriptosResponse> call, Throwable t) { listaRunnerDialog.setValue(new ArrayList<>()); }
+
+        @Override
+        public void onFailure(Call<ListaInscriptosResponse> call, Throwable t) {
+          listaRunnerDialog.setValue(new ArrayList<>());
+        }
       });
     } else {
       listaRunnerDialog.setValue(new ArrayList<>());
@@ -574,9 +839,9 @@ public class DetalleEventoViewModel extends AndroidViewModel {
 
   public void darDeBajaRunner(int idInsc, String motivo, int idEvento, int idCat) {
     String token = sessionManager.leerToken();
-    if(token != null) {
+    if (token != null) {
       MotivoBajaRequest request = new MotivoBajaRequest(motivo);
-      apiService.darDeBajaRunner("Bearer "+token, idInsc, request).enqueue(new Callback<ResponseBody>() {
+      apiService.darDeBajaRunner("Bearer " + token, idInsc, request).enqueue(new Callback<ResponseBody>() {
         @Override
         public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
           if (response.isSuccessful()) {
@@ -585,19 +850,31 @@ public class DetalleEventoViewModel extends AndroidViewModel {
             cargarDetalle(idEvento);
           } else lanzarMensaje("Error en la baja", 2);
         }
-        @Override public void onFailure(Call<ResponseBody> call, Throwable t) { lanzarMensaje("Error conexión", 2); }
+
+        @Override
+        public void onFailure(Call<ResponseBody> call, Throwable t) {
+          lanzarMensaje("Error conexión", 2);
+        }
       });
     } else {
       lanzarMensaje("No hay sesión activa", 2);
     }
   }
 
-  public void procesarCambioEstadoEvento(int idEvento, String estadoNuevo, String motivo) {
-    if (estadoNuevo.isEmpty()) {
-      dialogError.setValue("Seleccione un estado válido");
+  public void cerrarDialogoEstado() {
+    motivoEventoTexto.setValue("");
+    uiVisibilidadEstado.setValue(View.GONE);
+  }
+
+  public void procesarCambioEstadoEvento(int idEvento, int estadoIndex, String motivo) {
+    if (estadoIndex < 0 || estadoIndex >= estadosEventoValidos.length) {
+      dialogErrorTexto.setValue("Seleccione un estado válido");
+      dialogErrorVisibilidad.setValue(View.VISIBLE);
       return;
     }
-    dialogDismiss.setValue(true);
+    String estadoNuevo = estadosEventoValidos[estadoIndex];
+
+    dialogErrorVisibilidad.setValue(View.GONE);
     CambiarEstadoRequest req = new CambiarEstadoRequest(estadoNuevo, motivo);
     isLoading.setValue(true);
 
@@ -608,6 +885,7 @@ public class DetalleEventoViewModel extends AndroidViewModel {
         public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
           isLoading.setValue(false);
           if (response.isSuccessful()) {
+            cerrarDialogoEstado();
             lanzarMensaje("Estado actualizado correctamente", 1);
             EventoDetalleResponse actual = eventoRaw.getValue();
             if (actual != null) {
@@ -621,23 +899,34 @@ public class DetalleEventoViewModel extends AndroidViewModel {
                 String errorJson = response.errorBody().string();
                 JSONObject jsonObject = new JSONObject(errorJson);
                 if (jsonObject.has("error")) msjError = jsonObject.getString("error");
+                else if (jsonObject.has("message")) msjError = jsonObject.getString("message");
               }
-            } catch (Exception e) { e.printStackTrace(); }
-            lanzarMensaje(msjError, 2);
+            } catch (Exception e) {
+              e.printStackTrace();
+            }
+            dialogErrorTexto.setValue(msjError);
+            dialogErrorVisibilidad.setValue(View.VISIBLE);
           }
         }
-        @Override public void onFailure(Call<ResponseBody> call, Throwable t) {
+
+        @Override
+        public void onFailure(Call<ResponseBody> call, Throwable t) {
           isLoading.setValue(false);
-          lanzarMensaje("Error conexión", 2);
+          dialogErrorTexto.setValue("Error de conexión");
+          dialogErrorVisibilidad.setValue(View.VISIBLE);
         }
       });
     } else {
       isLoading.setValue(false);
-      lanzarMensaje("No hay sesión activa", 2);
+      dialogErrorTexto.setValue("No hay sesión activa");
+      dialogErrorVisibilidad.setValue(View.VISIBLE);
     }
   }
 
-  public void limpiarMensajeGlobal() {
-    mensajeGlobal.setValue(null);
+  public boolean habilitarEliminacionRunner(){
+    Boolean valor= habilitarEliminacionRunners.getValue();
+    return valor != null && valor; //por si por algun motivo es null, devuelve false
   }
+
 }
+

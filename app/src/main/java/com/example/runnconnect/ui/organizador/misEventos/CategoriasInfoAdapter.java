@@ -12,9 +12,27 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class CategoriasInfoAdapter extends RecyclerView.Adapter<CategoriasInfoAdapter.ViewHolder> {
-  private List<CategoriaResponse> lista = new ArrayList<>();
+  public static class CategoriaUI {
+    public final String nombre;
+    public final String precio;
+    public final String info;
+    public final String inscriptos;
+    public final int colorFondo;
+    public final CategoriaResponse original;
 
-  public void setLista(List<CategoriaResponse> nuevaLista) {
+    public CategoriaUI(String nombre, String precio, String info, String inscriptos, int colorFondo, CategoriaResponse original) {
+      this.nombre = nombre;
+      this.precio = precio;
+      this.info = info;
+      this.inscriptos = inscriptos;
+      this.colorFondo = colorFondo;
+      this.original = original;
+    }
+  }
+
+  private List<CategoriaUI> lista = new ArrayList<>();
+
+  public void setLista(List<CategoriaUI> nuevaLista) {
     this.lista = nuevaLista;
     notifyDataSetChanged();
   }
@@ -48,33 +66,20 @@ public class CategoriasInfoAdapter extends RecyclerView.Adapter<CategoriasInfoAd
 
   @Override
   public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-    CategoriaResponse item = lista.get(position);
+    CategoriaUI item = lista.get(position);
 
-    holder.tvNombre.setText(item.getNombre());
-    holder.tvPrecio.setText("$ " + item.getPrecio()); //
+    holder.tvNombre.setText(item.nombre);
+    holder.tvPrecio.setText(item.precio);
+    holder.tvInfo.setText(item.info);
+    holder.tvInscriptos.setText(item.inscriptos);
+    
+    holder.itemView.setBackgroundTintList(android.content.res.ColorStateList.valueOf(item.colorFondo));
 
-    String genero = "Mixto";
-    if("F".equalsIgnoreCase(item.getGenero())) genero = "Fem";
-    if("M".equalsIgnoreCase(item.getGenero())) genero = "Masc";
+    holder.itemView.setOnClickListener(v -> listener.onCategoriaClick(item.original));
 
-    String info = item.getEdadMinima() + "-" + item.getEdadMaxima() + " años | " + genero;
-    holder.tvInfo.setText(info);
-
-    holder.tvInscriptos.setText("Inscriptos: "+item.getInscriptosActuales());
-
-    holder.itemView.setOnClickListener(v -> {
-      if (listener != null) {
-        listener.onCategoriaClick(item);
-      }
-    });
-
-    // mantener el click largo
     holder.itemView.setOnLongClickListener(v -> {
-      if(longListener != null) {
-        longListener.onCategoriaLongClick(item);
-        return true;
-      }
-      return false;
+      longListener.onCategoriaLongClick(item.original);
+      return true;
     });
   }
 

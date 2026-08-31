@@ -13,6 +13,8 @@ public class ApiClient {
   private static final String BASE_URLlocal="http://192.168.0.12:5213/api/"; //funciona para correr en celular y con wifi, revisa en la API las conf
   private static final String BASE_URLTrabajoD="http://192.168.5.54:5213/api/";
   private static final String BASE_URLTrabajoI="http://192.168.4.103:5213/api/";
+  // IP pública de tu servidor Debian en Google Cloud
+  private static final String BASE_URL_NUBE = "http://104.154.46.8:5213/api/";
   private static ApiService service;
 
   public static ApiService getApiService() {
