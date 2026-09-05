@@ -1,6 +1,7 @@
 package com.example.runnconnect.ui.organizador.mapa;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -127,22 +128,6 @@ public class MapaEditorFragment extends Fragment implements OnMapReadyCallback {
     });
   }
 
-  /*@Override
-  public void onMapReady(@NonNull GoogleMap googleMap) {
-    mMap = googleMap;
-    mMap.getUiSettings().setZoomControlsEnabled(true);
-    mMap.setOnMapClickListener(latLng -> viewModel.procesarClickMapa(latLng));
-    
-    mMap.setOnInfoWindowClickListener(marker -> {
-      if (marker.getTag() instanceof Integer) {
-        viewModel.evaluarClickEnPuntoInteres((Integer) marker.getTag());
-      }
-    });
-
-    setupObservers();
-
-    viewModel.onMapReady(idEvento, estadoEvento);
-  }*/
   @Override
   public void onMapReady(@NonNull GoogleMap googleMap) {
     mMap = googleMap;
@@ -154,8 +139,6 @@ public class MapaEditorFragment extends Fragment implements OnMapReadyCallback {
 
     viewModel.onMapReady(idEvento, estadoEvento);
   }
-
-
 
   private void dibujarFlechasVisuales(List<MarkerOptions> opciones) {
     opciones.forEach(mMap::addMarker);
@@ -196,13 +179,13 @@ public class MapaEditorFragment extends Fragment implements OnMapReadyCallback {
 
   private void navegarAlListado(String mensajeExito) {
     Bundle args = new Bundle();
-    args.putString("mensaje_arg", mensajeExito);
-    
-    NavOptions options = new NavOptions.Builder()
-      .setPopUpTo(R.id.nav_mis_eventos, true)
-      .setLaunchSingleTop(true)
-      .build();
+    args.putString("nuevoEvento_misEventos", mensajeExito);
 
-    Navigation.findNavController(requireView()).navigate(R.id.nav_mis_eventos, args, options);
+    Log.d("msjExitoNuevoEvento", "navegarAlListado: ok " + args.getString("nuevoEvento_misEventos"));
+    //
+    getParentFragmentManager().setFragmentResult("requestKeyMapa", args);
+
+    // Volvemos hacia atras destruyendo tod hasta encontrar "nav_mis_eventos"
+    Navigation.findNavController(requireView()).popBackStack(R.id.nav_mis_eventos, false);
   }
 }

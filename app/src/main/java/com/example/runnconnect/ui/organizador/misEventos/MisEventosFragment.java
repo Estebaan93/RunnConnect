@@ -32,7 +32,7 @@ public class MisEventosFragment extends Fragment {
     // Cargar datos al iniciar
     viewModel.cargarEventos(true);
 
-    // Botón "+" para crear (Navega al Paso 1)
+    //
     binding.fabNuevoEvento.setOnClickListener(v ->
       Navigation.findNavController(v).navigate(R.id.nav_nuevo_evento_fab)
     );
@@ -43,33 +43,13 @@ public class MisEventosFragment extends Fragment {
   @Override
   public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
     super.onViewCreated(view, savedInstanceState);
-    // CONFIGURACION DE RECEPCION DE MENSAJES (Inter-Fragment Communication)
-    detectarMensajesEntrantes(view);
-  }
 
-  // Detecta si MapaEditor nos envio algo al volver
-  private void detectarMensajesEntrantes(View view) {
-    NavController navController = Navigation.findNavController(view);
-
-    // 1. Caso: Volver atras
-    if (navController.getCurrentBackStackEntry() != null) {
-      navController.getCurrentBackStackEntry().getSavedStateHandle()
-        .getLiveData("mensaje_exito", "") // Observamos cambios en esta clave
-        .observe(getViewLifecycleOwner(), mensaje -> {
-          if (!mensaje.isEmpty()) {
-            viewModel.mostrarMensajeExito(mensaje);
-            // Limpiamos el estado para que no se repita al rotar
-            navController.getCurrentBackStackEntry().getSavedStateHandle().set("mensaje_exito", "");
-          }
-        });
-    }
-
-    // 2. Caso: Navegacion directa (navigate) -> Usamos Arguments
-    if (getArguments() != null && getArguments().containsKey("mensaje_arg")) {
-      String msg = getArguments().getString("mensaje_arg");
-      viewModel.mostrarMensajeExito(msg);
-      getArguments().remove("mensaje_arg"); // Limpiamos argumento
-    }
+    getParentFragmentManager().setFragmentResultListener("requestKeyMapa", getViewLifecycleOwner(), (requestKey, bundle) -> {
+      String msg = bundle.getString("nuevoEvento_misEventos");
+      //if (msg != null) {
+        viewModel.mostrarMensaje(msg, false); //
+      //}
+    });
   }
 
   private void setupRecyclerView() {
@@ -108,51 +88,25 @@ public class MisEventosFragment extends Fragment {
       bundle.putInt("idEvento", idEvento);
 
       //fragment_mis_eventos ->fragment_detalle_evento
-      try {
-        Navigation.findNavController(requireView())
-          .navigate(R.id.action_misEventos_to_detalleEvento, bundle);
-      } catch (Exception e) {
-        android.util.Log.e("DEBUG_EVENTO", "Error de navegación", e);
-      }
+      Navigation.findNavController(requireView())
+        .navigate(R.id.action_misEventos_to_detalleEvento, bundle);
     });
     binding.recyclerEventos.setAdapter(adapter);
   }
 
   private void setupObservers() {
-    // Observer para el banner de exito
-    viewModel.getMensajeExito().observe(getViewLifecycleOwner(), mensaje -> {
-      if (mensaje != null && !mensaje.isEmpty()) {
-        binding.tvMensajeExito.setText(mensaje);
-        binding.tvMensajeExito.setVisibility(View.VISIBLE);
-      } else {
-        binding.tvMensajeExito.setVisibility(View.GONE);
-      }
-    });
-    viewModel.getListaEventos().observe(getViewLifecycleOwner(), eventos -> {
-      if (eventos == null) return;
+    viewModel.getUiMensajeTexto().observe(getViewLifecycleOwner(), binding.tvMensajeExito::setText);
+    viewModel.getUiMensajeVisibilidad().observe(getViewLifecycleOwner(), binding.tvMensajeExito::setVisibility);
+    viewModel.getUiMensajeColorTexto().observe(getViewLifecycleOwner(), binding.tvMensajeExito::setTextColor);
+    viewModel.getUiMensajeColorFondo().observe(getViewLifecycleOwner(), binding.tvMensajeExito::setBackgroundColor);
 
-      if (viewModel.getPaginaActual() == 1) {
-        // Es la primera pagina, reemplazamos tod
-        if (eventos.isEmpty()) {
-          binding.tvVacio.setVisibility(View.VISIBLE);
-          binding.recyclerEventos.setVisibility(View.GONE);
-        } else {
-          binding.tvVacio.setVisibility(View.GONE);
-          binding.recyclerEventos.setVisibility(View.VISIBLE);
-          adapter.setEventos(eventos);
-        }
-      } else {
-        // Son paginas siguientes, agregamos
-        adapter.agregarEventos(eventos);
-      }
-    });
+    viewModel.getListaEventos().observe(getViewLifecycleOwner(), adapter::setEventos);
+
+    viewModel.getUiVisibilidadVacio().observe(getViewLifecycleOwner(), binding.tvVacio::setVisibility);
+    viewModel.getUiVisibilidadRecycler().observe(getViewLifecycleOwner(), binding.recyclerEventos::setVisibility);
 
     viewModel.getIsLoading().observe(getViewLifecycleOwner(), loading ->
-      binding.progressBar.setVisibility(loading ? View.VISIBLE : View.GONE)
+      binding.progressBar.setVisibility(Boolean.TRUE.equals(loading) ? View.VISIBLE : View.GONE)
     );
-
-    viewModel.getErrorMsg().observe(getViewLifecycleOwner(), msg -> {
-      if (msg != null) Toast.makeText(getContext(), msg, Toast.LENGTH_SHORT).show();
-    });
   }
 }

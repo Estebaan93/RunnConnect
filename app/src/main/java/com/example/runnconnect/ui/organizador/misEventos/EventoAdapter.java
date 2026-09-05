@@ -16,11 +16,11 @@ public class EventoAdapter extends RecyclerView.Adapter<EventoAdapter.EventoView
   public interface OnEventoClickListener{
     void onEventoClick(int idEvento);
   }
-  private List<EventoResumenResponse> lista = new ArrayList<>();
+  private List<MisEventosViewModel.EventoUI> lista = new ArrayList<>();
   private OnEventoClickListener listener;
 
   //carga inicial
-  public void setEventos(List<EventoResumenResponse> nuevosEventos) {
+  public void setEventos(List<MisEventosViewModel.EventoUI> nuevosEventos) {
     this.lista = new ArrayList<>(nuevosEventos); //copia
     notifyDataSetChanged();
   }
@@ -38,50 +38,22 @@ public class EventoAdapter extends RecyclerView.Adapter<EventoAdapter.EventoView
 
   @Override
   public void onBindViewHolder(@NonNull EventoViewHolder holder, int position) {
-    EventoResumenResponse evento = lista.get(position);
+    MisEventosViewModel.EventoUI evento = lista.get(position);
 
-    // VALIDACION DE NULOS (Para evitar crashes)
-    String nombre = (evento.getNombre() != null) ? evento.getNombre() : "Sin nombre";
-    String fecha = (evento.getFechaHora() != null) ? evento.getFechaHora().replace("T", " ") : "--/--/----";
-    String lugar = (evento.getLugar() != null) ? evento.getLugar() : "Sin ubicación";
-
-    // Manejo seguro del estado
-    String estado = (evento.getEstado() != null) ? evento.getEstado().toUpperCase() : "DESCONOCIDO";
-
-    holder.tvNombre.setText(nombre);
-    holder.tvFecha.setText("Fecha: " + fecha);
-    holder.tvLugar.setText("Lugar: " + lugar);
-    holder.tvInscriptos.setText("Inscriptos: "+evento.getInscriptosActuales());
-    holder.tvCupo.setText("Cupo Total: " + (evento.getCupoTotal() != null ? String.valueOf(evento.getCupoTotal()) : "Ilimitado"));
-    holder.tvEstado.setText(estado);
-
-    // Logica de colores segura
-    switch (estado) {
-      case "PUBLICADO":
-        holder.tvEstado.setTextColor(Color.parseColor("#2E7D32")); // Verde
-        holder.tvEstado.setBackgroundColor(Color.parseColor("#E8F5E9"));
-        break;
-      case "SUSPENDIDO":
-        holder.tvEstado.setTextColor(Color.parseColor("#EF6C00")); // Naranja Oscuro
-        holder.tvEstado.setBackgroundColor(Color.parseColor("#FFF3E0")); // Naranja Claro
-        break;
-      case "FINALIZADO":
-        holder.tvEstado.setTextColor(Color.parseColor("#616161")); // Gris
-        holder.tvEstado.setBackgroundColor(Color.parseColor("#F5F5F5"));
-        break;
-      case "CANCELADO":
-        holder.tvEstado.setTextColor(Color.parseColor("#C62828")); // Rojo
-        holder.tvEstado.setBackgroundColor(Color.parseColor("#FFEBEE"));
-        break;
-      default:
-        holder.tvEstado.setTextColor(Color.BLACK);
-        holder.tvEstado.setBackgroundColor(Color.WHITE);
-    }
+    holder.tvNombre.setText(evento.nombre);
+    holder.tvFecha.setText(evento.fecha);
+    holder.tvLugar.setText(evento.lugar);
+    holder.tvInscriptos.setText(evento.inscriptos);
+    holder.tvCupo.setText(evento.cupo);
+    
+    holder.tvEstado.setText(evento.estadoTexto);
+    holder.tvEstado.setTextColor(evento.estadoColorTexto);
+    holder.tvEstado.setBackgroundColor(evento.estadoColorFondo);
 
     //conf de click en la tarjeta
     holder.itemView.setOnClickListener(v->{
       if(listener !=null){
-        listener.onEventoClick(evento.getIdEvento());
+        listener.onEventoClick(evento.idEvento);
       }
     });
   }
@@ -100,13 +72,6 @@ public class EventoAdapter extends RecyclerView.Adapter<EventoAdapter.EventoView
       tvCupo = itemView.findViewById(R.id.tvCupos);
       tvInscriptos=itemView.findViewById(R.id.tvInscriptos);
     }
-  }
-
-  //nuevo metodo para la paginancion
-  public void agregarEventos(List<EventoResumenResponse> masEventos) {
-    int posicionInicio = this.lista.size();
-    this.lista.addAll(masEventos);
-    notifyItemRangeInserted(posicionInicio, masEventos.size());
   }
 
 
