@@ -4,6 +4,7 @@ using RunnConnectAPI.Data;
 using RunnConnectAPI.Models;
 using RunnConnectAPI.Models.Dto.Ruta;
 using RunnConnectAPI.Models.Dto.PuntoInteres;
+using RunnConnectAPI.Services;
 
 namespace RunnConnectAPI.Repositories
 {
@@ -11,13 +12,15 @@ namespace RunnConnectAPI.Repositories
   public class RutaRepositorio
   {
     private readonly RunnersContext _context;
+    private readonly ClimaService _climaService;
 
-    public RutaRepositorio(RunnersContext context)
+    public RutaRepositorio(RunnersContext context, ClimaService climaService)
     {
       _context = context;
+      _climaService = climaService;
     }
 
-    //  RUTAS 
+    //  RUTAS
 
     /// Obtiene la ruta completa de un evento
     public async Task<RutaResponse?> ObtenerRutaEventoAsync(int idEvento)
@@ -91,6 +94,18 @@ namespace RunnConnectAPI.Repositories
         _context.Rutas.Add(nuevoPunto);
       }
 
+      // Actualizar el clima del evento a partir de la primera coordenada (largada)
+      var primerPunto = request.Puntos.FirstOrDefault();
+      if (primerPunto != null)
+      {
+        evento.UrlPronosticoClima = await _climaService.ObtenerIconoClimaAsync(
+          primerPunto.Latitud, primerPunto.Longitud, evento.FechaHora);
+      }
+      else
+      {
+        evento.UrlPronosticoClima = null;
+      }
+
       await _context.SaveChangesAsync();
       return (true, null);
     }
@@ -114,6 +129,7 @@ namespace RunnConnectAPI.Repositories
       if (!rutaExistente.Any())
         return (false, "El evento no tiene ruta definida");
 
+      evento.UrlPronosticoClima = null;
       _context.Rutas.RemoveRange(rutaExistente);
       await _context.SaveChangesAsync();
 
@@ -127,7 +143,7 @@ namespace RunnConnectAPI.Repositories
     }
 
 
-    //  PUNTOS DE INTERES 
+    //  PUNTOS DE INTERES
 
     /// Obtiene todos los puntos de interes de un evento
     public async Task<PuntosInteresEventoResponse?> ObtenerPuntosInteresEventoAsync(int idEvento)
@@ -199,7 +215,7 @@ namespace RunnConnectAPI.Repositories
 
       if (evento.Estado == "cancelado")
         return (null, "No se pueden agregar puntos de interés a un evento cancelado");
-      
+
       string tipoLimpio= request.Tipo.ToLower().Trim();
 
       var punto = new PuntoInteres
@@ -275,7 +291,7 @@ namespace RunnConnectAPI.Repositories
       if (evento.IdOrganizador != idOrganizador)
         return (0, "No tienes permiso para modificar este evento");
 
-      var nuevoPuntos = puntos.Select(p => 
+      var nuevoPuntos = puntos.Select(p =>
       {
         string tipoLimpio = p.Tipo.ToLower().Trim();
           return new PuntoInteres
@@ -283,7 +299,7 @@ namespace RunnConnectAPI.Repositories
             IdEvento = idEvento,
             Tipo = tipoLimpio,
             // CORRECCION: Nombre automatico
-            Nombre = ObtenerNombrePorDefecto(tipoLimpio), 
+            Nombre = ObtenerNombrePorDefecto(tipoLimpio),
             Latitud = p.Latitud,
             Longitud = p.Longitud
           };
@@ -321,9 +337,9 @@ namespace RunnConnectAPI.Repositories
       return (true, null);
     }
 
-  
 
-    // MAPA COMPLETO 
+
+    // MAPA COMPLETO
 
     /// Obtiene el mapa completo del evento (ruta + puntos de interes)
     /// Util para la app Android

@@ -73,6 +73,7 @@ builder.Services.AddScoped<JWTService>();
 builder.Services.AddScoped<PasswordService>();
 builder.Services.AddScoped<FileService>();
 builder.Services.AddScoped<EmailService>();
+builder.Services.AddHttpClient<ClimaService>();
 builder.Services.AddHostedService<RunnConnectAPI.Services.FinalizarEventosWorker>();
 builder.Services.AddSingleton<FirebaseNotificacionService>(); //singleton porque firebaseApp.Create se ejecuta una sola vez
 

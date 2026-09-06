@@ -59,6 +59,7 @@ namespace RunnConnectAPI.Controllers
           CupoTotal = e.CupoTotal,
           TipoEvento= e.TipoEvento,
           DatosPago= e.DatosPago,
+          UrlPronosticoClima = e.UrlPronosticoClima,
           CantidadCategorias = e.Categorias?.Count ?? 0,
           InscriptosActuales = e.Categorias?
                 .SelectMany(c => c.Inscripciones)
@@ -132,6 +133,7 @@ namespace RunnConnectAPI.Controllers
             CupoTotal = e.CupoTotal,
             TipoEvento = e.TipoEvento,
             DatosPago = e.DatosPago,
+            UrlPronosticoClima = e.UrlPronosticoClima,
             CantidadCategorias = e.Categorias?.Count ?? 0,
             InscriptosActuales = e.Categorias?
                 .SelectMany(c => c.Inscripciones)
@@ -281,7 +283,7 @@ namespace RunnConnectAPI.Controllers
         if (!ModelState.IsValid)
           return BadRequest(ModelState);
 
-        int userId = User.ObtenerUserId();  
+        int userId = User.ObtenerUserId();
 
         // Verificar perfil completo del organizador
         var usuario = await _usuarioRepositorio.GetByIdAsync(userId);
@@ -337,7 +339,7 @@ namespace RunnConnectAPI.Controllers
             };
             // Usamos el repositorio de categorias existente
             await _categoriaRepositorio.CrearAsync(nuevaCategoria);
-         
+
 
         categoriasResponse.Add(new CategoriaEventoResponse
             {
@@ -356,7 +358,7 @@ namespace RunnConnectAPI.Controllers
           }
         }
 
-        //  NUEVO: DISPARAR NOTIFICACION GLOBAL 
+        //  NUEVO: DISPARAR NOTIFICACION GLOBAL
        // Esto avisa a TODOS los usuarios de la app que hay un evento nuevo
        var notifRequest = new CrearNotificacionRequest
        {
@@ -368,7 +370,7 @@ namespace RunnConnectAPI.Controllers
 
        // Usamos el metodo especifico que creamos arriba (no requiere userId porque es automatica)
        await _notificacionRepositorio.CrearNotificacionGlobalAsync(notifRequest);
-      
+
 
         return CreatedAtAction(
             nameof(ObtenerEventosPorId),
@@ -469,26 +471,26 @@ namespace RunnConnectAPI.Controllers
     {
       try
       {
-        if (!ModelState.IsValid) 
+        if (!ModelState.IsValid)
           return BadRequest(ModelState);
 
         int userId = User.ObtenerUserId();
 
         var evento = await _eventoRepositorio.ObtenerPorIdConDetalleAsync(id);
-        if (evento == null) 
+        if (evento == null)
           return NotFound(new { message = "Evento no encontrado" });
-        
-        if (evento.IdOrganizador != userId) 
+
+        if (evento.IdOrganizador != userId)
           return Forbid();
 
         string nuevoEstadoEvento = request.NuevoEstado.ToLower().Trim();
 
-        //aplicar cambio al Evento Padre 
+        //aplicar cambio al Evento Padre
         await _eventoRepositorio.CambiarEstadoAsync(id, nuevoEstadoEvento);
 
         if (evento.Categorias != null)
         {
-          // CASO A: 
+          // CASO A:
           if (nuevoEstadoEvento == "suspendido" || nuevoEstadoEvento == "cancelado" || nuevoEstadoEvento == "retrasado")
           {
             //Evento -> Categoria
@@ -497,8 +499,8 @@ namespace RunnConnectAPI.Controllers
             // Mapeamos lo que la base de datos acepta en Categorias
             if (nuevoEstadoEvento == "cancelado") estadoParaCategoria = "cancelada";
             if (nuevoEstadoEvento == "retrasado") estadoParaCategoria = "retrasada";
-            if (nuevoEstadoEvento == "suspendido") estadoParaCategoria = "suspendido"; 
-            
+            if (nuevoEstadoEvento == "suspendido") estadoParaCategoria = "suspendido";
+
 
             foreach (var cat in evento.Categorias)
             {

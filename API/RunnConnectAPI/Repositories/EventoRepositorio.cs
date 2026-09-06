@@ -1,7 +1,7 @@
-//Repositories/EventoRepositorio.cs
 using Microsoft.EntityFrameworkCore;
 using RunnConnectAPI.Data;
 using RunnConnectAPI.Models;
+using RunnConnectAPI.Services;
 
 namespace RunnConnectAPI.Repositories
 {
@@ -9,10 +9,12 @@ namespace RunnConnectAPI.Repositories
   public class EventoRepositorio
   {
     private readonly RunnersContext _context;
+    private readonly ClimaService _climaService;
 
-    public EventoRepositorio(RunnersContext context)
+    public EventoRepositorio(RunnersContext context, ClimaService climaService)
     {
       _context = context;
+      _climaService = climaService;
     }
 
     //Para paginado
@@ -50,14 +52,52 @@ namespace RunnConnectAPI.Repositories
     /// Obtiene un evento por ID con todas sus relaciones (detalle completo)
     public async Task<Evento?> ObtenerPorIdConDetalleAsync(int id)
     {
-      return await _context.Eventos
+      var evento = await _context.Eventos
           .Include(e => e.Organizador)
             .ThenInclude(o => o!.PerfilOrganizador)
           .Include(e => e.Categorias)
             .ThenInclude(c => c.Inscripciones)
           .FirstOrDefaultAsync(e => e.IdEvento == id);
+
+      if (evento != null)
+      {
+        await ActualizarClimaSiCorrespondeAsync(evento);
+      }
+
+      return evento;
     }
 
+    /// Consulta y actualiza el icono del clima en el evento si esta dentro de los proximos 5 dias y tiene trazado de ruta.
+    /// Si el evento es a mas de 5 dias o ya paso, asegura que el clima quede en null.
+    public async Task ActualizarClimaSiCorrespondeAsync(Evento evento)
+    {
+      var ahora = DateTime.Now;
+      if (evento.FechaHora >= ahora && evento.FechaHora <= ahora.AddDays(5))
+      {
+        var primerPunto = await _context.Rutas
+            .Where(r => r.IdEvento == evento.IdEvento)
+            .OrderBy(r => r.Orden)
+            .FirstOrDefaultAsync();
+
+        if (primerPunto != null)
+        {
+          var icono = await _climaService.ObtenerIconoClimaAsync(primerPunto.Latitud, primerPunto.Longitud, evento.FechaHora);
+          if (evento.UrlPronosticoClima != icono)
+          {
+            evento.UrlPronosticoClima = icono;
+            await _context.SaveChangesAsync();
+          }
+        }
+      }
+      else
+      {
+        if (evento.UrlPronosticoClima != null)
+        {
+          evento.UrlPronosticoClima = null;
+          await _context.SaveChangesAsync();
+        }
+      }
+    }
 
     /// Obtiene eventos publicos de un organizador (ultimos 6 meses)
     /// Para mostrar en el perfil publico del organizador
@@ -135,6 +175,8 @@ namespace RunnConnectAPI.Repositories
       evento.Descripcion = evento.Descripcion?.Trim();
       evento.DatosPago = evento.DatosPago?.Trim();
 
+      await ActualizarClimaSiCorrespondeAsync(evento);
+
       _context.Eventos.Update(evento);
       await _context.SaveChangesAsync();
     }
@@ -153,7 +195,7 @@ namespace RunnConnectAPI.Repositories
 
       // Validar estado valido
       /*var estadosValidos = new[] { "publicado", "cancelado", "finalizado", "suspendido", "retrasado" };
-      
+
       if (!estadosValidos.Contains(nuevoEstado))
         throw new ArgumentException($"Estado inválido. Estados válidos: {string.Join(", ", estadosValidos)}");
 
@@ -380,7 +422,7 @@ namespace RunnConnectAPI.Repositories
           modificados++;
 
           //notificacion de "Evento Concluido"
-          
+
         }
       }
 

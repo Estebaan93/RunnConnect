@@ -4,7 +4,7 @@ using RunnConnectAPI.Models.Dto.Categoria;
 
 namespace RunnConnectAPI.Models.Dto.Evento
 {
- 
+
   /// DTO de respuesta con informacion basica del evento (para listados)
 
   public class EventoResumenResponse
@@ -19,8 +19,9 @@ namespace RunnConnectAPI.Models.Dto.Evento
     public int CantidadCategorias { get; set; }
     public string TipoEvento { get; set; }
     public string? DatosPago { get; set; }
+    public string? UrlPronosticoClima { get; set; }
 
-    
+
     /// Nombre del organizador (de la tabla usuarios)
     public string NombreOrganizador { get; set; } = string.Empty;
 
