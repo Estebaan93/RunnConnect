@@ -1,23 +1,41 @@
 package com.example.runnconnect.ui.organizador.misEventos;
 
-import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
-import android.widget.TextView;
+
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
-import com.example.runnconnect.R;
+
 import com.example.runnconnect.data.response.InscriptoEventoResponse;
+import com.example.runnconnect.databinding.ItemRunnerDialogBinding;
+
 import java.util.ArrayList;
 import java.util.List;
 
 public class RunnerSimpleAdapter extends RecyclerView.Adapter<RunnerSimpleAdapter.ViewHolder> {
 
-  private List<InscriptoEventoResponse> lista = new ArrayList<>();
+  public static class RunnerUI {
+    public final String nombreCompleto;
+    public final String dniTexto;
+    public final String estadoTexto;
+    public final int estadoColor;
+    public final int visibilidadBotonBaja;
+    public final InscriptoEventoResponse original;
+
+    public RunnerUI(String nombreCompleto, String dniTexto, String estadoTexto, int estadoColor, int visibilidadBotonBaja, InscriptoEventoResponse original) {
+      this.nombreCompleto = nombreCompleto;
+      this.dniTexto = dniTexto;
+      this.estadoTexto = estadoTexto;
+      this.estadoColor = estadoColor;
+      this.visibilidadBotonBaja = visibilidadBotonBaja;
+      this.original = original;
+    }
+  }
+
+  private List<RunnerUI> lista = new ArrayList<>();
   private final OnBajaClickListener listener;
-  private boolean habilitarEliminacion= true; // control post finalizacion evento
+  private boolean habilitarEliminacion = true;
 
   public interface OnBajaClickListener {
     void onBaja(InscriptoEventoResponse runner);
@@ -27,72 +45,49 @@ public class RunnerSimpleAdapter extends RecyclerView.Adapter<RunnerSimpleAdapte
     this.listener = listener;
   }
 
-  //setter p el fragmnet
   public void setHabilitarEliminacion(boolean habilitar) {
     this.habilitarEliminacion = habilitar;
     notifyDataSetChanged();
   }
 
-  public void setLista(List<InscriptoEventoResponse> nuevaLista) {
-    this.lista = nuevaLista;
+  public void setLista(List<RunnerUI> nuevaLista) {
+    this.lista = nuevaLista != null ? nuevaLista : new ArrayList<>();
     notifyDataSetChanged();
   }
 
   @NonNull
   @Override
   public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-    // Puedes reutilizar un layout existente o crear uno nuevo simple.
-    // Aquí asumo que creas 'item_runner_dialog.xml'
-    View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_runner_dialog, parent, false);
-    return new ViewHolder(v);
+    ItemRunnerDialogBinding binding = ItemRunnerDialogBinding.inflate(
+        LayoutInflater.from(parent.getContext()), parent, false);
+    return new ViewHolder(binding);
   }
 
   @Override
   public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-    InscriptoEventoResponse item = lista.get(position);
+    RunnerUI item = lista.get(position);
 
-    if (item.getRunner() != null) {
-      holder.tvNombre.setText(item.getRunner().getNombre() + " " + item.getRunner().getApellido());
-      holder.tvDni.setText("DNI: " + item.getRunner().getDni());
-    }
+    holder.binding.tvRunnerNombre.setText(item.nombreCompleto);
+    holder.binding.tvRunnerDni.setText(item.dniTexto);
+    holder.binding.tvRunnerEstado.setText(item.estadoTexto);
+    holder.binding.tvRunnerEstado.setTextColor(item.estadoColor);
 
-    holder.tvEstado.setText(item.getEstadoPago().toUpperCase());
-
-
-    // Logica visual del boton Baja
-    boolean runnerCancelado= "cancelado".equalsIgnoreCase(item.getEstadoPago());
-
-    if (runnerCancelado) {
-      holder.tvEstado.setTextColor(Color.RED);
-    } else {
-      holder.tvEstado.setTextColor(Color.BLACK);
-    }
-
-    // El boton solo se muestra si la eliminacion esta habilitada GLOBALMENTE
-    // Y si el runner no esta ya cancelado.
-    if (habilitarEliminacion && !runnerCancelado) {
-      holder.btnBaja.setVisibility(View.VISIBLE);
-      holder.btnBaja.setOnClickListener(v -> listener.onBaja(item));
-    } else {
-      holder.btnBaja.setVisibility(View.GONE);
-      holder.btnBaja.setOnClickListener(null);
-    }
-
+    int visibilidadBaja = habilitarEliminacion ? item.visibilidadBotonBaja : View.GONE;
+    holder.binding.btnDarBaja.setVisibility(visibilidadBaja);
+    holder.binding.btnDarBaja.setOnClickListener(visibilidadBaja == View.VISIBLE ? v -> listener.onBaja(item.original) : null);
   }
 
   @Override
-  public int getItemCount() { return lista.size(); }
+  public int getItemCount() {
+    return lista.size();
+  }
 
   static class ViewHolder extends RecyclerView.ViewHolder {
-    TextView tvNombre, tvDni, tvEstado;
-    ImageView btnBaja;
+    final ItemRunnerDialogBinding binding;
 
-    public ViewHolder(@NonNull View itemView) {
-      super(itemView);
-      tvNombre = itemView.findViewById(R.id.tvRunnerNombre);
-      tvDni = itemView.findViewById(R.id.tvRunnerDni);
-      tvEstado = itemView.findViewById(R.id.tvRunnerEstado);
-      btnBaja = itemView.findViewById(R.id.btnDarBaja);
+    public ViewHolder(@NonNull ItemRunnerDialogBinding binding) {
+      super(binding.getRoot());
+      this.binding = binding;
     }
   }
 }

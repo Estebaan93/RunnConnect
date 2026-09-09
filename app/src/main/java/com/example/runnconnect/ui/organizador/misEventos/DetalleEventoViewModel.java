@@ -121,7 +121,7 @@ public class DetalleEventoViewModel extends AndroidViewModel {
   private final MutableLiveData<Integer> dialogErrorVisibilidad = new MutableLiveData<>(View.GONE);
   private final MutableLiveData<List<CategoriaResponse>> listaCategorias = new MutableLiveData<>();
   private final MutableLiveData<List<CategoriasInfoAdapter.CategoriaUI>> listaCategoriasUI = new MutableLiveData<>();
-  private final MutableLiveData<List<InscriptoEventoResponse>> listaRunnerDialog = new MutableLiveData<>();
+  private final MutableLiveData<List<RunnerSimpleAdapter.RunnerUI>> listaRunnerDialog = new MutableLiveData<>();
 
   public DetalleEventoViewModel(@NonNull Application application) {
     super(application);
@@ -263,7 +263,7 @@ public class DetalleEventoViewModel extends AndroidViewModel {
   }
 
   public LiveData<List<CategoriasInfoAdapter.CategoriaUI>> getListaCategoriasUI() { return listaCategoriasUI; }
-  public LiveData<List<InscriptoEventoResponse>> getListaRunnersDialog() { return listaRunnerDialog; }
+  public LiveData<List<RunnerSimpleAdapter.RunnerUI>> getListaRunnersDialog() { return listaRunnerDialog; }
   public LiveData<Integer> getUiVisibilidadCarga() { return uiVisibilidadCarga; }
   public LiveData<String[]> getOpcionesSpinnerCategoria() { return opcionesSpinnerCategoria; }
 
@@ -819,11 +819,36 @@ public class DetalleEventoViewModel extends AndroidViewModel {
         @Override
         public void onResponse(Call<ListaInscriptosResponse> call, Response<ListaInscriptosResponse> response) {
           if (response.isSuccessful() && response.body() != null && response.body().getInscripciones() != null) {
-            List<InscriptoEventoResponse> f = new ArrayList<>();
-            for (InscriptoEventoResponse i : response.body().getInscripciones())
-              if (i.getIdCategoria() == idCategoria && "pagado".equalsIgnoreCase(i.getEstadoPago()))
-                f.add(i);
-            listaRunnerDialog.setValue(f);
+            List<RunnerSimpleAdapter.RunnerUI> uiList = new ArrayList<>();
+            boolean puedeEliminar = Boolean.TRUE.equals(habilitarEliminacionRunners.getValue());
+            for (InscriptoEventoResponse i : response.body().getInscripciones()) {
+              if (i.getIdCategoria() == idCategoria && "pagado".equalsIgnoreCase(i.getEstadoPago())) {
+                String nombreCompleto = "";
+                String dniTexto = "DNI: -";
+                if (i.getRunner() != null) {
+                  String nom = i.getRunner().getNombre() != null ? i.getRunner().getNombre() : "";
+                  String ape = i.getRunner().getApellido() != null ? i.getRunner().getApellido() : "";
+                  nombreCompleto = (nom + " " + ape).trim();
+                  if (i.getRunner().getDni() != null) {
+                    dniTexto = "DNI: " + i.getRunner().getDni();
+                  }
+                }
+                String estadoPago = i.getEstadoPago() != null ? i.getEstadoPago().toUpperCase() : "";
+                boolean runnerCancelado = "cancelado".equalsIgnoreCase(i.getEstadoPago());
+                int colorEstado = runnerCancelado ? Color.RED : Color.BLACK;
+                int visibilidadBaja = (puedeEliminar && !runnerCancelado) ? View.VISIBLE : View.GONE;
+
+                uiList.add(new RunnerSimpleAdapter.RunnerUI(
+                    nombreCompleto,
+                    dniTexto,
+                    estadoPago,
+                    colorEstado,
+                    visibilidadBaja,
+                    i
+                ));
+              }
+            }
+            listaRunnerDialog.setValue(uiList);
           } else listaRunnerDialog.setValue(new ArrayList<>());
         }
 

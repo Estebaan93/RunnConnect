@@ -24,12 +24,12 @@ namespace RunnConnectAPI.Data
     //Recuperar cuenta
     public DbSet<TokenRecuperacion> TokenRecuperacion {get;set;}
 
-    protected override void OnModelCreating(ModelBuilder modelBuilder)
+   /*  protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
       base.OnModelCreating(modelBuilder);
 
       // --- Mapeo de nombres de tablas (Solución Case-Sensitive para Linux) ---
-    
+
     // Usuarios y Perfiles
     modelBuilder.Entity<Usuario>().ToTable("usuarios");
     modelBuilder.Entity<PerfilRunner>().ToTable("perfiles_runners");
@@ -73,7 +73,7 @@ namespace RunnConnectAPI.Data
       modelBuilder.Entity<PerfilOrganizador>()
           .HasIndex(p => p.CuitTaxId)
           .IsUnique();
-    }
+          }*/
 
   }
 }

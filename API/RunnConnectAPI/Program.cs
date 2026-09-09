@@ -23,7 +23,7 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 //builder.Services.AddSwaggerGen();
 
-// Configuración de Swagger con soporte para JWT
+// Configuracion de Swagger con soporte para JWT
 builder.Services.AddSwaggerGen(options =>
 {
   options.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo

@@ -1,66 +1,54 @@
 package com.example.runnconnect.ui.organizador.misEventos;
 
 import android.view.LayoutInflater;
-import android.view.View;
 import android.view.ViewGroup;
-import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.runnconnect.R;
-import com.example.runnconnect.data.response.ResultadosEventoResponse;
+import com.example.runnconnect.databinding.ItemResultadoRankingBinding;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class ResultadosAdapter extends RecyclerView.Adapter<ResultadosAdapter.ViewHolder> {
 
-  private List<ResultadosEventoResponse.ResultadoEventoItem> lista = new ArrayList<>();
+  private List<ResultadosEventoViewModel.ResultadoUI> lista = new ArrayList<>();
 
-  public void setLista(List<ResultadosEventoResponse.ResultadoEventoItem> nuevaLista) {
-    this.lista = nuevaLista;
+  public void setLista(List<ResultadosEventoViewModel.ResultadoUI> nuevaLista) {
+    this.lista = nuevaLista != null ? nuevaLista : new ArrayList<>();
     notifyDataSetChanged();
   }
 
   @NonNull
   @Override
   public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-    View view = LayoutInflater.from(parent.getContext())
-      .inflate(R.layout.item_resultado_ranking, parent, false);
-    return new ViewHolder(view);
+    ItemResultadoRankingBinding binding = ItemResultadoRankingBinding.inflate(
+        LayoutInflater.from(parent.getContext()), parent, false);
+    return new ViewHolder(binding);
   }
 
   @Override
   public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-    ResultadosEventoResponse.ResultadoEventoItem item = lista.get(position);
+    ResultadosEventoViewModel.ResultadoUI item = lista.get(position);
 
-    //mapeo de ids de item_resultado_ranking
-    holder.tvPosicion.setText(String.valueOf(item.getPosicionGeneral() != null ? item.getPosicionGeneral() : "-"));
-    holder.tvNombre.setText(item.getNombreRunner());
-
-    String cat = item.getNombreCategoria() != null ? item.getNombreCategoria() : "";
-    if (item.getGenero() != null) cat += " (" + item.getGenero() + ")";
-    holder.tvCategoria.setText(cat);
-
-    holder.tvTiempo.setText(item.getTiempoOficial());
+    holder.binding.tvPosicion.setText(item.posicion);
+    holder.binding.tvNombreRunner.setText(item.nombreRunner);
+    holder.binding.tvCategoriaRunner.setText(item.categoriaYGenero);
+    holder.binding.tvTiempoOficial.setText(item.tiempoOficial);
   }
 
   @Override
   public int getItemCount() {
-    return lista != null ? lista.size() : 0;
+    return lista.size();
   }
 
   public static class ViewHolder extends RecyclerView.ViewHolder {
-    TextView tvPosicion, tvNombre, tvCategoria, tvTiempo;
+    final ItemResultadoRankingBinding binding;
 
-    public ViewHolder(@NonNull View itemView) {
-      super(itemView);
-      // ids basados en item_resultado_ranking.xml
-      tvPosicion = itemView.findViewById(R.id.tvPosicion);
-      tvNombre = itemView.findViewById(R.id.tvNombreRunner);
-      tvCategoria = itemView.findViewById(R.id.tvCategoriaRunner);
-      tvTiempo = itemView.findViewById(R.id.tvTiempoOficial);
+    public ViewHolder(@NonNull ItemResultadoRankingBinding binding) {
+      super(binding.getRoot());
+      this.binding = binding;
     }
   }
 }
