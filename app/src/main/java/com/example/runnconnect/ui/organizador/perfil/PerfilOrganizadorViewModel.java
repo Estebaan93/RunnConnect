@@ -192,12 +192,12 @@ public class PerfilOrganizadorViewModel extends AndroidViewModel {
     eventShowAvatarOptions.setValue(true);
   }
 
-  public void onChangePhotoOptionSelected() {
-    eventOpenGallery.setValue(true);
-  }
-
-  public void onDeletePhotoOptionSelected() {
-    eventShowDeleteConfirmation.setValue(true);
+  public void onOpcionAvatarSeleccionada(int which) {
+    if (which == 0) {
+      eventOpenGallery.setValue(true);
+    } else if (which == 1) {
+      eventShowDeleteConfirmation.setValue(true);
+    }
   }
 
   public void onDeleteConfirmed() {

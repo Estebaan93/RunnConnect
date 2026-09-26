@@ -12,9 +12,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
-import android.widget.EditText;
-import android.widget.ImageView;
-
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.PickVisualMediaRequest;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -25,6 +22,8 @@ import androidx.lifecycle.ViewModelProvider;
 
 import com.bumptech.glide.Glide;
 import com.example.runnconnect.R;
+import com.example.runnconnect.databinding.DialogCambiarPasswordBinding;
+import com.example.runnconnect.databinding.DialogVerImagenBinding;
 import com.example.runnconnect.databinding.FragmentPerfilOrganizadorBinding;
 
 public class PerfilOrganizadorFragment extends Fragment {
@@ -33,7 +32,7 @@ public class PerfilOrganizadorFragment extends Fragment {
   private ActivityResultLauncher<PickVisualMediaRequest> mediaImagen;
 
   private AlertDialog dialogPassword;
-  private EditText etPassActualRef, etPassNuevaRef, etPassConfirmRef;
+  private DialogCambiarPasswordBinding dialogPasswordBinding;
 
   @Override
   public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -140,15 +139,29 @@ public class PerfilOrganizadorFragment extends Fragment {
 
     // Errores de password
     mv.getErrorPassActual().observe(getViewLifecycleOwner(), e -> {
-      etPassActualRef.setError(e);
-      etPassActualRef.requestFocus();
+      if (dialogPasswordBinding != null) {
+        dialogPasswordBinding.etPassActual.setError(e);
+        dialogPasswordBinding.etPassActual.requestFocus();
+      }
     });
-    mv.getErrorPassNuevo().observe(getViewLifecycleOwner(),   e -> etPassNuevaRef.setError(e));
-    mv.getErrorPassConfirm().observe(getViewLifecycleOwner(), e -> etPassConfirmRef.setError(e));
+    mv.getErrorPassNuevo().observe(getViewLifecycleOwner(), e -> {
+      if (dialogPasswordBinding != null) {
+        dialogPasswordBinding.etPassNueva.setError(e);
+      }
+    });
+    mv.getErrorPassConfirm().observe(getViewLifecycleOwner(), e -> {
+      if (dialogPasswordBinding != null) {
+        dialogPasswordBinding.etPassConfirm.setError(e);
+      }
+    });
 
     // Eventos
     mv.getEventCerrarDialogPassword().observe(getViewLifecycleOwner(),
-      ignored -> dialogPassword.dismiss());
+      ignored -> {
+        if (dialogPassword != null) {
+          dialogPassword.dismiss();
+        }
+      });
 
     mv.getEventShowAvatarOptions().observe(getViewLifecycleOwner(),
       ignored -> mostrarDialogoOpciones());
@@ -173,17 +186,12 @@ public class PerfilOrganizadorFragment extends Fragment {
 
   //Dialogos
   private void mostrarDialogoCambiarPassword() {
-    View view = getLayoutInflater().inflate(R.layout.dialog_cambiar_password, null);
+    dialogPasswordBinding = DialogCambiarPasswordBinding.inflate(getLayoutInflater());
 
-    etPassActualRef  = view.findViewById(R.id.etPassActual);
-    etPassNuevaRef   = view.findViewById(R.id.etPassNueva);
-    etPassConfirmRef = view.findViewById(R.id.etPassConfirm);
-
-    view.findViewById(R.id.btnDarDeBajaUsuario)
-      .setOnClickListener(v -> mv.btnDarBaja());
+    dialogPasswordBinding.btnDarDeBajaUsuario.setOnClickListener(v -> mv.btnDarBaja());
 
     dialogPassword = new AlertDialog.Builder(requireContext())
-      .setView(view)
+      .setView(dialogPasswordBinding.getRoot())
       .setPositiveButton("Cambiar", null)
       .setNegativeButton("Cancelar", (d, w) -> limpiarReferenciasDialogo())
       .create();
@@ -192,28 +200,25 @@ public class PerfilOrganizadorFragment extends Fragment {
 
     dialogPassword.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v ->
       mv.cambiarPassword(
-        etPassActualRef.getText().toString(),
-        etPassNuevaRef.getText().toString(),
-        etPassConfirmRef.getText().toString()
+        dialogPasswordBinding.etPassActual.getText() != null ? dialogPasswordBinding.etPassActual.getText().toString() : "",
+        dialogPasswordBinding.etPassNueva.getText() != null ? dialogPasswordBinding.etPassNueva.getText().toString() : "",
+        dialogPasswordBinding.etPassConfirm.getText() != null ? dialogPasswordBinding.etPassConfirm.getText().toString() : ""
       ));
 
     dialogPassword.setOnDismissListener(d -> limpiarReferenciasDialogo());
   }
 
   private void limpiarReferenciasDialogo() {
-    etPassActualRef  = null;
-    etPassNuevaRef   = null;
-    etPassConfirmRef = null;
-    dialogPassword   = null;
+    dialogPasswordBinding = null;
+    dialogPassword = null;
   }
 
   private void mostrarDialogoOpciones() {
-    new AlertDialog.Builder(getContext())
+    new AlertDialog.Builder(requireContext())
       .setTitle("Foto de Perfil")
-      .setItems(new String[]{"Cambiar Foto", "Eliminar Foto", "Cancelar"}, (dialog, which) -> {
-        if (which == 0) mv.onChangePhotoOptionSelected();
-        else if (which == 1) mv.onDeletePhotoOptionSelected();
-      }).show();
+      .setItems(new String[]{"Cambiar Foto", "Eliminar Foto", "Cancelar"},
+        (dialog, which) -> mv.onOpcionAvatarSeleccionada(which))
+      .show();
   }
 
   private void mostrarDialogoConfirmacion() {
@@ -226,12 +231,13 @@ public class PerfilOrganizadorFragment extends Fragment {
   }
 
   private void mostrarDialogoZoom(String url) {
-    Dialog dialog = new Dialog(getContext());
+    DialogVerImagenBinding zoomBinding = DialogVerImagenBinding.inflate(getLayoutInflater());
+    Dialog dialog = new Dialog(requireContext());
     dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
-    dialog.setContentView(R.layout.dialog_ver_imagen);
+    dialog.setContentView(zoomBinding.getRoot());
     if (dialog.getWindow() != null)
       dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
-    Glide.with(this).load(url).into((ImageView) dialog.findViewById(R.id.ivZoom));
+    Glide.with(this).load(url).into(zoomBinding.ivZoom);
     dialog.show();
   }
 
@@ -256,6 +262,7 @@ public class PerfilOrganizadorFragment extends Fragment {
   @Override
   public void onDestroyView() {
     super.onDestroyView();
+    limpiarReferenciasDialogo();
     binding = null;
   }
 }
