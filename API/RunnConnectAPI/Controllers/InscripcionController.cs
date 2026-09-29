@@ -260,6 +260,59 @@ namespace RunnConnectAPI.Controllers
       }
     }
 
+    /// Obtiene la ficha técnica completa de un runner inscripto para el organizador
+    /// GET: api/Inscripcion/{id}/Ficha
+    [HttpGet("{id}/Ficha")]
+    [Authorize(Roles = "organizador")]
+    public async Task<IActionResult> ObtenerFichaRunner(int id)
+    {
+      try
+      {
+        var userId = User.ObtenerUserId();
+
+        var inscripcion = await _inscripcionRepositorio.ObtenerPorIdAsync(id);
+
+        if (inscripcion == null)
+          return NotFound(new { message = "Inscripción no encontrada" });
+
+        // Solo el organizador del evento correspondiente puede ver los datos de contacto del runner
+        if (inscripcion.Categoria?.Evento?.IdOrganizador != userId)
+          return Forbid();
+
+        var response = new InscriptoEventoResponse
+        {
+          IdInscripcion = inscripcion.IdInscripcion,
+          FechaInscripcion = inscripcion.FechaInscripcion,
+          EstadoPago = inscripcion.EstadoPago,
+          TalleRemera = inscripcion.TalleRemera,
+          ComprobantePagoURL = !string.IsNullOrEmpty(inscripcion.ComprobantePagoURL)
+            ? _fileService.ObtenerUrlCompleta(inscripcion.ComprobantePagoURL, Request) : null,
+          IdCategoria = inscripcion.IdCategoria,
+          NombreCategoria = inscripcion.Categoria?.Nombre ?? "",
+          Runner = inscripcion.Usuario != null ? new RunnerInscriptoInfo
+          {
+            IdUsuario = inscripcion.Usuario.IdUsuario,
+            Nombre = inscripcion.Usuario.Nombre,
+            Apellido = inscripcion.Usuario.PerfilRunner?.Apellido,
+            Email = inscripcion.Usuario.Email,
+            Telefono = inscripcion.Usuario.Telefono,
+            Dni = inscripcion.Usuario.PerfilRunner?.Dni,
+            Genero = inscripcion.Usuario.PerfilRunner?.Genero,
+            FechaNacimiento = inscripcion.Usuario.PerfilRunner?.FechaNacimiento,
+            Localidad = inscripcion.Usuario.PerfilRunner?.Localidad,
+            NombreContactoEmergencia = inscripcion.Usuario.PerfilRunner?.NombreContactoEmergencia,
+            TelefonoEmergencia = inscripcion.Usuario.PerfilRunner?.TelefonoEmergencia
+          } : null
+        };
+
+        return Ok(response);
+      }
+      catch (Exception ex)
+      {
+        return StatusCode(500, new { message = "Error al obtener la ficha del runner", error = ex.Message });
+      }
+    }
+
     /// Subir comprobante de pago
     /// PUT: api/Inscripcion/{id}/Comprobante
     [HttpPut("{id}/Comprobante")]

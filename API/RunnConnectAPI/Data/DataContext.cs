@@ -24,7 +24,7 @@ namespace RunnConnectAPI.Data
     //Recuperar cuenta
     public DbSet<TokenRecuperacion> TokenRecuperacion {get;set;}
 
-   /*  protected override void OnModelCreating(ModelBuilder modelBuilder)
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
       base.OnModelCreating(modelBuilder);
 
@@ -73,7 +73,7 @@ namespace RunnConnectAPI.Data
       modelBuilder.Entity<PerfilOrganizador>()
           .HasIndex(p => p.CuitTaxId)
           .IsUnique();
-          }*/
+          }
 
   }
 }

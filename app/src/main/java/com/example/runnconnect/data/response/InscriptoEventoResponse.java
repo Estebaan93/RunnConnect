@@ -42,6 +42,7 @@ public class InscriptoEventoResponse {
     private String fechaNacimiento;
     private String nombreContactoEmergencia;
     private String telefonoEmergencia;
+    private Integer edad;
 
     // Helper para nombre completo
     public String getNombre () { return nombre; }
@@ -63,6 +64,7 @@ public class InscriptoEventoResponse {
     public String getContactoEmergenciaFormateado() { return "Contacto: " + nombreContactoEmergencia; }
     public String getTelefonoEmergencia() { return telefonoEmergencia; }
     public String getTelEmergenciaFormateado() { return "Tel: " + telefonoEmergencia; }
+    public Integer getEdad() { return edad; }
   }
 
 }

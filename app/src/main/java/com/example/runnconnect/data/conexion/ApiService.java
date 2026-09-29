@@ -23,6 +23,7 @@ import com.example.runnconnect.data.request.MotivoBajaRequest;
 import com.example.runnconnect.data.response.EventoDetalleResponse;
 import com.example.runnconnect.data.response.EventoResumenResponse;
 import com.example.runnconnect.data.response.EventosPaginadosResponse;
+import com.example.runnconnect.data.response.InscriptoEventoResponse;
 import com.example.runnconnect.data.response.ListaInscriptosResponse;
 import com.example.runnconnect.data.response.LoginResponse;
 import com.example.runnconnect.data.response.MapaEventoResponse;
@@ -234,6 +235,13 @@ public interface ApiService {
     @Query("busqueda") String termino
   );
 
+  // Obtener ficha completa de inscripcion (organizador)
+  @GET("Inscripcion/{id}/Ficha")
+  Call<InscriptoEventoResponse> obtenerFichaInscripcion(
+    @Header("Authorization") String token,
+    @Path("id") int idInscripcion
+  );
+
   //PUNTOS DE INTERES
   //agregar puntos de interes
   @POST("Evento/{idEvento}/PuntosInteres")
@@ -274,6 +282,9 @@ public interface ApiService {
     @Path("idEvento") int idEvento
   );
 
-
-
+  // Obtener resultados de una categoria
+  @GET("Resultado/Categoria/{idCategoria}")
+  Call<List<ResultadosEventoResponse.ResultadoEventoItem>> obtenerResultadosCategoria(
+    @Path("idCategoria") int idCategoria
+  );
 }

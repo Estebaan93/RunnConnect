@@ -13,7 +13,16 @@ import java.util.List;
 
 public class ResultadosAdapter extends RecyclerView.Adapter<ResultadosAdapter.ViewHolder> {
 
+  public interface OnRunnerClickListener {
+    void onRunnerClick(int position);
+  }
+
   private List<ResultadosEventoViewModel.ResultadoUI> lista = new ArrayList<>();
+  private final OnRunnerClickListener listener;
+
+  public ResultadosAdapter(OnRunnerClickListener listener) {
+    this.listener = listener;
+  }
 
   public void setLista(List<ResultadosEventoViewModel.ResultadoUI> nuevaLista) {
     this.lista = nuevaLista != null ? nuevaLista : new ArrayList<>();
@@ -36,6 +45,13 @@ public class ResultadosAdapter extends RecyclerView.Adapter<ResultadosAdapter.Vi
     holder.binding.tvNombreRunner.setText(item.nombreRunner);
     holder.binding.tvCategoriaRunner.setText(item.categoriaYGenero);
     holder.binding.tvTiempoOficial.setText(item.tiempoOficial);
+
+    holder.itemView.setOnClickListener(v -> {
+      int pos = holder.getBindingAdapterPosition();
+      if (listener != null && pos != RecyclerView.NO_POSITION) {
+        listener.onRunnerClick(pos);
+      }
+    });
   }
 
   @Override
