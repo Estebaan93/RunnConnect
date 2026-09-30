@@ -18,6 +18,7 @@ import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.example.runnconnect.R;
@@ -79,15 +80,24 @@ public class GestionInscriptosFragment extends Fragment {
 
     // Órdenes de navegación (Abrir diálogos)
     viewModel.getMostrarValidacionSignal().observe(getViewLifecycleOwner(), signal -> {
-      mostrarDialogoValidacion(viewModel.getDatosValidacion().getValue());
+      if (Boolean.TRUE.equals(signal)) {
+        viewModel.resetMostrarValidacionSignal();
+        mostrarDialogoValidacion(viewModel.getDatosValidacion().getValue());
+      }
     });
 
     viewModel.getMostrarDetalleSignal().observe(getViewLifecycleOwner(), signal -> {
-      mostrarDetalleRunner(viewModel.getDatosDetalle().getValue());
+      if (Boolean.TRUE.equals(signal)) {
+        viewModel.resetMostrarDetalleSignal();
+        mostrarDetalleRunner(viewModel.getDatosDetalle().getValue());
+      }
     });
 
     viewModel.getMostrarConfirmacionBajaSignal().observe(getViewLifecycleOwner(), signal -> {
-      mostrarDialogoConfirmacionBaja(viewModel.getDatosConfirmacionBaja().getValue());
+      if (Boolean.TRUE.equals(signal)) {
+        viewModel.resetMostrarConfirmacionBajaSignal();
+        mostrarDialogoConfirmacionBaja(viewModel.getDatosConfirmacionBaja().getValue());
+      }
     });
   }
 
@@ -95,6 +105,16 @@ public class GestionInscriptosFragment extends Fragment {
     adapter = new InscriptosAdapter(item -> viewModel.onInscriptoSeleccionado(item));
     binding.recyclerInscriptos.setLayoutManager(new LinearLayoutManager(getContext()));
     binding.recyclerInscriptos.setAdapter(adapter);
+
+    binding.recyclerInscriptos.addOnScrollListener(new RecyclerView.OnScrollListener() {
+      @Override
+      public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
+        super.onScrolled(recyclerView, dx, dy);
+        if (dy > 0 && !recyclerView.canScrollVertically(1)) {
+          viewModel.cargarSiguientePagina();
+        }
+      }
+    });
   }
 
   // --- DIALOGOS ---

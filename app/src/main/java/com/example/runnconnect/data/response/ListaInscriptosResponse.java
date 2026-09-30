@@ -15,6 +15,8 @@ public class ListaInscriptosResponse {
   public List<InscriptoEventoResponse> getInscripciones() { return inscripciones; }
   public Map<String, Integer> getEstadisticas() { return estadisticas; }
   public int getTotalInscripciones() { return totalInscripciones; }
+  public int getPaginaActual() { return paginaActual; }
+  public int getTotalPaginas() { return totalPaginas; }
 
 
 }

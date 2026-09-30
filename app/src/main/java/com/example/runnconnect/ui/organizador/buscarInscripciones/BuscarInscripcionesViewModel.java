@@ -208,6 +208,17 @@ public class BuscarInscripcionesViewModel extends AndroidViewModel {
     String estadoDelEvento = item.getEstadoEvento();
     boolean eventoCerrado = "finalizado".equalsIgnoreCase(estadoDelEvento) || "cancelado".equalsIgnoreCase(estadoDelEvento);
 
+    String estadoPago = item.getEstadoPago();
+    boolean yaEstaDeBaja = estadoPago != null && (
+        "cancelado".equalsIgnoreCase(estadoPago) ||
+        "cancelada".equalsIgnoreCase(estadoPago) ||
+        "baja".equalsIgnoreCase(estadoPago) ||
+        "reembolsado".equalsIgnoreCase(estadoPago) ||
+        "rechazado".equalsIgnoreCase(estadoPago)
+    );
+
+    boolean puedeDarDeBaja = !eventoCerrado && !yaEstaDeBaja;
+
     // Reset feedback states for the new dialog
     feedbackDialogMensaje.setValue("");
     feedbackDialogVisibilidad.setValue(View.GONE);
@@ -215,7 +226,7 @@ public class BuscarInscripcionesViewModel extends AndroidViewModel {
 
     detalleUiState.setValue(new DetalleUiState(
         itemUi.idInscripcion, nombre, dniSexo, localidad, email, telefono, 
-        emergencia, telEmergencia, eventoCatTalle, !eventoCerrado
+        emergencia, telEmergencia, eventoCatTalle, puedeDarDeBaja
     ));
   }
 

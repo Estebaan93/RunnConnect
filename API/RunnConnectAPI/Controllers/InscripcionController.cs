@@ -594,6 +594,30 @@ namespace RunnConnectAPI.Controllers
         // La validacion estricta (solo si es 'pagado') esta en el repositorio
         await _inscripcionRepositorio.CambiarEstadoPagoAsync(id, "reembolsado");
 
+        // Enviar notificacion privada al runner avisando del reembolso
+        if (inscripcion.Categoria?.Evento != null)
+        {
+          var notifReembolso = new NotificacionEvento
+          {
+            IdEvento = inscripcion.Categoria.Evento.IdEvento,
+            IdCategoria = inscripcion.IdCategoria,
+            IdUsuarioDestino = inscripcion.IdUsuario,
+            Titulo = "Inscripción Reembolsada",
+            Mensaje = $"Tu inscripción al evento '{inscripcion.Categoria.Evento.Nombre}' ha sido marcada como reembolsada.",
+            FechaEnvio = DateTime.Now,
+            EsAnuncioGlobal = false,
+            EstadoEvento = inscripcion.Categoria.Evento.Estado
+          };
+
+          await _notificacionRepositorio.CrearAsync(new CrearNotificacionRequest
+          {
+            IdEvento = notifReembolso.IdEvento,
+            IdCategoria = notifReembolso.IdCategoria,
+            Titulo = notifReembolso.Titulo,
+            Mensaje = notifReembolso.Mensaje
+          }, userId, notifReembolso.IdUsuarioDestino);
+        }
+
         return Ok(new
         {
           message = "Inscripcion marcada como reembolsada",
@@ -628,18 +652,43 @@ namespace RunnConnectAPI.Controllers
         if (inscripcion.Categoria?.Evento?.IdOrganizador != userId)
           return Forbid();
 
+        string motivoTexto = string.IsNullOrWhiteSpace(request?.Motivo)
+            ? "Sin motivo especificado"
+            : request.Motivo.Trim();
 
-        // Forzar cambio de estado a cancelado
-        // Nota: guardar el motivo en la BD si tienes un campo para eso
-        await _inscripcionRepositorio.DarBajaPorOrganizadorAsync(id);
+        // Forzar cambio de estado a cancelado y persistir motivo en observacion
+        await _inscripcionRepositorio.DarBajaPorOrganizadorAsync(id, motivoTexto);
 
-        //Enviar notificacion al runner avisando que fue dado de baja (TODO)
+        // Enviar notificacion privada al runner avisando que fue dado de baja
+        if (inscripcion.Categoria?.Evento != null)
+        {
+          var notificacion = new NotificacionEvento
+          {
+            IdEvento = inscripcion.Categoria.Evento.IdEvento,
+            IdCategoria = inscripcion.IdCategoria,
+            IdUsuarioDestino = inscripcion.IdUsuario,
+            Titulo = "Inscripción Cancelada / Dada de Baja",
+            Mensaje = $"Tu inscripción al evento '{inscripcion.Categoria.Evento.Nombre}' fue cancelada por el organizador. Motivo: {motivoTexto}",
+            FechaEnvio = DateTime.Now,
+            EsAnuncioGlobal = false,
+            EstadoEvento = inscripcion.Categoria.Evento.Estado
+          };
+
+          await _notificacionRepositorio.CrearAsync(new CrearNotificacionRequest
+          {
+            IdEvento = notificacion.IdEvento,
+            IdCategoria = notificacion.IdCategoria,
+            Titulo = notificacion.Titulo,
+            Mensaje = notificacion.Mensaje
+          }, userId, notificacion.IdUsuarioDestino);
+        }
+
         return Ok(new
         {
           message = "Inscripción dada de baja exitosamente",
           idInscripcion = id,
           estadoNuevo = "cancelado",
-          motivo = request.Motivo
+          motivo = motivoTexto
         });
       }
       catch (Exception ex)

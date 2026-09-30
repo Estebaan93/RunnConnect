@@ -83,9 +83,14 @@ public class GestionInscriptosViewModel extends AndroidViewModel {
   private final MutableLiveData<InscriptoEventoResponse> datosConfirmacionBaja = new MutableLiveData<>();
   private final MutableLiveData<Boolean> mostrarConfirmacionBajaSignal = new MutableLiveData<>();
 
-  // Estado interno
+  // Estado interno y paginación
   private int idEventoActual = 0;
   private String filtroEstado = "procesando";
+  private int paginaActual = 1;
+  private int totalPaginas = 1;
+  private final int tamanioPagina = 25;
+  private boolean isCargandoPaginacion = false;
+  private final List<InscriptoItemUIState> listaAcumulada = new ArrayList<>();
 
   public GestionInscriptosViewModel(@NonNull Application application) {
     super(application);
@@ -112,9 +117,21 @@ public class GestionInscriptosViewModel extends AndroidViewModel {
   public LiveData<InscriptoEventoResponse> getDatosConfirmacionBaja() { return datosConfirmacionBaja; }
   public LiveData<Boolean> getMostrarConfirmacionBajaSignal() { return mostrarConfirmacionBajaSignal; }
 
-  // --- CONSUMO DE ORDENES ---
+  // --- CONSUMO DE ORDENES (Resets para evitar eventos fantasma) ---
   public void limpiarMensajes() {
     uiMensajeGlobalVisibilidad.setValue(View.GONE);
+  }
+
+  public void resetMostrarDetalleSignal() {
+    mostrarDetalleSignal.setValue(null);
+  }
+
+  public void resetMostrarValidacionSignal() {
+    mostrarValidacionSignal.setValue(null);
+  }
+
+  public void resetMostrarConfirmacionBajaSignal() {
+    mostrarConfirmacionBajaSignal.setValue(null);
   }
 
   // --- ENTRADAS (Acciones del Usuario) ---
@@ -122,13 +139,20 @@ public class GestionInscriptosViewModel extends AndroidViewModel {
     this.idEventoActual = idEvento;
     boolean cerrado = "finalizado".equalsIgnoreCase(estadoEvento) || "cancelado".equalsIgnoreCase(estadoEvento);
     permitirBajas.setValue(!cerrado);
-    ejecutarConsulta();
+    cargarPagina(1, false);
   }
 
   public void cambiarFiltro(String nuevoEstado) {
     this.filtroEstado = nuevoEstado;
     limpiarMensajes();
-    ejecutarConsulta();
+    cargarPagina(1, false);
+  }
+
+  public void cargarSiguientePagina() {
+    if (isCargandoPaginacion || Boolean.TRUE.equals(isLoading.getValue()) || paginaActual >= totalPaginas) {
+      return;
+    }
+    cargarPagina(paginaActual + 1, true);
   }
 
   private void mostrarErrorGlobal(String mensaje) {
@@ -143,7 +167,7 @@ public class GestionInscriptosViewModel extends AndroidViewModel {
     uiMensajeGlobalVisibilidad.setValue(View.VISIBLE);
   }
 
-  // LOGICA CLAVE: El VM decide que dialogo mostrar segun el estado
+  // LOGICA CLAVE: Ficha técnica bajo demanda vs Validación de pago
   public void onInscriptoSeleccionado(InscriptoItemUIState uiState) {
     if (uiState == null || uiState.data == null) return;
     InscriptoEventoResponse item = uiState.data;
@@ -152,8 +176,35 @@ public class GestionInscriptosViewModel extends AndroidViewModel {
       datosValidacion.setValue(item);
       mostrarValidacionSignal.setValue(true);
     } else {
-      datosDetalle.setValue(item);
-      mostrarDetalleSignal.setValue(true);
+      cargarFichaCorredorBajoDemanda(item.getIdInscripcion());
+    }
+  }
+
+  private void cargarFichaCorredorBajoDemanda(int idInscripcion) {
+    isLoading.setValue(true);
+    String token = sessionManager.leerToken();
+    if (token != null) {
+      apiService.obtenerFichaInscripcion("Bearer " + token, idInscripcion).enqueue(new Callback<InscriptoEventoResponse>() {
+        @Override
+        public void onResponse(Call<InscriptoEventoResponse> call, Response<InscriptoEventoResponse> response) {
+          isLoading.setValue(false);
+          if (response.isSuccessful() && response.body() != null) {
+            datosDetalle.setValue(response.body());
+            mostrarDetalleSignal.setValue(true);
+          } else {
+            mostrarErrorGlobal("Error al obtener ficha del corredor (" + response.code() + ")");
+          }
+        }
+
+        @Override
+        public void onFailure(Call<InscriptoEventoResponse> call, Throwable t) {
+          isLoading.setValue(false);
+          mostrarErrorGlobal("Error de conexión al obtener ficha");
+        }
+      });
+    } else {
+      isLoading.setValue(false);
+      mostrarErrorGlobal("No hay sesión activa.");
     }
   }
 
@@ -186,7 +237,7 @@ public class GestionInscriptosViewModel extends AndroidViewModel {
           isLoading.setValue(false);
           if (response.isSuccessful()) {
             mostrarExitoGlobal("pagado".equals(nuevoEstado) ? "Pago Aprobado" : "Pago Rechazado");
-            ejecutarConsulta(); // Recargar lista
+            cargarPagina(1, false); // Recargar primera página
           } else {
             mostrarErrorGlobal("Error al procesar: " + response.code());
           }
@@ -203,43 +254,70 @@ public class GestionInscriptosViewModel extends AndroidViewModel {
     }
   }
 
-  private void ejecutarConsulta() {
+  private void cargarPagina(int pagina, boolean esPaginacion) {
     if (idEventoActual == 0) return;
-    isLoading.setValue(true);
+    if (esPaginacion) {
+      isCargandoPaginacion = true;
+    } else {
+      isLoading.setValue(true);
+    }
 
     String token = sessionManager.leerToken();
     if (token != null) {
-      apiService.obtenerInscriptos("Bearer " + token, idEventoActual, filtroEstado, 1, 100).enqueue(new Callback<ListaInscriptosResponse>() {
+      apiService.obtenerInscriptos("Bearer " + token, idEventoActual, filtroEstado, pagina, tamanioPagina).enqueue(new Callback<ListaInscriptosResponse>() {
         @Override
         public void onResponse(Call<ListaInscriptosResponse> call, Response<ListaInscriptosResponse> response) {
           isLoading.setValue(false);
+          isCargandoPaginacion = false;
           if (response.isSuccessful() && response.body() != null) {
+            paginaActual = response.body().getPaginaActual() > 0 ? response.body().getPaginaActual() : pagina;
+            totalPaginas = response.body().getTotalPaginas() > 0 ? response.body().getTotalPaginas() : 1;
+
             List<InscriptoEventoResponse> listaResp = response.body().getInscripciones();
-            List<InscriptoItemUIState> listaUi = new ArrayList<>();
-            for (InscriptoEventoResponse resp : listaResp) {
-              listaUi.add(new InscriptoItemUIState(resp));
+            if (!esPaginacion) {
+              listaAcumulada.clear();
             }
-            listaInscriptos.setValue(listaUi);
-            esListaVacia.setValue(listaUi.isEmpty());
+
+            if (listaResp != null && !listaResp.isEmpty()) {
+              for (InscriptoEventoResponse resp : listaResp) {
+                listaAcumulada.add(new InscriptoItemUIState(resp));
+              }
+            } else if (esPaginacion) {
+              totalPaginas = paginaActual;
+            }
+
+            listaInscriptos.setValue(new ArrayList<>(listaAcumulada));
+            esListaVacia.setValue(listaAcumulada.isEmpty());
           } else {
-            listaInscriptos.setValue(new ArrayList<>());
-            esListaVacia.setValue(true);
-            if (response.code() != 404) mostrarErrorGlobal("Error cargando lista.");
+            if (!esPaginacion) {
+              listaAcumulada.clear();
+              listaInscriptos.setValue(new ArrayList<>());
+              esListaVacia.setValue(true);
+              if (response.code() != 404) mostrarErrorGlobal("Error cargando lista.");
+            }
           }
         }
         @Override
         public void onFailure(Call<ListaInscriptosResponse> call, Throwable t) {
           isLoading.setValue(false);
+          isCargandoPaginacion = false;
           mostrarErrorGlobal("Error de conexión");
-          listaInscriptos.setValue(new ArrayList<>());
-          esListaVacia.setValue(true);
+          if (!esPaginacion) {
+            listaAcumulada.clear();
+            listaInscriptos.setValue(new ArrayList<>());
+            esListaVacia.setValue(true);
+          }
         }
       });
     } else {
       isLoading.setValue(false);
+      isCargandoPaginacion = false;
       mostrarErrorGlobal("No hay sesión activa.");
-      listaInscriptos.setValue(new ArrayList<>());
-      esListaVacia.setValue(true);
+      if (!esPaginacion) {
+        listaAcumulada.clear();
+        listaInscriptos.setValue(new ArrayList<>());
+        esListaVacia.setValue(true);
+      }
     }
   }
 
@@ -248,7 +326,7 @@ public class GestionInscriptosViewModel extends AndroidViewModel {
     isLoading.setValue(true);
 
     //motivo generico
-    String motivo= "Baja solicitada por el organizador en gestion de inscripciones";
+    String motivo = "Baja solicitada por el organizador en gestion de inscripciones";
 
     //lamamos al repo
     String token = sessionManager.leerToken();
@@ -258,13 +336,11 @@ public class GestionInscriptosViewModel extends AndroidViewModel {
         @Override
         public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
           isLoading.setValue(false);
-          
-          if(response.isSuccessful()){
+          if (response.isSuccessful()) {
             mostrarExitoGlobal("Runner dado de baja exitosamente");
-            ejecutarConsulta(); //Recarga la lista para ver cambios
-
-          }else{
-            mostrarErrorGlobal("Error al dar de baja:");
+            cargarPagina(1, false); // Recarga la primera página
+          } else {
+            mostrarErrorGlobal("Error al dar de baja: " + response.code());
             Log.d("GestionInscriptosVM", "Error al dar de baja: " + response.code());
           }
         

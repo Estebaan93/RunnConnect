@@ -409,7 +409,7 @@ namespace RunnConnectAPI.Repositories
 
     /* Permite al organizador forzar la baja de un runner, sin importar si ya pago.
       Salta las validaciones de transicion de pago normales.*/
-    public async Task DarBajaPorOrganizadorAsync(int idInscripcion)
+    public async Task DarBajaPorOrganizadorAsync(int idInscripcion, string? motivo = null)
     {
       var inscripcion = await _context.Inscripciones.FindAsync(idInscripcion);
 
@@ -423,6 +423,11 @@ namespace RunnConnectAPI.Repositories
       // FORZAMOS el estado a cancelado directamente
       // NO llamamos a ValidarTransicionEstado() porque es una accion administrativa
       inscripcion.EstadoPago = "cancelado";
+
+      if (!string.IsNullOrWhiteSpace(motivo))
+      {
+        inscripcion.Observacion = motivo.Trim().Length > 250 ? motivo.Trim().Substring(0, 250) : motivo.Trim();
+      }
 
       await _context.SaveChangesAsync();
     }
