@@ -729,6 +729,8 @@ namespace RunnConnectAPI.Controllers
           EstadoEvento = i.Categoria.Evento.Estado,
 
           TalleRemera = i.TalleRemera,
+          ComprobantePagoURL = !string.IsNullOrEmpty(i.ComprobantePagoURL)
+            ? _fileService.ObtenerUrlCompleta(i.ComprobantePagoURL, Request) : null,
 
           Runner = new RunnerSimpleDto
           {

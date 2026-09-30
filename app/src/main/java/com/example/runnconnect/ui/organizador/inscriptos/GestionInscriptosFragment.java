@@ -3,18 +3,13 @@ package com.example.runnconnect.ui.organizador.inscriptos;
 import android.app.Dialog;
 import android.graphics.Color;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
-import android.widget.Button;
-import android.widget.ImageView;
-import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -23,6 +18,9 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.example.runnconnect.R;
 import com.example.runnconnect.data.response.InscriptoEventoResponse;
+import com.example.runnconnect.databinding.DialogDetalleRunnerBinding;
+import com.example.runnconnect.databinding.DialogValidarPagoBinding;
+import com.example.runnconnect.databinding.DialogVerImagenBinding;
 import com.example.runnconnect.databinding.FragmentGestionInscriptosBinding;
 
 public class GestionInscriptosFragment extends Fragment {
@@ -99,6 +97,8 @@ public class GestionInscriptosFragment extends Fragment {
         mostrarDialogoConfirmacionBaja(viewModel.getDatosConfirmacionBaja().getValue());
       }
     });
+
+    viewModel.getUiMostrarComprobanteUrl().observe(getViewLifecycleOwner(), this::mostrarDialogoComprobante);
   }
 
   private void setupRecyclerView() {
@@ -121,42 +121,54 @@ public class GestionInscriptosFragment extends Fragment {
   private void mostrarDetalleRunner(InscriptoEventoResponse item) {
     Dialog dialog = new Dialog(requireContext());
     dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
-    dialog.setContentView(R.layout.dialog_detalle_runner);
-    dialog.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-
-    // Bindings
-    TextView tvNombre = dialog.findViewById(R.id.tvNombreCompleto);
-    TextView tvDniSexo = dialog.findViewById(R.id.tvDniSexoEdad);
-    TextView tvLocalidad = dialog.findViewById(R.id.tvLocalidad);
-    TextView tvEmail = dialog.findViewById(R.id.tvEmail);
-    TextView tvTel = dialog.findViewById(R.id.tvTelefono);
-    TextView tvEmergencia = dialog.findViewById(R.id.tvContactoEmergencia);
-    TextView tvTelEmergencia = dialog.findViewById(R.id.tvTelEmergencia);
-    TextView tvCatTalle = dialog.findViewById(R.id.tvCategoriaTalle);
-    Button btnCerrar = dialog.findViewById(R.id.btnCerrarDetalle);
-    Button btnDarDeBaja = dialog.findViewById(R.id.btnDarDeBaja);
+    DialogDetalleRunnerBinding detalleBinding = DialogDetalleRunnerBinding.inflate(getLayoutInflater());
+    dialog.setContentView(detalleBinding.getRoot());
+    if (dialog.getWindow() != null) {
+      dialog.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+    }
 
     InscriptoEventoResponse.RunnerInscriptoInfo r = item.getRunner();
 
-    tvNombre.setText(r.getNombreCompleto());
-    tvDniSexo.setText(r.getDniSexoFormateado());
-    tvLocalidad.setText(r.getLocalidad());
-    tvEmail.setText(r.getEmail());
-    tvTel.setText(r.getTelefono());
-    tvEmergencia.setText(r.getContactoEmergenciaFormateado());
-    tvTelEmergencia.setText(r.getTelEmergenciaFormateado());
-    tvCatTalle.setText(item.getCategoriaTalleFormateado());
+    detalleBinding.tvNombreCompleto.setText(r.getNombreCompleto());
+    detalleBinding.tvDniSexoEdad.setText(r.getDniSexoFormateado());
+    detalleBinding.tvLocalidad.setText(r.getLocalidad());
+    detalleBinding.tvEmail.setText(r.getEmail());
+    detalleBinding.tvTelefono.setText(r.getTelefono());
+    detalleBinding.tvContactoEmergencia.setText(r.getContactoEmergenciaFormateado());
+    detalleBinding.tvTelEmergencia.setText(r.getTelEmergenciaFormateado());
+    detalleBinding.tvCategoriaTalle.setText(item.getCategoriaTalleFormateado());
 
-    // Visibilidad basada puramente en el estado del ViewModel
+    // Visibilidad y accion del comprobante delegada al ViewModel
+    detalleBinding.btnVerComprobante.setVisibility(View.VISIBLE);
+    detalleBinding.btnVerComprobante.setOnClickListener(v -> viewModel.onVerComprobanteClicked());
+
+    // Visibilidad de baja basada en el estado del ViewModel
     Boolean pb = viewModel.getPermitirBajas().getValue();
-    btnDarDeBaja.setVisibility(pb != null && pb ? View.VISIBLE : View.GONE);
+    detalleBinding.btnDarDeBaja.setVisibility(Boolean.TRUE.equals(pb) ? View.VISIBLE : View.GONE);
 
-    btnDarDeBaja.setOnClickListener(v -> {
+    detalleBinding.btnDarDeBaja.setOnClickListener(v -> {
       viewModel.intentarDarDeBajaRunner(item);
       dialog.dismiss();
     });
 
-    btnCerrar.setOnClickListener(v -> dialog.dismiss());
+    detalleBinding.btnCerrarDetalle.setOnClickListener(v -> dialog.dismiss());
+    dialog.show();
+  }
+
+  private void mostrarDialogoComprobante(String url) {
+    Dialog dialog = new Dialog(requireContext());
+    dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+    DialogVerImagenBinding zoomBinding = DialogVerImagenBinding.inflate(getLayoutInflater());
+    dialog.setContentView(zoomBinding.getRoot());
+    if (dialog.getWindow() != null) {
+      dialog.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+    }
+
+    Glide.with(this)
+        .load(url)
+        .into(zoomBinding.ivZoom);
+
+    zoomBinding.btnCerrarImagen.setOnClickListener(v -> dialog.dismiss());
     dialog.show();
   }
 
@@ -174,36 +186,41 @@ public class GestionInscriptosFragment extends Fragment {
   private void mostrarDialogoValidacion(InscriptoEventoResponse item) {
     Dialog dialog = new Dialog(requireContext());
     dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
-    dialog.setContentView(R.layout.dialog_validar_pago);
-    dialog.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-
-    ImageView imgComprobante = dialog.findViewById(R.id.imgComprobante);
-    Button btnAceptar = dialog.findViewById(R.id.btnAceptarPago);
-    Button btnRechazar = dialog.findViewById(R.id.btnRechazarPago);
-    TextView tvNombre = dialog.findViewById(R.id.tvNombreRunner);
-    TextView tvDni = dialog.findViewById(R.id.tvDniRunner);
+    DialogValidarPagoBinding validarBinding = DialogValidarPagoBinding.inflate(getLayoutInflater());
+    dialog.setContentView(validarBinding.getRoot());
+    if (dialog.getWindow() != null) {
+      dialog.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+    }
 
     InscriptoEventoResponse.RunnerInscriptoInfo r = item.getRunner();
-    tvNombre.setText(r.getNombreCompleto());
-    tvDni.setText(r.getDniFormateado());
+    validarBinding.tvNombreRunner.setText(r.getNombreCompleto());
+    validarBinding.tvDniRunner.setText(r.getDniFormateado());
+
+    String comprobanteUrl = item.getComprobantePagoURL();
+    if (comprobanteUrl != null && comprobanteUrl.contains("localhost")) {
+      comprobanteUrl = comprobanteUrl.replace("localhost", "10.0.2.2");
+    }
 
     Glide.with(this)
-      .load(item.getComprobantePagoURL())
-      .placeholder(R.drawable.ic_launcher_background)
-      .fallback(R.drawable.ic_launcher_foreground)
-      .error(R.drawable.ic_launcher_foreground)
-      .into(imgComprobante);
+      .load(comprobanteUrl)
+      .into(validarBinding.imgComprobante);
 
-    btnAceptar.setOnClickListener(v -> {
+    validarBinding.btnAceptarPago.setOnClickListener(v -> {
       viewModel.aprobarPago(item.getIdInscripcion());
       dialog.dismiss();
     });
 
-    btnRechazar.setOnClickListener(v -> {
+    validarBinding.btnRechazarPago.setOnClickListener(v -> {
       viewModel.rechazarPago(item.getIdInscripcion());
       dialog.dismiss();
     });
 
     dialog.show();
+  }
+
+  @Override
+  public void onDestroyView() {
+    super.onDestroyView();
+    binding = null;
   }
 }

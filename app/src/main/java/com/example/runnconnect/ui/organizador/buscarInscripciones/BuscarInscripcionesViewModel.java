@@ -42,6 +42,7 @@ public class BuscarInscripcionesViewModel extends AndroidViewModel {
   private final MutableLiveData<Integer> feedbackDialogVisibilidad = new MutableLiveData<>(View.GONE);
   private final MutableLiveData<Integer> feedbackDialogColor = new MutableLiveData<>(Color.BLACK);
   private final MutableLiveData<Boolean> btnBajaHabilitado = new MutableLiveData<>(true);
+  private final MutableLiveData<String> uiMostrarComprobanteUrl = new MutableLiveData<>();
   
   private List<BusquedaItemUiModel> listaMaestra = new ArrayList<>();
   private String filtroEstado = "Todos";
@@ -64,6 +65,7 @@ public class BuscarInscripcionesViewModel extends AndroidViewModel {
   public LiveData<Integer> getFeedbackDialogVisibilidad() { return feedbackDialogVisibilidad; }
   public LiveData<Integer> getFeedbackDialogColor() { return feedbackDialogColor; }
   public LiveData<Boolean> getBtnBajaHabilitado() { return btnBajaHabilitado; }
+  public LiveData<String> getUiMostrarComprobanteUrl() { return uiMostrarComprobanteUrl; }
 
   public void onTextoBuscadorCambiado(String texto) {
     if (texto == null || texto.trim().isEmpty()) {
@@ -216,8 +218,12 @@ public class BuscarInscripcionesViewModel extends AndroidViewModel {
         "reembolsado".equalsIgnoreCase(estadoPago) ||
         "rechazado".equalsIgnoreCase(estadoPago)
     );
-
     boolean puedeDarDeBaja = !eventoCerrado && !yaEstaDeBaja;
+    int visibilidadBaja = puedeDarDeBaja ? View.VISIBLE : View.GONE;
+
+    String comprobanteUrl = item.getComprobantePagoURL();
+    boolean tieneComprobante = comprobanteUrl != null && !comprobanteUrl.trim().isEmpty();
+    int visibilidadComprobante = tieneComprobante ? View.VISIBLE : View.GONE;
 
     // Reset feedback states for the new dialog
     feedbackDialogMensaje.setValue("");
@@ -226,7 +232,8 @@ public class BuscarInscripcionesViewModel extends AndroidViewModel {
 
     detalleUiState.setValue(new DetalleUiState(
         itemUi.idInscripcion, nombre, dniSexo, localidad, email, telefono, 
-        emergencia, telEmergencia, eventoCatTalle, puedeDarDeBaja
+        emergencia, telEmergencia, eventoCatTalle, visibilidadBaja,
+        visibilidadComprobante, comprobanteUrl
     ));
   }
 
@@ -286,6 +293,21 @@ public class BuscarInscripcionesViewModel extends AndroidViewModel {
     detalleUiState.setValue(null);
   }
 
+  public void onVerComprobanteClicked() {
+    DetalleUiState state = detalleUiState.getValue();
+    if (state != null && state.comprobanteUrl != null) {
+      String url = state.comprobanteUrl;
+      if (url.contains("localhost")) {
+        url = url.replace("localhost", "10.0.2.2");
+      }
+      uiMostrarComprobanteUrl.setValue(url);
+    }
+  }
+
+  public void limpiarComprobanteUrl() {
+    uiMostrarComprobanteUrl.setValue(null);
+  }
+
   // UI States
   public static class BusquedaItemUiModel {
     public final int idInscripcion;
@@ -319,9 +341,11 @@ public class BuscarInscripcionesViewModel extends AndroidViewModel {
     public final String emergencia;
     public final String telEmergencia;
     public final String eventoCatTalle;
-    public final boolean btnBajaVisible;
+    public final int btnBajaVisibilidad;
+    public final int btnVerComprobanteVisibilidad;
+    public final String comprobanteUrl;
 
-    public DetalleUiState(int idInscripcion, String nombre, String dniSexo, String localidad, String email, String telefono, String emergencia, String telEmergencia, String eventoCatTalle, boolean btnBajaVisible) {
+    public DetalleUiState(int idInscripcion, String nombre, String dniSexo, String localidad, String email, String telefono, String emergencia, String telEmergencia, String eventoCatTalle, int btnBajaVisibilidad, int btnVerComprobanteVisibilidad, String comprobanteUrl) {
       this.idInscripcion = idInscripcion;
       this.nombre = nombre;
       this.dniSexo = dniSexo;
@@ -331,10 +355,9 @@ public class BuscarInscripcionesViewModel extends AndroidViewModel {
       this.emergencia = emergencia;
       this.telEmergencia = telEmergencia;
       this.eventoCatTalle = eventoCatTalle;
-      this.btnBajaVisible = btnBajaVisible;
+      this.btnBajaVisibilidad = btnBajaVisibilidad;
+      this.btnVerComprobanteVisibilidad = btnVerComprobanteVisibilidad;
+      this.comprobanteUrl = comprobanteUrl;
     }
   }
-
-
-
 }

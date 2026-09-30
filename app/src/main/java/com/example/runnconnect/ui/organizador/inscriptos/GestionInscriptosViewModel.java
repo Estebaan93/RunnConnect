@@ -82,6 +82,7 @@ public class GestionInscriptosViewModel extends AndroidViewModel {
   // --- ORDENES DE CONFIRMACION ---
   private final MutableLiveData<InscriptoEventoResponse> datosConfirmacionBaja = new MutableLiveData<>();
   private final MutableLiveData<Boolean> mostrarConfirmacionBajaSignal = new MutableLiveData<>();
+  private final MutableLiveData<String> uiMostrarComprobanteUrl = new MutableLiveData<>();
 
   // Estado interno y paginación
   private int idEventoActual = 0;
@@ -116,6 +117,7 @@ public class GestionInscriptosViewModel extends AndroidViewModel {
 
   public LiveData<InscriptoEventoResponse> getDatosConfirmacionBaja() { return datosConfirmacionBaja; }
   public LiveData<Boolean> getMostrarConfirmacionBajaSignal() { return mostrarConfirmacionBajaSignal; }
+  public LiveData<String> getUiMostrarComprobanteUrl() { return uiMostrarComprobanteUrl; }
 
   // --- CONSUMO DE ORDENES (Resets para evitar eventos fantasma) ---
   public void limpiarMensajes() {
@@ -212,6 +214,17 @@ public class GestionInscriptosViewModel extends AndroidViewModel {
     if (item == null) return;
     datosConfirmacionBaja.setValue(item);
     mostrarConfirmacionBajaSignal.setValue(true);
+  }
+
+  public void onVerComprobanteClicked() {
+    InscriptoEventoResponse item = datosDetalle.getValue();
+    if (item != null) {
+      String url = item.getComprobantePagoURL();
+      if (url != null && url.contains("localhost")) {
+        url = url.replace("localhost", "10.0.2.2");
+      }
+      uiMostrarComprobanteUrl.setValue(url);
+    }
   }
 
   // Logica encapsulada: Aprobar

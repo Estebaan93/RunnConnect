@@ -17,6 +17,8 @@ namespace RunnConnectAPI.Models.Dto.Inscripcion
     //talle remera
     public string? TalleRemera { get; set; }
 
+    public string? ComprobantePagoURL { get; set; }
+
     // Datos del Runner
     public RunnerSimpleDto Runner { get; set; } = new RunnerSimpleDto();
   }

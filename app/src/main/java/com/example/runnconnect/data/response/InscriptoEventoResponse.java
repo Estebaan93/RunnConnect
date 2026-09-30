@@ -1,5 +1,7 @@
 package com.example.runnconnect.data.response;
 
+import android.view.View;
+
 public class InscriptoEventoResponse {
   private int idInscripcion;
   private String fechaInscripcion;
@@ -28,6 +30,14 @@ public class InscriptoEventoResponse {
   // Helpers para la Vista
   public String getCategoriaTalleFormateado() {
     return "Categoría: " + nombreCategoria + " | Talle: " + talleRemera;
+  }
+
+  public boolean tieneComprobante() {
+    return comprobantePagoURL != null && !comprobantePagoURL.trim().isEmpty();
+  }
+
+  public int getComprobanteVisibilidad() {
+    return tieneComprobante() ? View.VISIBLE : View.GONE;
   }
 
   public static class RunnerInscriptoInfo {
