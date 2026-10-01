@@ -1,15 +1,14 @@
 package com.example.runnconnect.ui.registro;
 
 import android.app.Application;
-import android.content.Intent;
 import android.net.Uri;
+import android.view.View;
 
 import androidx.annotation.NonNull;
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
-import com.example.runnconnect.MainActivity;
 import com.example.runnconnect.data.conexion.ApiClient;
 import com.example.runnconnect.data.conexion.ApiService;
 import com.example.runnconnect.data.preferencias.SessionManager;
@@ -30,9 +29,10 @@ public class RegisterOrganizadorViewModel extends AndroidViewModel {
   private final ApiService apiService;
   private final SessionManager sessionManager;
   private final MutableLiveData<Boolean> isLoading = new MutableLiveData<>(false);
-  private final MutableLiveData<String> errorMessage = new MutableLiveData<>();
+  private final MutableLiveData<String> errorMessage = new MutableLiveData<>("");
+  private final MutableLiveData<Integer> errorVisibility = new MutableLiveData<>(View.GONE);
   private final MutableLiveData<Uri> avatarUri = new MutableLiveData<>();
-  private final MutableLiveData<Intent> navigateToMain = new MutableLiveData<>();
+  private final MutableLiveData<Boolean> registroExitoso = new MutableLiveData<>();
 
   public RegisterOrganizadorViewModel(@NonNull Application application) {
     super(application);
@@ -42,25 +42,38 @@ public class RegisterOrganizadorViewModel extends AndroidViewModel {
 
   public LiveData<Boolean> getIsLoading() { return isLoading; }
   public LiveData<String> getErrorMessage() { return errorMessage; }
+  public LiveData<Integer> getErrorVisibility() { return errorVisibility; }
   public LiveData<Uri> getAvatarUri() { return avatarUri; }
-  public LiveData<Intent> getNavigateToMain() { return navigateToMain; }
+  public LiveData<Boolean> getRegistroExitoso() { return registroExitoso; }
 
   public void onAvatarSelected(Uri uri) {
     avatarUri.setValue(uri);
   }
 
+  private void mostrarError(String mensaje) {
+    errorMessage.setValue(mensaje);
+    errorVisibility.setValue(View.VISIBLE);
+  }
+
+  private void ocultarError() {
+    errorVisibility.setValue(View.GONE);
+  }
+
   public void registrar(String razonSocial, String nombreComercial, String email, String pass, String confirm) {
-    errorMessage.setValue(null);
+    ocultarError();
 
     // Validaciones
     if (razonSocial.isEmpty() || nombreComercial.isEmpty() || email.isEmpty() || pass.isEmpty()) {
-      errorMessage.setValue("Todos los campos son obligatorios"); return;
+      mostrarError("Todos los campos son obligatorios");
+      return;
     }
     if (!pass.equals(confirm)) {
-      errorMessage.setValue("Las contraseñas no coinciden"); return;
+      mostrarError("Las contraseñas no coinciden");
+      return;
     }
     if (pass.length() < 6) {
-      errorMessage.setValue("La contraseña debe tener al menos 6 caracteres"); return;
+      mostrarError("La contraseña debe tener al menos 6 caracteres");
+      return;
     }
 
     isLoading.setValue(true);
@@ -88,29 +101,25 @@ public class RegisterOrganizadorViewModel extends AndroidViewModel {
         isLoading.setValue(false);
         if (response.isSuccessful() && response.body() != null) {
           sessionManager.guardarSesionUsuario(response.body());
-
-          Intent intent = new Intent(getApplication(), MainActivity.class);
-          intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-          navigateToMain.setValue(intent);
+          registroExitoso.setValue(true);
         } else {
           String error = "Error al registrar organizador";
           try {
             if (response.errorBody() != null) {
               String errorRaw = response.errorBody().string();
-              // Parseo simple de mensaje
-              if(errorRaw.contains("message")) {
+              if (errorRaw.contains("message")) {
                 error = new org.json.JSONObject(errorRaw).getString("message");
               }
             }
           } catch (Exception e) { e.printStackTrace(); }
-          errorMessage.setValue(error);
+          mostrarError(error);
         }
       }
 
       @Override
       public void onFailure(Call<LoginResponse> call, Throwable t) {
         isLoading.setValue(false);
-        errorMessage.setValue("Error de conexión");
+        mostrarError("Error de conexión");
       }
     });
   }

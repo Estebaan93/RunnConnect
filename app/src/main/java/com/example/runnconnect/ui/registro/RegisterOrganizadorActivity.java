@@ -1,14 +1,10 @@
 package com.example.runnconnect.ui.registro;
 
-import android.net.Uri;
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.ImageView;
-import android.widget.ProgressBar;
-import android.widget.TextView;
+
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.PickVisualMediaRequest;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -16,25 +12,19 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.bumptech.glide.Glide;
-import com.example.runnconnect.R;
-import com.google.android.material.textfield.TextInputEditText;
+import com.example.runnconnect.MainActivity;
+import com.example.runnconnect.databinding.ActivityRegisterOrganizadorBinding;
 
 public class RegisterOrganizadorActivity extends AppCompatActivity {
+  private ActivityRegisterOrganizadorBinding binding;
   private RegisterOrganizadorViewModel viewModel;
   private ActivityResultLauncher<PickVisualMediaRequest> mediaPicker;
-
-  // UI Específica de Organizador
-  private EditText etRazonSocial, etNombreComercial;
-  private EditText etEmail, etPassword, etConfirm;
-  private ImageView ivAvatar;
-  private TextView tvError, tvVolver;
-  private Button btnRegistrar;
-  private ProgressBar progressBar;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
-    setContentView(R.layout.activity_register_organizador);
+    binding = ActivityRegisterOrganizadorBinding.inflate(getLayoutInflater());
+    setContentView(binding.getRoot());
 
     viewModel = new ViewModelProvider(this).get(RegisterOrganizadorViewModel.class);
 
@@ -43,89 +33,69 @@ public class RegisterOrganizadorActivity extends AppCompatActivity {
       getSupportActionBar().setDisplayHomeAsUpEnabled(true);
     }
 
-    initViews();
-    setupPickMedia();
+    abriGaleria();
     setupObservers();
     setupListeners();
   }
 
-  private void initViews() {
-    // Campos específicos
-    etRazonSocial = findViewById(R.id.etRazonSocial);
-    etNombreComercial = findViewById(R.id.etNombreComercial);
-
-    // Campos comunes
-    etEmail = findViewById(R.id.etEmail);
-    etPassword = findViewById(R.id.etPassword);
-    etConfirm = findViewById(R.id.etConfirmPassword);
-
-    ivAvatar = findViewById(R.id.ivAvatar);
-    tvError = findViewById(R.id.tvErrorRegister);
-    tvVolver = findViewById(R.id.tvVolverLogin);
-    btnRegistrar = findViewById(R.id.btnRegistrar);
-    progressBar = findViewById(R.id.progressBar);
-  }
-
-  private void setupPickMedia() {
+  private void abriGaleria() {
     mediaPicker = registerForActivityResult(new ActivityResultContracts.PickVisualMedia(), uri -> {
       if (uri != null) viewModel.onAvatarSelected(uri);
     });
   }
 
   private void setupObservers() {
-    viewModel.getAvatarUri().observe(this, uri -> {
-      Glide.with(this).load(uri).circleCrop().into(ivAvatar);
-    });
+    // Avatar seleccionado
+    viewModel.getAvatarUri().observe(this, uri ->
+      Glide.with(this).load(uri).circleCrop().into(binding.ivAvatar)
+    );
 
-    viewModel.getErrorMessage().observe(this, msg -> {
-      if (msg != null && !msg.isEmpty()) {
-        tvError.setText(msg);
-        tvError.setVisibility(View.VISIBLE);
-        tvError.setAlpha(0f);
-        tvError.animate().alpha(1f).setDuration(300).start();
-      } else {
-        tvError.setVisibility(View.GONE);
-      }
-    });
+    // Errores pre-procesados desde el ViewModel
+    viewModel.getErrorMessage().observe(this, binding.tvErrorRegister::setText);
+    viewModel.getErrorVisibility().observe(this, binding.tvErrorRegister::setVisibility);
 
+    // Loading y disponibilidad del botón
     viewModel.getIsLoading().observe(this, loading -> {
-      progressBar.setVisibility(loading ? View.VISIBLE : View.GONE);
-      btnRegistrar.setEnabled(!loading);
-      if(loading) tvError.setVisibility(View.GONE);
+      binding.progressBar.setVisibility(loading ? View.VISIBLE : View.GONE);
+      binding.btnRegistrar.setEnabled(!loading);
     });
 
-    viewModel.getNavigateToMain().observe(this, intent -> {
-      startActivity(intent);
-      finish();
+    // Navegación (Éxito)
+    viewModel.getRegistroExitoso().observe(this, exitoso -> {
+      if (Boolean.TRUE.equals(exitoso)) {
+        Intent intent = new Intent(this, MainActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(intent);
+        finish();
+      }
     });
   }
 
   private void setupListeners() {
-    ivAvatar.setOnClickListener(v ->
+    binding.ivAvatar.setOnClickListener(v ->
       mediaPicker.launch(new PickVisualMediaRequest.Builder()
         .setMediaType(ActivityResultContracts.PickVisualMedia.ImageOnly.INSTANCE)
         .build()));
 
-    btnRegistrar.setOnClickListener(v -> {
+    binding.btnRegistrar.setOnClickListener(v -> {
       viewModel.registrar(
-        etRazonSocial.getText().toString().trim(),
-        etNombreComercial.getText().toString().trim(),
-        etEmail.getText().toString().trim(),
-        etPassword.getText().toString().trim(),
-        etConfirm.getText().toString().trim()
+        binding.etRazonSocial.getText().toString().trim(),
+        binding.etNombreComercial.getText().toString().trim(),
+        binding.etEmail.getText().toString().trim(),
+        binding.etPassword.getText().toString().trim(),
+        binding.etConfirmPassword.getText().toString().trim()
       );
     });
 
-    tvVolver.setOnClickListener(v -> finish());
+    binding.tvVolverLogin.setOnClickListener(v -> finish());
   }
 
   @Override
-  public boolean onOptionsItemSelected( MenuItem item) {
+  public boolean onOptionsItemSelected(MenuItem item) {
     if (item.getItemId() == android.R.id.home) {
       finish();
       return true;
     }
     return super.onOptionsItemSelected(item);
   }
-
 }
