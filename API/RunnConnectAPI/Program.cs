@@ -8,8 +8,8 @@ using RunnConnectAPI.Services;
 using RunnConnectAPI.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
-//para que siempre escuche en todas las redes
-builder.WebHost.UseUrls("http://localhost:5213");
+// Para que escuche en todas las interfaces de red (localhost, emulador 10.0.2.2 y LAN)
+builder.WebHost.UseUrls("http://0.0.0.0:5213");
 
 
 var config = builder.Configuration; //Obtenemos la confi para usarla
@@ -156,5 +156,3 @@ app.MapControllers();
 
 app.Run();
 
-//Escuchar en todas las interfaces
-app.Urls.Add("http://0.0.0.0:5213");

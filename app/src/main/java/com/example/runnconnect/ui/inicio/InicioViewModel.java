@@ -46,12 +46,11 @@ public class InicioViewModel extends AndroidViewModel {
   private final MutableLiveData<String> errorText = new MutableLiveData<>();
   private final MutableLiveData<Integer> errorVisibility = new MutableLiveData<>(View.GONE);
 
-  // Estados de navegacion del navegador
-  private final MutableLiveData<String> abrirNavegador = new MutableLiveData<>();
+  // Estados de navegacion del navegador (errores)
   private final MutableLiveData<String> errorNavegacionText = new MutableLiveData<>();
   private final MutableLiveData<Integer> errorNavegacionVisibility = new MutableLiveData<>(View.GONE);
 
-  private static final String RSS_URL = "https://gist.githubusercontent.com/Estebaan93/46557f304368d30e1ddc4d0e6f0ec202/raw/17dedcf1622104eb0f18f5d94408d3fd084f4c08/gistfile1.txt";
+  private static final String RSS_URL = "https://gist.githubusercontent.com/Estebaan93/46557f304368d30e1ddc4d0e6f0ec202/raw/gistfile1.txt";
   private final OkHttpClient client = new OkHttpClient();
 
   // Constructor que recibe Application
@@ -68,7 +67,6 @@ public class InicioViewModel extends AndroidViewModel {
   public LiveData<Boolean> getListaVacia() { return listaVacia; }
   public LiveData<String> getErrorText() { return errorText; }
   public LiveData<Integer> getErrorVisibility() { return errorVisibility; }
-  public LiveData<String> getAbrirNavegador() { return abrirNavegador; }
   public LiveData<String> getErrorNavegacionText() { return errorNavegacionText; }
   public LiveData<Integer> getErrorNavegacionVisibility() { return errorNavegacionVisibility; }
 
@@ -208,13 +206,6 @@ public class InicioViewModel extends AndroidViewModel {
   //nuevo 26-06
   private void ocultarError() {
     errorVisibility.postValue(View.GONE);
-  }
-
-  // Interaccion de la vista
-  public void onNoticiaClicked(String url) {
-    if (url != null && !url.isEmpty()) {
-      abrirNavegador.setValue(url);
-    }
   }
 
   public void onErrorAlAbrirNavegador() {

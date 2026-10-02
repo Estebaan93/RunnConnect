@@ -10,11 +10,11 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 public class ApiClient {
   private static final String BASE_URL="http://10.0.2.2:5213/api/"; //para el emulador y no localhost genera conficto con el mismo emulador
-  private static final String BASE_URLlocal="http://192.168.0.12:5213/api/"; //funciona para correr en celular y con wifi, revisa en la API las conf
+  private static final String BASE_URLlocal="http://192.168.0.19:5213/api/"; //funciona para correr en celular y con wifi, revisa en la API las conf
   private static final String BASE_URLTrabajoD="http://192.168.5.54:5213/api/";
   private static final String BASE_URLTrabajoI="http://192.168.4.103:5213/api/";
-  // IP pública de tu servidor Debian en Google Cloud
-  private static final String BASE_URL_NUBE = "http://104.154.46.8:5213/api/";
+  // IP publica de tu servidor Debian en Google Cloud
+  private static final String BASE_URL_NUBE = "https://teach-ages-channels-perhaps.trycloudflare.com/api/";
   private static ApiService service;
 
   public static ApiService getApiService() {

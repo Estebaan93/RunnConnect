@@ -12,6 +12,27 @@
       tools:layout="@layout/fragment_inicio" />
 
   <fragment
+      android:id="@+id/nav_buscar"
+      android:name="com.example.runnconnect.ui.runner.buscarEventos.BuscarEventosFragment"
+      android:label="Buscar Eventos"
+      tools:layout="@layout/fragment_buscar_eventos">
+    <action
+        android:id="@+id/action_buscar_to_detalleEventoRunner"
+        app:destination="@id/nav_detalle_evento_runner" />
+  </fragment>
+
+  <fragment
+      android:id="@+id/nav_detalle_evento_runner"
+      android:name="com.example.runnconnect.ui.runner.buscarEventos.DetalleEventoRunnerFragment"
+      android:label="Detalle del Evento"
+      tools:layout="@layout/fragment_detalle_evento_runner">
+    <argument
+        android:name="idEvento"
+        app:argType="integer"
+        android:defaultValue="0" />
+  </fragment>
+
+  <fragment
       android:id="@+id/nav_cerrar_sesion"
       android:name="com.example.runnconnect.ui.cerrarSesion.LogoutFragment"
       android:label="Cerrar Sesión"

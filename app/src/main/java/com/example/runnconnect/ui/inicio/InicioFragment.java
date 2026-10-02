@@ -42,7 +42,7 @@ public class InicioFragment extends Fragment {
     // ViewModel
     viewModel = new ViewModelProvider(this).get(InicioViewModel.class);
 
-    adapter = new NoticiaAdapter(url -> viewModel.onNoticiaClicked(url));
+    adapter = new NoticiaAdapter(this::abrirNoticiaEnNavegador);
     binding.rvNoticias.setAdapter(adapter);
 
     // Observadores
@@ -61,12 +61,7 @@ public class InicioFragment extends Fragment {
     viewModel.getErrorText().observe(getViewLifecycleOwner(), binding.tvErrorLoad::setText);
     viewModel.getErrorVisibility().observe(getViewLifecycleOwner(), binding.tvErrorLoad::setVisibility);
 
-    // Navegacion y Errores
-    viewModel.getAbrirNavegador().observe(getViewLifecycleOwner(), url -> {
-      if (url != null && !url.isEmpty()) {
-        abrirNoticiaEnNavegador(url);
-      }
-    });
+    // Errores de navegacion externa
     viewModel.getErrorNavegacionText().observe(getViewLifecycleOwner(), binding.tvErrorAbrir::setText);
     viewModel.getErrorNavegacionVisibility().observe(getViewLifecycleOwner(), binding.tvErrorAbrir::setVisibility);
 

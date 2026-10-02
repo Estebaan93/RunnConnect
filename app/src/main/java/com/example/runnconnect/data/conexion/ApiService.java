@@ -17,6 +17,7 @@ import com.example.runnconnect.data.request.CambiarEstadoPagoRequest;
 import com.example.runnconnect.data.request.CambiarEstadoRequest;
 import com.example.runnconnect.data.request.CambiarPasswordRequest;
 import com.example.runnconnect.data.request.CrearEventoRequest;
+import com.example.runnconnect.data.request.CrearInscripcionRequest;
 import com.example.runnconnect.data.request.GuardarRutaRequest;
 import com.example.runnconnect.data.request.LoginRequest;
 import com.example.runnconnect.data.request.MotivoBajaRequest;
@@ -210,6 +211,13 @@ public interface ApiService {
   Call<EventosPaginadosResponse> obtenerEventosPublicados(
     @Query("pagina") int pagina,
     @Query("tamanioPagina") int tamanioPagina
+  );
+
+  // Inscribirse a un evento (runner)
+  @POST("Inscripcion")
+  Call<ResponseBody> inscribirse(
+    @Header("Authorization") String token,
+    @Body CrearInscripcionRequest request
   );
 
   // PUT para cambiar estado (Aprobar/Rechazar pago)
