@@ -29,7 +29,8 @@ public class EventoResumenResponse {
   public String getDatosPago() { return datosPago; }
   public int getCantidadCategorias() { return cantidadCategorias; }
   public String getNombreOrganizador() { return nombreOrganizador; }
-  public List<CategoriaResponse> getCategorias() { return categorias;
+  public List<CategoriaResponse> getCategorias() {
+    return categorias != null ? categorias : java.util.Collections.emptyList();
   }
 
 }

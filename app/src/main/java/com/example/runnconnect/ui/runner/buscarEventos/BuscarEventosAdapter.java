@@ -8,6 +8,8 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.runnconnect.R;
+import com.example.runnconnect.data.response.CategoriaResponse;
+import com.example.runnconnect.data.response.EventoResumenResponse;
 import com.example.runnconnect.databinding.ItemEventoPublicoBinding;
 import com.google.android.material.chip.Chip;
 
@@ -16,7 +18,7 @@ import java.util.List;
 
 public class BuscarEventosAdapter extends RecyclerView.Adapter<BuscarEventosAdapter.ViewHolder> {
 
-  private List<EventoCardUI> lista = new ArrayList<>();
+  private List<EventoResumenResponse> lista = new ArrayList<>();
   private final OnEventoClickListener listener;
 
   public interface OnEventoClickListener {
@@ -27,8 +29,8 @@ public class BuscarEventosAdapter extends RecyclerView.Adapter<BuscarEventosAdap
     this.listener = listener;
   }
 
-  public void setLista(List<EventoCardUI> nuevaLista) {
-    this.lista = nuevaLista;
+  public void setLista(List<EventoResumenResponse> nuevaLista) {
+    this.lista = nuevaLista != null ? nuevaLista : new ArrayList<>();
     notifyDataSetChanged();
   }
 
@@ -56,19 +58,22 @@ public class BuscarEventosAdapter extends RecyclerView.Adapter<BuscarEventosAdap
       this.binding = binding;
     }
 
-    public void bind(EventoCardUI item) {
+    public void bind(EventoResumenResponse item) {
       Context context = binding.getRoot().getContext();
 
       binding.tvNombreEvento.setText(item.getNombre());
-      binding.tvFecha.setText(item.getFecha());
-      binding.tvLugar.setText(item.getLugar());
-      binding.tvOrganizador.setText(item.getOrganizador());
+
+      String fechaLimpia = (item.getFechaHora() != null) ? item.getFechaHora().replace("T", " ") : "-";
+      binding.tvFecha.setText(fechaLimpia);
+
+      binding.tvLugar.setText(item.getLugar() != null ? item.getLugar() : "-");
+      binding.tvOrganizador.setText("Org: " + (item.getNombreOrganizador() != null ? item.getNombreOrganizador() : "-"));
 
       binding.chipGroupCategorias.removeAllViews();
-      for (String catNombre : item.getNombresCategorias()) {
+      for (CategoriaResponse cat : item.getCategorias()) {
         Chip chip = (Chip) LayoutInflater.from(context)
             .inflate(R.layout.item_chip_categoria, binding.chipGroupCategorias, false);
-        chip.setText(catNombre);
+        chip.setText(cat.getNombre());
         binding.chipGroupCategorias.addView(chip);
       }
 

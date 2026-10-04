@@ -17,6 +17,7 @@ import com.example.runnconnect.R;
 import com.example.runnconnect.databinding.DialogInscripcionRunnerBinding;
 import com.example.runnconnect.databinding.FragmentDetalleEventoRunnerBinding;
 import com.example.runnconnect.ui.eventosPublicos.mapa.MapaPublicoActivity;
+import com.example.runnconnect.ui.runner.buscarEventos.CategoriasRunnerAdapter.CategoriaCompatibilidadUI;
 
 public class DetalleEventoRunnerFragment extends Fragment {
 
@@ -30,9 +31,7 @@ public class DetalleEventoRunnerFragment extends Fragment {
   public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
     binding = FragmentDetalleEventoRunnerBinding.inflate(inflater, container, false);
 
-    if (getArguments() != null) {
-      idEvento = getArguments().getInt("idEvento", 0);
-    }
+    idEvento = requireArguments().getInt("idEvento", 0);
 
     viewModel = new ViewModelProvider(this).get(DetalleEventoRunnerViewModel.class);
 
@@ -78,12 +77,14 @@ public class DetalleEventoRunnerFragment extends Fragment {
     viewModel.getMensajeColorFondo().observe(getViewLifecycleOwner(), binding.tvMensajeDetalle::setBackgroundColor);
     viewModel.getMensajeColorTexto().observe(getViewLifecycleOwner(), binding.tvMensajeDetalle::setTextColor);
 
-    viewModel.getDialogCerrarEvento().observe(getViewLifecycleOwner(), cerrar -> {
-      if (Boolean.TRUE.equals(cerrar) && currentDialog != null && currentDialog.isShowing()) {
-        currentDialog.dismiss();
-        viewModel.resetDialogCerrarEvento();
-      }
-    });
+    viewModel.getDialogCerrarEvento().observe(getViewLifecycleOwner(), this::gestionarCierreDialogo);
+  }
+
+  private void gestionarCierreDialogo(Boolean cerrar) {
+    if (Boolean.TRUE.equals(cerrar) && currentDialog != null && currentDialog.isShowing()) {
+      currentDialog.dismiss();
+      viewModel.resetDialogCerrarEvento();
+    }
   }
 
   private void mostrarDialogoInscripcion(CategoriaCompatibilidadUI categoria) {
@@ -92,18 +93,19 @@ public class DetalleEventoRunnerFragment extends Fragment {
     dialogBinding.tvDialogTitulo.setText("Inscripción: " + categoria.getNombre());
     dialogBinding.tvDialogPrecio.setText("Costo: " + categoria.getCostoTexto());
 
-    String[] talles = {"XS", "S", "M", "L", "XL", "XXL"};
-    ArrayAdapter<String> spinnerAdapter = new ArrayAdapter<>(
-        requireContext(),
-        android.R.layout.simple_spinner_dropdown_item,
-        talles
-    );
-    dialogBinding.spDialogTalleRemera.setAdapter(spinnerAdapter);
+    viewModel.getListaTallesRemera().observe(getViewLifecycleOwner(), lista -> {
+      ArrayAdapter<String> spinnerAdapter = new ArrayAdapter<>(
+          requireContext(),
+          android.R.layout.simple_spinner_dropdown_item,
+          lista
+      );
+      dialogBinding.spDialogTalleRemera.setAdapter(spinnerAdapter);
+    });
 
     AlertDialog dialog = new AlertDialog.Builder(requireContext())
-        .setView(dialogBinding.getRoot())
-        .setCancelable(true)
-        .create();
+      .setView(dialogBinding.getRoot())
+      .setCancelable(true)
+      .create();
 
     currentDialog = dialog;
 
@@ -117,9 +119,9 @@ public class DetalleEventoRunnerFragment extends Fragment {
       boolean aceptoDeslinde = dialogBinding.cbDialogDeslinde.isChecked();
 
       viewModel.ejecutarInscripcion(
-          categoria.getIdCategoria(),
-          talleSeleccionado,
-          aceptoDeslinde
+        categoria.getIdCategoria(),
+        talleSeleccionado,
+        aceptoDeslinde
       );
     });
 

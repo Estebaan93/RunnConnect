@@ -10,7 +10,6 @@ import androidx.lifecycle.MutableLiveData;
 
 import com.example.runnconnect.data.conexion.ApiClient;
 import com.example.runnconnect.data.conexion.ApiService;
-import com.example.runnconnect.data.response.CategoriaResponse;
 import com.example.runnconnect.data.response.EventoResumenResponse;
 import com.example.runnconnect.data.response.EventosPaginadosResponse;
 
@@ -25,7 +24,7 @@ public class BuscarEventosViewModel extends AndroidViewModel {
 
   private final ApiService apiService;
 
-  private final MutableLiveData<List<EventoCardUI>> listaEventos = new MutableLiveData<>(new ArrayList<>());
+  private final MutableLiveData<List<EventoResumenResponse>> listaEventos = new MutableLiveData<>(new ArrayList<>());
   private final MutableLiveData<Integer> progressVisibility = new MutableLiveData<>(View.GONE);
   private final MutableLiveData<Integer> vacioVisibility = new MutableLiveData<>(View.GONE);
   private final MutableLiveData<Integer> errorVisibility = new MutableLiveData<>(View.GONE);
@@ -37,7 +36,7 @@ public class BuscarEventosViewModel extends AndroidViewModel {
     cargarEventos();
   }
 
-  public LiveData<List<EventoCardUI>> getListaEventos() {
+  public LiveData<List<EventoResumenResponse>> getListaEventos() {
     return listaEventos;
   }
 
@@ -73,11 +72,7 @@ public class BuscarEventosViewModel extends AndroidViewModel {
             listaEventos.setValue(new ArrayList<>());
             vacioVisibility.setValue(View.VISIBLE);
           } else {
-            List<EventoCardUI> itemsUI = new ArrayList<>();
-            for (EventoResumenResponse ev : eventos) {
-              itemsUI.add(mapearAEventoCardUI(ev));
-            }
-            listaEventos.setValue(itemsUI);
+            listaEventos.setValue(eventos);
             vacioVisibility.setValue(View.GONE);
           }
         } else {
@@ -93,24 +88,5 @@ public class BuscarEventosViewModel extends AndroidViewModel {
         errorVisibility.setValue(View.VISIBLE);
       }
     });
-  }
-
-  private EventoCardUI mapearAEventoCardUI(EventoResumenResponse ev) {
-    int id = ev.getIdEvento();
-    String nombre = ev.getNombre() != null ? ev.getNombre() : "Evento";
-    String fecha = ev.getFechaHora() != null ? ev.getFechaHora().replace("T", " ") : "-";
-    String lugar = ev.getLugar() != null ? ev.getLugar() : "-";
-    String organizador = "Org: " + (ev.getNombreOrganizador() != null ? ev.getNombreOrganizador() : "-");
-
-    List<String> nombresCategorias = new ArrayList<>();
-    if (ev.getCategorias() != null) {
-      for (CategoriaResponse cat : ev.getCategorias()) {
-        if (cat.getNombre() != null) {
-          nombresCategorias.add(cat.getNombre());
-        }
-      }
-    }
-
-    return new EventoCardUI(id, nombre, fecha, lugar, organizador, nombresCategorias);
   }
 }

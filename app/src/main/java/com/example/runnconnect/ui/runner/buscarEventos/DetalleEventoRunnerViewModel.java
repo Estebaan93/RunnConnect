@@ -17,9 +17,12 @@ import com.example.runnconnect.data.response.CategoriaResponse;
 import com.example.runnconnect.data.response.EventoDetalleResponse;
 import com.example.runnconnect.data.response.PerfilUsuarioResponse;
 
+import com.example.runnconnect.ui.runner.buscarEventos.CategoriasRunnerAdapter.CategoriaCompatibilidadUI;
+
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.List;
 
@@ -65,6 +68,11 @@ public class DetalleEventoRunnerViewModel extends AndroidViewModel {
   private final MutableLiveData<Integer> dialogErrorVisibility = new MutableLiveData<>(View.GONE);
   private final MutableLiveData<Boolean> dialogCerrarEvento = new MutableLiveData<>();
 
+  // Selector de talles (Spinner)
+  private final MutableLiveData<List<String>> listaTallesRemera = new MutableLiveData<>(
+      Arrays.asList("XS", "S", "M", "L", "XL", "XXL")
+  );
+
   public DetalleEventoRunnerViewModel(@NonNull Application application) {
     super(application);
     this.apiService = ApiClient.getApiService();
@@ -90,6 +98,7 @@ public class DetalleEventoRunnerViewModel extends AndroidViewModel {
   public LiveData<String> getDialogErrorTexto() { return dialogErrorTexto; }
   public LiveData<Integer> getDialogErrorVisibility() { return dialogErrorVisibility; }
   public LiveData<Boolean> getDialogCerrarEvento() { return dialogCerrarEvento; }
+  public LiveData<List<String>> getListaTallesRemera() { return listaTallesRemera; }
 
   public void resetDialogCerrarEvento() {
     dialogCerrarEvento.setValue(null);
