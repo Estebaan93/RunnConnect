@@ -28,6 +28,7 @@ import com.example.runnconnect.data.response.InscriptoEventoResponse;
 import com.example.runnconnect.data.response.ListaInscriptosResponse;
 import com.example.runnconnect.data.response.LoginResponse;
 import com.example.runnconnect.data.response.MapaEventoResponse;
+import com.example.runnconnect.data.response.MisInscripcionesResponse;
 import com.example.runnconnect.data.response.PerfilUsuarioResponse;
 import com.example.runnconnect.data.response.PuntoInteresResponse;
 import com.example.runnconnect.data.response.PuntosInteresEventoResponse;
@@ -218,6 +219,22 @@ public interface ApiService {
   Call<ResponseBody> inscribirse(
     @Header("Authorization") String token,
     @Body CrearInscripcionRequest request
+  );
+
+  // Obtener inscripciones del runner
+  @GET("Inscripcion/MisInscripciones")
+  Call<MisInscripcionesResponse> obtenerMisInscripciones(
+    @Header("Authorization") String token,
+    @Query("soloActivas") boolean soloActivas
+  );
+
+  // Subir comprobante de pago (runner)
+  @Multipart
+  @PUT("Inscripcion/{id}/Comprobante")
+  Call<ResponseBody> subirComprobante(
+    @Header("Authorization") String token,
+    @Path("id") int idInscripcion,
+    @Part MultipartBody.Part comprobante
   );
 
   // PUT para cambiar estado (Aprobar/Rechazar pago)

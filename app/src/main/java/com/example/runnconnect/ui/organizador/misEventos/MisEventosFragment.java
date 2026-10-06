@@ -4,12 +4,14 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Toast;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.widget.SearchView;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
-import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
@@ -27,12 +29,13 @@ public class MisEventosFragment extends Fragment {
     viewModel = new ViewModelProvider(this).get(MisEventosViewModel.class);
 
     setupRecyclerView();
+    setupSearchView();
+    setupSpinner();
     setupObservers();
 
     // Cargar datos al iniciar
     viewModel.cargarEventos(true);
 
-    //
     binding.fabNuevoEvento.setOnClickListener(v ->
       Navigation.findNavController(v).navigate(R.id.nav_nuevo_evento_fab)
     );
@@ -46,20 +49,16 @@ public class MisEventosFragment extends Fragment {
 
     getParentFragmentManager().setFragmentResultListener("requestKeyMapa", getViewLifecycleOwner(), (requestKey, bundle) -> {
       String msg = bundle.getString("nuevoEvento_misEventos");
-      //if (msg != null) {
-        viewModel.mostrarMensaje(msg, false); //
-      //}
+      viewModel.mostrarMensaje(msg, false);
     });
   }
 
   private void setupRecyclerView() {
     adapter = new EventoAdapter();
 
-    // creamos el layoutManager y guardamos en una var local
     LinearLayoutManager layoutManager = new LinearLayoutManager(getContext());
 
-    //asignamos al recycler
-    binding.recyclerEventos.setLayoutManager(layoutManager); //usamos la misma
+    binding.recyclerEventos.setLayoutManager(layoutManager);
     binding.recyclerEventos.setAdapter(adapter);
 
     // LISTENER DE SCROLL INFINITO
@@ -73,25 +72,50 @@ public class MisEventosFragment extends Fragment {
           int totalItems = layoutManager.getItemCount();
           int primerItemVisible = layoutManager.findFirstVisibleItemPosition();
 
-          //
           viewModel.verificarScroll(itemsVisibles, totalItems, primerItemVisible);
-
         }
       }
     });
 
-    //implementacion de accion al hacer click
+    // Implementacion de accion al hacer click
     adapter.setOnEventoClickListener(idEvento -> {
       android.util.Log.d("DEBUG_EVENTO", "Click en MisEventosFragment para idEvento: " + idEvento);
-      //navegamos al detalle pasando el ID
-      Bundle bundle= new Bundle();
+      Bundle bundle = new Bundle();
       bundle.putInt("idEvento", idEvento);
 
-      //fragment_mis_eventos ->fragment_detalle_evento
       Navigation.findNavController(requireView())
         .navigate(R.id.action_misEventos_to_detalleEvento, bundle);
     });
     binding.recyclerEventos.setAdapter(adapter);
+  }
+
+  private void setupSearchView() {
+    binding.searchViewMisEventos.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+      @Override
+      public boolean onQueryTextSubmit(String query) {
+        viewModel.onBusquedaTextoCambiado(query);
+        binding.searchViewMisEventos.clearFocus();
+        return true;
+      }
+
+      @Override
+      public boolean onQueryTextChange(String newText) {
+        viewModel.onBusquedaTextoCambiado(newText);
+        return true;
+      }
+    });
+  }
+
+  private void setupSpinner() {
+    binding.spFiltroDistancia.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+      @Override
+      public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+        viewModel.setFiltroDistancia(parent.getItemAtPosition(position).toString());
+      }
+
+      @Override
+      public void onNothingSelected(AdapterView<?> parent) {}
+    });
   }
 
   private void setupObservers() {
@@ -100,8 +124,18 @@ public class MisEventosFragment extends Fragment {
     viewModel.getUiMensajeColorTexto().observe(getViewLifecycleOwner(), binding.tvMensajeExito::setTextColor);
     viewModel.getUiMensajeColorFondo().observe(getViewLifecycleOwner(), binding.tvMensajeExito::setBackgroundColor);
 
+    viewModel.getListaOpcionesDistancia().observe(getViewLifecycleOwner(), opciones -> {
+      ArrayAdapter<String> spinnerAdapter = new ArrayAdapter<>(
+          requireContext(),
+          android.R.layout.simple_spinner_dropdown_item,
+          opciones
+      );
+      binding.spFiltroDistancia.setAdapter(spinnerAdapter);
+    });
+
     viewModel.getListaEventos().observe(getViewLifecycleOwner(), adapter::setEventos);
 
+    viewModel.getUiTextoVacio().observe(getViewLifecycleOwner(), binding.tvVacio::setText);
     viewModel.getUiVisibilidadVacio().observe(getViewLifecycleOwner(), binding.tvVacio::setVisibility);
     viewModel.getUiVisibilidadRecycler().observe(getViewLifecycleOwner(), binding.recyclerEventos::setVisibility);
 

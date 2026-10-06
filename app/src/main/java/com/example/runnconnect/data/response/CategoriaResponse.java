@@ -12,7 +12,7 @@ public class CategoriaResponse {
   // IMPORTANTE: Mapear el nombre del JSON "costoInscripcion"
   @SerializedName("costoInscripcion")
   private BigDecimal precio;
-  private int cupoCategoria;
+  private Integer cupoCategoria;
   private int inscriptosActuales;
   private int edadMinima;
   private int edadMaxima;
@@ -21,7 +21,7 @@ public class CategoriaResponse {
 
   // Getters
   public int getIdCategoria() { return idCategoria; }
-  public int getCupoCategoria() { return cupoCategoria; }
+  public Integer getCupoCategoria() { return cupoCategoria; }
   public int getIdEvento() {
     return idEvento;
   }

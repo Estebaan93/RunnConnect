@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#F5F5F5"
+    android:padding="8dp">
+
+  <!-- Fila Filtro por Estado -->
+  <LinearLayout
+      android:id="@+id/layoutFiltroEstado"
+      android:layout_width="0dp"
+      android:layout_height="wrap_content"
+      android:orientation="horizontal"
+      android:gravity="center_vertical"
+      android:layout_marginTop="4dp"
+      android:layout_marginBottom="8dp"
+      app:layout_constraintTop_toTopOf="parent"
+      app:layout_constraintStart_toStartOf="parent"
+      app:layout_constraintEnd_toEndOf="parent">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Estado:"
+        android:textSize="14sp"
+        android:textColor="#424242"
+        android:textStyle="bold"
+        android:layout_marginEnd="8dp" />
+
+    <Spinner
+        android:id="@+id/spFiltroEstado"
+        android:layout_width="0dp"
+        android:layout_height="44dp"
+        android:layout_weight="1"
+        android:background="@drawable/bg_spinner_border" />
+  </LinearLayout>
+
+  <!-- Mensaje persistente en UI (reemplazo de Toast) -->
+  <TextView
+      android:id="@+id/tvMensaje"
+      android:layout_width="0dp"
+      android:layout_height="wrap_content"
+      android:background="#E8F5E9"
+      android:textColor="#2E7D32"
+      android:textStyle="bold"
+      android:padding="12dp"
+      android:gravity="center"
+      android:visibility="gone"
+      android:elevation="6dp"
+      app:layout_constraintTop_toTopOf="parent"
+      app:layout_constraintStart_toStartOf="parent"
+      app:layout_constraintEnd_toEndOf="parent" />
+
+  <!-- Recycler de Inscripciones -->
+  <androidx.recyclerview.widget.RecyclerView
+      android:id="@+id/recyclerInscripciones"
+      android:layout_width="0dp"
+      android:layout_height="0dp"
+      android:layout_marginTop="8dp"
+      app:layout_constraintTop_toBottomOf="@id/layoutFiltroEstado"
+      app:layout_constraintBottom_toBottomOf="parent"
+      app:layout_constraintStart_toStartOf="parent"
+      app:layout_constraintEnd_toEndOf="parent" />
+
+  <!-- Progress Bar -->
+  <ProgressBar
+      android:id="@+id/progressBar"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:visibility="gone"
+      app:layout_constraintBottom_toBottomOf="parent"
+      app:layout_constraintEnd_toEndOf="parent"
+      app:layout_constraintStart_toStartOf="parent"
+      app:layout_constraintTop_toTopOf="parent" />
+
+  <!-- Texto Vacío -->
+  <TextView
+      android:id="@+id/tvVacio"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:text="No tienes inscripciones registradas"
+      android:textColor="#757575"
+      android:textSize="15sp"
+      android:visibility="gone"
+      app:layout_constraintBottom_toBottomOf="parent"
+      app:layout_constraintEnd_toEndOf="parent"
+      app:layout_constraintStart_toStartOf="parent"
+      app:layout_constraintTop_toTopOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

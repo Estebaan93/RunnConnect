@@ -1,7 +1,11 @@
 package com.example.runnconnect.ui.runner.buscarEventos;
 
 import android.app.Application;
+import android.content.Context;
 import android.graphics.Color;
+import android.net.Uri;
+import android.os.Handler;
+import android.os.Looper;
 import android.view.View;
 
 import androidx.annotation.NonNull;
@@ -15,17 +19,24 @@ import com.example.runnconnect.data.preferencias.SessionManager;
 import com.example.runnconnect.data.request.CrearInscripcionRequest;
 import com.example.runnconnect.data.response.CategoriaResponse;
 import com.example.runnconnect.data.response.EventoDetalleResponse;
+import com.example.runnconnect.data.response.MisInscripcionesResponse;
 import com.example.runnconnect.data.response.PerfilUsuarioResponse;
-
 import com.example.runnconnect.ui.runner.buscarEventos.CategoriasRunnerAdapter.CategoriaCompatibilidadUI;
 
 import org.json.JSONObject;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.List;
+import java.util.Locale;
 
+import okhttp3.MediaType;
+import okhttp3.MultipartBody;
+import okhttp3.RequestBody;
 import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -39,6 +50,7 @@ public class DetalleEventoRunnerViewModel extends AndroidViewModel {
   private int currentIdEvento = 0;
   private PerfilUsuarioResponse perfilRunner = null;
   private EventoDetalleResponse eventoDetalle = null;
+  private MisInscripcionesResponse.InscripcionItem inscripcionActual = null;
 
   // Estados UI para datos del evento
   private final MutableLiveData<String> uiTitulo = new MutableLiveData<>("");
@@ -120,13 +132,47 @@ public class DetalleEventoRunnerViewModel extends AndroidViewModel {
         } else {
           perfilRunner = null;
         }
-        // 2. Obtener detalle del evento
-        cargarEvento(idEvento, token);
+        // 2. Obtener inscripciones del runner para verificar estado en este evento
+        cargarInscripcionesYEvento(idEvento, token);
       }
 
       @Override
       public void onFailure(Call<PerfilUsuarioResponse> call, Throwable t) {
         perfilRunner = null;
+        cargarInscripcionesYEvento(idEvento, token);
+      }
+    });
+  }
+
+  private void cargarInscripcionesYEvento(int idEvento, String token) {
+    apiService.obtenerMisInscripciones("Bearer " + token, false).enqueue(new Callback<MisInscripcionesResponse>() {
+      @Override
+      public void onResponse(Call<MisInscripcionesResponse> call, Response<MisInscripcionesResponse> response) {
+        inscripcionActual = null;
+        if (response.isSuccessful() && response.body() != null && response.body().getInscripciones() != null) {
+          MisInscripcionesResponse.InscripcionItem activa = null;
+          MisInscripcionesResponse.InscripcionItem rechazada = null;
+
+          for (MisInscripcionesResponse.InscripcionItem item : response.body().getInscripciones()) {
+            if (item.getEvento() != null && item.getEvento().getIdEvento() == idEvento) {
+              String st = item.getEstadoPago() != null ? item.getEstadoPago().toLowerCase().trim() : "";
+              if ("pendiente".equals(st) || "procesando".equals(st) || "pagado".equals(st)) {
+                activa = item;
+                break; // Máxima prioridad: inscripción activa
+              } else if ("rechazado".equals(st) && rechazada == null) {
+                rechazada = item; // Guardamos la rechazada más reciente por si no hay activa
+              }
+            }
+          }
+          inscripcionActual = (activa != null) ? activa : rechazada;
+        }
+        // 3. Obtener detalle del evento
+        cargarEvento(idEvento, token);
+      }
+
+      @Override
+      public void onFailure(Call<MisInscripcionesResponse> call, Throwable t) {
+        inscripcionActual = null;
         cargarEvento(idEvento, token);
       }
     });
@@ -203,73 +249,231 @@ public class DetalleEventoRunnerViewModel extends AndroidViewModel {
                                                      String runnerGenero) {
     int idCat = cat.getIdCategoria();
     String nombre = cat.getNombre() != null ? cat.getNombre() : "Categoría";
-    String costo = cat.getPrecio() != null ? String.format("$%.2f", cat.getPrecio()) : "$0.00";
-    int disponibles = cat.getCupoCategoria() - cat.getInscriptosActuales();
-    String cupos = "Cupos: " + Math.max(0, disponibles) + " disponibles (de " + cat.getCupoCategoria() + ")";
+    String costo = cat.getPrecio() != null ? String.format(Locale.getDefault(), "$%.2f", cat.getPrecio()) : "$0.00";
+
+    String cupos;
+    boolean hayCupo = true;
+
+    if (cat.getCupoCategoria() != null) {
+      int disponibles = cat.getCupoCategoria() - cat.getInscriptosActuales();
+      cupos = "Cupos: " + Math.max(0, disponibles) + " disponibles (de " + cat.getCupoCategoria() + ")";
+      if (disponibles <= 0) {
+        hayCupo = false;
+      }
+    } else if (eventoDetalle != null && eventoDetalle.getCupoTotal() != null) {
+      int disponibles = eventoDetalle.getCupoTotal() - eventoDetalle.getInscriptosActuales();
+      cupos = "Cupos: " + Math.max(0, disponibles) + " disponibles (cupo del evento)";
+      if (disponibles <= 0) {
+        hayCupo = false;
+      }
+    } else {
+      cupos = "Cupos: Ilimitados (" + cat.getInscriptosActuales() + " inscriptos)";
+    }
+
+    // Si el evento en general ya alcanzó su cupo total (si tiene límite)
+    if (eventoDetalle != null && eventoDetalle.getCupoTotal() != null) {
+      if (eventoDetalle.getCupoTotal() - eventoDetalle.getInscriptosActuales() <= 0) {
+        hayCupo = false;
+      }
+    }
 
     String genDesc = "Mixto";
     if ("M".equalsIgnoreCase(cat.getGenero())) genDesc = "Masculino";
     else if ("F".equalsIgnoreCase(cat.getGenero())) genDesc = "Femenino";
     String requisitos = "Edad: " + cat.getEdadMinima() + " - " + cat.getEdadMaxima() + " años | Género: " + genDesc;
 
-    // Si el perfil está incompleto -> Modo lectura
+    // === CASO 1: EL RUNNER TIENE UNA INSCRIPCIÓN ACTIVA EN ESTE EVENTO ("pendiente", "procesando", "pagado") ===
+    if (inscripcionActual != null) {
+      String stPago = inscripcionActual.getEstadoPago() != null ? inscripcionActual.getEstadoPago().toLowerCase().trim() : "";
+      boolean esActiva = "pendiente".equals(stPago) || "procesando".equals(stPago) || "pagado".equals(stPago);
+
+      if (esActiva) {
+        boolean esEstaCategoria = inscripcionActual.getCategoria() != null && inscripcionActual.getCategoria().getIdCategoria() == idCat;
+        int idInscripcion = inscripcionActual.getIdInscripcion();
+
+        if (esEstaCategoria) {
+          switch (stPago) {
+            case "pendiente":
+              return new CategoriaCompatibilidadUI(
+                  idCat, nombre, costo, cupos, requisitos,
+                  "Inscripción registrada. Sube tu comprobante de pago.",
+                  Color.parseColor("#E65100"),
+                  "SUBIR COMPROBANTE",
+                  true,
+                  Color.parseColor("#FB8C00"),
+                  CategoriaCompatibilidadUI.ACCION_SUBIR_COMPROBANTE,
+                  idInscripcion,
+                  ""
+              );
+
+            case "procesando":
+              return new CategoriaCompatibilidadUI(
+                  idCat, nombre, costo, cupos, requisitos,
+                  "Comprobante en revisión por el organizador.",
+                  Color.parseColor("#0288D1"),
+                  "EN REVISIÓN",
+                  false,
+                  Color.parseColor("#78909C"),
+                  CategoriaCompatibilidadUI.ACCION_NINGUNA,
+                  idInscripcion,
+                  ""
+              );
+
+            case "pagado":
+              String urlComprobante = obtenerUrlCompletaComprobante(inscripcionActual.getComprobantePagoURL());
+              return new CategoriaCompatibilidadUI(
+                  idCat, nombre, costo, cupos, requisitos,
+                  "¡Pago confirmado! Ya estás inscripto en esta carrera.",
+                  Color.parseColor("#2E7D32"),
+                  "INSCRIPTO",
+                  true,
+                  Color.parseColor("#2E7D32"),
+                  CategoriaCompatibilidadUI.ACCION_VER_COMPROBANTE,
+                  idInscripcion,
+                  urlComprobante
+              );
+          }
+        } else {
+          // Está activamente inscripto en otra categoría de este mismo evento
+          return new CategoriaCompatibilidadUI(
+              idCat, nombre, costo, cupos, requisitos,
+              "Ya estás inscripto en otra categoría de este evento",
+              Color.parseColor("#757575"),
+              "INSCRIBIRSE",
+              false,
+              Color.parseColor("#BDBDBD"),
+              CategoriaCompatibilidadUI.ACCION_NINGUNA,
+              0,
+              ""
+          );
+        }
+      }
+    }
+
+    // === CASO 2: NO TIENE INSCRIPCIÓN ACTIVA (No inscripto o inscripción previa rechazada) ===
+    boolean esCategoriaRechazada = (inscripcionActual != null
+        && "rechazado".equalsIgnoreCase(inscripcionActual.getEstadoPago())
+        && inscripcionActual.getCategoria() != null
+        && inscripcionActual.getCategoria().getIdCategoria() == idCat);
+
+    String textoBtnBase = esCategoriaRechazada ? "VOLVER A INSCRIBIRSE" : "INSCRIBIRSE";
+
+    // 1. Perfil incompleto
     if (!perfilCompleto) {
       return new CategoriaCompatibilidadUI(
           idCat, nombre, costo, cupos, requisitos,
-          "⚠️ Completa tu perfil para poder inscribirte",
+          "Completa tu perfil para poder inscribirte",
+          Color.parseColor("#757575"),
+          textoBtnBase,
           false,
-          Color.parseColor("#757575")
+          Color.parseColor("#BDBDBD"),
+          CategoriaCompatibilidadUI.ACCION_NINGUNA,
+          0,
+          ""
       );
     }
 
-    // Si la categoría no está programada
+    // 2. Si la categoría no está programada
     if (cat.getEstado() != null && !cat.getEstado().equalsIgnoreCase("programada")) {
       return new CategoriaCompatibilidadUI(
           idCat, nombre, costo, cupos, requisitos,
           "Estado de categoría: " + cat.getEstado().toUpperCase(),
+          Color.parseColor("#C62828"),
+          textoBtnBase,
           false,
-          Color.parseColor("#C62828")
+          Color.parseColor("#BDBDBD"),
+          CategoriaCompatibilidadUI.ACCION_NINGUNA,
+          0,
+          ""
       );
     }
 
-    // Si no hay cupos
-    if (disponibles <= 0) {
+    // 3. Si no hay cupos
+    if (!hayCupo) {
       return new CategoriaCompatibilidadUI(
           idCat, nombre, costo, cupos, requisitos,
           "Sin cupos disponibles",
+          Color.parseColor("#C62828"),
+          textoBtnBase,
           false,
-          Color.parseColor("#C62828")
+          Color.parseColor("#BDBDBD"),
+          CategoriaCompatibilidadUI.ACCION_NINGUNA,
+          0,
+          ""
       );
     }
 
-    // Validar edad
+    // 4. Validar edad
     if (runnerEdad < cat.getEdadMinima() || runnerEdad > cat.getEdadMaxima()) {
       return new CategoriaCompatibilidadUI(
           idCat, nombre, costo, cupos, requisitos,
           "Rango de edad " + cat.getEdadMinima() + "-" + cat.getEdadMaxima(),
+          Color.parseColor("#E65100"),
+          textoBtnBase,
           false,
-          Color.parseColor("#E65100")
+          Color.parseColor("#BDBDBD"),
+          CategoriaCompatibilidadUI.ACCION_NINGUNA,
+          0,
+          ""
       );
     }
 
-    // Validar género
+    // 5. Validar género
     String catGen = cat.getGenero() != null ? cat.getGenero().trim() : "X";
     if (!catGen.equalsIgnoreCase("X") && !catGen.equalsIgnoreCase(runnerGenero)) {
       return new CategoriaCompatibilidadUI(
           idCat, nombre, costo, cupos, requisitos,
           "Exclusivo para género " + genDesc,
+          Color.parseColor("#E65100"),
+          textoBtnBase,
           false,
-          Color.parseColor("#E65100")
+          Color.parseColor("#BDBDBD"),
+          CategoriaCompatibilidadUI.ACCION_NINGUNA,
+          0,
+          ""
       );
     }
 
-    // Cumple todos los requisitos (habilitado para inscripción, sin mensaje extra)
+    // 6. Cumple todos los requisitos:
+    if (esCategoriaRechazada) {
+      String obs = inscripcionActual.getObservacion();
+      String motivo = (obs != null && !obs.trim().isEmpty()) ? ": " + obs : "";
+      return new CategoriaCompatibilidadUI(
+          idCat, nombre, costo, cupos, requisitos,
+          "Comprobante rechazado" + motivo + ". Vuelve a inscribirte para generar un nuevo pago.",
+          Color.parseColor("#C62828"),
+          "VOLVER A INSCRIBIRSE",
+          true,
+          Color.parseColor("#D32F2F"),
+          CategoriaCompatibilidadUI.ACCION_INSCRIBIR,
+          0,
+          ""
+      );
+    }
+
+    // Inscripcion normal disponible
     return new CategoriaCompatibilidadUI(
         idCat, nombre, costo, cupos, requisitos,
         "",
+        Color.TRANSPARENT,
+        "INSCRIBIRSE",
         true,
-        Color.TRANSPARENT
+        Color.parseColor("#6200EE"),
+        CategoriaCompatibilidadUI.ACCION_INSCRIBIR,
+        0,
+        ""
     );
+  }
+
+  private String obtenerUrlCompletaComprobante(String url) {
+    if (url == null || url.trim().isEmpty()) return "";
+    String res = url.trim();
+    if (res.startsWith("/")) {
+      res = "http://10.0.2.2:5213" + res;
+    } else if (res.contains("localhost")) {
+      res = res.replace("localhost", "10.0.2.2");
+    }
+    return res;
   }
 
   private boolean verificarPerfilCompleto(PerfilUsuarioResponse p) {
@@ -337,9 +541,9 @@ public class DetalleEventoRunnerViewModel extends AndroidViewModel {
 
         if (response.isSuccessful()) {
           dialogCerrarEvento.setValue(true);
-          mostrarMensaje("¡Inscripción realizada con éxito! Realiza el pago indicado abajo para completar tu registro.", true);
-          // Recargar el evento para actualizar cupos
-          cargarEvento(currentIdEvento, token);
+          mostrarMensaje("¡Inscripción realizada con éxito! Ahora puedes subir tu comprobante de pago.", true);
+          // Recargar tod el detalle del evento para actualizar inscripciones y botones
+          cargarDetalle(currentIdEvento);
         } else {
           String errorMsg = "Error al inscribirse (" + response.code() + ")";
           try {
@@ -367,6 +571,92 @@ public class DetalleEventoRunnerViewModel extends AndroidViewModel {
         mostrarMensaje(msg, false);
       }
     });
+  }
+
+  public void procesarYSubirComprobante(int idInscripcion, Uri uri) {
+    if (uri == null) return;
+
+    progressVisibility.setValue(View.VISIBLE);
+    mostrarMensaje("Procesando comprobante...", true);
+
+    new Thread(() -> {
+      Context context = getApplication();
+      String mimeType = context.getContentResolver().getType(uri);
+      String extension = (mimeType != null && mimeType.contains("png")) ? ".png" : ".jpg";
+
+      File tempFile = copiarUriAArchivo(context, uri, extension);
+      if (tempFile == null) {
+        new Handler(Looper.getMainLooper()).post(() -> {
+          progressVisibility.setValue(View.GONE);
+          mostrarMensaje("Error al leer la imagen seleccionada.", false);
+        });
+        return;
+      }
+
+      if (tempFile.length() > 10 * 1024 * 1024) {
+        tempFile.delete();
+        new Handler(Looper.getMainLooper()).post(() -> {
+          progressVisibility.setValue(View.GONE);
+          mostrarMensaje("El comprobante no puede exceder 10MB.", false);
+        });
+        return;
+      }
+
+      String reqMime = (mimeType != null) ? mimeType : "image/jpeg";
+      RequestBody requestFile = RequestBody.create(MediaType.parse(reqMime), tempFile);
+      MultipartBody.Part body = MultipartBody.Part.createFormData("comprobante", tempFile.getName(), requestFile);
+
+      String token = sessionManager.leerToken();
+      apiService.subirComprobante("Bearer " + token, idInscripcion, body).enqueue(new Callback<ResponseBody>() {
+        @Override
+        public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+          progressVisibility.setValue(View.GONE);
+          tempFile.delete();
+
+          if (response.isSuccessful()) {
+            mostrarMensaje("¡Comprobante subido exitosamente! El pago se encuentra en revisión.", true);
+            cargarDetalle(currentIdEvento);
+          } else {
+            String errorMsg = "Error al subir comprobante (" + response.code() + ")";
+            try {
+              if (response.errorBody() != null) {
+                String raw = response.errorBody().string();
+                JSONObject json = new JSONObject(raw);
+                if (json.has("message")) errorMsg = json.getString("message");
+              }
+            } catch (Exception ignored) {}
+            mostrarMensaje(errorMsg, false);
+          }
+        }
+
+        @Override
+        public void onFailure(Call<ResponseBody> call, Throwable t) {
+          progressVisibility.setValue(View.GONE);
+          tempFile.delete();
+          mostrarMensaje("Error de conexión al subir comprobante.", false);
+        }
+      });
+    }).start();
+  }
+
+  private File copiarUriAArchivo(Context context, Uri uri, String extension) {
+    try {
+      InputStream is = context.getContentResolver().openInputStream(uri);
+      if (is == null) return null;
+      File temp = File.createTempFile("comprobante_upload", extension, context.getCacheDir());
+      try (FileOutputStream out = new FileOutputStream(temp)) {
+        byte[] buffer = new byte[16 * 1024];
+        int len;
+        while ((len = is.read(buffer)) != -1) {
+          out.write(buffer, 0, len);
+        }
+        out.flush();
+      }
+      is.close();
+      return temp;
+    } catch (Exception e) {
+      return null;
+    }
   }
 
   private void mostrarMensaje(String texto, boolean exito) {

@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="12dp"
+    android:layout_marginHorizontal="4dp"
+    app:cardCornerRadius="12dp"
+    app:cardElevation="3dp">
+
+  <androidx.constraintlayout.widget.ConstraintLayout
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:padding="16dp">
+
+    <TextView
+        android:id="@+id/tvEstadoInscripcion"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="PENDIENTE"
+        android:textSize="11sp"
+        android:textStyle="bold"
+        android:paddingHorizontal="10dp"
+        android:paddingVertical="3dp"
+        android:background="@drawable/bg_spinner_border"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/tvNombreEvento"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="Maratón Ciudad 10K"
+        android:textSize="17sp"
+        android:textStyle="bold"
+        android:textColor="#212121"
+        android:layout_marginEnd="8dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/tvEstadoInscripcion"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/tvFechaLugar"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="Fecha: 2026-10-15 08:00 | Lugar: Parque Central"
+        android:textSize="13sp"
+        android:textColor="#616161"
+        android:layout_marginTop="6dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tvNombreEvento" />
+
+    <TextView
+        android:id="@+id/tvCategoriaCosto"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="Categoría: 10K ($5.000)"
+        android:textSize="13sp"
+        android:textColor="#424242"
+        android:layout_marginTop="4dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tvFechaLugar" />
+
+    <TextView
+        android:id="@+id/tvTalleRemera"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="Talle remera: M"
+        android:textSize="13sp"
+        android:textColor="#616161"
+        android:layout_marginTop="4dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tvCategoriaCosto" />
+
+    <TextView
+        android:id="@+id/tvObservacionRechazo"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="Motivo de rechazo: Comprobante ilegible"
+        android:textSize="12sp"
+        android:textColor="#C62828"
+        android:background="#FFEBEE"
+        android:padding="8dp"
+        android:textStyle="bold"
+        android:visibility="gone"
+        android:layout_marginTop="8dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tvTalleRemera" />
+
+    <!-- Botones de Acción -->
+    <LinearLayout
+        android:id="@+id/layoutBotonesAccion"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="end"
+        android:layout_marginTop="10dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tvObservacionRechazo">
+
+      <com.google.android.material.button.MaterialButton
+          android:id="@+id/btnVerComprobante"
+          style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:text="Ver Comprobante"
+          android:textSize="12sp"
+          android:visibility="gone"
+          android:layout_marginEnd="8dp" />
+
+      <com.google.android.material.button.MaterialButton
+          android:id="@+id/btnSubirComprobante"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:text="Subir Comprobante"
+          android:textSize="12sp"
+          android:backgroundTint="#FF9800"
+          android:visibility="gone" />
+
+    </LinearLayout>
+
+  </androidx.constraintlayout.widget.ConstraintLayout>
+</androidx.cardview.widget.CardView>

@@ -33,6 +33,16 @@
   </fragment>
 
   <fragment
+      android:id="@+id/nav_inscripciones"
+      android:name="com.example.runnconnect.ui.runner.misInscripciones.MisInscripcionesFragment"
+      android:label="Mis Inscripciones"
+      tools:layout="@layout/fragment_mis_inscripciones">
+    <action
+        android:id="@+id/action_misInscripciones_to_detalleEventoRunner"
+        app:destination="@id/nav_detalle_evento_runner" />
+  </fragment>
+
+  <fragment
       android:id="@+id/nav_cerrar_sesion"
       android:name="com.example.runnconnect.ui.cerrarSesion.LogoutFragment"
       android:label="Cerrar Sesión"

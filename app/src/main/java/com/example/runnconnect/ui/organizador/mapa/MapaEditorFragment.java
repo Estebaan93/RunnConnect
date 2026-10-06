@@ -182,10 +182,16 @@ public class MapaEditorFragment extends Fragment implements OnMapReadyCallback {
     args.putString("nuevoEvento_misEventos", mensajeExito);
 
     Log.d("msjExitoNuevoEvento", "navegarAlListado: ok " + args.getString("nuevoEvento_misEventos"));
-    //
+
     getParentFragmentManager().setFragmentResult("requestKeyMapa", args);
 
-    // Volvemos hacia atras destruyendo tod hasta encontrar "nav_mis_eventos"
-    Navigation.findNavController(requireView()).popBackStack(R.id.nav_mis_eventos, false);
+    NavController navController = Navigation.findNavController(requireView());
+    boolean salio = navController.popBackStack(R.id.nav_mis_eventos, false);
+    if (!salio) {
+      NavOptions navOptions = new NavOptions.Builder()
+          .setPopUpTo(R.id.nav_inicio, false)
+          .build();
+      navController.navigate(R.id.nav_mis_eventos, args, navOptions);
+    }
   }
 }

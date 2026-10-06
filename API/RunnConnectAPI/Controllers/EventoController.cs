@@ -254,7 +254,20 @@ namespace RunnConnectAPI.Controllers
           InscriptosActuales = e.Categorias?
                 .SelectMany(c => c.Inscripciones)
                 .Count(i => i.EstadoPago == "pagado") ?? 0,
-          NombreOrganizador = e.Organizador?.Nombre ?? ""
+          NombreOrganizador = e.Organizador?.Nombre ?? "",
+          Categorias = e.Categorias?.Select(c => new CategoriaEventoResponse
+          {
+            IdCategoria = c.IdCategoria,
+            IdEvento = c.IdEvento,
+            Nombre = c.Nombre,
+            CostoInscripcion = c.CostoInscripcion,
+            CupoCategoria = c.CupoCategoria,
+            EdadMinima = c.EdadMinima,
+            EdadMaxima = c.EdadMaxima,
+            Genero = c.Genero,
+            Estado = c.Estado,
+            InscriptosActuales = c.Inscripciones != null ? c.Inscripciones.Count(i => i.EstadoPago == "pagado") : 0
+          }).ToList()
         }).ToList();
 
         return Ok(new EventosPaginadosResponse

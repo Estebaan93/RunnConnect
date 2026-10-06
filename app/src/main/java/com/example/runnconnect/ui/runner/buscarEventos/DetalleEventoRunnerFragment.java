@@ -1,20 +1,28 @@
 package com.example.runnconnect.ui.runner.buscarEventos;
 
+import android.app.Dialog;
 import android.content.Intent;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
 import android.widget.ArrayAdapter;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
-import com.example.runnconnect.R;
+import com.bumptech.glide.Glide;
 import com.example.runnconnect.databinding.DialogInscripcionRunnerBinding;
+import com.example.runnconnect.databinding.DialogVerImagenBinding;
 import com.example.runnconnect.databinding.FragmentDetalleEventoRunnerBinding;
 import com.example.runnconnect.ui.eventosPublicos.mapa.MapaPublicoActivity;
 import com.example.runnconnect.ui.runner.buscarEventos.CategoriasRunnerAdapter.CategoriaCompatibilidadUI;
@@ -26,6 +34,13 @@ public class DetalleEventoRunnerFragment extends Fragment {
   private CategoriasRunnerAdapter adapter;
   private int idEvento = 0;
   private AlertDialog currentDialog = null;
+
+  private int idInscripcionParaComprobante = 0;
+
+  private final ActivityResultLauncher<String> selectorComprobante = registerForActivityResult(
+      new ActivityResultContracts.GetContent(),
+      uri -> viewModel.procesarYSubirComprobante(idInscripcionParaComprobante, uri)
+  );
 
   @Override
   public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -45,7 +60,23 @@ public class DetalleEventoRunnerFragment extends Fragment {
   }
 
   private void setupRecyclerView() {
-    adapter = new CategoriasRunnerAdapter(this::mostrarDialogoInscripcion);
+    adapter = new CategoriasRunnerAdapter(new CategoriasRunnerAdapter.OnCategoriaAccionListener() {
+      @Override
+      public void onInscribirmeClick(CategoriaCompatibilidadUI item) {
+        mostrarDialogoInscripcion(item);
+      }
+
+      @Override
+      public void onSubirComprobanteClick(CategoriaCompatibilidadUI item) {
+        idInscripcionParaComprobante = item.getIdInscripcion();
+        selectorComprobante.launch("image/*");
+      }
+
+      @Override
+      public void onVerComprobanteClick(CategoriaCompatibilidadUI item) {
+        mostrarDialogoVerComprobante(item.getUrlComprobante());
+      }
+    });
     binding.rvCategoriasRunner.setLayoutManager(new LinearLayoutManager(getContext()));
     binding.rvCategoriasRunner.setAdapter(adapter);
   }
@@ -125,6 +156,25 @@ public class DetalleEventoRunnerFragment extends Fragment {
       );
     });
 
+    dialog.show();
+  }
+
+  private void mostrarDialogoVerComprobante(String url) {
+    Dialog dialog = new Dialog(requireContext());
+    dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+    DialogVerImagenBinding zoomBinding = DialogVerImagenBinding.inflate(getLayoutInflater());
+    dialog.setContentView(zoomBinding.getRoot());
+    if (dialog.getWindow() != null) {
+      dialog.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+      dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+    }
+
+    zoomBinding.tvTituloComprobante.setText("Comprobante de Pago");
+    Glide.with(this)
+        .load(url)
+        .into(zoomBinding.ivZoom);
+
+    zoomBinding.btnCerrarImagen.setOnClickListener(v -> dialog.dismiss());
     dialog.show();
   }
 

@@ -6,11 +6,56 @@
     android:background="#F5F5F5"
     android:padding="8dp">
 
+  <!-- Buscador por nombre de evento -->
+  <androidx.appcompat.widget.SearchView
+      android:id="@+id/searchViewMisEventos"
+      android:layout_width="0dp"
+      android:layout_height="wrap_content"
+      android:background="@drawable/bg_search_eventos"
+      app:iconifiedByDefault="false"
+      app:queryHint="Buscar evento por nombre..."
+      app:layout_constraintTop_toTopOf="parent"
+      app:layout_constraintStart_toStartOf="parent"
+      app:layout_constraintEnd_toEndOf="parent" />
+
+  <!-- Filtro de Distancia con Spinner -->
+  <LinearLayout
+      android:id="@+id/layoutFiltroDistancia"
+      android:layout_width="0dp"
+      android:layout_height="wrap_content"
+      android:orientation="horizontal"
+      android:gravity="center_vertical"
+      android:layout_marginTop="8dp"
+      app:layout_constraintTop_toBottomOf="@id/searchViewMisEventos"
+      app:layout_constraintStart_toStartOf="parent"
+      app:layout_constraintEnd_toEndOf="parent">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Distancia:"
+        android:textSize="14sp"
+        android:textColor="#424242"
+        android:textStyle="bold"
+        android:layout_marginEnd="8dp" />
+
+    <Spinner
+        android:id="@+id/spFiltroDistancia"
+        android:layout_width="0dp"
+        android:layout_height="44dp"
+        android:layout_weight="1"
+        android:background="@drawable/bg_spinner_border" />
+  </LinearLayout>
+
   <androidx.recyclerview.widget.RecyclerView
       android:id="@+id/recyclerEventos"
-      android:layout_width="match_parent"
-      android:layout_height="match_parent"
-      app:layout_constraintTop_toTopOf="parent"/>
+      android:layout_width="0dp"
+      android:layout_height="0dp"
+      android:layout_marginTop="8dp"
+      app:layout_constraintTop_toBottomOf="@id/layoutFiltroDistancia"
+      app:layout_constraintBottom_toBottomOf="parent"
+      app:layout_constraintStart_toStartOf="parent"
+      app:layout_constraintEnd_toEndOf="parent" />
 
   <ProgressBar
       android:id="@+id/progressBar"
@@ -36,7 +81,7 @@
       app:layout_constraintTop_toTopOf="parent"
       app:layout_constraintStart_toStartOf="parent"
       app:layout_constraintEnd_toEndOf="parent"
-      android:elevation="4dp"/>
+      android:elevation="6dp"/>
 
   <TextView
       android:id="@+id/tvVacio"

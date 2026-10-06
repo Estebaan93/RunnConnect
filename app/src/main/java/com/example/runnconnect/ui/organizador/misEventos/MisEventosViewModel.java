@@ -11,11 +11,15 @@ import androidx.lifecycle.MutableLiveData;
 import com.example.runnconnect.data.conexion.ApiClient;
 import com.example.runnconnect.data.conexion.ApiService;
 import com.example.runnconnect.data.preferencias.SessionManager;
+import com.example.runnconnect.data.response.CategoriaResponse;
 import com.example.runnconnect.data.response.EventoResumenResponse;
 import com.example.runnconnect.data.response.EventosPaginadosResponse;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import android.os.Handler;
 import android.view.View;
 
@@ -66,6 +70,17 @@ public class MisEventosViewModel extends AndroidViewModel {
   private final MutableLiveData<Integer> uiMensajeVisibilidad = new MutableLiveData<>(View.GONE);
   private final MutableLiveData<Integer> uiMensajeColorTexto = new MutableLiveData<>(android.graphics.Color.BLACK);
   private final MutableLiveData<Integer> uiMensajeColorFondo = new MutableLiveData<>(android.graphics.Color.WHITE);
+
+  private String queryActual = "";
+  private String filtroDistanciaActual = "TODAS";
+
+  private final MutableLiveData<List<String>> listaOpcionesDistancia = new MutableLiveData<>(
+      Arrays.asList("Todas", "10K", "20K", "+20K")
+  );
+  public LiveData<List<String>> getListaOpcionesDistancia() { return listaOpcionesDistancia; }
+
+  private final MutableLiveData<String> uiTextoVacio = new MutableLiveData<>("Aún no tienes eventos creados");
+  public LiveData<String> getUiTextoVacio() { return uiTextoVacio; }
 
   public LiveData<String> getUiMensajeTexto() { return uiMensajeTexto; }
   public LiveData<Integer> getUiMensajeVisibilidad() { return uiMensajeVisibilidad; }
@@ -152,18 +167,8 @@ public class MisEventosViewModel extends AndroidViewModel {
               listaAcumulada.addAll(data.getEventos());
             }
 
-            //enviamos la lista al fragment mapeada
-            List<EventoUI> uiList = mapearAEventoUI(listaAcumulada);
-            
-            if (uiList.isEmpty()) {
-                uiVisibilidadVacio.setValue(View.VISIBLE);
-                uiVisibilidadRecycler.setValue(View.GONE);
-            } else {
-                uiVisibilidadVacio.setValue(View.GONE);
-                uiVisibilidadRecycler.setValue(View.VISIBLE);
-            }
-            
-            listaEventos.setValue(uiList);
+            // Aplicamos filtros sobre la lista acumulada
+            aplicarFiltros();
           } else {
             // Si el servidor devuelve error (ej: 401, 500)
             mostrarMensaje("Error del servidor: " + response.code(), true);
@@ -226,5 +231,84 @@ public class MisEventosViewModel extends AndroidViewModel {
       resultado.add(ui);
     }
     return resultado;
+  }
+
+  public void onBusquedaTextoCambiado(String query) {
+    this.queryActual = query != null ? query.trim().toLowerCase() : "";
+    aplicarFiltros();
+  }
+
+  public void setFiltroDistancia(String distanciaTexto) {
+    if (distanciaTexto == null || distanciaTexto.equalsIgnoreCase("Todas")) {
+      this.filtroDistanciaActual = "TODAS";
+    } else if (distanciaTexto.contains("+20") || distanciaTexto.contains("20+")) {
+      this.filtroDistanciaActual = "MAS_20K";
+    } else if (distanciaTexto.contains("10")) {
+      this.filtroDistanciaActual = "HASTA_10K";
+    } else if (distanciaTexto.contains("20")) {
+      this.filtroDistanciaActual = "HASTA_20K";
+    } else {
+      this.filtroDistanciaActual = "TODAS";
+    }
+    aplicarFiltros();
+  }
+
+  private void aplicarFiltros() {
+    List<EventoResumenResponse> filtrados = new ArrayList<>();
+    for (EventoResumenResponse evento : listaAcumulada) {
+      if (cumpleBusquedaTexto(evento) && cumpleFiltroDistancia(evento)) {
+        filtrados.add(evento);
+      }
+    }
+
+    List<EventoUI> uiList = mapearAEventoUI(filtrados);
+    listaEventos.setValue(uiList);
+
+    if (uiList.isEmpty()) {
+      uiVisibilidadVacio.setValue(View.VISIBLE);
+      uiVisibilidadRecycler.setValue(View.GONE);
+      if (listaAcumulada.isEmpty()) {
+        uiTextoVacio.setValue("Aún no tienes eventos creados");
+      } else {
+        uiTextoVacio.setValue("No se encontraron eventos con los filtros seleccionados");
+      }
+    } else {
+      uiVisibilidadVacio.setValue(View.GONE);
+      uiVisibilidadRecycler.setValue(View.VISIBLE);
+    }
+  }
+
+  private boolean cumpleBusquedaTexto(EventoResumenResponse evento) {
+    if (queryActual.isEmpty()) return true;
+    return evento.getNombre() != null &&
+        evento.getNombre().toLowerCase().contains(queryActual);
+  }
+
+  private boolean cumpleFiltroDistancia(EventoResumenResponse evento) {
+    if ("TODAS".equals(filtroDistanciaActual)) return true;
+
+    List<CategoriaResponse> categorias = evento.getCategorias();
+    for (CategoriaResponse cat : categorias) {
+      int distKm = extraerDistanciaKm(cat.getNombre());
+      if ("HASTA_10K".equals(filtroDistanciaActual)) {
+        if (distKm > 0 && distKm <= 10) return true;
+      } else if ("HASTA_20K".equals(filtroDistanciaActual)) {
+        if (distKm > 0 && distKm <= 20) return true;
+      } else if ("MAS_20K".equals(filtroDistanciaActual)) {
+        if (distKm > 20) return true;
+      }
+    }
+    return false;
+  }
+
+  private int extraerDistanciaKm(String nombreCat) {
+    if (nombreCat == null || nombreCat.trim().isEmpty()) return 0;
+    Matcher m = Pattern.compile("(\\d+)\\s*[kK]?").matcher(nombreCat);
+    if (m.find()) {
+      try {
+        return Integer.parseInt(m.group(1));
+      } catch (NumberFormatException ignored) {}
+    }
+    return 0;
   }
 }
