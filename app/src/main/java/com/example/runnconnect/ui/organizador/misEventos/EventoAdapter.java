@@ -50,6 +50,9 @@ public class EventoAdapter extends RecyclerView.Adapter<EventoAdapter.EventoView
     holder.tvEstado.setTextColor(evento.estadoColorTexto);
     holder.tvEstado.setBackgroundColor(evento.estadoColorFondo);
 
+    holder.tvClima.setVisibility(evento.climaVisibilidad);
+    holder.tvClima.setText(evento.climaTexto);
+
     //conf de click en la tarjeta
     holder.itemView.setOnClickListener(v->{
       if(listener !=null){
@@ -62,7 +65,7 @@ public class EventoAdapter extends RecyclerView.Adapter<EventoAdapter.EventoView
   public int getItemCount() { return lista.size(); }
 
   static class EventoViewHolder extends RecyclerView.ViewHolder {
-    TextView tvNombre, tvFecha, tvLugar, tvEstado, tvCupo, tvInscriptos;
+    TextView tvNombre, tvFecha, tvLugar, tvEstado, tvCupo, tvInscriptos, tvClima;
     public EventoViewHolder(@NonNull View itemView) {
       super(itemView);
       tvNombre = itemView.findViewById(R.id.tvNombreEvento);
@@ -71,6 +74,7 @@ public class EventoAdapter extends RecyclerView.Adapter<EventoAdapter.EventoView
       tvEstado = itemView.findViewById(R.id.tvEstado);
       tvCupo = itemView.findViewById(R.id.tvCupos);
       tvInscriptos=itemView.findViewById(R.id.tvInscriptos);
+      tvClima = itemView.findViewById(R.id.tvClima);
     }
   }
 

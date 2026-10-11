@@ -2,12 +2,14 @@ package com.example.runnconnect.ui.runner.buscarEventos;
 
 import android.content.Context;
 import android.view.LayoutInflater;
+import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.runnconnect.R;
+import com.example.runnconnect.data.model.ClimaInfo;
 import com.example.runnconnect.data.response.CategoriaResponse;
 import com.example.runnconnect.data.response.EventoResumenResponse;
 import com.example.runnconnect.databinding.ItemEventoPublicoBinding;
@@ -62,12 +64,10 @@ public class BuscarEventosAdapter extends RecyclerView.Adapter<BuscarEventosAdap
       Context context = binding.getRoot().getContext();
 
       binding.tvNombreEvento.setText(item.getNombre());
-
-      String fechaLimpia = (item.getFechaHora() != null) ? item.getFechaHora().replace("T", " ") : "-";
-      binding.tvFecha.setText(fechaLimpia);
-
-      binding.tvLugar.setText(item.getLugar() != null ? item.getLugar() : "-");
-      binding.tvOrganizador.setText("Org: " + (item.getNombreOrganizador() != null ? item.getNombreOrganizador() : "-"));
+      binding.tvFecha.setText(item.getFechaHora().replace("T", " "));
+      binding.tvClima.setText(ClimaInfo.fromJson(item.getUrlPronosticoClima()).getTextoTemperatura());
+      binding.tvLugar.setText(item.getLugar());
+      binding.tvOrganizador.setText("Org: " + item.getNombreOrganizador());
 
       binding.chipGroupCategorias.removeAllViews();
       for (CategoriaResponse cat : item.getCategorias()) {

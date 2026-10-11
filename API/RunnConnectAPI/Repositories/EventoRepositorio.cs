@@ -67,36 +67,60 @@ namespace RunnConnectAPI.Repositories
       return evento;
     }
 
-    /// Consulta y actualiza el icono del clima en el evento si esta dentro de los proximos 5 dias y tiene trazado de ruta.
-    /// Si el evento es a mas de 5 dias o ya paso, asegura que el clima quede en null.
+    /// Consulta y actualiza el clima en el evento si tiene trazado de ruta o por su lugar/ciudad.
+    /// Si el evento ya paso, asegura que el clima quede en null.
     public async Task ActualizarClimaSiCorrespondeAsync(Evento evento)
     {
       var ahora = DateTime.Now;
-      if (evento.FechaHora >= ahora && evento.FechaHora <= ahora.AddDays(5))
-      {
-        var primerPunto = await _context.Rutas
-            .Where(r => r.IdEvento == evento.IdEvento)
-            .OrderBy(r => r.Orden)
-            .FirstOrDefaultAsync();
-
-        if (primerPunto != null)
-        {
-          var icono = await _climaService.ObtenerIconoClimaAsync(primerPunto.Latitud, primerPunto.Longitud, evento.FechaHora);
-          if (evento.UrlPronosticoClima != icono)
-          {
-            evento.UrlPronosticoClima = icono;
-            await _context.SaveChangesAsync();
-          }
-        }
-      }
-      else
+      if (evento.FechaHora < ahora)
       {
         if (evento.UrlPronosticoClima != null)
         {
           evento.UrlPronosticoClima = null;
           await _context.SaveChangesAsync();
         }
+        return;
       }
+
+      var primerPunto = await _context.Rutas
+          .Where(r => r.IdEvento == evento.IdEvento)
+          .OrderBy(r => r.Orden)
+          .FirstOrDefaultAsync();
+
+      string? climaJson = null;
+      if (primerPunto != null)
+      {
+        climaJson = await _climaService.ObtenerPronosticoClimaAsync(primerPunto.Latitud, primerPunto.Longitud, evento.FechaHora);
+      }
+      else if (!string.IsNullOrWhiteSpace(evento.Lugar))
+      {
+        climaJson = await _climaService.ObtenerPronosticoClimaPorCiudadAsync(evento.Lugar, evento.FechaHora);
+      }
+
+      if (climaJson != null && evento.UrlPronosticoClima != climaJson)
+      {
+        evento.UrlPronosticoClima = climaJson;
+        await _context.SaveChangesAsync();
+      }
+    }
+
+    /// Actualiza el clima de los eventos publicados que estan dentro de los proximos 5 dias
+    public async Task<int> ActualizarClimaEventosProximosAsync()
+    {
+      var ahora = DateTime.Now;
+      var limite5Dias = ahora.AddDays(5);
+
+      var eventosProximos = await _context.Eventos
+          .Where(e => e.Estado == "publicado" && e.FechaHora >= ahora && e.FechaHora <= limite5Dias)
+          .ToListAsync();
+
+      int actualizados = 0;
+      foreach (var ev in eventosProximos)
+      {
+        await ActualizarClimaSiCorrespondeAsync(ev);
+        actualizados++;
+      }
+      return actualizados;
     }
 
     /// Obtiene eventos publicos de un organizador (ultimos 6 meses)
@@ -159,6 +183,11 @@ namespace RunnConnectAPI.Repositories
       evento.DatosPago = evento.DatosPago?.Trim();
       evento.TipoEvento = evento.TipoEvento.ToLower().Trim();
       evento.Estado = "publicado";
+
+      if (string.IsNullOrWhiteSpace(evento.UrlPronosticoClima) && !string.IsNullOrWhiteSpace(evento.Lugar))
+      {
+        evento.UrlPronosticoClima = await _climaService.ObtenerPronosticoClimaPorCiudadAsync(evento.Lugar, evento.FechaHora);
+      }
 
       _context.Eventos.Add(evento);
       await _context.SaveChangesAsync();

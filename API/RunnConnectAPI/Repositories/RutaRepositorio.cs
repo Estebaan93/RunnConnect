@@ -98,7 +98,7 @@ namespace RunnConnectAPI.Repositories
       var primerPunto = request.Puntos.FirstOrDefault();
       if (primerPunto != null)
       {
-        evento.UrlPronosticoClima = await _climaService.ObtenerIconoClimaAsync(
+        evento.UrlPronosticoClima = await _climaService.ObtenerPronosticoClimaAsync(
           primerPunto.Latitud, primerPunto.Longitud, evento.FechaHora);
       }
       else

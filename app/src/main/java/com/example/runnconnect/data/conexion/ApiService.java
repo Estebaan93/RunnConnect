@@ -29,6 +29,7 @@ import com.example.runnconnect.data.response.ListaInscriptosResponse;
 import com.example.runnconnect.data.response.LoginResponse;
 import com.example.runnconnect.data.response.MapaEventoResponse;
 import com.example.runnconnect.data.response.MisInscripcionesResponse;
+import com.example.runnconnect.data.response.MisResultadosResponse;
 import com.example.runnconnect.data.response.PerfilUsuarioResponse;
 import com.example.runnconnect.data.response.PuntoInteresResponse;
 import com.example.runnconnect.data.response.PuntosInteresEventoResponse;
@@ -311,5 +312,11 @@ public interface ApiService {
   @GET("Resultado/Categoria/{idCategoria}")
   Call<List<ResultadosEventoResponse.ResultadoEventoItem>> obtenerResultadosCategoria(
     @Path("idCategoria") int idCategoria
+  );
+
+  // Obtener mis resultados (runner)
+  @GET("Resultado/MisResultados")
+  Call<MisResultadosResponse> obtenerMisResultados(
+    @Header("Authorization") String token
   );
 }

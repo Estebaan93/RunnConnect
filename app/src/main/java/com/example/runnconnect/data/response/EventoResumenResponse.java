@@ -13,6 +13,7 @@ public class EventoResumenResponse {
   private int cantidadCategorias;
   private String tipoEvento; //
   private String datosPago;
+  private String urlPronosticoClima;
   private String nombreOrganizador;
   private List<CategoriaResponse> categorias;
 
@@ -27,6 +28,7 @@ public class EventoResumenResponse {
   public int getInscriptosActuales() { return inscriptosActuales; }
   public String getTipoEvento() { return tipoEvento; }
   public String getDatosPago() { return datosPago; }
+  public String getUrlPronosticoClima() { return urlPronosticoClima; }
   public int getCantidadCategorias() { return cantidadCategorias; }
   public String getNombreOrganizador() { return nombreOrganizador; }
   public List<CategoriaResponse> getCategorias() {

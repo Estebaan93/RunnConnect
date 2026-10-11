@@ -10,6 +10,7 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import com.example.runnconnect.data.conexion.ApiClient;
 import com.example.runnconnect.data.conexion.ApiService;
+import com.example.runnconnect.data.model.ClimaInfo;
 import com.example.runnconnect.data.preferencias.SessionManager;
 import com.example.runnconnect.data.response.CategoriaResponse;
 import com.example.runnconnect.data.response.EventoResumenResponse;
@@ -38,6 +39,8 @@ public class MisEventosViewModel extends AndroidViewModel {
     public String estadoTexto;
     public int estadoColorTexto;
     public int estadoColorFondo;
+    public String climaTexto = "";
+    public int climaVisibilidad = View.GONE;
   }
 
   private final MutableLiveData<List<EventoUI>> listaEventos = new MutableLiveData<>();
@@ -203,7 +206,16 @@ public class MisEventosViewModel extends AndroidViewModel {
       ui.lugar = (evento.getLugar() != null) ? "Lugar: " + evento.getLugar() : "Lugar: Sin ubicación";
       ui.inscriptos = "Inscriptos: " + evento.getInscriptosActuales();
       ui.cupo = "Cupo Total: " + (evento.getCupoTotal() != null ? String.valueOf(evento.getCupoTotal()) : "Ilimitado");
-      
+
+      ClimaInfo clima = ClimaInfo.fromJson(evento.getUrlPronosticoClima());
+      if (clima != null) {
+        ui.climaTexto = clima.getTextoTemperatura();
+        ui.climaVisibilidad = View.VISIBLE;
+      } else {
+        ui.climaTexto = "";
+        ui.climaVisibilidad = View.GONE;
+      }
+
       String estado = (evento.getEstado() != null) ? evento.getEstado().toUpperCase() : "DESCONOCIDO";
       ui.estadoTexto = estado;
       

@@ -541,7 +541,7 @@ public class DetalleEventoRunnerViewModel extends AndroidViewModel {
 
         if (response.isSuccessful()) {
           dialogCerrarEvento.setValue(true);
-          mostrarMensaje("¡Inscripción realizada con éxito! Ahora puedes subir tu comprobante de pago.", true);
+          mostrarMensaje("Inscripción realizada con éxito! Ahora puedes subir tu comprobante de pago.", true);
           // Recargar tod el detalle del evento para actualizar inscripciones y botones
           cargarDetalle(currentIdEvento);
         } else {

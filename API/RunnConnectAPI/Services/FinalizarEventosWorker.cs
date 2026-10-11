@@ -50,6 +50,13 @@ namespace RunnConnectAPI.Services
         {
           _logger.LogInformation($"[AUTO-FIN] Se han finalizado {cantidadFinalizados} eventos y sus categorias vencidas.");
         }
+
+        // Actualizamos clima de eventos que se encuentren dentro de los próximos 5 días
+        int climasActualizados = await eventoRepo.ActualizarClimaEventosProximosAsync();
+        if (climasActualizados > 0)
+        {
+          _logger.LogInformation($"[CLIMA-AUTO] Se actualizó el clima de {climasActualizados} eventos próximos.");
+        }
       }
     }
   }

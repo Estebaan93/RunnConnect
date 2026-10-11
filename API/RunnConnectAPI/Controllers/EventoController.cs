@@ -21,17 +21,19 @@ namespace RunnConnectAPI.Controllers
     private readonly EventoRepositorio _eventoRepositorio;
     private readonly UsuarioRepositorio _usuarioRepositorio;
     private readonly CategoriaRepositorio _categoriaRepositorio;
+    private readonly ClimaService _climaService;
 
     //notificaciones
     private readonly NotificacionRepositorio _notificacionRepositorio;
 
     //inyectamos en el constructor
-    public EventoController(EventoRepositorio eventoRepositorio, UsuarioRepositorio usuarioRepositorio, CategoriaRepositorio categoriaRepositorio, NotificacionRepositorio notificacionRepositorio)
+    public EventoController(EventoRepositorio eventoRepositorio, UsuarioRepositorio usuarioRepositorio, CategoriaRepositorio categoriaRepositorio, NotificacionRepositorio notificacionRepositorio, ClimaService climaService)
     {
       _eventoRepositorio = eventoRepositorio; //asignamos
       _usuarioRepositorio = usuarioRepositorio;
       _categoriaRepositorio = categoriaRepositorio;
       _notificacionRepositorio = notificacionRepositorio;
+      _climaService = climaService;
     }
 
     /*Endpoint publicos (sin autenticacion) para el usuario nuevo antes de loguearse, pueda ver los proximos eventos, y posterior
@@ -250,6 +252,7 @@ namespace RunnConnectAPI.Controllers
           CupoTotal = e.CupoTotal,
           TipoEvento = e.TipoEvento,
           DatosPago = e.DatosPago,
+          UrlPronosticoClima = e.UrlPronosticoClima,
           CantidadCategorias = e.Categorias?.Count ?? 0,
           InscriptosActuales = e.Categorias?
                 .SelectMany(c => c.Inscripciones)
@@ -330,6 +333,11 @@ namespace RunnConnectAPI.Controllers
           IdOrganizador = userId
         };
 
+        if (string.IsNullOrWhiteSpace(evento.UrlPronosticoClima) && !string.IsNullOrWhiteSpace(request.Lugar))
+        {
+          evento.UrlPronosticoClima = await _climaService.ObtenerPronosticoClimaPorCiudadAsync(request.Lugar, request.FechaHora);
+        }
+
         var eventoCreado = await _eventoRepositorio.CrearAsync(evento);
 
         var categoriasResponse = new List<CategoriaEventoResponse>();
@@ -402,6 +410,7 @@ namespace RunnConnectAPI.Controllers
 
                 TipoEvento = eventoCreado.TipoEvento,
                 DatosPago = eventoCreado.DatosPago,
+                UrlPronosticoClima = eventoCreado.UrlPronosticoClima,
                 Categorias = categoriasResponse,
 
                 NombreOrganizador = usuario.Nombre,
@@ -450,7 +459,10 @@ namespace RunnConnectAPI.Controllers
         evento.FechaHora = request.FechaHora;
         evento.Lugar = request.Lugar;
         evento.CupoTotal = request.CupoTotal;
-        evento.UrlPronosticoClima = request.UrlPronosticoClima;
+        if (!string.IsNullOrWhiteSpace(request.UrlPronosticoClima))
+        {
+          evento.UrlPronosticoClima = request.UrlPronosticoClima;
+        }
         evento.DatosPago = request.DatosPago;
 
         await _eventoRepositorio.ActualizarAsync(evento);
@@ -466,6 +478,7 @@ namespace RunnConnectAPI.Controllers
             Lugar = evento.Lugar,
             Estado = evento.Estado,
             CupoTotal = evento.CupoTotal,
+            UrlPronosticoClima = evento.UrlPronosticoClima,
             NombreOrganizador = evento.Organizador?.Nombre ?? ""
           }
         });

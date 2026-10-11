@@ -36,19 +36,7 @@ public class CategoriasRunnerAdapter extends RecyclerView.Adapter<CategoriasRunn
     private final int idInscripcion;
     private final String urlComprobante;
 
-    public CategoriaCompatibilidadUI(int idCategoria,
-                                     String nombre,
-                                     String costoTexto,
-                                     String cuposTexto,
-                                     String requisitosTexto,
-                                     String estadoCompatibilidadTexto,
-                                     int colorEstadoCompatibilidad,
-                                     String textoBoton,
-                                     boolean botonHabilitado,
-                                     int colorBoton,
-                                     int tipoAccion,
-                                     int idInscripcion,
-                                     String urlComprobante) {
+    public CategoriaCompatibilidadUI(int idCategoria, String nombre, String costoTexto, String cuposTexto, String requisitosTexto, String estadoCompatibilidadTexto, int colorEstadoCompatibilidad, String textoBoton, boolean botonHabilitado, int colorBoton, int tipoAccion, int idInscripcion, String urlComprobante) {
       this.idCategoria = idCategoria;
       this.nombre = nombre;
       this.costoTexto = costoTexto;

@@ -36,6 +36,18 @@
         app:layout_constraintStart_toStartOf="parent"/>
 
     <TextView
+        android:id="@+id/tvClima"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="10° / 25°"
+        android:textColor="#37474F"
+        android:textSize="12sp"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@id/tvFecha"
+        app:layout_constraintBottom_toBottomOf="@id/tvFecha" />
+
+    <TextView
         android:id="@+id/tvLugar"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
