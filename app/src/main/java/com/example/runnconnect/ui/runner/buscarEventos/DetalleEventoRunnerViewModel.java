@@ -21,6 +21,7 @@ import com.example.runnconnect.data.response.CategoriaResponse;
 import com.example.runnconnect.data.response.EventoDetalleResponse;
 import com.example.runnconnect.data.response.MisInscripcionesResponse;
 import com.example.runnconnect.data.response.PerfilUsuarioResponse;
+import com.example.runnconnect.data.response.ResultadosEventoResponse;
 import com.example.runnconnect.ui.runner.buscarEventos.CategoriasRunnerAdapter.CategoriaCompatibilidadUI;
 
 import org.json.JSONObject;
@@ -75,6 +76,9 @@ public class DetalleEventoRunnerViewModel extends AndroidViewModel {
   private final MutableLiveData<Integer> mensajeColorFondo = new MutableLiveData<>(Color.TRANSPARENT);
   private final MutableLiveData<Integer> mensajeColorTexto = new MutableLiveData<>(Color.BLACK);
 
+  // Visibilidad del botón de resultados oficiales
+  private final MutableLiveData<Integer> btnResultadosVisibility = new MutableLiveData<>(View.GONE);
+
   // Errores del diálogo
   private final MutableLiveData<String> dialogErrorTexto = new MutableLiveData<>("");
   private final MutableLiveData<Integer> dialogErrorVisibility = new MutableLiveData<>(View.GONE);
@@ -107,6 +111,7 @@ public class DetalleEventoRunnerViewModel extends AndroidViewModel {
   public LiveData<Integer> getMensajeVisibility() { return mensajeVisibility; }
   public LiveData<Integer> getMensajeColorFondo() { return mensajeColorFondo; }
   public LiveData<Integer> getMensajeColorTexto() { return mensajeColorTexto; }
+  public LiveData<Integer> getBtnResultadosVisibility() { return btnResultadosVisibility; }
   public LiveData<String> getDialogErrorTexto() { return dialogErrorTexto; }
   public LiveData<Integer> getDialogErrorVisibility() { return dialogErrorVisibility; }
   public LiveData<Boolean> getDialogCerrarEvento() { return dialogCerrarEvento; }
@@ -120,6 +125,7 @@ public class DetalleEventoRunnerViewModel extends AndroidViewModel {
     this.currentIdEvento = idEvento;
     progressVisibility.setValue(View.VISIBLE);
     mensajeVisibility.setValue(View.GONE);
+    btnResultadosVisibility.setValue(View.GONE);
 
     String token = sessionManager.leerToken();
 
@@ -187,6 +193,7 @@ public class DetalleEventoRunnerViewModel extends AndroidViewModel {
         if (response.isSuccessful() && response.body() != null) {
           eventoDetalle = response.body();
           procesarDatosEvento();
+          verificarResultadosDisponibles(idEvento);
         } else {
           mostrarMensaje("No se pudo cargar el detalle del evento (" + response.code() + ")", false);
         }
@@ -196,6 +203,32 @@ public class DetalleEventoRunnerViewModel extends AndroidViewModel {
       public void onFailure(Call<EventoDetalleResponse> call, Throwable t) {
         progressVisibility.setValue(View.GONE);
         mostrarMensaje("Error de conexión al cargar el evento.", false);
+      }
+    });
+  }
+
+  private void verificarResultadosDisponibles(int idEvento) {
+    apiService.obtenerResultadosEvento(idEvento).enqueue(new Callback<ResultadosEventoResponse>() {
+      @Override
+      public void onResponse(Call<ResultadosEventoResponse> call, Response<ResultadosEventoResponse> response) {
+        if (response.isSuccessful() && response.body() != null) {
+          int totalConResultado = response.body().getTotalConResultado();
+          String estado = (eventoDetalle != null && eventoDetalle.getEstado() != null)
+              ? eventoDetalle.getEstado().trim() : "";
+          if (estado.isEmpty() && response.body().getEvento() != null && response.body().getEvento().getEstado() != null) {
+            estado = response.body().getEvento().getEstado().trim();
+          }
+
+          boolean habilitar = "finalizado".equalsIgnoreCase(estado) && totalConResultado > 0;
+          btnResultadosVisibility.setValue(habilitar ? View.VISIBLE : View.GONE);
+        } else {
+          btnResultadosVisibility.setValue(View.GONE);
+        }
+      }
+
+      @Override
+      public void onFailure(Call<ResultadosEventoResponse> call, Throwable t) {
+        btnResultadosVisibility.setValue(View.GONE);
       }
     });
   }

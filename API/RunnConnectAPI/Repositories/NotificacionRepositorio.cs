@@ -45,74 +45,87 @@ namespace RunnConnectAPI.Repositories
       return notificaciones.Select(MapearAResponse).ToList();
     }
 
-    // Obtiene las notificaciones para el runner autenticado
-    // Busca notificaciones de eventos donde esta inscripto (confirmado)
+    // Obtiene las notificaciones para el usuario autenticado (Runner u Organizador)
     public async Task<MisNotificacionesResponse> ObtenerMisNotificacionesAsync(int idUsuario)
     {
-      // 1. Obtener Inscripciones del usuario
-      var inscripcionesPagadas = await _context.Inscripciones
-        .Include(i => i.Categoria)
-        .Where(i => i.IdUsuario == idUsuario && i.EstadoPago == "pagado")
-        .Select(i => new { i.Categoria!.IdEvento, i.Categoria.IdCategoria })
-        .ToListAsync();
+      var usuario = await _context.Usuarios.FindAsync(idUsuario);
+      bool esOrganizador = usuario?.TipoUsuario == "organizador";
 
-      // IDs de mis eventos
-      var idEventosPagados = inscripcionesPagadas.Select(x => x.IdEvento).Distinct().ToList();
-      var idCategoriasPagadas = inscripcionesPagadas.Select(x => x.IdCategoria).Distinct().ToList();
+      List<NotificacionEvento> notificacionesFiltradas;
 
-      // FECHA LIMITE PARA GLOBALES (Ej: Solo mostrar anuncios globales de los ultimos 7 dias)
-      // Esto evita que un usuario nuevo vea notificaciones de eventos de hace 2 años.
-      var fechaLimiteGlobal = DateTime.Now.AddDays(-7);
-
-      // 2. QUERY PRINCIPAL
-      var notificaciones = await _context.NotificacionesEvento
-        .AsNoTracking()
-        .Include(n => n.Evento)
-        .Include(n => n.Categoria)
-        .Where(n =>
-    // CASO A: Es un mensaje PRIVADO para mi (Prioridad Maxima - Pagos rechazados, etc)
-            n.IdUsuarioDestino == idUsuario
-
-            ||
-
-            // CASO B: Es un anuncio GLOBAL reciente
-            (n.EsAnuncioGlobal == true && n.FechaEnvio >= fechaLimiteGlobal)
-
-            ||
-
-            // CASO C: Es un aviso PIBLICO GENERAL de un evento donde estoy pagado
-            (n.IdUsuarioDestino == null && n.IdCategoria == null && idEventosPagados.Contains(n.IdEvento))
-
-            ||
-
-            // CASO D: Es un aviso ESPECIFICO de una categoria donde estoy pagado
-            (n.IdUsuarioDestino == null && n.IdCategoria != null && idCategoriasPagadas.Contains(n.IdCategoria.Value))
-        )
-        .OrderByDescending(n => n.FechaEnvio)
-        .ToListAsync();
-
-      // 3. FILTRADO 
-      var notificacionesFiltradas = notificaciones.Where(n =>
+      if (esOrganizador)
       {
-        // 1. Si es PRIVADA para mi
-        if (n.IdUsuarioDestino == idUsuario) return true; // NUEVO
+        // El organizador SOLO ve notificaciones privadas para él (nuevas inscripciones, comprobantes subidos, etc.)
+        // y avisos específicos de sus eventos, NUNCA anuncios globales de inscripciones abiertas de otros eventos.
+        notificacionesFiltradas = await _context.NotificacionesEvento
+          .AsNoTracking()
+          .Include(n => n.Evento)
+          .Include(n => n.Categoria)
+          .Where(n =>
+              n.IdUsuarioDestino == idUsuario
+              ||
+              (n.Evento != null && n.Evento.IdOrganizador == idUsuario && !n.EsAnuncioGlobal && !n.Titulo.Contains("Resultados"))
+          )
+          .OrderByDescending(n => n.FechaEnvio)
+          .ToListAsync();
+      }
+      else
+      {
+        // 1. Obtener Inscripciones del usuario
+        var inscripcionesPagadas = await _context.Inscripciones
+          .Include(i => i.Categoria)
+          .Where(i => i.IdUsuario == idUsuario && i.EstadoPago == "pagado")
+          .Select(i => new { i.Categoria!.IdEvento, i.Categoria.IdCategoria })
+          .ToListAsync();
 
-        // 2. Si es Global
-        if (n.EsAnuncioGlobal) return true;
+        // IDs de mis eventos
+        var idEventosPagados = inscripcionesPagadas.Select(x => x.IdEvento).Distinct().ToList();
+        var idCategoriasPagadas = inscripcionesPagadas.Select(x => x.IdCategoria).Distinct().ToList();
 
-        // 3. Si es Publica del Evento
-        // Si no tiene categoria especifica
-        if (n.IdCategoria == null) return true;
+        // FECHA LIMITE PARA GLOBALES (Ej: Solo mostrar anuncios globales de los ultimos 7 dias)
+        var fechaLimiteGlobal = DateTime.Now.AddDays(-7);
 
-        // Si TIENE categoria especifica -> Debo estar en ESA categoria exacta
-        return inscripcionesPagadas.Any(i => i.IdEvento == n.IdEvento && i.IdCategoria == n.IdCategoria);
-      }).ToList();
+        // 2. QUERY PRINCIPAL
+        var notificaciones = await _context.NotificacionesEvento
+          .AsNoTracking()
+          .Include(n => n.Evento)
+          .Include(n => n.Categoria)
+          .Where(n =>
+              // CASO A: Es un mensaje PRIVADO para mi (Prioridad Maxima - Pagos rechazados, etc)
+              n.IdUsuarioDestino == idUsuario
+
+              ||
+
+              // CASO B: Es un anuncio GLOBAL reciente (Inscripciones abiertas para runners)
+              (n.EsAnuncioGlobal == true && n.FechaEnvio >= fechaLimiteGlobal)
+
+              ||
+
+              // CASO C: Es un aviso PUBLICO GENERAL de un evento donde estoy pagado
+              (n.IdUsuarioDestino == null && n.IdCategoria == null && idEventosPagados.Contains(n.IdEvento))
+
+              ||
+
+              // CASO D: Es un aviso ESPECIFICO de una categoria donde estoy pagado
+              (n.IdUsuarioDestino == null && n.IdCategoria != null && idCategoriasPagadas.Contains(n.IdCategoria.Value))
+          )
+          .OrderByDescending(n => n.FechaEnvio)
+          .ToListAsync();
+
+        // 3. FILTRADO 
+        notificacionesFiltradas = notificaciones.Where(n =>
+        {
+          if (n.IdUsuarioDestino == idUsuario) return true;
+          if (n.EsAnuncioGlobal) return true;
+          if (n.IdCategoria == null) return true;
+          return inscripcionesPagadas.Any(i => i.IdEvento == n.IdEvento && i.IdCategoria == n.IdCategoria);
+        }).ToList();
+      }
 
       // 4. Mapeo final 
       var items = notificacionesFiltradas.Select(n => new NotificacionRunnerItem
       {
         IdNotificacion = n.IdNotificacion,
-        // Agregamos prefijo visual si es global
         Titulo = n.EsAnuncioGlobal ? $"{n.Titulo}" : (n.Categoria != null ? $"[{n.Categoria.Nombre}] {n.Titulo}" : n.Titulo),
         Mensaje = n.Mensaje,
         FechaEnvio = n.FechaEnvio,
@@ -120,9 +133,7 @@ namespace RunnConnectAPI.Repositories
         NombreEvento = n.Evento?.Nombre ?? "",
         FechaEvento = n.Evento?.FechaHora ?? DateTime.MinValue,
         EstadoEvento = n.EstadoEvento ?? n.Evento?.Estado ?? "",
-
-        EsPrivada = n.IdUsuarioDestino !=null
-
+        EsPrivada = n.IdUsuarioDestino != null
       }).ToList();
 
       return new MisNotificacionesResponse
@@ -154,55 +165,98 @@ namespace RunnConnectAPI.Repositories
       await _firebaseService.EnviarNotificacionTopicAsync("topico_global", request.Titulo, request.Mensaje, request.IdEvento);
     }
 
-    // Obtiene notificaciones recientes (ultimas 24 horas) para el runner
-    // util para mostrar contador en la app
+    // METODO PARA CREAR NOTIFICACION DIRECTA DESDE EL SISTEMA
+    public async Task<NotificacionEvento> CrearNotificacionSistemaAsync(
+      int idEvento, int? idCategoria, int? idUsuarioDestino, string titulo, string mensaje, string? estadoEvento = null)
+    {
+      var notificacion = new NotificacionEvento
+      {
+        IdEvento = idEvento,
+        IdCategoria = idCategoria,
+        IdUsuarioDestino = idUsuarioDestino,
+        Titulo = titulo.Trim(),
+        Mensaje = mensaje?.Trim(),
+        FechaEnvio = DateTime.Now,
+        EstadoEvento = estadoEvento,
+        EsAnuncioGlobal = false
+      };
+
+      _context.NotificacionesEvento.Add(notificacion);
+      await _context.SaveChangesAsync();
+
+      // Disparar a firebase
+      string notif = DeterminarNotificacion(idEvento, idCategoria, idUsuarioDestino);
+      await _firebaseService.EnviarNotificacionTopicAsync(notif, titulo, mensaje, idEvento);
+
+      return notificacion;
+    }
+
+    // Obtiene notificaciones recientes para runner u organizador
     public async Task<int> ContarNotificacionesRecientesAsync(int idUsuario)
     {
-      // Fecha ultima lectura del runner
-      var perfil = await _context.PerfilesRunners
-            .FirstOrDefaultAsync(p => p.IdUsuario == idUsuario);
+      var usuario = await _context.Usuarios.FindAsync(idUsuario);
+      bool esOrganizador = usuario?.TipoUsuario == "organizador";
 
+      if (esOrganizador)
+      {
+        var perfilOrga = await _context.PerfilesOrganizadores.FirstOrDefaultAsync(p => p.IdUsuario == idUsuario);
+        var ultimaLecturaOrga = perfilOrga?.FechaUltimaLectura ?? DateTime.MinValue;
+
+        return await _context.NotificacionesEvento
+          .Where(n => (n.IdUsuarioDestino == idUsuario || (n.Evento != null && n.Evento.IdOrganizador == idUsuario && !n.EsAnuncioGlobal && !n.Titulo.Contains("Resultados")))
+                      && n.FechaEnvio >= ultimaLecturaOrga)
+          .CountAsync();
+      }
+
+      // Runner:
+      var perfil = await _context.PerfilesRunners.FirstOrDefaultAsync(p => p.IdUsuario == idUsuario);
       var ultimaLectura = perfil?.FechaUltimaLectura ?? DateTime.MinValue;
 
-      // 1. Obtener Inscripciones (Evento y Categoria)
       var inscripcionesUsuario = await _context.Inscripciones
         .Include(i => i.Categoria)
         .Where(i => i.IdUsuario == idUsuario && i.EstadoPago == "pagado")
         .Select(i => new { i.Categoria!.IdEvento, i.Categoria.IdCategoria })
         .ToListAsync();
 
-      if (!inscripcionesUsuario.Any()) return 0;
-
       var idsEventos = inscripcionesUsuario.Select(x => x.IdEvento).Distinct().ToList();
 
-      // 2. Traer candidatos de la base de datos (filtro por fecha y evento)
       var notificacionesCandidatas = await _context.NotificacionesEvento
-        .Where(n => idsEventos.Contains(n.IdEvento) && n.FechaEnvio >= ultimaLectura)
-        .Select(n => new { n.IdEvento, n.IdCategoria }) // Solo necesitamos IDs para contar
+        .Where(n => (n.IdUsuarioDestino == idUsuario || n.EsAnuncioGlobal || idsEventos.Contains(n.IdEvento)) && n.FechaEnvio >= ultimaLectura)
+        .Select(n => new { n.IdEvento, n.IdCategoria, n.IdUsuarioDestino, n.EsAnuncioGlobal })
         .ToListAsync();
 
-      // 3. Contar aplicando la logica de categoria
       var cantidad = notificacionesCandidatas.Count(n =>
       {
-        if (n.IdCategoria == null) return true; // Global
+        if (n.IdUsuarioDestino == idUsuario) return true;
+        if (n.EsAnuncioGlobal) return true;
+        if (n.IdCategoria == null) return true;
         return inscripcionesUsuario.Any(i => i.IdEvento == n.IdEvento && i.IdCategoria == n.IdCategoria);
       });
 
       return cantidad;
     }
 
-    // METODO NUEVO: MARCAR TODO COMO LEIDO
-    // Se llama cuando el usuario abre la pantalla de notificaciones
+    // METODO: MARCAR TODO COMO LEIDO
     public async Task MarcarTodasComoLeidasAsync(int idUsuario)
     {
-      var perfil = await _context.PerfilesRunners
-          .FirstOrDefaultAsync(p => p.IdUsuario == idUsuario);
-
-      if (perfil != null)
+      var usuario = await _context.Usuarios.FindAsync(idUsuario);
+      if (usuario?.TipoUsuario == "organizador")
       {
-        // Actualizamos la fecha a "Ahora"
-        perfil.FechaUltimaLectura = DateTime.Now;
-        await _context.SaveChangesAsync();
+        var perfilOrga = await _context.PerfilesOrganizadores.FirstOrDefaultAsync(p => p.IdUsuario == idUsuario);
+        if (perfilOrga != null)
+        {
+          perfilOrga.FechaUltimaLectura = DateTime.Now;
+          await _context.SaveChangesAsync();
+        }
+      }
+      else
+      {
+        var perfil = await _context.PerfilesRunners.FirstOrDefaultAsync(p => p.IdUsuario == idUsuario);
+        if (perfil != null)
+        {
+          perfil.FechaUltimaLectura = DateTime.Now;
+          await _context.SaveChangesAsync();
+        }
       }
     }
 

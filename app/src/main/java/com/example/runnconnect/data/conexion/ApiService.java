@@ -21,6 +21,8 @@ import com.example.runnconnect.data.request.CrearInscripcionRequest;
 import com.example.runnconnect.data.request.GuardarRutaRequest;
 import com.example.runnconnect.data.request.LoginRequest;
 import com.example.runnconnect.data.request.MotivoBajaRequest;
+import com.example.runnconnect.data.response.ContadorNotificacionesResponse;
+import com.example.runnconnect.data.response.MisNotificacionesResponse;
 import com.example.runnconnect.data.response.EventoDetalleResponse;
 import com.example.runnconnect.data.response.EventoResumenResponse;
 import com.example.runnconnect.data.response.EventosPaginadosResponse;
@@ -317,6 +319,22 @@ public interface ApiService {
   // Obtener mis resultados (runner)
   @GET("Resultado/MisResultados")
   Call<MisResultadosResponse> obtenerMisResultados(
+    @Header("Authorization") String token
+  );
+
+  // NOTIFICACIONES (Runner y Organizador)
+  @GET("Notificacion/MisNotificaciones")
+  Call<MisNotificacionesResponse> obtenerMisNotificaciones(
+    @Header("Authorization") String token
+  );
+
+  @GET("Notificacion/ContadorRecientes")
+  Call<ContadorNotificacionesResponse> obtenerContadorNotificaciones(
+    @Header("Authorization") String token
+  );
+
+  @POST("Notificacion/MarcarComoLeidas")
+  Call<ResponseBody> marcarNotificacionesComoLeidas(
     @Header("Authorization") String token
   );
 }

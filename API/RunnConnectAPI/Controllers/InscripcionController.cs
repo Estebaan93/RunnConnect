@@ -120,6 +120,18 @@ namespace RunnConnectAPI.Controllers
 
         var inscripcionCreada = await _inscripcionRepositorio.CrearAsync(inscripcion);
 
+        // Notificar al organizador del evento sobre la nueva inscripcion
+        var inscripcionCompleta = await _inscripcionRepositorio.ObtenerPorIdAsync(inscripcionCreada.IdInscripcion);
+        string nombreRunner = inscripcionCompleta?.Usuario?.Nombre ?? "Un corredor";
+
+        await _notificacionRepositorio.CrearNotificacionSistemaAsync(
+            evento.IdEvento,
+            request.IdCategoria,
+            evento.IdOrganizador,
+            "Nueva Inscripción Registrada",
+            $"{nombreRunner} se ha inscripto en la categoría '{categoria.Nombre}' de tu evento '{evento.Nombre}'.",
+            evento.Estado);
+
         return CreatedAtAction(
             nameof(ObtenerInscripcion),
             new { id = inscripcionCreada.IdInscripcion },
@@ -355,6 +367,19 @@ namespace RunnConnectAPI.Controllers
 
         await _inscripcionRepositorio.ActualizarComprobanteYEstadoAsync(id, urlComprobante, "procesando");
 
+        // Notificar al organizador que se subio un comprobante de pago
+        if (inscripcion.Categoria?.Evento != null)
+        {
+          string nombreRunner = inscripcion.Usuario?.Nombre ?? "Un corredor";
+          await _notificacionRepositorio.CrearNotificacionSistemaAsync(
+              inscripcion.Categoria.Evento.IdEvento,
+              inscripcion.IdCategoria,
+              inscripcion.Categoria.Evento.IdOrganizador,
+              "Nuevo Comprobante de Pago Subido",
+              $"{nombreRunner} ha subido el comprobante de pago para la categoría '{inscripcion.Categoria.Nombre}' del evento '{inscripcion.Categoria.Evento.Nombre}'. Pendiente de validación.",
+              inscripcion.Categoria.Evento.Estado);
+        }
+
         return Ok(new
         {
           message = "Comprobante subido exitosamente. El pago se esta procesando",
@@ -547,13 +572,13 @@ namespace RunnConnectAPI.Controllers
         };
 
         //inyectamos la notificacion
-        await _notificacionRepositorio.CrearAsync(new CrearNotificacionRequest
-        {
-          IdEvento = notificacion.IdEvento,
-          IdCategoria = notificacion.IdCategoria,
-          Titulo= notificacion.Titulo,
-          Mensaje= notificacion.Mensaje
-        },userId, notificacion.IdUsuarioDestino);
+        await _notificacionRepositorio.CrearNotificacionSistemaAsync(
+            inscripcion.Categoria.Evento.IdEvento,
+            inscripcion.IdCategoria,
+            inscripcion.IdUsuario,
+            tituloNotif,
+            mensajeNotif,
+            inscripcion.Categoria.Evento.Estado);
 
 
 
@@ -609,13 +634,13 @@ namespace RunnConnectAPI.Controllers
             EstadoEvento = inscripcion.Categoria.Evento.Estado
           };
 
-          await _notificacionRepositorio.CrearAsync(new CrearNotificacionRequest
-          {
-            IdEvento = notifReembolso.IdEvento,
-            IdCategoria = notifReembolso.IdCategoria,
-            Titulo = notifReembolso.Titulo,
-            Mensaje = notifReembolso.Mensaje
-          }, userId, notifReembolso.IdUsuarioDestino);
+          await _notificacionRepositorio.CrearNotificacionSistemaAsync(
+              notifReembolso.IdEvento,
+              notifReembolso.IdCategoria,
+              notifReembolso.IdUsuarioDestino,
+              notifReembolso.Titulo,
+              notifReembolso.Mensaje,
+              notifReembolso.EstadoEvento);
         }
 
         return Ok(new
@@ -662,25 +687,13 @@ namespace RunnConnectAPI.Controllers
         // Enviar notificacion privada al runner avisando que fue dado de baja
         if (inscripcion.Categoria?.Evento != null)
         {
-          var notificacion = new NotificacionEvento
-          {
-            IdEvento = inscripcion.Categoria.Evento.IdEvento,
-            IdCategoria = inscripcion.IdCategoria,
-            IdUsuarioDestino = inscripcion.IdUsuario,
-            Titulo = "Inscripción Cancelada / Dada de Baja",
-            Mensaje = $"Tu inscripción al evento '{inscripcion.Categoria.Evento.Nombre}' fue cancelada por el organizador. Motivo: {motivoTexto}",
-            FechaEnvio = DateTime.Now,
-            EsAnuncioGlobal = false,
-            EstadoEvento = inscripcion.Categoria.Evento.Estado
-          };
-
-          await _notificacionRepositorio.CrearAsync(new CrearNotificacionRequest
-          {
-            IdEvento = notificacion.IdEvento,
-            IdCategoria = notificacion.IdCategoria,
-            Titulo = notificacion.Titulo,
-            Mensaje = notificacion.Mensaje
-          }, userId, notificacion.IdUsuarioDestino);
+          await _notificacionRepositorio.CrearNotificacionSistemaAsync(
+              inscripcion.Categoria.Evento.IdEvento,
+              inscripcion.IdCategoria,
+              inscripcion.IdUsuario,
+              "Inscripción Cancelada / Dada de Baja",
+              $"Tu inscripción al evento '{inscripcion.Categoria.Evento.Nombre}' fue cancelada por el organizador. Motivo: {motivoTexto}",
+              inscripcion.Categoria.Evento.Estado);
         }
 
         return Ok(new

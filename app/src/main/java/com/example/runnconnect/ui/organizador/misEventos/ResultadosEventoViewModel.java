@@ -223,12 +223,19 @@ public class ResultadosEventoViewModel extends AndroidViewModel {
   }
 
   public void solicitarFichaTecnica(int posicion) {
+    // Privacidad: Solo el organizador tiene acceso a la ficha técnica con datos personales de los corredores
+    if (!"organizador".equalsIgnoreCase(sessionManager.getTipoUsuario())) {
+      return;
+    }
     if (posicion < 0 || posicion >= listaActualItems.size()) return;
     int idInscripcion = listaActualItems.get(posicion).getIdInscripcion();
     cargarFichaRunner(idInscripcion);
   }
 
   private void cargarFichaRunner(int idInscripcion) {
+    if (!"organizador".equalsIgnoreCase(sessionManager.getTipoUsuario())) {
+      return;
+    }
     String token = sessionManager.leerToken();
     if (token == null) {
       errorTexto.setValue("No hay sesión activa.");

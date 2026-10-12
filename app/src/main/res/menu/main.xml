@@ -2,8 +2,10 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
   <item
-      android:id="@+id/action_settings"
-      android:orderInCategory="100"
-      android:title="@string/action_settings"
-      app:showAsAction="never" />
+      android:id="@+id/nav_notificaciones"
+      android:icon="@drawable/ic_notification_bell"
+      android:orderInCategory="1"
+      android:title="Notificaciones"
+      app:actionLayout="@layout/action_layout_notificacion_bell"
+      app:showAsAction="always" />
 </menu>

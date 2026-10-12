@@ -18,9 +18,11 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.bumptech.glide.Glide;
+import com.example.runnconnect.R;
 import com.example.runnconnect.databinding.DialogInscripcionRunnerBinding;
 import com.example.runnconnect.databinding.DialogVerImagenBinding;
 import com.example.runnconnect.databinding.FragmentDetalleEventoRunnerBinding;
@@ -87,6 +89,12 @@ public class DetalleEventoRunnerFragment extends Fragment {
       intent.putExtra("idEvento", idEvento);
       startActivity(intent);
     });
+
+    binding.btnVerResultados.setOnClickListener(v -> {
+      Bundle args = new Bundle();
+      args.putInt("idEvento", idEvento);
+      Navigation.findNavController(requireView()).navigate(R.id.action_detalleRunner_to_resultadosEvento, args);
+    });
   }
 
   private void setupObservers() {
@@ -99,6 +107,7 @@ public class DetalleEventoRunnerFragment extends Fragment {
     viewModel.getUiOrganizador().observe(getViewLifecycleOwner(), binding.tvOrganizadorDetalle::setText);
     viewModel.getUiDatosPago().observe(getViewLifecycleOwner(), binding.tvDatosPagoDetalle::setText);
 
+    viewModel.getBtnResultadosVisibility().observe(getViewLifecycleOwner(), binding.btnVerResultados::setVisibility);
     viewModel.getAvisoPerfilVisibility().observe(getViewLifecycleOwner(), binding.cardAvisoPerfil::setVisibility);
     viewModel.getListaCategoriasUI().observe(getViewLifecycleOwner(), adapter::setLista);
 

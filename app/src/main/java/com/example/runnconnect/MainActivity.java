@@ -2,6 +2,7 @@ package com.example.runnconnect;
 
 import android.os.Bundle;
 import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -15,6 +16,7 @@ import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
 
 import com.bumptech.glide.Glide;
+import com.example.runnconnect.databinding.ActionLayoutNotificacionBellBinding;
 import com.example.runnconnect.databinding.ActivityMainBinding;
 import com.google.android.material.navigation.NavigationView;
 
@@ -83,11 +85,39 @@ public class MainActivity extends AppCompatActivity {
     NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment_content_main);
     NavigationUI.setupActionBarWithNavController(this, navController, mAppBarConfiguration);
     NavigationUI.setupWithNavController(navigationView, navController);
+
+    navController.addOnDestinationChangedListener((controller, destination, arguments) ->
+        viewModel.onDestinoNavegado(destination.getId())
+    );
+  }
+
+  @Override
+  protected void onResume() {
+    super.onResume();
+    viewModel.cargarContadorNotificaciones();
   }
 
   @Override
   public boolean onCreateOptionsMenu(Menu menu) {
+    getMenuInflater().inflate(R.menu.main, menu);
+    MenuItem notifItem = menu.findItem(R.id.nav_notificaciones);
+    if (notifItem != null && notifItem.getActionView() != null) {
+      ActionLayoutNotificacionBellBinding badgeBinding = ActionLayoutNotificacionBellBinding.bind(notifItem.getActionView());
+      badgeBinding.getRoot().setOnClickListener(v -> {
+        NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment_content_main);
+        navController.navigate(R.id.nav_notificaciones);
+      });
+      viewModel.getContadorTexto().observe(this, badgeBinding.tvBadgeContador::setText);
+      viewModel.getContadorVisibility().observe(this, badgeBinding.tvBadgeContador::setVisibility);
+    }
     return true;
+  }
+
+  @Override
+  public boolean onOptionsItemSelected(MenuItem item) {
+    NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment_content_main);
+    return NavigationUI.onNavDestinationSelected(item, navController)
+        || super.onOptionsItemSelected(item);
   }
 
   @Override

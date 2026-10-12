@@ -41,6 +41,9 @@ namespace RunnConnectAPI.Models
     [Column("direccionLegal")]
     public string? DireccionLegal { get; set; }
 
+    [Column("fechaUltimaLectura")]
+    public DateTime? FechaUltimaLectura { get; set; }
+
     // Navegacion
     [ForeignKey("IdUsuario")]
     public Usuario Usuario { get; set; } = null!;

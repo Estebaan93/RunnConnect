@@ -75,7 +75,7 @@ namespace RunnConnectAPI.Controllers
     /// Retorna notificaciones de eventos donde esta inscripto (pago confirmado)
     /// Ordenadas por fecha (más recientes primero)
     /// Este es el endpoint principal para el "buzon" de notificaciones en la app
-    [Authorize(Roles="runner")]
+    [Authorize(Roles="runner,organizador")]
     [HttpGet("MisNotificaciones")]
     public async Task<IActionResult> MisNotificaciones()
     {
@@ -95,7 +95,7 @@ namespace RunnConnectAPI.Controllers
     /// Obtiene el contador de notificaciones recientes (ultimas 24h)
     /// Requiere: Token JWT de Runner
     /// Util para mostrar badge/contador en la app
-    [Authorize(Roles= "runner")]
+    [Authorize(Roles="runner,organizador")]
     [HttpGet("ContadorRecientes")]
     public async Task<IActionResult> ContadorRecientes()
     {
@@ -119,7 +119,7 @@ namespace RunnConnectAPI.Controllers
 
     /// Marca todas las notificaciones como leidas (limpia el contador)
     /// La App debe llamar a esto cuando el usuario abre la pantalla "Mis Notificaciones"
-    [Authorize(Roles="runner")]
+    [Authorize(Roles="runner,organizador")]
     [HttpPost("MarcarComoLeidas")]
     public async Task<IActionResult> MarcarComoLeidas()
     {

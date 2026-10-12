@@ -119,6 +119,20 @@
               app:icon="@android:drawable/ic_dialog_map"
               app:iconGravity="textStart" />
 
+          <!-- Botón Ver Resultados Oficiales (Visible al finalizar y cargar resultados) -->
+          <com.google.android.material.button.MaterialButton
+              android:id="@+id/btnVerResultados"
+              android:layout_width="match_parent"
+              android:layout_height="wrap_content"
+              android:layout_marginTop="8dp"
+              android:text="VER RESULTADOS OFICIALES"
+              android:textStyle="bold"
+              android:backgroundTint="#2E7D32"
+              android:textColor="@color/white"
+              android:visibility="gone"
+              app:icon="@android:drawable/ic_menu_sort_by_size"
+              app:iconGravity="textStart" />
+
         </LinearLayout>
       </androidx.cardview.widget.CardView>
 

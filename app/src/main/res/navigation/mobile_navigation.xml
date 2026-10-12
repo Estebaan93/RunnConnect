@@ -30,6 +30,9 @@
         android:name="idEvento"
         app:argType="integer"
         android:defaultValue="0" />
+    <action
+        android:id="@+id/action_detalleRunner_to_resultadosEvento"
+        app:destination="@id/nav_resultados_evento" />
   </fragment>
 
   <fragment
@@ -186,6 +189,17 @@
             app:argType="integer" />
     </fragment>
 
-
+    <fragment
+        android:id="@+id/nav_notificaciones"
+        android:name="com.example.runnconnect.ui.notificaciones.NotificacionesFragment"
+        android:label="Notificaciones"
+        tools:layout="@layout/fragment_notificaciones">
+      <action
+          android:id="@+id/action_notificaciones_to_detalleEventoRunner"
+          app:destination="@id/nav_detalle_evento_runner" />
+      <action
+          android:id="@+id/action_notificaciones_to_gestionInscriptos"
+          app:destination="@id/nav_gestion_inscriptos" />
+    </fragment>
 
 </navigation>
