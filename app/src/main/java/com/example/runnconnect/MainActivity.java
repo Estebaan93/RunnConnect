@@ -11,6 +11,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.NavController;
+import androidx.navigation.NavOptions;
 import androidx.navigation.Navigation;
 import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
@@ -101,15 +102,22 @@ public class MainActivity extends AppCompatActivity {
   public boolean onCreateOptionsMenu(Menu menu) {
     getMenuInflater().inflate(R.menu.main, menu);
     MenuItem notifItem = menu.findItem(R.id.nav_notificaciones);
-    if (notifItem != null && notifItem.getActionView() != null) {
-      ActionLayoutNotificacionBellBinding badgeBinding = ActionLayoutNotificacionBellBinding.bind(notifItem.getActionView());
-      badgeBinding.getRoot().setOnClickListener(v -> {
-        NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment_content_main);
-        navController.navigate(R.id.nav_notificaciones);
-      });
-      viewModel.getContadorTexto().observe(this, badgeBinding.tvBadgeContador::setText);
-      viewModel.getContadorVisibility().observe(this, badgeBinding.tvBadgeContador::setVisibility);
-    }
+    ActionLayoutNotificacionBellBinding badgeBinding = ActionLayoutNotificacionBellBinding.bind(notifItem.getActionView());
+    
+    badgeBinding.getRoot().setOnClickListener(v -> {
+      NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment_content_main);
+      navController.navigate(
+          R.id.nav_notificaciones,
+          null,
+          new NavOptions.Builder()
+              .setLaunchSingleTop(true)
+              .setPopUpTo(R.id.nav_notificaciones, false)
+              .build()
+      );
+    });
+
+    viewModel.getContadorTexto().observe(this, badgeBinding.tvBadgeContador::setText);
+    viewModel.getContadorVisibility().observe(this, badgeBinding.tvBadgeContador::setVisibility);
     return true;
   }
 

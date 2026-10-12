@@ -196,10 +196,12 @@
         tools:layout="@layout/fragment_notificaciones">
       <action
           android:id="@+id/action_notificaciones_to_detalleEventoRunner"
-          app:destination="@id/nav_detalle_evento_runner" />
+          app:destination="@id/nav_detalle_evento_runner"
+          app:launchSingleTop="true" />
       <action
           android:id="@+id/action_notificaciones_to_gestionInscriptos"
-          app:destination="@id/nav_gestion_inscriptos" />
+          app:destination="@id/nav_gestion_inscriptos"
+          app:launchSingleTop="true" />
     </fragment>
 
 </navigation>
