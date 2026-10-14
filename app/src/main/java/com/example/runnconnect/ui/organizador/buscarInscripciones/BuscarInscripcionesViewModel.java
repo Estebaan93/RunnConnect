@@ -145,13 +145,9 @@ public class BuscarInscripcionesViewModel extends AndroidViewModel {
                 }
                 
                 String fechaInscripcion = item.getFechaInscripcion();
-                String fechaFormateada = "";
-                if (fechaInscripcion != null && fechaInscripcion.length() >= 10) {
-                    String[] parts = fechaInscripcion.substring(0, 10).split("-");
-                    if (parts.length == 3) {
-                        fechaFormateada = "Inscripción: " + parts[2] + "/" + parts[1] + "/" + parts[0];
-                    }
-                }
+                String fechaFormateada = (fechaInscripcion != null)
+                    ? "Inscripción: " + com.example.runnconnect.utils.FechaUtils.formatearFecha(fechaInscripcion)
+                    : "";
                 
                 tempMaestra.add(new BusquedaItemUiModel(
                     item.getIdInscripcion(),

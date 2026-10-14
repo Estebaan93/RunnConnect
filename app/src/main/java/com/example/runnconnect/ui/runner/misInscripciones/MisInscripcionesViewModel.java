@@ -149,7 +149,7 @@ public class MisInscripcionesViewModel extends AndroidViewModel {
       // Regla 16: El backend siempre envía evento y categoría válidos
       int idEvento = item.getEvento().getIdEvento();
       String nombreEvento = item.getEvento().getNombre();
-      String fecha = item.getEvento().getFechaHora().replace("T", " ");
+      String fecha = com.example.runnconnect.utils.FechaUtils.formatearFechaHora(item.getEvento().getFechaHora());
       String lugar = item.getEvento().getLugar();
       String fechaLugar = "Fecha: " + fecha + " | Lugar: " + lugar;
 

@@ -25,8 +25,8 @@ import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
 
 import com.bumptech.glide.Glide;
-import com.example.runnconnect.data.fcm.NotificacionSyncManager;
-import com.example.runnconnect.data.preferencias.PerfilSyncManager;
+import com.example.runnconnect.data.fcm.SincronizarNotificacion;
+import com.example.runnconnect.data.preferencias.SincronizarPerfil;
 import com.example.runnconnect.databinding.ActionLayoutNotificacionBellBinding;
 import com.example.runnconnect.databinding.ActivityMainBinding;
 import com.google.android.material.navigation.NavigationView;
@@ -79,12 +79,12 @@ public class MainActivity extends AppCompatActivity {
     });
 
     // Sincronización en tiempo real: al llegar un push con la app abierta, actualiza el contador
-    NotificacionSyncManager.getEventoNuevaNotificacion().observe(this, timestamp -> {
+    SincronizarNotificacion.getEventoNuevaNotificacion().observe(this, timestamp -> {
       viewModel.cargarContadorNotificaciones();
     });
 
     // Sincronización en tiempo real: al actualizar foto o perfil, actualiza el header del drawer
-    PerfilSyncManager.getEventoPerfilActualizado().observe(this, timestamp -> {
+    SincronizarPerfil.getEventoPerfilActualizado().observe(this, timestamp -> {
       viewModel.recargarDatosSesion();
     });
 

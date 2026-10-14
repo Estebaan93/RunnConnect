@@ -59,9 +59,7 @@ public class EventosPublicosAdapter extends RecyclerView.Adapter<EventosPublicos
       Context context = binding.getRoot().getContext();
 
       binding.tvNombreEvento.setText(item.getNombre());
-
-      String fechaLimpia = (item.getFechaHora() != null) ? item.getFechaHora().replace("T", " ") : "-";
-      binding.tvFecha.setText(fechaLimpia);
+      binding.tvFecha.setText(com.example.runnconnect.utils.FechaUtils.formatearFechaHora(item.getFechaHora()));
 
       binding.tvLugar.setText(item.getLugar());
       binding.tvOrganizador.setText("Org: " + item.getNombreOrganizador());

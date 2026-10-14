@@ -12,7 +12,7 @@ import androidx.lifecycle.MutableLiveData;
 
 import com.example.runnconnect.data.conexion.ApiClient;
 import com.example.runnconnect.data.conexion.ApiService;
-import com.example.runnconnect.data.preferencias.PerfilSyncManager;
+import com.example.runnconnect.data.preferencias.SincronizarPerfil;
 import com.example.runnconnect.data.preferencias.SessionManager;
 import com.example.runnconnect.data.request.ActualizarPerfilRunnerRequest;
 import com.example.runnconnect.data.request.CambiarPasswordRequest;
@@ -398,7 +398,7 @@ public class PerfilRunnerViewModel extends AndroidViewModel {
         if (response.isSuccessful() && response.body() != null) {
           String avatar = response.body().getImgAvatar();
           sessionManager.actualizarAvatar(avatar);
-          PerfilSyncManager.notificarPerfilActualizado();
+          SincronizarPerfil.notificarPerfilActualizado();
           procesarAvatar(avatar);
           mostrarMensajeGlobal("Foto actualizada", false);
         } else {
@@ -424,7 +424,7 @@ public class PerfilRunnerViewModel extends AndroidViewModel {
         if (response.isSuccessful() && response.body() != null) {
           String avatar = response.body().getImgAvatar();
           sessionManager.actualizarAvatar(avatar);
-          PerfilSyncManager.notificarPerfilActualizado();
+          SincronizarPerfil.notificarPerfilActualizado();
           procesarAvatar(avatar);
           mostrarMensajeGlobal("Foto eliminada", false);
         } else {
@@ -539,16 +539,17 @@ public class PerfilRunnerViewModel extends AndroidViewModel {
 
     final int dniFinal = dniInt;
     String token = sessionManager.leerToken();
+    String fechaNacApi = com.example.runnconnect.utils.FechaUtils.aFormatoApi(input.fechaNac);
     apiService.actualizarPerfilRunner("Bearer " + token,
       new ActualizarPerfilRunnerRequest(
-        input.nombre, input.apellido, input.telefono, input.fechaNac,
+        input.nombre, input.apellido, input.telefono, fechaNacApi,
         input.genero, dniFinal, input.localidad, input.agrupacion,
         input.nombreContacto, input.telContacto)).enqueue(new Callback<PerfilUsuarioResponse>() {
         @Override
         public void onResponse(Call<PerfilUsuarioResponse> call, Response<PerfilUsuarioResponse> response) {
           if (response.isSuccessful()) {
             sessionManager.actualizarNombre(input.nombre);
-            PerfilSyncManager.notificarPerfilActualizado();
+            SincronizarPerfil.notificarPerfilActualizado();
             deshabilitarEdicion();
             cargarPerfil();
             mostrarMensajeGlobal("Perfil actualizado correctamente", false);
@@ -589,7 +590,7 @@ public class PerfilRunnerViewModel extends AndroidViewModel {
 
   private String formatearFechaNacimiento(String fecha) {
     if (fecha == null || fecha.isEmpty()) return "";
-    return fecha.contains("T") ? fecha.split("T")[0] : fecha;
+    return com.example.runnconnect.utils.FechaUtils.formatearFecha(fecha);
   }
 
   private void procesarAvatar(String url) {
@@ -618,14 +619,15 @@ public class PerfilRunnerViewModel extends AndroidViewModel {
   //Helpers para el Fragment
   public Calendar obtenerFechaCalendario(String fechaActual) {
     Calendar calendario = Calendar.getInstance();
-    // BUG CORREGIDO: era isEmpty(), debe ser !isEmpty()
     if (fechaActual != null && !fechaActual.isEmpty()) {
       try {
-        String[] partes = fechaActual.split("-");
-        int year = Integer.parseInt(partes[0]);
-        int month = Integer.parseInt(partes[1]) - 1;
-        int day = Integer.parseInt(partes[2]);
-        calendario.set(year, month, day);
+        String[] partes = fechaActual.split("[-/]");
+        if (partes.length == 3) {
+          int year = partes[0].length() == 4 ? Integer.parseInt(partes[0]) : Integer.parseInt(partes[2]);
+          int month = Integer.parseInt(partes[1]) - 1;
+          int day = partes[0].length() == 4 ? Integer.parseInt(partes[2]) : Integer.parseInt(partes[0]);
+          calendario.set(year, month, day);
+        }
       } catch (Exception e) {
         e.printStackTrace();
       }
@@ -634,7 +636,7 @@ public class PerfilRunnerViewModel extends AndroidViewModel {
   }
 
   public String procesarFechaSeleccionada(int year, int month, int dayOfMonth) {
-    return String.format(Locale.getDefault(), "%04d-%02d-%02d", year, month + 1, dayOfMonth);
+    return String.format(Locale.getDefault(), "%02d-%02d-%04d", dayOfMonth, month + 1, year);
   }
 
   public int obtenerIndiceGenero(String genero, String[] opciones) {
@@ -647,12 +649,9 @@ public class PerfilRunnerViewModel extends AndroidViewModel {
 
   //Input DTO
   public static class RunnerInput {
-    public final String nombre, apellido, telefono, dni, fechaNac,
-      genero, localidad, agrupacion, nombreContacto, telContacto;
+    public final String nombre, apellido, telefono, dni, fechaNac, genero, localidad, agrupacion, nombreContacto, telContacto;
 
-    public RunnerInput(String nombre, String apellido, String telefono, String dni,
-                       String fechaNac, String genero, String localidad, String agrupacion,
-                       String nombreContacto, String telContacto) {
+    public RunnerInput(String nombre, String apellido, String telefono, String dni, String fechaNac, String genero, String localidad, String agrupacion, String nombreContacto, String telContacto) {
       this.nombre = nombre;
       this.apellido = apellido;
       this.telefono = telefono;

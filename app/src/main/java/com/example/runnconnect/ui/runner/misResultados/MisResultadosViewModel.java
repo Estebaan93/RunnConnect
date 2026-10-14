@@ -127,7 +127,7 @@ public class MisResultadosViewModel extends AndroidViewModel {
               ui.idEvento = item.getIdEvento();
               ui.nombreEvento = item.getNombreEvento() != null ? item.getNombreEvento() : "Sin nombre";
 
-              String fecha = (item.getFechaEvento() != null) ? item.getFechaEvento().replace("T", " ") : "";
+              String fecha = (item.getFechaEvento() != null) ? com.example.runnconnect.utils.FechaUtils.formatearFechaHora(item.getFechaEvento()) : "";
               String lugar = (item.getLugarEvento() != null) ? item.getLugarEvento() : "";
               if (!fecha.isEmpty() && !lugar.isEmpty()) {
                 ui.fechaLugar = fecha + " • " + lugar;

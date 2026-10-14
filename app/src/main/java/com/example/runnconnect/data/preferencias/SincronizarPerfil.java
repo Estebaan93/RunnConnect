@@ -3,7 +3,7 @@ package com.example.runnconnect.data.preferencias;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
-public class PerfilSyncManager {
+public class SincronizarPerfil {
 
   private static final MutableLiveData<Long> eventoPerfilActualizado = new MutableLiveData<>();
 

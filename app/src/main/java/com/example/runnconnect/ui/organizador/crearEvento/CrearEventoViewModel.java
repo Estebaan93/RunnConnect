@@ -469,7 +469,7 @@ public class CrearEventoViewModel extends AndroidViewModel {
   public void onFechaSelected(int year, int month, int day) {
     this.selYear = year; this.selMonth = month; this.selDay = day;
     fechaIso = String.format(Locale.getDefault(), "%04d-%02d-%02d", year, month + 1, day);
-    fechaDisplay.setValue(String.format(Locale.getDefault(), "%02d/%02d/%04d", day, month + 1, year));
+    fechaDisplay.setValue(String.format(Locale.getDefault(), "%02d-%02d-%04d", day, month + 1, year));
   }
   public void onHoraSelected(int hour, int minute) {
     this.selHour = hour; this.selMinute = minute;
@@ -523,8 +523,7 @@ public class CrearEventoViewModel extends AndroidViewModel {
         String[] partes = evento.getFechaHora().split("T");
         this.fechaIso = partes[0];
         this.horaIso = partes[1].substring(0, 5);
-        String[] f = fechaIso.split("-");
-        fechaDisplay.setValue(f[2] + "/" + f[1] + "/" + f[0]);
+        fechaDisplay.setValue(com.example.runnconnect.utils.FechaUtils.formatearFecha(fechaIso));
         horaDisplay.setValue(horaIso);
       } catch (Exception e) { e.printStackTrace(); }
     }

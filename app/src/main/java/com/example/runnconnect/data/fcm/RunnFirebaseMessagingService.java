@@ -39,7 +39,7 @@ public class RunnFirebaseMessagingService extends FirebaseMessagingService {
     Log.d(TAG, "Mensaje push recibido desde: " + remoteMessage.getFrom());
 
     // Sincronizar en tiempo real el contador de la app
-    NotificacionSyncManager.notificarNuevaLlegada();
+    SincronizarNotificacion.notificarNuevaLlegada();
 
     String titulo = null;
     String cuerpo = null;

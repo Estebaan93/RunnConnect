@@ -84,7 +84,7 @@ public class DetalleEventoPublicoViewModel extends AndroidViewModel {
           //evento.setValue(response.body());
           EventoDetalleResponse e = response.body();
           nombre.setValue(e.getNombre());
-          fechaHora.setValue("Fecha: " + (e.getFechaHora() != null ? e.getFechaHora().replace("T", " ") : "-"));
+          fechaHora.setValue("Fecha: " + com.example.runnconnect.utils.FechaUtils.formatearFechaHora(e.getFechaHora()));
           lugar.setValue("Lugar: " + e.getLugar());
           descripcion.setValue(e.getDescripcion());
           estado.setValue("Estado: " + (e.getEstado() != null ? e.getEstado().toUpperCase() : ""));

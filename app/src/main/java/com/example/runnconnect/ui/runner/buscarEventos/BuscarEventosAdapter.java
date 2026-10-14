@@ -64,7 +64,7 @@ public class BuscarEventosAdapter extends RecyclerView.Adapter<BuscarEventosAdap
       Context context = binding.getRoot().getContext();
 
       binding.tvNombreEvento.setText(item.getNombre());
-      binding.tvFecha.setText(item.getFechaHora().replace("T", " "));
+      binding.tvFecha.setText(com.example.runnconnect.utils.FechaUtils.formatearFechaHora(item.getFechaHora()));
       binding.tvClima.setText(ClimaInfo.fromJson(item.getUrlPronosticoClima()).getTextoTemperatura());
       binding.tvLugar.setText(item.getLugar());
       binding.tvOrganizador.setText("Org: " + item.getNombreOrganizador());

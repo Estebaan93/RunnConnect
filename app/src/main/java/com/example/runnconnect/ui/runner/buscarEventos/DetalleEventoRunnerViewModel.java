@@ -240,7 +240,7 @@ public class DetalleEventoRunnerViewModel extends AndroidViewModel {
     uiTitulo.setValue(eventoDetalle.getNombre() != null ? eventoDetalle.getNombre() : "Sin nombre");
     uiEstado.setValue(eventoDetalle.getEstado() != null ? eventoDetalle.getEstado().toUpperCase() : "DESCONOCIDO");
 
-    String fecha = eventoDetalle.getFechaHora() != null ? eventoDetalle.getFechaHora().replace("T", " ") : "-";
+    String fecha = com.example.runnconnect.utils.FechaUtils.formatearFechaHora(eventoDetalle.getFechaHora());
     uiFecha.setValue("Fecha: " + fecha);
     uiLugar.setValue("Lugar: " + (eventoDetalle.getLugar() != null ? eventoDetalle.getLugar() : "-"));
 

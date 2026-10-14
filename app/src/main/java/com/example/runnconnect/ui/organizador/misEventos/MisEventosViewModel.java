@@ -202,7 +202,7 @@ public class MisEventosViewModel extends AndroidViewModel {
       EventoUI ui = new EventoUI();
       ui.idEvento = evento.getIdEvento();
       ui.nombre = (evento.getNombre() != null) ? evento.getNombre() : "Sin nombre";
-      ui.fecha = (evento.getFechaHora() != null) ? "Fecha: " + evento.getFechaHora().replace("T", " ") : "Fecha: --/--/----";
+      ui.fecha = "Fecha: " + com.example.runnconnect.utils.FechaUtils.formatearFechaHora(evento.getFechaHora());
       ui.lugar = (evento.getLugar() != null) ? "Lugar: " + evento.getLugar() : "Lugar: Sin ubicación";
       ui.inscriptos = "Inscriptos: " + evento.getInscriptosActuales();
       ui.cupo = "Cupo Total: " + (evento.getCupoTotal() != null ? String.valueOf(evento.getCupoTotal()) : "Ilimitado");

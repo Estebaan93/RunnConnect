@@ -12,7 +12,7 @@ import androidx.lifecycle.MutableLiveData;
 
 import com.example.runnconnect.data.conexion.ApiClient;
 import com.example.runnconnect.data.conexion.ApiService;
-import com.example.runnconnect.data.preferencias.PerfilSyncManager;
+import com.example.runnconnect.data.preferencias.SincronizarPerfil;
 import com.example.runnconnect.data.preferencias.SessionManager;
 import com.example.runnconnect.data.request.ActualizarPerfilOrganizadorRequest;
 import com.example.runnconnect.data.request.CambiarPasswordRequest;
@@ -348,7 +348,7 @@ public class PerfilOrganizadorViewModel extends AndroidViewModel {
         if (response.isSuccessful() && response.body() != null) {
           String avatar = response.body().getImgAvatar();
           sessionManager.actualizarAvatar(avatar);
-          PerfilSyncManager.notificarPerfilActualizado();
+          SincronizarPerfil.notificarPerfilActualizado();
           procesarAvatar(avatar);
           mostrarMensajeGlobal("Foto actualizada", false);
         } else {
@@ -374,7 +374,7 @@ public class PerfilOrganizadorViewModel extends AndroidViewModel {
         if (response.isSuccessful() && response.body() != null) {
           String avatar = response.body().getImgAvatar();
           sessionManager.actualizarAvatar(avatar);
-          PerfilSyncManager.notificarPerfilActualizado();
+          SincronizarPerfil.notificarPerfilActualizado();
           procesarAvatar(avatar);
           mostrarMensajeGlobal("Foto eliminada", false);
         } else {
@@ -457,7 +457,7 @@ public class PerfilOrganizadorViewModel extends AndroidViewModel {
         public void onResponse(Call<PerfilUsuarioResponse> call, Response<PerfilUsuarioResponse> response) {
           if (response.isSuccessful()) {
             sessionManager.actualizarNombre(input.nombreComercial);
-            PerfilSyncManager.notificarPerfilActualizado();
+            SincronizarPerfil.notificarPerfilActualizado();
             deshabilitarEdicion();
             cargarPerfil();
             mostrarMensajeGlobal("Perfil actualizado correctamente", false);

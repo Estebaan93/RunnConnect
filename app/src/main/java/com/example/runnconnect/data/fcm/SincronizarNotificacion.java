@@ -3,7 +3,7 @@ package com.example.runnconnect.data.fcm;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
-public class NotificacionSyncManager {
+public class SincronizarNotificacion {
 
   private static final MutableLiveData<Long> eventoNuevaNotificacion = new MutableLiveData<>();
 
