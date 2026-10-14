@@ -1,6 +1,7 @@
 package com.example.runnconnect.ui.notificaciones;
 
 import android.app.Application;
+import android.graphics.Color;
 import android.view.View;
 
 import androidx.annotation.NonNull;
@@ -34,6 +35,8 @@ public class NotificacionesViewModel extends AndroidViewModel {
     public String eventoTexto;
     public int eventoVisibility;
     public int destinoNavId;
+    public int cardBackgroundColor;
+    public int badgeNuevaVisibility;
   }
 
   private final ApiService apiService;
@@ -122,6 +125,9 @@ public class NotificacionesViewModel extends AndroidViewModel {
                 ui.eventoTexto = "";
                 ui.eventoVisibility = View.GONE;
               }
+
+              ui.cardBackgroundColor = item.isEsNueva() ? Color.parseColor("#EBF5FB") : Color.WHITE;
+              ui.badgeNuevaVisibility = item.isEsNueva() ? View.VISIBLE : View.GONE;
 
               itemsUI.add(ui);
             }

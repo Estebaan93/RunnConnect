@@ -26,6 +26,7 @@ public class LoginActivity extends AppCompatActivity {
 
     setupObservers();
     setupListeners();
+    viewModel.verificarSesionExistente();
   }
 
   private void setupObservers() {
@@ -50,7 +51,15 @@ public class LoginActivity extends AppCompatActivity {
 
 
     //nuevo 20-06
-    viewModel.getNavegacionEvento().observe(this, this::startActivity);
+    viewModel.getNavegacionEvento().observe(this, intent -> {
+      if (getIntent() != null && getIntent().getExtras() != null) {
+        intent.putExtras(getIntent().getExtras());
+        if (getIntent().hasExtra("idEvento")) {
+          intent.putExtra("abrirNotificaciones", true);
+        }
+      }
+      startActivity(intent);
+    });
 
     viewModel.getFinalUser().observe(this, obs -> {
       if (Boolean.TRUE.equals(obs)) {
@@ -166,6 +175,9 @@ public class LoginActivity extends AppCompatActivity {
   @Override
   protected void onResume() {
     super.onResume();
+    if (isFinishing()) {
+      return;
+    }
     if (binding.videoBackground != null) {
       binding.videoBackground.setVisibility(View.VISIBLE);
     }

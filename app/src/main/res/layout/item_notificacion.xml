@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/cardNotificacion"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginHorizontal="10dp"
@@ -23,8 +24,25 @@
         android:textStyle="bold"
         android:layout_marginEnd="8dp"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toStartOf="@id/tvNotifTiempo"
+        app:layout_constraintEnd_toStartOf="@id/tvBadgeNueva"
         app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/tvBadgeNueva"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="NUEVA"
+        android:textColor="#FFFFFF"
+        android:background="@drawable/badge_notificaciones_bg"
+        android:textSize="9sp"
+        android:textStyle="bold"
+        android:paddingHorizontal="6dp"
+        android:paddingVertical="2dp"
+        android:layout_marginEnd="8dp"
+        android:visibility="gone"
+        app:layout_constraintEnd_toStartOf="@id/tvNotifTiempo"
+        app:layout_constraintTop_toTopOf="@id/tvNotifTiempo"
+        app:layout_constraintBottom_toBottomOf="@id/tvNotifTiempo" />
 
     <TextView
         android:id="@+id/tvNotifTiempo"

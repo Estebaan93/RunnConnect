@@ -18,6 +18,8 @@ browser = "1.9.0"
 glide = "4.16.0"
 playServicesMaps = "19.2.0"
 androidMapsUtils = "3.8.2"
+firebaseMessaging = "26.0.0"
+googleServices = "4.4.2"
 
 [libraries]
 junit = { group = "junit", name = "junit", version.ref = "junit" }
@@ -38,7 +40,9 @@ browser = { group = "androidx.browser", name = "browser", version.ref = "browser
 glide = { group = "com.github.bumptech.glide", name = "glide", version.ref = "glide" }
 play-services-maps = { group = "com.google.android.gms", name = "play-services-maps", version.ref = "playServicesMaps" }
 android-maps-utils = { group = "com.google.maps.android", name = "android-maps-utils", version.ref = "androidMapsUtils" }
+firebase-messaging = { group = "com.google.firebase", name = "firebase-messaging", version.ref = "firebaseMessaging" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
+google-services = { id = "com.google.gms.google-services", version.ref = "googleServices" }
 

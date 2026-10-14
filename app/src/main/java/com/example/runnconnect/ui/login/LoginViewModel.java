@@ -67,8 +67,13 @@ public class LoginViewModel extends AndroidViewModel {
   //nuevo 20-06
   public LiveData<Boolean> getFinalUser() { return finalUser; }
   public LiveData<Boolean> getPedirConfirmacionReactivacion() { return pedirConfirmacionReactivacion; }
-  //public LiveData<Boolean> getNavegarAlLogin() { return navegarAlLogin; }
 
+  // Auto-Login: verificar si ya existe una sesion guardada
+  public void verificarSesionExistente() {
+    if (sessionManager.tieneSesionActiva()) {
+      decidirNavegacionSegunRol();
+    }
+  }
 
   // login
   public void login(String email, String password) {

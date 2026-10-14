@@ -1,5 +1,6 @@
 plugins {
   alias(libs.plugins.android.application)
+  alias(libs.plugins.google.services)
 }
 
 android {
@@ -32,8 +33,8 @@ android {
 }
 
 dependencies {
-
   implementation(libs.appcompat)
+  implementation(libs.firebase.messaging)
   implementation(libs.material)
   implementation(libs.constraintlayout)
   implementation(libs.lifecycle.livedata.ktx)
@@ -47,8 +48,8 @@ dependencies {
   implementation(libs.browser)
   implementation(libs.glide)
   implementation(libs.play.services.maps)
-    implementation(libs.android.maps.utils)
-    testImplementation(libs.junit)
+  implementation(libs.android.maps.utils)
+  testImplementation(libs.junit)
   androidTestImplementation(libs.ext.junit)
   androidTestImplementation(libs.espresso.core)
 }

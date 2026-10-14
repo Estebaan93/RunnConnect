@@ -15,6 +15,7 @@ import androidx.lifecycle.MutableLiveData;
 
 import com.example.runnconnect.data.conexion.ApiClient;
 import com.example.runnconnect.data.conexion.ApiService;
+import com.example.runnconnect.data.fcm.FcmTopicManager;
 import com.example.runnconnect.data.preferencias.SessionManager;
 import com.example.runnconnect.data.response.MisInscripcionesResponse;
 
@@ -93,6 +94,14 @@ public class MisInscripcionesViewModel extends AndroidViewModel {
           List<MisInscripcionesResponse.InscripcionItem> items = response.body().getInscripciones();
           if (items != null) {
             listaCompleta.addAll(items);
+            for (MisInscripcionesResponse.InscripcionItem item : items) {
+              if (item.getEvento() != null && item.getEvento().getIdEvento() > 0) {
+                FcmTopicManager.suscribirEvento(item.getEvento().getIdEvento());
+                if (item.getCategoria() != null && item.getCategoria().getIdCategoria() > 0) {
+                  FcmTopicManager.suscribirEventoCategoria(item.getEvento().getIdEvento(), item.getCategoria().getIdCategoria());
+                }
+              }
+            }
           }
           aplicarFiltros();
         } else {

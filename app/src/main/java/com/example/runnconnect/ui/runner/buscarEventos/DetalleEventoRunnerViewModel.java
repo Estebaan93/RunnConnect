@@ -15,6 +15,7 @@ import androidx.lifecycle.MutableLiveData;
 
 import com.example.runnconnect.data.conexion.ApiClient;
 import com.example.runnconnect.data.conexion.ApiService;
+import com.example.runnconnect.data.fcm.FcmTopicManager;
 import com.example.runnconnect.data.preferencias.SessionManager;
 import com.example.runnconnect.data.request.CrearInscripcionRequest;
 import com.example.runnconnect.data.response.CategoriaResponse;
@@ -573,6 +574,8 @@ public class DetalleEventoRunnerViewModel extends AndroidViewModel {
         progressVisibility.setValue(View.GONE);
 
         if (response.isSuccessful()) {
+          FcmTopicManager.suscribirEvento(currentIdEvento);
+          FcmTopicManager.suscribirEventoCategoria(currentIdEvento, idCategoria);
           dialogCerrarEvento.setValue(true);
           mostrarMensaje("Inscripción realizada con éxito! Ahora puedes subir tu comprobante de pago.", true);
           // Recargar tod el detalle del evento para actualizar inscripciones y botones

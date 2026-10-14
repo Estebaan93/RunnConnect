@@ -54,10 +54,20 @@ public class SessionManager {
     editor.apply();
   }
 
+  //verificar si hay sesion activa
+  public boolean tieneSesionActiva(){
+    String token = leerToken();
+    return token != null && !token.trim().isEmpty();
+  }
+
   //obtener tipo de usuario
   public String getTipoUsuario(){
    return sp.getString(KEY_USER_TYPE,"runner");
   }
 
+  //obtener id de usuario
+  public int getIdUsuario(){
+    return sp.getInt(KEY_USER_ID, -1);
+  }
 
 }

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1055948215931",
+    "project_id": "runnconnectapinotificaciones",
+    "storage_bucket": "runnconnectapinotificaciones.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1055948215931:android:518b1fde5b7cca1accf4de",
+        "android_client_info": {
+          "package_name": "com.example.runnconnect"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDN6PaGiC0WMUKAkfUc2k9-QPCwGx3WS2A"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

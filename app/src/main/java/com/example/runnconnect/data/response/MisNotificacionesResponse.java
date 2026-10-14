@@ -37,6 +37,7 @@ public class MisNotificacionesResponse {
     private String estadoEvento;
     private String tiempoTranscurrido;
     private boolean esReciente;
+    private boolean esNueva;
 
     public int getIdNotificacion() {
       return idNotificacion;
@@ -140,6 +141,14 @@ public class MisNotificacionesResponse {
 
     public void setEsReciente(boolean esReciente) {
       this.esReciente = esReciente;
+    }
+
+    public boolean isEsNueva() {
+      return esNueva;
+    }
+
+    public void setEsNueva(boolean esNueva) {
+      this.esNueva = esNueva;
     }
   }
 }

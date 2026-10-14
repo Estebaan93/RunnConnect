@@ -53,8 +53,12 @@ namespace RunnConnectAPI.Repositories
 
       List<NotificacionEvento> notificacionesFiltradas;
 
+      DateTime ultimaLectura = DateTime.MinValue;
       if (esOrganizador)
       {
+        var perfilOrga = await _context.PerfilesOrganizadores.FirstOrDefaultAsync(p => p.IdUsuario == idUsuario);
+        ultimaLectura = perfilOrga?.FechaUltimaLectura ?? DateTime.MinValue;
+
         // El organizador SOLO ve notificaciones privadas para él (nuevas inscripciones, comprobantes subidos, etc.)
         // y avisos específicos de sus eventos, NUNCA anuncios globales de inscripciones abiertas de otros eventos.
         notificacionesFiltradas = await _context.NotificacionesEvento
@@ -64,13 +68,16 @@ namespace RunnConnectAPI.Repositories
           .Where(n =>
               n.IdUsuarioDestino == idUsuario
               ||
-              (n.Evento != null && n.Evento.IdOrganizador == idUsuario && !n.EsAnuncioGlobal && !n.Titulo.Contains("Resultados"))
+              (n.Evento != null && n.Evento.IdOrganizador == idUsuario && n.IdUsuarioDestino == null && !n.EsAnuncioGlobal && !n.Titulo.Contains("Resultados"))
           )
           .OrderByDescending(n => n.FechaEnvio)
           .ToListAsync();
       }
       else
       {
+        var perfilRunner = await _context.PerfilesRunners.FirstOrDefaultAsync(p => p.IdUsuario == idUsuario);
+        ultimaLectura = perfilRunner?.FechaUltimaLectura ?? DateTime.MinValue;
+
         // 1. Obtener Inscripciones del usuario
         var inscripcionesPagadas = await _context.Inscripciones
           .Include(i => i.Categoria)
@@ -133,7 +140,8 @@ namespace RunnConnectAPI.Repositories
         NombreEvento = n.Evento?.Nombre ?? "",
         FechaEvento = n.Evento?.FechaHora ?? DateTime.MinValue,
         EstadoEvento = n.EstadoEvento ?? n.Evento?.Estado ?? "",
-        EsPrivada = n.IdUsuarioDestino != null
+        EsPrivada = n.IdUsuarioDestino != null,
+        EsNueva = n.FechaEnvio >= ultimaLectura
       }).ToList();
 
       return new MisNotificacionesResponse
@@ -203,7 +211,7 @@ namespace RunnConnectAPI.Repositories
         var ultimaLecturaOrga = perfilOrga?.FechaUltimaLectura ?? DateTime.MinValue;
 
         return await _context.NotificacionesEvento
-          .Where(n => (n.IdUsuarioDestino == idUsuario || (n.Evento != null && n.Evento.IdOrganizador == idUsuario && !n.EsAnuncioGlobal && !n.Titulo.Contains("Resultados")))
+          .Where(n => (n.IdUsuarioDestino == idUsuario || (n.Evento != null && n.Evento.IdOrganizador == idUsuario && n.IdUsuarioDestino == null && !n.EsAnuncioGlobal && !n.Titulo.Contains("Resultados")))
                       && n.FechaEnvio >= ultimaLecturaOrga)
           .CountAsync();
       }

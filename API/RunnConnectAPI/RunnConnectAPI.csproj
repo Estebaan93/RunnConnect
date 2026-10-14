@@ -24,4 +24,8 @@
     </None>
   </ItemGroup>
 
+  <ItemGroup>
+    <Watch Remove="wwwroot\uploads\**\*" />
+  </ItemGroup>
+
 </Project>

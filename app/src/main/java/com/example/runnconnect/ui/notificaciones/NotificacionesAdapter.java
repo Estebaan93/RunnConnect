@@ -62,6 +62,8 @@ public class NotificacionesAdapter extends RecyclerView.Adapter<NotificacionesAd
       binding.tvNotifMensaje.setText(item.mensaje);
       binding.tvNotifEvento.setText(item.eventoTexto);
       binding.tvNotifEvento.setVisibility(item.eventoVisibility);
+      binding.cardNotificacion.setCardBackgroundColor(item.cardBackgroundColor);
+      binding.tvBadgeNueva.setVisibility(item.badgeNuevaVisibility);
 
       binding.getRoot().setOnClickListener(v -> {
         if (listener != null) {

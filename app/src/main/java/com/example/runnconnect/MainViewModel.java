@@ -7,6 +7,7 @@ import android.view.View;
 
 import com.example.runnconnect.data.conexion.ApiClient;
 import com.example.runnconnect.data.conexion.ApiService;
+import com.example.runnconnect.data.fcm.FcmTopicManager;
 import com.example.runnconnect.data.preferencias.SessionManager;
 import com.example.runnconnect.data.response.ContadorNotificacionesResponse;
 
@@ -37,6 +38,7 @@ public class MainViewModel extends AndroidViewModel {
     this.sessionManager = new SessionManager(application);
     cargarDatosSesion(application);
     cargarContadorNotificaciones();
+    FcmTopicManager.suscribirTopicosUsuario(sessionManager.getIdUsuario());
   }
 
   // --- GETTERS ---
@@ -114,6 +116,8 @@ public class MainViewModel extends AndroidViewModel {
   public void onDestinoNavegado(int destinationId) {
     if (destinationId == R.id.nav_notificaciones) {
       limpiarContadorNotificaciones();
+    } else {
+      cargarContadorNotificaciones();
     }
   }
 

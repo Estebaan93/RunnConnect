@@ -1,5 +1,9 @@
 package com.example.runnconnect;
 
+import android.Manifest;
+import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -8,6 +12,8 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.NavController;
@@ -17,6 +23,7 @@ import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
 
 import com.bumptech.glide.Glide;
+import com.example.runnconnect.data.fcm.NotificacionSyncManager;
 import com.example.runnconnect.databinding.ActionLayoutNotificacionBellBinding;
 import com.example.runnconnect.databinding.ActivityMainBinding;
 import com.google.android.material.navigation.NavigationView;
@@ -68,6 +75,11 @@ public class MainActivity extends AppCompatActivity {
       //}
     });
 
+    // Sincronización en tiempo real: al llegar un push con la app abierta, actualiza el contador
+    NotificacionSyncManager.getEventoNuevaNotificacion().observe(this, timestamp -> {
+      viewModel.cargarContadorNotificaciones();
+    });
+
     // 4. Configuración del NavController
     mAppBarConfiguration = new AppBarConfiguration.Builder(
       R.id.nav_inicio,
@@ -90,6 +102,38 @@ public class MainActivity extends AppCompatActivity {
     navController.addOnDestinationChangedListener((controller, destination, arguments) ->
         viewModel.onDestinoNavegado(destination.getId())
     );
+
+    solicitarPermisoNotificaciones();
+    verificarIntentNotificacion(getIntent());
+  }
+
+  @Override
+  protected void onNewIntent(Intent intent) {
+    super.onNewIntent(intent);
+    setIntent(intent);
+    verificarIntentNotificacion(intent);
+  }
+
+  private void verificarIntentNotificacion(Intent intent) {
+    if (intent != null && intent.getBooleanExtra("abrirNotificaciones", false)) {
+      NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment_content_main);
+      navController.navigate(
+          R.id.nav_notificaciones,
+          null,
+          new NavOptions.Builder()
+              .setLaunchSingleTop(true)
+              .setPopUpTo(R.id.nav_notificaciones, false)
+              .build()
+      );
+    }
+  }
+
+  private void solicitarPermisoNotificaciones() {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+      if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+        ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.POST_NOTIFICATIONS}, 1001);
+      }
+    }
   }
 
   @Override

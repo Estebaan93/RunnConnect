@@ -10,6 +10,7 @@ import androidx.lifecycle.MutableLiveData;
 
 import com.example.runnconnect.data.conexion.ApiClient;
 import com.example.runnconnect.data.conexion.ApiService;
+import com.example.runnconnect.data.fcm.FcmTopicManager;
 import com.example.runnconnect.data.preferencias.SessionManager;
 
 public class LogoutViewModel extends AndroidViewModel {
@@ -31,6 +32,9 @@ public class LogoutViewModel extends AndroidViewModel {
   }
 
   public void cerrarSesion(){
+    //desuscribimos de los tópicos FCM privados del usuario
+    FcmTopicManager.desuscribirTopicosUsuario(sessionManager.getIdUsuario());
+
     //destruimos el token
     sessionManager.cerrarSesion();
 
