@@ -48,6 +48,18 @@ public class SessionManager {
     editor.apply();
   }
 
+  //actualizar avatar
+  public void actualizarAvatar(String nuevoAvatar){
+    editor.putString(KEY_USER_AVATAR, nuevoAvatar);
+    editor.apply();
+  }
+
+  //actualizar nombre
+  public void actualizarNombre(String nuevoNombre){
+    editor.putString(KEY_USER_NAME, nuevoNombre);
+    editor.apply();
+  }
+
   //cerrar sesion
   public void cerrarSesion(){
     editor.clear();

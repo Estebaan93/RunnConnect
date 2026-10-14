@@ -14,7 +14,7 @@ public class ApiClient {
   private static final String BASE_URLTrabajoD="http://192.168.5.54:5213/api/";
   private static final String BASE_URLTrabajoI="http://192.168.4.103:5213/api/";
   // IP publica de tu servidor Debian en Google Cloud
-  private static final String BASE_URL_NUBE = "https://teach-ages-channels-perhaps.trycloudflare.com/api/";
+  private static final String BASE_URL_NUBE = "https://messaging-collectables-upcoming-aside.trycloudflare.com/api/";
   private static ApiService service;
 
   public static ApiService getApiService() {

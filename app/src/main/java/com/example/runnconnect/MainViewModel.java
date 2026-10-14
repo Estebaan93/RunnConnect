@@ -78,6 +78,10 @@ public class MainViewModel extends AndroidViewModel {
     }
   }
 
+  public void recargarDatosSesion() {
+    cargarDatosSesion(getApplication());
+  }
+
   public void cargarContadorNotificaciones() {
     String token = sessionManager.leerToken();
     if (token == null || token.trim().isEmpty()) {

@@ -10,9 +10,12 @@ namespace RunnConnectAPI.Services
     // Su funcion es conectar con Google usando el archivo .json
     static FirebaseNotificacionService()
     {
-      // Nombre EXACTO del archivo json
       string fileName = "runnConnect.json";
-      string path = Path.Combine(Directory.GetCurrentDirectory(), fileName);
+      string path = Path.Combine(AppContext.BaseDirectory, fileName);
+      if (!File.Exists(path))
+      {
+        path = Path.Combine(Directory.GetCurrentDirectory(), fileName);
+      }
 
       // Verificamos si Firebase ya esta iniciado para no iniciarlo dos veces
       if (FirebaseApp.DefaultInstance == null)
@@ -50,6 +53,19 @@ namespace RunnConnectAPI.Services
           {
             Title = titulo,
             Body = cuerpo
+          },
+
+          // Configuración específica para Android: Canal y Prioridad Alta para despertar el SO
+          Android = new AndroidConfig()
+          {
+            Priority = Priority.High,
+            Notification = new AndroidNotification()
+            {
+              ChannelId = "canal_notificaciones_runnconnect",
+              Priority = NotificationPriority.HIGH,
+              DefaultSound = true,
+              DefaultVibrateTimings = true
+            }
           },
 
           // Datos ocultos (Payload) para que la App Android sepa que hacer

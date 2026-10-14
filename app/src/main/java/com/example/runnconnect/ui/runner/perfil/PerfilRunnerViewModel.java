@@ -12,6 +12,7 @@ import androidx.lifecycle.MutableLiveData;
 
 import com.example.runnconnect.data.conexion.ApiClient;
 import com.example.runnconnect.data.conexion.ApiService;
+import com.example.runnconnect.data.preferencias.PerfilSyncManager;
 import com.example.runnconnect.data.preferencias.SessionManager;
 import com.example.runnconnect.data.request.ActualizarPerfilRunnerRequest;
 import com.example.runnconnect.data.request.CambiarPasswordRequest;
@@ -395,7 +396,10 @@ public class PerfilRunnerViewModel extends AndroidViewModel {
       public void onResponse(Call<PerfilUsuarioResponse> call, Response<PerfilUsuarioResponse> response) {
         setLoading(false);
         if (response.isSuccessful() && response.body() != null) {
-          procesarAvatar(response.body().getImgAvatar());
+          String avatar = response.body().getImgAvatar();
+          sessionManager.actualizarAvatar(avatar);
+          PerfilSyncManager.notificarPerfilActualizado();
+          procesarAvatar(avatar);
           mostrarMensajeGlobal("Foto actualizada", false);
         } else {
           mostrarMensajeGlobal("Error al subir imagen", true);
@@ -418,7 +422,10 @@ public class PerfilRunnerViewModel extends AndroidViewModel {
       public void onResponse(Call<PerfilUsuarioResponse> call, Response<PerfilUsuarioResponse> response) {
         setLoading(false);
         if (response.isSuccessful() && response.body() != null) {
-          procesarAvatar(response.body().getImgAvatar());
+          String avatar = response.body().getImgAvatar();
+          sessionManager.actualizarAvatar(avatar);
+          PerfilSyncManager.notificarPerfilActualizado();
+          procesarAvatar(avatar);
           mostrarMensajeGlobal("Foto eliminada", false);
         } else {
           mostrarMensajeGlobal("Error al eliminar", true);
@@ -540,6 +547,8 @@ public class PerfilRunnerViewModel extends AndroidViewModel {
         @Override
         public void onResponse(Call<PerfilUsuarioResponse> call, Response<PerfilUsuarioResponse> response) {
           if (response.isSuccessful()) {
+            sessionManager.actualizarNombre(input.nombre);
+            PerfilSyncManager.notificarPerfilActualizado();
             deshabilitarEdicion();
             cargarPerfil();
             mostrarMensajeGlobal("Perfil actualizado correctamente", false);

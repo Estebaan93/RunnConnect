@@ -22,6 +22,14 @@
         android:name="com.google.android.geo.API_KEY"
         android:value="AIzaSyBHhDo2ptQCp2aSELMiFexkbupq1QJsimk" />
 
+    <meta-data
+        android:name="com.google.firebase.messaging.default_notification_channel_id"
+        android:value="canal_notificaciones_runnconnect" />
+
+    <meta-data
+        android:name="com.google.firebase.messaging.default_notification_icon"
+        android:resource="@drawable/ic_notification_bell" />
+
     <activity
         android:name=".ui.login.LoginActivity"
         android:exported="true"

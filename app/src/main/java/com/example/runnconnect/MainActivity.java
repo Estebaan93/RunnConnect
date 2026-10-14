@@ -1,6 +1,8 @@
 package com.example.runnconnect;
 
 import android.Manifest;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
@@ -24,6 +26,7 @@ import androidx.navigation.ui.NavigationUI;
 
 import com.bumptech.glide.Glide;
 import com.example.runnconnect.data.fcm.NotificacionSyncManager;
+import com.example.runnconnect.data.preferencias.PerfilSyncManager;
 import com.example.runnconnect.databinding.ActionLayoutNotificacionBellBinding;
 import com.example.runnconnect.databinding.ActivityMainBinding;
 import com.google.android.material.navigation.NavigationView;
@@ -80,6 +83,11 @@ public class MainActivity extends AppCompatActivity {
       viewModel.cargarContadorNotificaciones();
     });
 
+    // Sincronización en tiempo real: al actualizar foto o perfil, actualiza el header del drawer
+    PerfilSyncManager.getEventoPerfilActualizado().observe(this, timestamp -> {
+      viewModel.recargarDatosSesion();
+    });
+
     // 4. Configuración del NavController
     mAppBarConfiguration = new AppBarConfiguration.Builder(
       R.id.nav_inicio,
@@ -103,8 +111,21 @@ public class MainActivity extends AppCompatActivity {
         viewModel.onDestinoNavegado(destination.getId())
     );
 
+    crearCanalNotificaciones();
     solicitarPermisoNotificaciones();
     verificarIntentNotificacion(getIntent());
+  }
+
+  private void crearCanalNotificaciones() {
+    NotificationChannel canal = new NotificationChannel(
+        "canal_notificaciones_runnconnect",
+        "Notificaciones RunnConnect",
+        NotificationManager.IMPORTANCE_HIGH
+    );
+    canal.setDescription("Avisos y novedades de eventos en tiempo real");
+    canal.enableVibration(true);
+
+    getSystemService(NotificationManager.class).createNotificationChannel(canal);
   }
 
   @Override
