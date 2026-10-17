@@ -4,8 +4,8 @@ using Microsoft.AspNetCore.Mvc;
 using RunnConnectAPI.Models.Dto.Resultado;
 using RunnConnectAPI.Models.Dto.Notificacion; //para la inyeccion de la notif
 using RunnConnectAPI.Repositories;
-using System.Security.Claims;
-using System.IO;
+// using System.Security.Claims;
+// using System.IO;
 using RunnConnectAPI.Services;
 
 namespace RunnConnectAPI.Controllers
@@ -70,7 +70,7 @@ namespace RunnConnectAPI.Controllers
       }
     }
 
-    //podis por cate
+    //podios por cate
     [HttpGet("Evento/{idEvento}/Podios")]
     public async Task<IActionResult> ObtenerPodios(int idEvento)
     {
@@ -128,30 +128,30 @@ namespace RunnConnectAPI.Controllers
       }
     }
 
-    [Authorize(Roles = "runner")]
-    [HttpPut("{id}/DatosSmartwatch")]
-    public async Task<IActionResult> AgregarDatosSmartwatch(int id, [FromBody] DatosSmartwatchRequest request)
-    {
-      try
-      {
-        int userId = User.ObtenerUserId();
+    // [Authorize(Roles = "runner")]
+    // [HttpPut("{id}/DatosSmartwatch")]
+    // public async Task<IActionResult> AgregarDatosSmartwatch(int id, [FromBody] DatosSmartwatchRequest request)
+    // {
+    //   try
+    //   {
+    //     int userId = User.ObtenerUserId();
 
-        var (exito, errorMsg) = await _resultadoRepo.AgregarDatosSmartwatchAsync(id, request, userId);
+    //     var (exito, errorMsg) = await _resultadoRepo.AgregarDatosSmartwatchAsync(id, request, userId);
 
-        if (!exito)
-          return BadRequest(new { message = errorMsg });
+    //     if (!exito)
+    //       return BadRequest(new { message = errorMsg });
 
-        return Ok(new { message = "Datos agregados correctamente" });
-      }
-      catch (Exception ex)
-      {
-        return StatusCode(500, new
-        {
-          message = "Error",
-          error = ex.Message
-        });
-      }
-    }
+    //     return Ok(new { message = "Datos agregados correctamente" });
+    //   }
+    //   catch (Exception ex)
+    //   {
+    //     return StatusCode(500, new
+    //     {
+    //       message = "Error",
+    //       error = ex.Message
+    //     });
+    //   }
+    // }
 
     // GESTION (ORGANIZADOR)
     // CARGA MASIVA -> Recibe Archivo CSV
@@ -176,7 +176,7 @@ namespace RunnConnectAPI.Controllers
 
         using (var reader = new StreamReader(request.Archivo.OpenReadStream()))
         {
-          // descomentar si el CSV tiene encabezados y quieres saltar la primera linea
+          // descomentar si el CSV tiene encabezados y saltar la primera linea
           // await reader.ReadLineAsync();
 
           while (!reader.EndOfStream)

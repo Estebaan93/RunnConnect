@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc; //Para controllerBase, IActionResult, [HTTPGet]
 using RunnConnectAPI.Models.Dto.Usuario;
 using RunnConnectAPI.Models;
 using RunnConnectAPI.Repositories;
-using System.Security.Claims;
+// using System.Security.Claims;
 using RunnConnectAPI.Services;
 
 namespace RunnConnectAPI.Controllers
@@ -32,7 +32,7 @@ namespace RunnConnectAPI.Controllers
     }
 
     /*Autenticacion (Login comun para ambos RUNNER/ORGAN)
-    POST: api/usuario/login - 
+    POST: api/usuario/login -
     Content-type: application/json*/
     [AllowAnonymous]
     [HttpPost("Login")]
@@ -187,7 +187,7 @@ namespace RunnConnectAPI.Controllers
 
 
     /*Registro de nuevos ORGANIZADORES (imgAvatar opcional) y retorna el token
-    POST_ api/usuario/RegisterOrganizador 
+    POST_ api/usuario/RegisterOrganizador
     Content-type: multipart/form-data
     Si no se envia imgAvatar se asigna uno por defecto default_organization.png
     razonSocial, nombreComercial, email, password*/
@@ -616,31 +616,6 @@ namespace RunnConnectAPI.Controllers
       }
     }
 
-    /*Verificar CUIT del organizador
-    GET: api/Usuario/VerificarCuit?cuit=20-1234578-9*/
-    /*[AllowAnonymous]
-    [HttpGet("VerificarCuit")]
-    public async Task<IActionResult> VerificarCuit([FromQuery] string cuit)
-    {
-      try
-      {
-        if (string.IsNullOrEmpty(cuit))
-          return BadRequest(new { message = "CUIT requerido" });
-
-        var existe = await _usuarioRepositorio.CuitExisteAsync(cuit.Trim());
-
-        return Ok(new
-        {
-          disponible = !existe,
-          message = existe ? "CUIT ya registrado" : "CUIT disponible"
-        });
-      }
-      catch (Exception ex)
-      {
-        return StatusCode(500, new { message = "Error al verificar CUIT", error = ex.Message });
-      }
-    }*/
-
 
     /*Ver perfil publico (por ej si un runner consulta la posicion, puede ver quienes son los otros runner)
     tambien ver el perfil de un organizador - conlleva a mostrar una vista personalizada por los datos sensibles*/
@@ -699,7 +674,7 @@ namespace RunnConnectAPI.Controllers
       }
     }
 
-    /*Obtiene el perfil publico detallado de un Organizador 
+    /*Obtiene el perfil publico detallado de un Organizador
       GET: api/Usuario/Organizador/{id}
       Incluye informacion de contacto para consultas sobre eventos*/
     [AllowAnonymous]
