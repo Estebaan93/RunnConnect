@@ -4,12 +4,12 @@ using Microsoft.AspNetCore.Mvc;
 using RunnConnectAPI.Models.Dto.Notificacion;
 using RunnConnectAPI.Repositories;
 using RunnConnectAPI.Services;
-using System.Security.Claims;
+// using System.Security.Claims;
 
 namespace RunnConnectAPI.Controllers
 {
-  /// Controller para gestion de notificaciones de eventos (sistema PULL/buzon)
-  /// Los runners ven las notificaciones al abrir la app
+  /// Controller para gestion de notificaciones de eventos
+  
   [Authorize]
   [ApiController]
   [Route("api/[controller]")]
@@ -25,7 +25,7 @@ namespace RunnConnectAPI.Controllers
     // ENDPOINTS PUBLICOS 
     /// Obtiene una notificacion por ID
     /// Endpoint publico - cualquiera puede ver una notificacion especifica
-    [AllowAnonymous]
+    // [AllowAnonymous]
     [HttpGet("{id}")]
     public async Task<IActionResult> ObtenerPorId(int id)
     {

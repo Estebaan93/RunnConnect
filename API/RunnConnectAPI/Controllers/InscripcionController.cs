@@ -3,10 +3,10 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using RunnConnectAPI.Models;
 using RunnConnectAPI.Models.Dto.Inscripcion;
-using RunnConnectAPI.Models.Dto.Notificacion;
+// using RunnConnectAPI.Models.Dto.Notificacion;
 using RunnConnectAPI.Repositories;
 using RunnConnectAPI.Services;
-using System.Security.Claims;
+// using System.Security.Claims;
 
 namespace RunnConnectAPI.Controllers
 {
@@ -272,7 +272,7 @@ namespace RunnConnectAPI.Controllers
       }
     }
 
-    /// Obtiene la ficha técnica completa de un runner inscripto para el organizador
+    /// Obtiene la ficha tecnica completa de un runner inscripto para el organizador
     /// GET: api/Inscripcion/{id}/Ficha
     [HttpGet("{id}/Ficha")]
     [Authorize(Roles = "organizador")]
@@ -349,10 +349,7 @@ namespace RunnConnectAPI.Controllers
 
         if (inscripcion.EstadoPago != "pendiente")
           return BadRequest(new { message = "Solo se puede subir comprobante para inscripciones pendientes" });
-
-        // Validar archivo
-        /*if (request.Comprobante == null || request.Comprobante.Length == 0)
-          return BadRequest(new { message = "Debe seleccionar un archivo" });*/
+        
 
         var extensionesPermitidas = new[] { ".jpg", ".jpeg", ".png", ".pdf" };
         var extension = Path.GetExtension(comprobante.FileName).ToLower();
@@ -616,7 +613,7 @@ namespace RunnConnectAPI.Controllers
 
         if (inscripcion.Categoria?.Evento?.IdOrganizador != userId) return Forbid();
 
-        // La validacion estricta (solo si es 'pagado') esta en el repositorio
+        // La validacion estricta (solo si es pagado) esta en el repositorio
         await _inscripcionRepositorio.CambiarEstadoPagoAsync(id, "reembolsado");
 
         // Enviar notificacion privada al runner avisando del reembolso
@@ -673,7 +670,7 @@ namespace RunnConnectAPI.Controllers
         var inscripcion = await _inscripcionRepositorio.ObtenerPorIdAsync(id);
         if (inscripcion == null) return NotFound(new { message = "Inscripcion no encontrada" });
 
-        // Verificar que la inscripción pertenece a un evento de este organizador
+        // Verificar que la inscripcion pertenece a un evento de este organizador
         if (inscripcion.Categoria?.Evento?.IdOrganizador != userId)
           return Forbid();
 
@@ -748,7 +745,7 @@ namespace RunnConnectAPI.Controllers
           Runner = new RunnerSimpleDto
           {
             Nombre = i.Usuario.Nombre,
-            // Manejo seguro de nulos con el operador '?' y '??'
+            // Manejo seguro de nulos
             Apellido = i.Usuario.PerfilRunner?.Apellido ?? "",
             Dni = i.Usuario.PerfilRunner?.Dni.ToString() ?? "S/D",
             Email = i.Usuario.Email,
@@ -768,15 +765,6 @@ namespace RunnConnectAPI.Controllers
       }
     }
 
-
-    /*private int User.ObtenerUserId()
-    {
-      var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
-      if (userIdClaim == null)
-        throw new UnauthorizedAccessException("ID de usuario no encontrado");
-
-      return int.Parse(userIdClaim.Value);
-    }*/
-
+    
   }
 }

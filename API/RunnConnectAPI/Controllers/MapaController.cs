@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using RunnConnectAPI.Models.Dto.Ruta;
 using RunnConnectAPI.Models.Dto.PuntoInteres;
 using RunnConnectAPI.Repositories;
-using System.Security.Claims;
+// using System.Security.Claims;
 using RunnConnectAPI.Services;
 
 namespace RunnConnectAPI.Controllers
@@ -25,8 +25,8 @@ namespace RunnConnectAPI.Controllers
 
     // MAPA COMPLETO 
     /* Obtiene el mapa completo del evento (ruta + puntos de interes)
-    Endpoint publico - ideal para la app Android
-    Retorna toda la información necesaria para mostrar el mapa */
+    Endpoint publico - 
+    Retorna toda la informacion necesaria para mostrar el mapa */
     [AllowAnonymous]
     [HttpGet("Mapa")]
     public async Task<IActionResult> ObtenerMapaCompleto(int idEvento)
@@ -70,9 +70,9 @@ namespace RunnConnectAPI.Controllers
       }
     }
 
-    /// Guarda la ruta completa de un evento (no reemplaza la existente)
-    /// Requiere: Token JWT de Organizador (dueño del evento)
-    /// Los puntos deben venir en orden (el sistema asigna el numero de orden automaticamente)
+    // Guarda la ruta completa de un evento
+    //Requiere: Token JWT de Organizador (dueño del evento)
+    // Los puntos deben venir en orden
     [Authorize(Roles="organizador")]
     [HttpPut("Ruta")]
     public async Task<IActionResult> GuardarRuta(int idEvento, [FromBody] GuardarRutaRequest request)
@@ -127,7 +127,7 @@ namespace RunnConnectAPI.Controllers
     // PUNTOS DE INTERES 
     /// Obtiene todos los puntos de interes de un evento
     /// Endpoint publico
-    /// Retorna: hidratacion, primeros auxilios, etc.
+    /// Retorna: hidratacion, primeros auxilios, etc
     [AllowAnonymous]
     [HttpGet("PuntosInteres")]
     public async Task<IActionResult> ObtenerPuntosInteres(int idEvento)
