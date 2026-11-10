@@ -94,11 +94,34 @@ public class MisInscripcionesViewModel extends AndroidViewModel {
           List<MisInscripcionesResponse.InscripcionItem> items = response.body().getInscripciones();
           if (items != null) {
             listaCompleta.addAll(items);
+            java.util.Set<Integer> eventosActivos = new java.util.HashSet<>();
             for (MisInscripcionesResponse.InscripcionItem item : items) {
               if (item.getEvento() != null && item.getEvento().getIdEvento() > 0) {
-                FcmTopicManager.suscribirEvento(item.getEvento().getIdEvento());
-                if (item.getCategoria() != null && item.getCategoria().getIdCategoria() > 0) {
-                  FcmTopicManager.suscribirEventoCategoria(item.getEvento().getIdEvento(), item.getCategoria().getIdCategoria());
+                String estPago = item.getEstadoPago() != null ? item.getEstadoPago().toLowerCase().trim() : "";
+                if ("pagado".equals(estPago) || "procesando".equals(estPago) || "pendiente".equals(estPago)) {
+                  eventosActivos.add(item.getEvento().getIdEvento());
+                }
+              }
+            }
+            for (MisInscripcionesResponse.InscripcionItem item : items) {
+              if (item.getEvento() != null && item.getEvento().getIdEvento() > 0) {
+                int idEvento = item.getEvento().getIdEvento();
+                int idCategoria = item.getCategoria() != null ? item.getCategoria().getIdCategoria() : 0;
+                String estPago = item.getEstadoPago() != null ? item.getEstadoPago().toLowerCase().trim() : "";
+                boolean activa = "pagado".equals(estPago) || "procesando".equals(estPago) || "pendiente".equals(estPago);
+
+                if (activa) {
+                  FcmTopicManager.suscribirEvento(idEvento);
+                  if (idCategoria > 0) {
+                    FcmTopicManager.suscribirEventoCategoria(idEvento, idCategoria);
+                  }
+                } else {
+                  if (!eventosActivos.contains(idEvento)) {
+                    FcmTopicManager.desuscribirEvento(idEvento);
+                  }
+                  if (idCategoria > 0) {
+                    FcmTopicManager.desuscribirEventoCategoria(idEvento, idCategoria);
+                  }
                 }
               }
             }

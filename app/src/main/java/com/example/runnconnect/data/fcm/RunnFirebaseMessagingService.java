@@ -17,6 +17,8 @@ import androidx.core.content.ContextCompat;
 
 import com.example.runnconnect.MainActivity;
 import com.example.runnconnect.R;
+import com.example.runnconnect.data.preferencias.SessionManager;
+import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
 
@@ -36,7 +38,24 @@ public class RunnFirebaseMessagingService extends FirebaseMessagingService {
   @Override
   public void onMessageReceived(@NonNull RemoteMessage remoteMessage) {
     super.onMessageReceived(remoteMessage);
-    Log.d(TAG, "Mensaje push recibido desde: " + remoteMessage.getFrom());
+    String from = remoteMessage.getFrom();
+    Log.d(TAG, "Mensaje push recibido desde: " + from);
+
+    SessionManager sessionManager = new SessionManager(getApplicationContext());
+    if (!sessionManager.tieneSesionActiva()) {
+      Log.d(TAG, "Ignorando push: no hay sesión activa.");
+      return;
+    }
+
+    // Si es organizador, solo debe recibir notificaciones de su tópico privado (runner_{idUsuario})
+    if ("organizador".equalsIgnoreCase(sessionManager.getTipoUsuario()) && from != null) {
+      if (from.contains("evento_") || from.contains("topico_global")) {
+        String topicName = from.replace("/topics/", "");
+        FirebaseMessaging.getInstance().unsubscribeFromTopic(topicName);
+        Log.d(TAG, "Ignorando y desuscribiendo tópico de runner para organizador: " + topicName);
+        return;
+      }
+    }
 
     // Sincronizar en tiempo real el contador de la app
     SincronizarNotificacion.notificarNuevaLlegada();

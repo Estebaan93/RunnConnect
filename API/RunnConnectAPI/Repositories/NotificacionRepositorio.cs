@@ -34,16 +34,11 @@ namespace RunnConnectAPI.Repositories
         ultimaLectura = perfilOrga?.FechaUltimaLectura ?? DateTime.MinValue;
 
         // El organizador SOLO ve notificaciones privadas para él (nuevas inscripciones, comprobantes subidos, etc.)
-        // y avisos específicos de sus eventos, NUNCA anuncios globales de inscripciones abiertas de otros eventos.
         notificacionesFiltradas = await _context.NotificacionesEvento
           .AsNoTracking()
           .Include(n => n.Evento)
           .Include(n => n.Categoria)
-          .Where(n =>
-              n.IdUsuarioDestino == idUsuario
-              ||
-              (n.Evento != null && n.Evento.IdOrganizador == idUsuario && n.IdUsuarioDestino == null && !n.EsAnuncioGlobal && !n.Titulo.Contains("Resultados"))
-          )
+          .Where(n => n.IdUsuarioDestino == idUsuario)
           .OrderByDescending(n => n.FechaEnvio)
           .ToListAsync();
       }
@@ -52,16 +47,18 @@ namespace RunnConnectAPI.Repositories
         var perfilRunner = await _context.PerfilesRunners.FirstOrDefaultAsync(p => p.IdUsuario == idUsuario);
         ultimaLectura = perfilRunner?.FechaUltimaLectura ?? DateTime.MinValue;
 
-        // 1. Obtener Inscripciones del usuario
-        var inscripcionesPagadas = await _context.Inscripciones
+        var estadosValidos = new[] { "pagado", "procesando", "pendiente" };
+
+        // 1. Obtener Inscripciones del usuario (pagado, procesando y pendiente)
+        var inscripcionesActivas = await _context.Inscripciones
           .Include(i => i.Categoria)
-          .Where(i => i.IdUsuario == idUsuario && i.EstadoPago == "pagado")
+          .Where(i => i.IdUsuario == idUsuario && estadosValidos.Contains(i.EstadoPago))
           .Select(i => new { i.Categoria!.IdEvento, i.Categoria.IdCategoria })
           .ToListAsync();
 
         // IDs de mis eventos
-        var idEventosPagados = inscripcionesPagadas.Select(x => x.IdEvento).Distinct().ToList();
-        var idCategoriasPagadas = inscripcionesPagadas.Select(x => x.IdCategoria).Distinct().ToList();
+        var idEventosActivos = inscripcionesActivas.Select(x => x.IdEvento).Distinct().ToList();
+        var idCategoriasActivas = inscripcionesActivas.Select(x => x.IdCategoria).Distinct().ToList();
 
         // FECHA LIMITE PARA GLOBALES (Ej: Solo mostrar anuncios globales de los ultimos 7 dias)
         var fechaLimiteGlobal = DateTime.Now.AddDays(-7);
@@ -82,13 +79,13 @@ namespace RunnConnectAPI.Repositories
 
               ||
 
-              // CASO C: Es un aviso PUBLICO GENERAL de un evento donde estoy pagado
-              (n.IdUsuarioDestino == null && n.IdCategoria == null && idEventosPagados.Contains(n.IdEvento))
+              // CASO C: Es un aviso PUBLICO GENERAL de un evento donde estoy inscripto (pagado, procesando o pendiente)
+              (n.IdUsuarioDestino == null && n.IdCategoria == null && idEventosActivos.Contains(n.IdEvento))
 
               ||
 
-              // CASO D: Es un aviso ESPECIFICO de una categoria donde estoy pagado
-              (n.IdUsuarioDestino == null && n.IdCategoria != null && idCategoriasPagadas.Contains(n.IdCategoria.Value))
+              // CASO D: Es un aviso ESPECIFICO de una categoria donde estoy inscripto (pagado, procesando o pendiente)
+              (n.IdUsuarioDestino == null && n.IdCategoria != null && idCategoriasActivas.Contains(n.IdCategoria.Value))
           )
           .OrderByDescending(n => n.FechaEnvio)
           .ToListAsync();
@@ -99,7 +96,7 @@ namespace RunnConnectAPI.Repositories
           if (n.IdUsuarioDestino == idUsuario) return true;
           if (n.EsAnuncioGlobal) return true;
           if (n.IdCategoria == null) return true;
-          return inscripcionesPagadas.Any(i => i.IdEvento == n.IdEvento && i.IdCategoria == n.IdCategoria);
+          return inscripcionesActivas.Any(i => i.IdEvento == n.IdEvento && i.IdCategoria == n.IdCategoria);
         }).ToList();
       }
 
@@ -185,8 +182,7 @@ namespace RunnConnectAPI.Repositories
         var ultimaLecturaOrga = perfilOrga?.FechaUltimaLectura ?? DateTime.MinValue;
 
         return await _context.NotificacionesEvento
-          .Where(n => (n.IdUsuarioDestino == idUsuario || (n.Evento != null && n.Evento.IdOrganizador == idUsuario && n.IdUsuarioDestino == null && !n.EsAnuncioGlobal && !n.Titulo.Contains("Resultados")))
-                      && n.FechaEnvio >= ultimaLecturaOrga)
+          .Where(n => n.IdUsuarioDestino == idUsuario && n.FechaEnvio >= ultimaLecturaOrga)
           .CountAsync();
       }
 
@@ -194,9 +190,11 @@ namespace RunnConnectAPI.Repositories
       var perfil = await _context.PerfilesRunners.FirstOrDefaultAsync(p => p.IdUsuario == idUsuario);
       var ultimaLectura = perfil?.FechaUltimaLectura ?? DateTime.MinValue;
 
+      var estadosValidos = new[] { "pagado", "procesando", "pendiente" };
+
       var inscripcionesUsuario = await _context.Inscripciones
         .Include(i => i.Categoria)
-        .Where(i => i.IdUsuario == idUsuario && i.EstadoPago == "pagado")
+        .Where(i => i.IdUsuario == idUsuario && estadosValidos.Contains(i.EstadoPago))
         .Select(i => new { i.Categoria!.IdEvento, i.Categoria.IdCategoria })
         .ToListAsync();
 
@@ -212,10 +210,10 @@ namespace RunnConnectAPI.Repositories
             // Caso B: Anuncio global reciente
             (n.EsAnuncioGlobal && n.FechaEnvio >= fechaLimiteGlobal)
             ||
-            // Caso C: Aviso publico general del evento donde está pagado
+            // Caso C: Aviso publico general del evento donde está inscripto (pagado, procesando o pendiente)
             (n.IdUsuarioDestino == null && n.IdCategoria == null && idsEventos.Contains(n.IdEvento))
             ||
-            // Caso D: Aviso publico especifico de la categoría donde esta pagado
+            // Caso D: Aviso publico especifico de la categoría donde esta inscripto (pagado, procesando o pendiente)
             (n.IdUsuarioDestino == null && n.IdCategoria != null && idsCategorias.Contains(n.IdCategoria.Value))
         ))
         .CountAsync();

@@ -38,7 +38,7 @@ public class MainViewModel extends AndroidViewModel {
     this.sessionManager = new SessionManager(application);
     cargarDatosSesion(application);
     cargarContadorNotificaciones();
-    FcmTopicManager.suscribirTopicosUsuario(sessionManager.getIdUsuario());
+    FcmTopicManager.suscribirTopicosUsuario(sessionManager.getIdUsuario(), sessionManager.getTipoUsuario());
   }
 
   // --- GETTERS ---

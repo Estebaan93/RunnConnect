@@ -3,6 +3,7 @@ package com.example.runnconnect.data.preferencias;
 import android.content.Context;
 import android.content.SharedPreferences;
 
+import com.example.runnconnect.data.fcm.FcmTopicManager;
 import com.example.runnconnect.data.model.Usuario;
 import com.example.runnconnect.data.response.LoginResponse;
 
@@ -62,6 +63,7 @@ public class SessionManager {
 
   //cerrar sesion
   public void cerrarSesion(){
+    FcmTopicManager.desuscribirTopicosUsuario(getIdUsuario());
     editor.clear();
     editor.apply();
   }
