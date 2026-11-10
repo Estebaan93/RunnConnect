@@ -163,9 +163,8 @@ namespace RunnConnectAPI.Repositories
       _context.NotificacionesEvento.Add(notificacion);
       await _context.SaveChangesAsync();
 
-      // Disparar a firebase
-      string notif = DeterminarNotificacion(idEvento, idCategoria, idUsuarioDestino);
-      await _firebaseService.EnviarNotificacionTopicAsync(notif, titulo, mensaje, idEvento);
+      // Disparar push a Firebase (al usuario destino o a los runners activos del evento/categoría)
+      await DispararPushNotificacionAsync(idEvento, idCategoria, idUsuarioDestino, titulo, mensaje);
 
       return notificacion;
     }
@@ -278,28 +277,85 @@ namespace RunnConnectAPI.Repositories
       _context.NotificacionesEvento.Add(notificacion);
       await _context.SaveChangesAsync();
 
-      //Disparar a firebase
-      string notif = DeterminarNotificacion(request.IdEvento, request.IdCategoria, idUsuarioDestino);
-      await _firebaseService.EnviarNotificacionTopicAsync(notif, request.Titulo, request.Mensaje, request.IdEvento);
+      // Disparar push a Firebase únicamente a los runners afectados (nunca al organizador)
+      await DispararPushNotificacionAsync(
+          request.IdEvento,
+          request.IdCategoria,
+          idUsuarioDestino,
+          request.Titulo,
+          request.Mensaje,
+          idOrganizador);
 
       return (notificacion, null);
     }
 
     //  HELPERS
 
-    // Metodo para auxiliar mensajes
-    private string DeterminarNotificacion (int idEvento, int? idCategoria, int? idUsuarioDestino)
+    // Envía la notificación Push por Firebase al usuario destino o a cada runner activo de la categoría/evento
+    private async Task DispararPushNotificacionAsync(
+      int idEvento,
+      int? idCategoria,
+      int? idUsuarioDestino,
+      string titulo,
+      string? mensaje,
+      int? idOrganizadorExcluir = null)
     {
-      // Caso 1: Notificacion privada a un solo Runner (Ej: tu pago fue aprobado!)
-        if (idUsuarioDestino.HasValue)
-            return $"runner_{idUsuarioDestino.Value}";
+      // Caso 1: Notificación privada a un usuario puntual (Runner u Organizador)
+      if (idUsuarioDestino.HasValue)
+      {
+        await _firebaseService.EnviarNotificacionTopicAsync(
+            $"runner_{idUsuarioDestino.Value}",
+            titulo,
+            mensaje ?? string.Empty,
+            idEvento);
+        return;
+      }
 
-        // Caso 2: Notificacion a los inscriptos de una categoria especifica (Ej: 10K Retrasada)
-        if (idCategoria.HasValue)
-            return $"evento_{idEvento}_cat_{idCategoria.Value}";
+      var estadosValidos = new[] { "pagado", "procesando", "pendiente" };
 
-        // Caso 3: Notificacion a todos los inscriptos de un evento general (Ej: Evento Cancelado)
-        return $"evento_{idEvento}";
+      // Caso 2: Notificación a los runners inscriptos en una categoría específica (Ej: 10K Retrasada)
+      if (idCategoria.HasValue)
+      {
+        var idsRunnersCategoria = await _context.Inscripciones
+          .AsNoTracking()
+          .Where(i => i.IdCategoria == idCategoria.Value
+                      && estadosValidos.Contains(i.EstadoPago)
+                      && (!idOrganizadorExcluir.HasValue || i.IdUsuario != idOrganizadorExcluir.Value))
+          .Select(i => i.IdUsuario)
+          .Distinct()
+          .ToListAsync();
+
+        foreach (var idRunner in idsRunnersCategoria)
+        {
+          await _firebaseService.EnviarNotificacionTopicAsync(
+              $"runner_{idRunner}",
+              titulo,
+              mensaje ?? string.Empty,
+              idEvento);
+        }
+        return;
+      }
+
+      // Caso 3: Notificación general a todos los runners inscriptos en el evento (Ej: Evento Suspendido/Cancelado)
+      var idsRunnersEvento = await _context.Inscripciones
+        .AsNoTracking()
+        .Include(i => i.Categoria)
+        .Where(i => i.Categoria != null
+                    && i.Categoria.IdEvento == idEvento
+                    && estadosValidos.Contains(i.EstadoPago)
+                    && (!idOrganizadorExcluir.HasValue || i.IdUsuario != idOrganizadorExcluir.Value))
+        .Select(i => i.IdUsuario)
+        .Distinct()
+        .ToListAsync();
+
+      foreach (var idRunner in idsRunnersEvento)
+      {
+        await _firebaseService.EnviarNotificacionTopicAsync(
+            $"runner_{idRunner}",
+            titulo,
+            mensaje ?? string.Empty,
+            idEvento);
+      }
     }
 
   }
