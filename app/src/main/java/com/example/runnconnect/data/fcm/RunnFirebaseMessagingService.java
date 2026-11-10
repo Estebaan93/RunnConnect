@@ -116,6 +116,7 @@ public class RunnFirebaseMessagingService extends FirebaseMessagingService {
         .setContentText(cuerpo)
         .setStyle(new NotificationCompat.BigTextStyle().bigText(cuerpo))
         .setPriority(NotificationCompat.PRIORITY_HIGH)
+        .setDefaults(NotificationCompat.DEFAULT_ALL)
         .setAutoCancel(true)
         .setContentIntent(pendingIntent);
 

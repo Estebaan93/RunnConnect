@@ -47,7 +47,7 @@ namespace RunnConnectAPI.Repositories
         var perfilRunner = await _context.PerfilesRunners.FirstOrDefaultAsync(p => p.IdUsuario == idUsuario);
         ultimaLectura = perfilRunner?.FechaUltimaLectura ?? DateTime.MinValue;
 
-        var estadosValidos = new[] { "pagado", "procesando", "pendiente" };
+        var estadosValidos = new List<string> { "pagado", "procesando", "pendiente" };
 
         // 1. Obtener Inscripciones del usuario (pagado, procesando y pendiente)
         var inscripcionesActivas = await _context.Inscripciones
@@ -109,6 +109,8 @@ namespace RunnConnectAPI.Repositories
         FechaEnvio = n.FechaEnvio,
         IdEvento = n.IdEvento,
         NombreEvento = n.Evento?.Nombre ?? "",
+        IdCategoria = n.IdCategoria,
+        NombreCategoria = n.Categoria?.Nombre,
         FechaEvento = n.Evento?.FechaHora ?? DateTime.MinValue,
         EstadoEvento = n.EstadoEvento ?? n.Evento?.Estado ?? "",
         EsPrivada = n.IdUsuarioDestino != null,
@@ -189,7 +191,7 @@ namespace RunnConnectAPI.Repositories
       var perfil = await _context.PerfilesRunners.FirstOrDefaultAsync(p => p.IdUsuario == idUsuario);
       var ultimaLectura = perfil?.FechaUltimaLectura ?? DateTime.MinValue;
 
-      var estadosValidos = new[] { "pagado", "procesando", "pendiente" };
+      var estadosValidos = new List<string> { "pagado", "procesando", "pendiente" };
 
       var inscripcionesUsuario = await _context.Inscripciones
         .Include(i => i.Categoria)
@@ -311,7 +313,7 @@ namespace RunnConnectAPI.Repositories
         return;
       }
 
-      var estadosValidos = new[] { "pagado", "procesando", "pendiente" };
+      var estadosValidos = new List<string> { "pagado", "procesando", "pendiente" };
 
       // Caso 2: Notificación a los runners inscriptos en una categoría específica (Ej: 10K Retrasada)
       if (idCategoria.HasValue)

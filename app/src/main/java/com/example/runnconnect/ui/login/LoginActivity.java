@@ -54,7 +54,9 @@ public class LoginActivity extends AppCompatActivity {
     viewModel.getNavegacionEvento().observe(this, intent -> {
       if (getIntent() != null && getIntent().getExtras() != null) {
         intent.putExtras(getIntent().getExtras());
-        if (getIntent().hasExtra("idEvento")) {
+        if (getIntent().hasExtra("idEvento")
+            || getIntent().hasExtra("google.message_id")
+            || "true".equalsIgnoreCase(getIntent().getStringExtra("abrirNotificaciones"))) {
           intent.putExtra("abrirNotificaciones", true);
         }
       }

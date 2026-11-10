@@ -28,6 +28,7 @@ public class NotificacionesViewModel extends AndroidViewModel {
   public static class NotificacionUI {
     public int idNotificacion;
     public int idEvento;
+    public int idCategoria;
     public String estadoEvento;
     public String titulo;
     public String mensaje;
@@ -112,6 +113,7 @@ public class NotificacionesViewModel extends AndroidViewModel {
               NotificacionUI ui = new NotificacionUI();
               ui.idNotificacion = item.getIdNotificacion();
               ui.idEvento = item.getIdEvento();
+              ui.idCategoria = item.getIdCategoria() != null ? item.getIdCategoria() : 0;
               ui.estadoEvento = (item.getEstadoEvento() != null) ? item.getEstadoEvento() : "";
               ui.titulo = (item.getTitulo() != null) ? item.getTitulo() : "Notificación";
               ui.mensaje = (item.getMensaje() != null) ? item.getMensaje() : "";

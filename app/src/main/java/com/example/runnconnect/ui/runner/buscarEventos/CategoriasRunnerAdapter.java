@@ -35,8 +35,11 @@ public class CategoriasRunnerAdapter extends RecyclerView.Adapter<CategoriasRunn
     private final int tipoAccion;
     private final int idInscripcion;
     private final String urlComprobante;
+    private final String estadoCategoriaTexto;
+    private final int colorEstadoCategoria;
+    private final int colorBordeCard;
 
-    public CategoriaCompatibilidadUI(int idCategoria, String nombre, String costoTexto, String cuposTexto, String requisitosTexto, String estadoCompatibilidadTexto, int colorEstadoCompatibilidad, String textoBoton, boolean botonHabilitado, int colorBoton, int tipoAccion, int idInscripcion, String urlComprobante) {
+    public CategoriaCompatibilidadUI(int idCategoria, String nombre, String costoTexto, String cuposTexto, String requisitosTexto, String estadoCompatibilidadTexto, int colorEstadoCompatibilidad, String textoBoton, boolean botonHabilitado, int colorBoton, int tipoAccion, int idInscripcion, String urlComprobante, String estadoCategoriaTexto, int colorEstadoCategoria, int colorBordeCard) {
       this.idCategoria = idCategoria;
       this.nombre = nombre;
       this.costoTexto = costoTexto;
@@ -50,6 +53,9 @@ public class CategoriasRunnerAdapter extends RecyclerView.Adapter<CategoriasRunn
       this.tipoAccion = tipoAccion;
       this.idInscripcion = idInscripcion;
       this.urlComprobante = urlComprobante != null ? urlComprobante : "";
+      this.estadoCategoriaTexto = estadoCategoriaTexto != null ? estadoCategoriaTexto : "PROGRAMADA";
+      this.colorEstadoCategoria = colorEstadoCategoria;
+      this.colorBordeCard = colorBordeCard;
     }
 
     public int getIdCategoria() {
@@ -103,6 +109,18 @@ public class CategoriasRunnerAdapter extends RecyclerView.Adapter<CategoriasRunn
     public String getUrlComprobante() {
       return urlComprobante;
     }
+
+    public String getEstadoCategoriaTexto() {
+      return estadoCategoriaTexto;
+    }
+
+    public int getColorEstadoCategoria() {
+      return colorEstadoCategoria;
+    }
+
+    public int getColorBordeCard() {
+      return colorBordeCard;
+    }
   }
 
   private List<CategoriaCompatibilidadUI> lista = new ArrayList<>();
@@ -154,6 +172,10 @@ public class CategoriasRunnerAdapter extends RecyclerView.Adapter<CategoriasRunn
       binding.tvCatPrecio.setText(item.getCostoTexto());
       binding.tvCatRequisitos.setText(item.getRequisitosTexto());
       binding.tvCatCupos.setText(item.getCuposTexto());
+
+      binding.tvCatEstado.setText(item.getEstadoCategoriaTexto());
+      binding.tvCatEstado.setTextColor(item.getColorEstadoCategoria());
+      binding.cardCategoriaRunner.setStrokeColor(item.getColorBordeCard());
 
       boolean tieneBadge = item.getEstadoCompatibilidadTexto() != null && !item.getEstadoCompatibilidadTexto().trim().isEmpty();
       binding.tvCatCompatibilidad.setVisibility(tieneBadge ? View.VISIBLE : View.GONE);

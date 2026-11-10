@@ -12,6 +12,7 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
+import com.example.runnconnect.data.fcm.SincronizarNotificacion;
 import com.example.runnconnect.databinding.FragmentNotificacionesBinding;
 
 public class NotificacionesFragment extends Fragment {
@@ -41,6 +42,7 @@ public class NotificacionesFragment extends Fragment {
       if (item.idEvento > 0) {
         Bundle bundle = new Bundle();
         bundle.putInt("idEvento", item.idEvento);
+        bundle.putInt("idCategoria", item.idCategoria);
         bundle.putString("estadoEvento", item.estadoEvento);
         Navigation.findNavController(requireView()).navigate(item.destinoNavId, bundle);
       }
@@ -56,6 +58,10 @@ public class NotificacionesFragment extends Fragment {
     viewModel.getVacioTexto().observe(getViewLifecycleOwner(), binding.tvVacioNotificaciones::setText);
     viewModel.getErrorVisibility().observe(getViewLifecycleOwner(), binding.tvErrorNotificaciones::setVisibility);
     viewModel.getErrorTexto().observe(getViewLifecycleOwner(), binding.tvErrorNotificaciones::setText);
+
+    SincronizarNotificacion.getEventoNuevaNotificacion().observe(getViewLifecycleOwner(), timestamp -> {
+      viewModel.cargarNotificaciones();
+    });
   }
 
   @Override

@@ -316,6 +316,37 @@ public class DetalleEventoRunnerViewModel extends AndroidViewModel {
     else if ("F".equalsIgnoreCase(cat.getGenero())) genDesc = "Femenino";
     String requisitos = "Edad: " + cat.getEdadMinima() + " - " + cat.getEdadMaxima() + " años | Género: " + genDesc;
 
+    String estadoCatRaw = (cat.getEstado() != null && !cat.getEstado().trim().isEmpty())
+        ? cat.getEstado().trim().toLowerCase() : "programada";
+    String estadoCatTexto = estadoCatRaw.toUpperCase();
+    int colorEstadoCat;
+    int colorBordeCard;
+
+    switch (estadoCatRaw) {
+      case "retrasada":
+        colorEstadoCat = Color.parseColor("#F57F17");
+        colorBordeCard = Color.parseColor("#FFC107");
+        break;
+      case "suspendida":
+      case "suspendido":
+        colorEstadoCat = Color.parseColor("#E65100");
+        colorBordeCard = Color.parseColor("#FF9800");
+        break;
+      case "cancelada":
+        colorEstadoCat = Color.parseColor("#C62828");
+        colorBordeCard = Color.parseColor("#F44336");
+        break;
+      case "finalizada":
+        colorEstadoCat = Color.parseColor("#616161");
+        colorBordeCard = Color.parseColor("#9E9E9E");
+        break;
+      case "programada":
+      default:
+        colorEstadoCat = Color.parseColor("#2E7D32");
+        colorBordeCard = Color.parseColor("#4CAF50");
+        break;
+    }
+
     // === CASO 1: EL RUNNER TIENE UNA INSCRIPCIÓN ACTIVA EN ESTE EVENTO ("pendiente", "procesando", "pagado") ===
     if (inscripcionActual != null) {
       String stPago = inscripcionActual.getEstadoPago() != null ? inscripcionActual.getEstadoPago().toLowerCase().trim() : "";
@@ -337,7 +368,10 @@ public class DetalleEventoRunnerViewModel extends AndroidViewModel {
                   Color.parseColor("#FB8C00"),
                   CategoriaCompatibilidadUI.ACCION_SUBIR_COMPROBANTE,
                   idInscripcion,
-                  ""
+                  "",
+                  estadoCatTexto,
+                  colorEstadoCat,
+                  colorBordeCard
               );
 
             case "procesando":
@@ -350,7 +384,10 @@ public class DetalleEventoRunnerViewModel extends AndroidViewModel {
                   Color.parseColor("#78909C"),
                   CategoriaCompatibilidadUI.ACCION_NINGUNA,
                   idInscripcion,
-                  ""
+                  "",
+                  estadoCatTexto,
+                  colorEstadoCat,
+                  colorBordeCard
               );
 
             case "pagado":
@@ -364,7 +401,10 @@ public class DetalleEventoRunnerViewModel extends AndroidViewModel {
                   Color.parseColor("#2E7D32"),
                   CategoriaCompatibilidadUI.ACCION_VER_COMPROBANTE,
                   idInscripcion,
-                  urlComprobante
+                  urlComprobante,
+                  estadoCatTexto,
+                  colorEstadoCat,
+                  colorBordeCard
               );
           }
         } else {
@@ -378,7 +418,10 @@ public class DetalleEventoRunnerViewModel extends AndroidViewModel {
               Color.parseColor("#BDBDBD"),
               CategoriaCompatibilidadUI.ACCION_NINGUNA,
               0,
-              ""
+              "",
+              estadoCatTexto,
+              colorEstadoCat,
+              colorBordeCard
           );
         }
       }
@@ -403,7 +446,10 @@ public class DetalleEventoRunnerViewModel extends AndroidViewModel {
           Color.parseColor("#BDBDBD"),
           CategoriaCompatibilidadUI.ACCION_NINGUNA,
           0,
-          ""
+          "",
+          estadoCatTexto,
+          colorEstadoCat,
+          colorBordeCard
       );
     }
 
@@ -412,13 +458,16 @@ public class DetalleEventoRunnerViewModel extends AndroidViewModel {
       return new CategoriaCompatibilidadUI(
           idCat, nombre, costo, cupos, requisitos,
           "Estado de categoría: " + cat.getEstado().toUpperCase(),
-          Color.parseColor("#C62828"),
+          colorEstadoCat,
           textoBtnBase,
           false,
           Color.parseColor("#BDBDBD"),
           CategoriaCompatibilidadUI.ACCION_NINGUNA,
           0,
-          ""
+          "",
+          estadoCatTexto,
+          colorEstadoCat,
+          colorBordeCard
       );
     }
 
@@ -433,7 +482,10 @@ public class DetalleEventoRunnerViewModel extends AndroidViewModel {
           Color.parseColor("#BDBDBD"),
           CategoriaCompatibilidadUI.ACCION_NINGUNA,
           0,
-          ""
+          "",
+          estadoCatTexto,
+          colorEstadoCat,
+          colorBordeCard
       );
     }
 
@@ -448,7 +500,10 @@ public class DetalleEventoRunnerViewModel extends AndroidViewModel {
           Color.parseColor("#BDBDBD"),
           CategoriaCompatibilidadUI.ACCION_NINGUNA,
           0,
-          ""
+          "",
+          estadoCatTexto,
+          colorEstadoCat,
+          colorBordeCard
       );
     }
 
@@ -464,7 +519,10 @@ public class DetalleEventoRunnerViewModel extends AndroidViewModel {
           Color.parseColor("#BDBDBD"),
           CategoriaCompatibilidadUI.ACCION_NINGUNA,
           0,
-          ""
+          "",
+          estadoCatTexto,
+          colorEstadoCat,
+          colorBordeCard
       );
     }
 
@@ -481,7 +539,10 @@ public class DetalleEventoRunnerViewModel extends AndroidViewModel {
           Color.parseColor("#D32F2F"),
           CategoriaCompatibilidadUI.ACCION_INSCRIBIR,
           0,
-          ""
+          "",
+          estadoCatTexto,
+          colorEstadoCat,
+          colorBordeCard
       );
     }
 
@@ -495,7 +556,10 @@ public class DetalleEventoRunnerViewModel extends AndroidViewModel {
         Color.parseColor("#6200EE"),
         CategoriaCompatibilidadUI.ACCION_INSCRIBIR,
         0,
-        ""
+        "",
+        estadoCatTexto,
+        colorEstadoCat,
+        colorBordeCard
     );
   }
 

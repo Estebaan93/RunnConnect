@@ -10,6 +10,14 @@ namespace RunnConnectAPI.Services
     // Su funcion es conectar con Google usando el archivo .json
     static FirebaseNotificacionService()
     {
+      InicializarFirebase();
+    }
+
+    private static void InicializarFirebase()
+    {
+      if (FirebaseApp.DefaultInstance != null)
+        return;
+
       string fileName = "runnConnect.json";
       string path = Path.Combine(AppContext.BaseDirectory, fileName);
       if (!File.Exists(path))
@@ -17,22 +25,18 @@ namespace RunnConnectAPI.Services
         path = Path.Combine(Directory.GetCurrentDirectory(), fileName);
       }
 
-      // Verificamos si Firebase ya esta iniciado para no iniciarlo dos veces
-      if (FirebaseApp.DefaultInstance == null)
+      try
       {
-        try
+        FirebaseApp.Create(new AppOptions()
         {
-          FirebaseApp.Create(new AppOptions()
-          {
-            Credential = GoogleCredential.FromFile(path)
-          });
-          Console.WriteLine(" Conexión con Firebase establecida correctamente.");
-        }
-        catch (Exception ex)
-        {
-          Console.WriteLine($"Error al iniciar Firebase: {ex.Message}");
-          Console.WriteLine($"El archivo '{fileName}' no esta en la carpeta raíz y copiado al output.");
-        }
+          Credential = GoogleCredential.FromFile(path)
+        });
+        Console.WriteLine(" Conexión con Firebase establecida correctamente.");
+      }
+      catch (Exception ex)
+      {
+        Console.WriteLine($"Error al iniciar Firebase: {ex.Message}");
+        Console.WriteLine($"El archivo '{fileName}' no esta en la carpeta raíz y copiado al output.");
       }
     }
 
@@ -40,22 +44,29 @@ namespace RunnConnectAPI.Services
        "titulo" Titulo visible en la barra de notificaciones
        "cuerpo" Mensaje visible
        "idEvento" ID del evento para que la App sepa a donde ir al tocar*/
-    public async Task<bool> EnviarNotificacionTopicAsync(string topic, string titulo, string cuerpo, int idEvento)
+    public async Task<bool> EnviarNotificacionTopicAsync(string topic, string titulo, string? cuerpo, int idEvento)
     {
       try
       {
+        if (FirebaseApp.DefaultInstance == null)
+        {
+          InicializarFirebase();
+        }
+
+        string cuerpoSeguro = cuerpo ?? string.Empty;
+
         var message = new Message()
         {
           Topic = topic,
 
-          // Lo que ve el usuario visualmente en su celular
+          // Lo que ve el usuario visualmente en su celular cuando la app está en background/muerta
           Notification = new Notification
           {
             Title = titulo,
-            Body = cuerpo
+            Body = cuerpoSeguro
           },
 
-          // Configuracion especifica para Android: Canal y Prioridad Alta para despertar el SO
+          // Configuracion especifica para Android: Canal y Prioridad Alta para despertar el SO y sonar
           Android = new AndroidConfig()
           {
             Priority = Priority.High,
@@ -68,11 +79,13 @@ namespace RunnConnectAPI.Services
             }
           },
 
-          // Datos ocultos (Payload) para que la App Android sepa que hacer
+          // Datos ocultos (Payload) para que la App Android sepa que hacer al abrirse
           Data = new Dictionary<string, string>()
                     {
-                        { "click_action", "FLUTTER_NOTIFICATION_CLICK" }, // Estandar, funciona en nativo tambien
                         { "idEvento", idEvento.ToString() },
+                        { "titulo", titulo },
+                        { "mensaje", cuerpoSeguro },
+                        { "abrirNotificaciones", "true" },
                         { "tipo", "aviso_evento" }
                     }
         };

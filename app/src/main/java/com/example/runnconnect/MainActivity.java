@@ -80,7 +80,12 @@ public class MainActivity extends AppCompatActivity {
 
     // Sincronización en tiempo real: al llegar un push con la app abierta, actualiza el contador
     SincronizarNotificacion.getEventoNuevaNotificacion().observe(this, timestamp -> {
-      viewModel.cargarContadorNotificaciones();
+      NavController nc = Navigation.findNavController(this, R.id.nav_host_fragment_content_main);
+      if (nc.getCurrentDestination() != null && nc.getCurrentDestination().getId() == R.id.nav_notificaciones) {
+        viewModel.limpiarContadorNotificaciones();
+      } else {
+        viewModel.cargarContadorNotificaciones();
+      }
     });
 
     // Sincronización en tiempo real: al actualizar foto o perfil, actualiza el header del drawer
@@ -136,16 +141,23 @@ public class MainActivity extends AppCompatActivity {
   }
 
   private void verificarIntentNotificacion(Intent intent) {
-    if (intent != null && intent.getBooleanExtra("abrirNotificaciones", false)) {
-      NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment_content_main);
-      navController.navigate(
-          R.id.nav_notificaciones,
-          null,
-          new NavOptions.Builder()
-              .setLaunchSingleTop(true)
-              .setPopUpTo(R.id.nav_notificaciones, false)
-              .build()
-      );
+    if (intent != null) {
+      boolean abrir = intent.getBooleanExtra("abrirNotificaciones", false)
+          || "true".equalsIgnoreCase(intent.getStringExtra("abrirNotificaciones"))
+          || intent.hasExtra("google.message_id");
+      if (abrir) {
+        intent.removeExtra("abrirNotificaciones");
+        intent.removeExtra("google.message_id");
+        NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment_content_main);
+        navController.navigate(
+            R.id.nav_notificaciones,
+            null,
+            new NavOptions.Builder()
+                .setLaunchSingleTop(true)
+                .setPopUpTo(R.id.nav_notificaciones, false)
+                .build()
+        );
+      }
     }
   }
 

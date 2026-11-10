@@ -556,7 +556,7 @@ namespace RunnConnectAPI.Controllers
         string mensajeNotif= estadoFinal== "pagado"
           ? $"Tu pago para el evento '{inscripcion.Categoria.Evento.Nombre}' ha sido aprobado." : $"Tu comprobante fue rechazado. Motivo: {request.Motivo}";
 
-        var notificacion = new NotificacionEvento
+        /*var notificacion = new NotificacionEvento
         {
           IdEvento = inscripcion.Categoria.Evento.IdEvento,
           IdCategoria = inscripcion.IdCategoria,
@@ -566,7 +566,7 @@ namespace RunnConnectAPI.Controllers
           FechaEnvio = DateTime.Now,
           EsAnuncioGlobal = false,
           EstadoEvento = inscripcion.Categoria.Evento.Estado
-        };
+        };*/
 
         //inyectamos la notificacion
         await _notificacionRepositorio.CrearNotificacionSistemaAsync(
