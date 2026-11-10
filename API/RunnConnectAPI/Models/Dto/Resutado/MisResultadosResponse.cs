@@ -46,4 +46,21 @@ namespace RunnConnectAPI.Models.Dto.Resultado
     public string? MejorTiempo { get; set; }
     public int? PosicionCategoria { get; set; }
   }
+
+  public class DatosSmartwatchInfo
+  {
+    public string? TiempoSmartwatch { get; set; }
+    public decimal? DistanciaKm { get; set; }
+    public string? RitmoPromedio { get; set; }
+    public string? VelocidadPromedio { get; set; }
+    public int? CaloriasQuemadas { get; set; }
+    public int? PulsacionesPromedio { get; set; }
+    public int? PulsacionesMax { get; set; }
+
+    public bool TieneDatos =>
+      !string.IsNullOrEmpty(TiempoSmartwatch) ||
+      DistanciaKm.HasValue ||
+      CaloriasQuemadas.HasValue ||
+      PulsacionesPromedio.HasValue;
+  }
 }

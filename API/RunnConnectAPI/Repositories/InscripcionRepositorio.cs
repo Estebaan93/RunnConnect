@@ -55,17 +55,6 @@ namespace RunnConnectAPI.Repositories
     }
 
 
-    // Verifica si un runner ya esta inscripto en una categoria
-    public async Task<bool> ExisteInscripcionAsync(int idUsuario, int idEvento)
-    {
-      var estadosActivos = new List<string> { "pendiente", "procesando", "pagado" };
-
-      return await _context.Inscripciones
-          .AnyAsync(i => i.IdUsuario == idUsuario
-              && i.Categoria != null
-              && i.Categoria.IdEvento == idEvento
-              && estadosActivos.Contains(i.EstadoPago));
-    }
 
 
     // Verifica si un runner ya esta inscripto en el mismo evento (cualquier categoria)
@@ -142,16 +131,6 @@ namespace RunnConnectAPI.Repositories
     }
 
 
-    // Obtiene inscripciones de una categoria especifica
-    public async Task<List<Inscripcion>> ObtenerPorCategoriaAsync(int idCategoria)
-    {
-      return await _context.Inscripciones
-          .Include(i => i.Usuario)
-              .ThenInclude(u => u!.PerfilRunner)
-          .Where(i => i.IdCategoria == idCategoria)
-          .OrderByDescending(i => i.FechaInscripcion)
-          .ToListAsync();
-    }
 
 
     // Operaciones CRUD
@@ -396,15 +375,6 @@ namespace RunnConnectAPI.Repositories
       return inscripciones.ToDictionary(x => x.Estado, x => x.Cantidad);
     }
 
-    /// Cuenta inscripciones confirmadas en un evento
-    public async Task<int> ContarPagadosEnEventoAsync(int idEvento)
-    {
-      return await _context.Inscripciones
-          .Include(i => i.Categoria)
-          .CountAsync(i => i.Categoria != null
-              && i.Categoria.IdEvento == idEvento
-              && i.EstadoPago == "pagado");
-    }
 
 
     /* Permite al organizador forzar la baja de un runner, sin importar si ya pago.

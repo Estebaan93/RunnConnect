@@ -123,20 +123,6 @@ namespace RunnConnectAPI.Repositories
       return actualizados;
     }
 
-    /// Obtiene eventos publicos de un organizador (ultimos 6 meses)
-    /// Para mostrar en el perfil publico del organizador
-    public async Task<List<Evento>> ObtenerPorOrganizadorPublicoAsync(int idOrganizador)
-    {
-      var fechaLimite = DateTime.Now.AddMonths(-6);
-      var estadosVisibles = new List<string> { "publicado", "finalizado" };
-
-      return await _context.Eventos
-          .Where(e => e.IdOrganizador == idOrganizador
-              && e.FechaHora >= fechaLimite
-              && estadosVisibles.Contains(e.Estado))
-          .OrderByDescending(e => e.FechaHora)
-          .ToListAsync();
-    }
 
     public async Task<(List<Evento> eventos, int totalCount)> ObtenerTodosPorOrganizadorAsync(int idOrganizador, int pagina, int tamanioPagina)
     {
@@ -162,12 +148,6 @@ namespace RunnConnectAPI.Repositories
     }
 
 
-    /// Verifica si un evento pertenece a un organizador especifico
-    public async Task<bool> PerteneceAOrganizadorAsync(int idEvento, int idOrganizador)
-    {
-      return await _context.Eventos
-          .AnyAsync(e => e.IdEvento == idEvento && e.IdOrganizador == idOrganizador);
-    }
 
 
 
@@ -252,16 +232,6 @@ namespace RunnConnectAPI.Repositories
     }
 
 
-    // Metodos de Conveniencia para estados
-
-    public async Task PublicarAsync(int idEvento)
-        => await CambiarEstadoAsync(idEvento, "publicado");
-
-    public async Task CancelarAsync(int idEvento)
-        => await CambiarEstadoAsync(idEvento, "cancelado");
-
-    public async Task FinalizarAsync(int idEvento)
-        => await CambiarEstadoAsync(idEvento, "finalizado");
 
 
 
@@ -357,12 +327,6 @@ namespace RunnConnectAPI.Repositories
               && i.EstadoPago == "pagado");
     }
 
-    /// Cuenta inscriptos en una categoria especifica
-    public async Task<int> ContarInscriptosPorCategoriaAsync(int idCategoria)
-    {
-      return await _context.Inscripciones
-          .CountAsync(i => i.IdCategoria == idCategoria && i.EstadoPago == "pagado");
-    }
 
     /// Verifica si hay cupo disponible en el evento
     public async Task<bool> TieneCupoDisponibleAsync(int idEvento)
@@ -381,21 +345,6 @@ namespace RunnConnectAPI.Repositories
     }
 
 
-    /// Verifica si hay cupo disponible en una categoria
-    public async Task<bool> TieneCupoDisponibleEnCategoriaAsync(int idCategoria)
-    {
-      var categoria = await _context.CategoriasEvento.FindAsync(idCategoria);
-
-      if (categoria == null)
-        return false;
-
-      // Si no tiene limite de cupo, siempre hay disponible
-      if (!categoria.CupoCategoria.HasValue)
-        return true;
-
-      var inscriptos = await ContarInscriptosPorCategoriaAsync(idCategoria);
-      return inscriptos < categoria.CupoCategoria.Value;
-    }
 
 
     // Busca eventos vencidos (6hs post inicio) y finaliza tanto el evento como sus categorias.

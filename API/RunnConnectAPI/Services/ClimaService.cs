@@ -26,7 +26,7 @@ namespace RunnConnectAPI.Services
       {
         var ahora = DateTime.Now;
 
-        // Si el evento ya ocurrió en el pasado, no tiene clima disponible
+        // Si el evento ya ocurrio en el pasado, no tiene clima disponible
         if (fechaHoraEvento < ahora)
         {
           return null;
@@ -183,7 +183,7 @@ namespace RunnConnectAPI.Services
         }
       }
 
-      // Si no encontró bloques del día exacto, tomar los del bloque general
+      // Si no encontro bloques del día exacto, tomar los del bloque general
       if (!encontroDatosDelDia)
       {
         foreach (var item in listElement.EnumerateArray())

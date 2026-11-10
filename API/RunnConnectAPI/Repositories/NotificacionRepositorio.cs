@@ -19,32 +19,6 @@ namespace RunnConnectAPI.Repositories
       _firebaseService = firebase;
     }
 
-    // Obtiene una notificacion por ID
-    public async Task<NotificacionResponse?> ObtenerPorIdAsync(int idNotificacion)
-    {
-      var notificacion = await _context.NotificacionesEvento
-        .Include(n => n.Evento)
-        .FirstOrDefaultAsync(n => n.IdNotificacion == idNotificacion);
-
-      if (notificacion == null) return null;
-
-      return MapearAResponse(notificacion);
-    }
-
-    // Obtiene todas las notificaciones de un evento
-    // Ordenadas por fecha (mas recientes primero)
-    public async Task<List<NotificacionResponse>> ObtenerPorEventoAsync(int idEvento)
-    {
-      var notificaciones = await _context.NotificacionesEvento
-        .AsNoTracking()
-        .Include(n => n.Evento)
-        .Where(n => n.IdEvento == idEvento)
-        .OrderByDescending(n => n.FechaEnvio)
-        .ToListAsync();
-
-      return notificaciones.Select(MapearAResponse).ToList();
-    }
-
     // Obtiene las notificaciones para el usuario autenticado (Runner u Organizador)
     public async Task<MisNotificacionesResponse> ObtenerMisNotificacionesAsync(int idUsuario)
     {
@@ -119,7 +93,7 @@ namespace RunnConnectAPI.Repositories
           .OrderByDescending(n => n.FechaEnvio)
           .ToListAsync();
 
-        // 3. FILTRADO 
+        // 3. FILTRADO
         notificacionesFiltradas = notificaciones.Where(n =>
         {
           if (n.IdUsuarioDestino == idUsuario) return true;
@@ -129,7 +103,7 @@ namespace RunnConnectAPI.Repositories
         }).ToList();
       }
 
-      // 4. Mapeo final 
+      // 4. Mapeo final
       var items = notificacionesFiltradas.Select(n => new NotificacionRunnerItem
       {
         IdNotificacion = n.IdNotificacion,
@@ -163,7 +137,7 @@ namespace RunnConnectAPI.Repositories
         Mensaje = request.Mensaje?.Trim(),
         FechaEnvio = DateTime.Now,
         EstadoEvento = "publicado",
-        EsAnuncioGlobal = true // 
+        EsAnuncioGlobal = true //
       };
 
       _context.NotificacionesEvento.Add(notificacion);
@@ -227,21 +201,24 @@ namespace RunnConnectAPI.Repositories
         .ToListAsync();
 
       var idsEventos = inscripcionesUsuario.Select(x => x.IdEvento).Distinct().ToList();
+      var idsCategorias = inscripcionesUsuario.Select(x => x.IdCategoria).Distinct().ToList();
+      var fechaLimiteGlobal = DateTime.Now.AddDays(-7);
 
-      var notificacionesCandidatas = await _context.NotificacionesEvento
-        .Where(n => (n.IdUsuarioDestino == idUsuario || n.EsAnuncioGlobal || idsEventos.Contains(n.IdEvento)) && n.FechaEnvio >= ultimaLectura)
-        .Select(n => new { n.IdEvento, n.IdCategoria, n.IdUsuarioDestino, n.EsAnuncioGlobal })
-        .ToListAsync();
-
-      var cantidad = notificacionesCandidatas.Count(n =>
-      {
-        if (n.IdUsuarioDestino == idUsuario) return true;
-        if (n.EsAnuncioGlobal) return true;
-        if (n.IdCategoria == null) return true;
-        return inscripcionesUsuario.Any(i => i.IdEvento == n.IdEvento && i.IdCategoria == n.IdCategoria);
-      });
-
-      return cantidad;
+      return await _context.NotificacionesEvento
+        .Where(n => n.FechaEnvio >= ultimaLectura && (
+            // Caso A: Mensaje privado para este runner
+            n.IdUsuarioDestino == idUsuario
+            ||
+            // Caso B: Anuncio global reciente
+            (n.EsAnuncioGlobal && n.FechaEnvio >= fechaLimiteGlobal)
+            ||
+            // Caso C: Aviso publico general del evento donde está pagado
+            (n.IdUsuarioDestino == null && n.IdCategoria == null && idsEventos.Contains(n.IdEvento))
+            ||
+            // Caso D: Aviso publico especifico de la categoría donde esta pagado
+            (n.IdUsuarioDestino == null && n.IdCategoria != null && idsCategorias.Contains(n.IdCategoria.Value))
+        ))
+        .CountAsync();
     }
 
     // METODO: MARCAR TODO COMO LEIDO
@@ -268,12 +245,6 @@ namespace RunnConnectAPI.Repositories
       }
     }
 
-    // Cuenta notificaciones de un evento
-    public async Task<int> ContarPorEventoAsync(int idEvento)
-    {
-      return await _context.NotificacionesEvento
-        .CountAsync(n => n.IdEvento == idEvento);
-    }
 
 
     // Crea una nueva notificacion (Organizador)
@@ -291,7 +262,7 @@ namespace RunnConnectAPI.Repositories
       if (evento.IdOrganizador != idOrganizador)
         return (null, "No tienes permiso para crear notificaciones en este evento");
 
-      // Verificar que el evento no este cancelado 
+      // Verificar que el evento no este cancelado
       // if (evento.Estado == "cancelado")
       //   return (null, "No se pueden crear notificaciones en eventos cancelados");
 
@@ -316,51 +287,7 @@ namespace RunnConnectAPI.Repositories
       return (notificacion, null);
     }
 
-    // Actualiza una notificacion existente (Organizador)
-    public async Task<(bool exito, string? error)> ActualizarAsync(
-      int idNotificacion, ActualizarNotificacionRequest request, int idOrganizador)
-    {
-      var notificacion = await _context.NotificacionesEvento
-        .Include(n => n.Evento)
-        .FirstOrDefaultAsync(n => n.IdNotificacion == idNotificacion);
-
-      if (notificacion == null)
-        return (false, "La notificacion no existe");
-
-      // Verificar que el organizador es dueño del evento
-      if (notificacion.Evento?.IdOrganizador != idOrganizador)
-        return (false, "No tienes permiso para modificar esta notificacion");
-
-      notificacion.Titulo = request.Titulo.Trim();
-      notificacion.Mensaje = request.Mensaje?.Trim();
-      // No actualizamos FechaEnvio para mantener el registro original
-
-      await _context.SaveChangesAsync();
-      return (true, null);
-    }
-
-    /// Elimina una notificacion (Organizador)
-    public async Task<(bool exito, string? error)> EliminarAsync(int idNotificacion, int idOrganizador)
-    {
-      var notificacion = await _context.NotificacionesEvento
-        .Include(n => n.Evento)
-        .FirstOrDefaultAsync(n => n.IdNotificacion == idNotificacion);
-
-      if (notificacion == null)
-        return (false, "La notificacion no existe");
-
-      // Verificar que el organizador es dueño del evento
-      if (notificacion.Evento?.IdOrganizador != idOrganizador)
-        return (false, "No tienes permiso para eliminar esta notificacion");
-
-      _context.NotificacionesEvento.Remove(notificacion);
-      await _context.SaveChangesAsync();
-
-      return (true, null);
-    }
-
-
-    //  HELPERS 
+    //  HELPERS
 
     // Metodo para auxiliar mensajes
     private string DeterminarNotificacion (int idEvento, int? idCategoria, int? idUsuarioDestino)
@@ -375,46 +302,6 @@ namespace RunnConnectAPI.Repositories
 
         // Caso 3: Notificacion a todos los inscriptos de un evento general (Ej: Evento Cancelado)
         return $"evento_{idEvento}";
-    }
-
-    /// Verifica si existe una notificacion
-    public async Task<bool> ExisteAsync(int idNotificacion)
-    {
-      return await _context.NotificacionesEvento
-        .AnyAsync(n => n.IdNotificacion == idNotificacion);
-    }
-
-    /// Verifica si el organizador es dueño de la notificacion
-    public async Task<bool> EsDuenioAsync(int idNotificacion, int idOrganizador)
-    {
-      return await _context.NotificacionesEvento
-        .Include(n => n.Evento)
-        .AnyAsync(n => n.IdNotificacion == idNotificacion &&
-                       n.Evento!.IdOrganizador == idOrganizador);
-    }
-
-    private NotificacionResponse MapearAResponse(NotificacionEvento notificacion)
-    {
-      return new NotificacionResponse
-      {
-        IdNotificacion = notificacion.IdNotificacion,
-        IdEvento = notificacion.IdEvento,
-        Titulo = notificacion.Titulo,
-        Mensaje = notificacion.Mensaje,
-        FechaEnvio = notificacion.FechaEnvio,
-        EsPrivada = notificacion.IdUsuarioDestino != null,
-
-        Evento = notificacion.Evento != null
-          ? new EventoNotificacionInfo
-          {
-            IdEvento = notificacion.Evento.IdEvento,
-            Nombre = notificacion.Evento.Nombre,
-            FechaHora = notificacion.Evento.FechaHora,
-            Lugar = notificacion.Evento.Lugar,
-            Estado = notificacion.EstadoEvento ?? notificacion.Evento?.Estado ?? ""
-          }
-          : null
-      };
     }
 
   }

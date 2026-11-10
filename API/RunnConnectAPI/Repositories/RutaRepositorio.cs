@@ -110,37 +110,7 @@ namespace RunnConnectAPI.Repositories
       return (true, null);
     }
 
-    /// Elimina toda la ruta de un evento
-    public async Task<(bool exito, string? error)> EliminarRutaAsync(int idEvento, int idOrganizador)
-    {
-      var evento = await _context.Eventos
-        .FirstOrDefaultAsync(e => e.IdEvento == idEvento);
 
-      if (evento == null)
-        return (false, "El evento no existe");
-
-      if (evento.IdOrganizador != idOrganizador)
-        return (false, "No tienes permiso para modificar este evento");
-
-      var rutaExistente = await _context.Rutas
-        .Where(r => r.IdEvento == idEvento)
-        .ToListAsync();
-
-      if (!rutaExistente.Any())
-        return (false, "El evento no tiene ruta definida");
-
-      evento.UrlPronosticoClima = null;
-      _context.Rutas.RemoveRange(rutaExistente);
-      await _context.SaveChangesAsync();
-
-      return (true, null);
-    }
-
-    /// Cuenta los puntos de la ruta de un evento
-    public async Task<int> ContarPuntosRutaAsync(int idEvento)
-    {
-      return await _context.Rutas.CountAsync(r => r.IdEvento == idEvento);
-    }
 
 
     //  PUNTOS DE INTERES
@@ -181,24 +151,6 @@ namespace RunnConnectAPI.Repositories
       };
     }
 
-    /// Obtiene un punto de interes por ID
-    public async Task<PuntoInteresResponse?> ObtenerPuntoInteresPorIdAsync(int idPuntoInteres)
-    {
-      var punto = await _context.PuntosInteres
-        .FirstOrDefaultAsync(p => p.IdPuntoInteres == idPuntoInteres);
-
-      if (punto == null) return null;
-
-      return new PuntoInteresResponse
-      {
-        IdPuntoInteres = punto.IdPuntoInteres,
-        IdEvento = punto.IdEvento,
-        Tipo = punto.Tipo,
-        Nombre = punto.Nombre,
-        Latitud = punto.Latitud,
-        Longitud = punto.Longitud
-      };
-    }
 
     /// Crea un nuevo punto de interes
     public async Task<(PuntoInteres? punto, string? error)> CrearPuntoInteresAsync(
@@ -233,30 +185,6 @@ namespace RunnConnectAPI.Repositories
       return (punto, null);
     }
 
-    /// Actualiza un punto de interes existente
-    public async Task<(bool exito, string? error)> ActualizarPuntoInteresAsync(
-      int idPuntoInteres, ActualizarPuntoInteresRequest request, int idOrganizador)
-    {
-      var punto = await _context.PuntosInteres
-        .Include(p => p.Evento)
-        .FirstOrDefaultAsync(p => p.IdPuntoInteres == idPuntoInteres);
-
-      if (punto == null)
-        return (false, "El punto de interés no existe");
-
-      if (punto.Evento?.IdOrganizador != idOrganizador)
-        return (false, "No tienes permiso para modificar este punto de interés");
-
-      string tipoLimpio = request.Tipo.ToLower().Trim();
-
-      punto.Tipo = request.Tipo.ToLower().Trim();
-      punto.Nombre = ObtenerNombrePorDefecto(tipoLimpio);
-      punto.Latitud = request.Latitud;
-      punto.Longitud = request.Longitud;
-
-      await _context.SaveChangesAsync();
-      return (true, null);
-    }
 
     /// Elimina un punto de interes
     public async Task<(bool exito, string? error)> EliminarPuntoInteresAsync(
@@ -278,64 +206,6 @@ namespace RunnConnectAPI.Repositories
       return (true, null);
     }
 
-    /// Crea multiples puntos de interes a la vez
-    public async Task<(int creados, string? error)> CrearPuntosInteresMultiplesAsync(
-      int idEvento, List<CrearPuntoInteresRequest> puntos, int idOrganizador)
-    {
-      var evento = await _context.Eventos
-        .FirstOrDefaultAsync(e => e.IdEvento == idEvento);
-
-      if (evento == null)
-        return (0, "El evento no existe");
-
-      if (evento.IdOrganizador != idOrganizador)
-        return (0, "No tienes permiso para modificar este evento");
-
-      var nuevoPuntos = puntos.Select(p =>
-      {
-        string tipoLimpio = p.Tipo.ToLower().Trim();
-          return new PuntoInteres
-          {
-            IdEvento = idEvento,
-            Tipo = tipoLimpio,
-            // CORRECCION: Nombre automatico
-            Nombre = ObtenerNombrePorDefecto(tipoLimpio),
-            Latitud = p.Latitud,
-            Longitud = p.Longitud
-          };
-      }).ToList();
-
-      _context.PuntosInteres.AddRange(nuevoPuntos);
-      await _context.SaveChangesAsync();
-
-      return (nuevoPuntos.Count, null);
-    }
-
-    /// Elimina todos los puntos de interes de un evento
-    public async Task<(bool exito, string? error)> EliminarTodosPuntosInteresAsync(
-      int idEvento, int idOrganizador)
-    {
-      var evento = await _context.Eventos
-        .FirstOrDefaultAsync(e => e.IdEvento == idEvento);
-
-      if (evento == null)
-        return (false, "El evento no existe");
-
-      if (evento.IdOrganizador != idOrganizador)
-        return (false, "No tienes permiso para modificar este evento");
-
-      var puntosExistentes = await _context.PuntosInteres
-        .Where(p => p.IdEvento == idEvento)
-        .ToListAsync();
-
-      if (!puntosExistentes.Any())
-        return (false, "El evento no tiene puntos de interés");
-
-      _context.PuntosInteres.RemoveRange(puntosExistentes);
-      await _context.SaveChangesAsync();
-
-      return (true, null);
-    }
 
 
 

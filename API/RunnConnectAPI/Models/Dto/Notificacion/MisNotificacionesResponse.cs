@@ -37,8 +37,8 @@ namespace RunnConnectAPI.Models.Dto.Notificacion
     // Tiempo transcurrido legible
     public string TiempoTranscurrido => CalcularTiempoTranscurrido();
 
-    // Indica si es una notificacin reciente (ultimas 24 horas)
-    public bool EsReciente => (DateTime.Now - FechaEnvio).TotalHours < 24;
+    // Indica si es una notificación reciente/no leída (desde la última lectura del usuario)
+    public bool EsReciente => EsNueva;
 
     private string CalcularTiempoTranscurrido()
     {

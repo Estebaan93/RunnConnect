@@ -60,21 +60,6 @@ namespace RunnConnectAPI.Repositories
       return usuario;                       //Devuelve el obj creado
     }
 
-    /*Crear perfil runner*/
-    public async Task<PerfilRunner> CreatePerfilRunnerAsync(PerfilRunner perfil)
-    {
-      _context.PerfilesRunners.Add(perfil);
-      await _context.SaveChangesAsync();
-      return perfil;
-    }
-
-    /*Crear perfil organizador*/
-    public async Task<PerfilOrganizador> CreatePerfilOrganizadorAsync(PerfilOrganizador perfil)
-    {
-      _context.PerfilesOrganizadores.Add(perfil);
-      await _context.SaveChangesAsync();
-      return perfil;
-    }
 
     //Actualizar usuario
     public async Task UpdateAsync(Usuario usuario)
@@ -83,26 +68,6 @@ namespace RunnConnectAPI.Repositories
       await _context.SaveChangesAsync();  //Persiste cambios 
     }
 
-    /*Actualizar perfil runner*/
-    public async Task UpdatePerfilRunnerAsync(PerfilRunner perfil)
-    {
-      _context.PerfilesRunners.Update(perfil);
-      await _context.SaveChangesAsync();
-    }
-
-    /*Actualizar perfil organizador*/
-    public async Task UpdatePerfilOrganizadorAsync(PerfilOrganizador perfil)
-    {
-      _context.PerfilesOrganizadores.Update(perfil);
-      await _context.SaveChangesAsync();
-    }
-
-    //Eliminar persistente
-    /*public async Task DeleteAsync(Usuario usuario)
-    {
-      _context.Usuarios.Remove(usuario);    // Marca la entidad como eliminada
-      await _context.SaveChangesAsync();    // Persiste eliminacion
-    }*/
 
     //Eliminado logico
     public async Task DeleteLogicoAsync(Usuario usuario)
@@ -112,11 +77,6 @@ namespace RunnConnectAPI.Repositories
       await _context.SaveChangesAsync();
     }
 
-    //Verificar si existe un usuario (solo activo)
-    public async Task<bool> ExisteAsync(int id)
-    {
-      return await _context.Usuarios.AnyAsync(u => u.IdUsuario == id && u.Estado); //True si existe
-    }
 
     //Obtener usuario sin filtro de estado (reactivar y recuperar )
     public async Task<Usuario?> GetByEmailSinFiltroEstadoAsync(string email)

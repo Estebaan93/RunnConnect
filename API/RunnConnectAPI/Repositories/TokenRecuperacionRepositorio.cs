@@ -33,15 +33,5 @@ namespace RunnConnectAPI.Repositories
       await _context.SaveChangesAsync();
     }
 
-    // Opcional: Limpiar tokens expirados (ejecutar periodicamente)
-    public async Task EliminarTokensExpiradosAsync()
-    {
-      var tokensExpirados = await _context.TokenRecuperacion
-        .Where(t => t.FechaExpiracion < DateTime.Now || t.Usado)
-        .ToListAsync();
-
-      _context.TokenRecuperacion.RemoveRange(tokensExpirados);
-      await _context.SaveChangesAsync();
-    }
   }
 }

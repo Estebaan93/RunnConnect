@@ -25,29 +25,7 @@ namespace RunnConnectAPI.Controllers
     }
 
     // LECTURA (PUBLICO & RUNNER) 
-    [HttpGet("{id}")]
-    public async Task<IActionResult> ObtenerPorId(int id)
-    {
-      try
-      {
-        var resultado = await _resultadoRepo.ObtenerPorIdAsync(id);
-
-        if (resultado == null)
-          return NotFound(new { message = "Resultado no encontrado" });
-
-        return Ok(resultado);
-      }
-      catch (Exception ex)
-      {
-        return StatusCode(500, new
-        {
-          message = "Error al obtener",
-          error = ex.Message
-        });
-      }
-    }
-
-    //lectura gnal de resultados  
+    // lectura general de resultados por evento
     [HttpGet("Evento/{idEvento}")]
     public async Task<IActionResult> ObtenerResultadosEvento(int idEvento)
     {
@@ -67,25 +45,6 @@ namespace RunnConnectAPI.Controllers
           message = "Error al obtener resultados",
           error = ex.Message
         });
-      }
-    }
-
-    //podios por cate
-    [HttpGet("Evento/{idEvento}/Podios")]
-    public async Task<IActionResult> ObtenerPodios(int idEvento)
-    {
-      try
-      {
-        var podios = await _resultadoRepo.ObtenerPodiosAsync(idEvento);
-        
-        if (podios == null) 
-            return NotFound(new { message = "Evento no encontrado" });
-            
-        return Ok(podios);
-      }
-      catch (Exception ex)
-      {
-        return StatusCode(500, new { message = "Error al obtener podios", error = ex.Message });
       }
     }
 
@@ -128,30 +87,6 @@ namespace RunnConnectAPI.Controllers
       }
     }
 
-    // [Authorize(Roles = "runner")]
-    // [HttpPut("{id}/DatosSmartwatch")]
-    // public async Task<IActionResult> AgregarDatosSmartwatch(int id, [FromBody] DatosSmartwatchRequest request)
-    // {
-    //   try
-    //   {
-    //     int userId = User.ObtenerUserId();
-
-    //     var (exito, errorMsg) = await _resultadoRepo.AgregarDatosSmartwatchAsync(id, request, userId);
-
-    //     if (!exito)
-    //       return BadRequest(new { message = errorMsg });
-
-    //     return Ok(new { message = "Datos agregados correctamente" });
-    //   }
-    //   catch (Exception ex)
-    //   {
-    //     return StatusCode(500, new
-    //     {
-    //       message = "Error",
-    //       error = ex.Message
-    //     });
-    //   }
-    // }
 
     // GESTION (ORGANIZADOR)
     // CARGA MASIVA -> Recibe Archivo CSV
@@ -262,77 +197,32 @@ namespace RunnConnectAPI.Controllers
     }
 
 
+    // Eliminación en bloque de resultados por categoría (en caso de error al subir CSV o categoría equivocada)
+    // DELETE: api/Resultado/Categoria/{idCategoria}
     [Authorize(Roles = "organizador")]
-    [HttpPut("{id}/TiempoOficial")]
-    public async Task<IActionResult> ActualizarTiempoOficial(int id, [FromBody] ActualizarTiempoOficialRequest request)
+    [HttpDelete("Categoria/{idCategoria}")]
+    public async Task<IActionResult> EliminarResultadosPorCategoria(int idCategoria)
     {
       try
       {
         int userId = User.ObtenerUserId();
 
-        var (exito, errorMsg) = await _resultadoRepo.ActualizarTiempoOficialAsync(id, request.TiempoOficial, userId);
+        var (exito, errorMsg, totalEliminados) = await _resultadoRepo.EliminarResultadosPorCategoriaAsync(idCategoria, userId);
 
         if (!exito)
           return BadRequest(new { message = errorMsg });
 
-        return Ok(new { message = "Tiempo oficial actualizado" });
-      }
-      catch (Exception ex)
-      {
-        return StatusCode(500, new
+        return Ok(new
         {
-          message = "Error",
-          error = ex.Message
+          message = $"Se eliminaron exitosamente {totalEliminados} resultados de la categoría.",
+          eliminados = totalEliminados
         });
       }
-    }
-
-    [Authorize(Roles = "organizador")]
-    [HttpPut("{id}/Posiciones")]
-    public async Task<IActionResult> ActualizarPosiciones(int id, [FromBody] ActualizarPosicionesRequest request)
-    {
-      try
-      {
-        int userId = User.ObtenerUserId();
-
-        var (exito, errorMsg) = await _resultadoRepo.ActualizarPosicionesAsync(id, request, userId);
-
-        if (!exito)
-          return BadRequest(new { message = errorMsg });
-
-        return Ok(new { message = "Posiciones actualizadas" });
-      }
       catch (Exception ex)
       {
         return StatusCode(500, new
         {
-          message = "Error",
-          error = ex.Message
-        });
-      }
-    }
-
-    //eliminacion
-    [Authorize(Roles = "organizador")]
-    [HttpDelete("{id}")]
-    public async Task<IActionResult> EliminarResultado(int id)
-    {
-      try
-      {
-        int userId = User.ObtenerUserId();
-
-        var (exito, errorMsg) = await _resultadoRepo.EliminarResultadoAsync(id, userId);
-
-        if (!exito)
-          return BadRequest(new { message = errorMsg });
-
-        return Ok(new { message = "Resultado eliminado" });
-      }
-      catch (Exception ex)
-      {
-        return StatusCode(500, new
-        {
-          message = "Error",
+          message = "Error al eliminar resultados de la categoría",
           error = ex.Message
         });
       }

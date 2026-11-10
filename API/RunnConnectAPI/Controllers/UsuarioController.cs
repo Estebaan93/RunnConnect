@@ -560,61 +560,6 @@ namespace RunnConnectAPI.Controllers
       }
     }
 
-    //verificar email antes de registrar
-    //GET - api/usuarios/verificarEmail?email=test@test.com
-    [AllowAnonymous]
-    [HttpGet("verificarEmail")]
-    public async Task<IActionResult> VerificarEmail([FromQuery] string email)
-    {
-      try
-      {
-        //Validar que el email no este vacio
-        if (string.IsNullOrEmpty(email))
-          return BadRequest(new { message = "Email requerido" });
-
-        //Verificar si existe un usuario activo con ese email
-        var existe = await _usuarioRepositorio.EmailExistenteAsync(email);
-
-        //Renornar disponibilidad
-        return Ok(new
-        {
-          disponible = !existe,
-          message = existe ? "Email ya registrado" : "Email disponible"
-        });
-      }
-      catch (Exception ex)
-      {
-        return StatusCode(500, new { message = "Error al verificar email", error = ex.Message });
-      }
-    }
-
-    //verificar dni si esta disponible antes de registrase solo RUNNERS
-    //GET - api/usuarios/verificarDni?dni=12345678
-    [AllowAnonymous]
-    [HttpGet("verificarDni")]
-    public async Task<IActionResult> VerificarDni([FromQuery] int dni)
-    {
-      try
-      {
-        //Validar que el Dni sea valido mayor a 0
-        if (dni <= 0)
-          return BadRequest(new { message = "DNI invalido" });
-
-        //Verificar si existe ese Dni en la BD
-        var existe = await _usuarioRepositorio.DniExisteAsync(dni);
-
-        //Retornamos si esta disponible
-        return Ok(new
-        {
-          disponible = !existe,
-          message = existe ? "Dni ya registrado" : "Dni disponible"
-        });
-      }
-      catch (Exception ex)
-      {
-        return StatusCode(500, new { message = "Error al verificar DNI", error = ex.Message });
-      }
-    }
 
 
     /*Ver perfil publico (por ej si un runner consulta la posicion, puede ver quienes son los otros runner)

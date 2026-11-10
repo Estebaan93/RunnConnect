@@ -47,29 +47,6 @@ namespace RunnConnectAPI.Controllers
     }
 
 
-    //RUTAS 
-    /* Obtiene la ruta (trazado GPS) de un evento
-    Endpoint publico
-    Retorna los puntos ordenados que forman el recorrido */
-    [AllowAnonymous]
-    [HttpGet("Ruta")]
-    public async Task<IActionResult> ObtenerRuta(int idEvento)
-    {
-      try
-      {
-        var ruta = await _rutaRepo.ObtenerRutaEventoAsync(idEvento);
-
-        if (ruta == null)
-          return NotFound(new { message = "Evento no encontrado" });
-
-        return Ok(ruta);
-      }
-      catch (Exception ex)
-      {
-        return StatusCode(500, new { message = "Error al obtener la ruta", error = ex.Message });
-      }
-    }
-
     // Guarda la ruta completa de un evento
     //Requiere: Token JWT de Organizador (dueño del evento)
     // Los puntos deben venir en orden
@@ -101,27 +78,6 @@ namespace RunnConnectAPI.Controllers
       }
     }
 
-    /// Elimina toda la ruta de un evento
-    [Authorize(Roles="organizador")]
-    [HttpDelete("Ruta")]
-    public async Task<IActionResult> EliminarRuta(int idEvento)
-    {
-      try
-      {
-        int userId = User.ObtenerUserId();
-
-        var (exito, errorMsg) = await _rutaRepo.EliminarRutaAsync(idEvento, userId);
-
-        if (!exito)
-          return BadRequest(new { message = errorMsg });
-
-        return Ok(new { message = "Ruta eliminada correctamente" });
-      }
-      catch (Exception ex)
-      {
-        return StatusCode(500, new { message = "Error al eliminar la ruta", error = ex.Message });
-      }
-    }
 
 
     // PUNTOS DE INTERES 
@@ -147,30 +103,6 @@ namespace RunnConnectAPI.Controllers
       }
     }
 
-    /// Obtiene un punto de interes especifico
-    [AllowAnonymous]
-    [HttpGet("PuntosInteres/{idPunto}")]
-    public async Task<IActionResult> ObtenerPuntoInteres(int idEvento, int idPunto)
-    {
-      try
-      {
-        var punto = await _rutaRepo.ObtenerPuntoInteresPorIdAsync(idPunto);
-
-        if (punto == null)
-          return NotFound(new { message = "Punto de interés no encontrado" });
-
-        // Verificar que pertenece al evento
-        if (punto.IdEvento != idEvento)
-          return NotFound(new { message = "El punto de interés no pertenece a este evento" });
-
-        return Ok(punto);
-      }
-      catch (Exception ex)
-      {
-        return StatusCode(500, new { message = "Error al obtener el punto de interés", error = ex.Message });
-      }
-    }
-
     /// Crea un nuevo punto de interes
     /// Requiere: Token JWT de Organizador (dueño del evento)
     /// Tipos validos: hidratacion, primeros auxilios, punto de energia, otro
@@ -190,86 +122,22 @@ namespace RunnConnectAPI.Controllers
         if (punto == null)
           return BadRequest(new { message = errorMsg });
 
-        return CreatedAtAction(
-          nameof(ObtenerPuntoInteres),
-          new { idEvento, idPunto = punto.IdPuntoInteres },
-          new
-          {
-            message = "Punto de interés creado correctamente",
-            puntoInteres = new
-            {
-              idPuntoInteres = punto.IdPuntoInteres,
-              tipo = punto.Tipo,
-              nombre = punto.Nombre,
-              latitud = punto.Latitud,
-              longitud = punto.Longitud
-            }
-          });
-      }
-      catch (Exception ex)
-      {
-        return StatusCode(500, new { message = "Error al crear el punto de interés", error = ex.Message });
-      }
-    }
-
-    /// Crea multiples puntos de interes a la vez
-    /// Requiere: Token JWT de Organizador (dueño del evento)
-    /// Util para cargar todos los puntos de una vez desde la app
-    [Authorize(Roles="organizador")]
-    [HttpPost("PuntosInteres/Batch")]
-    public async Task<IActionResult> CrearPuntosInteresMultiples(
-      int idEvento, [FromBody] List<CrearPuntoInteresRequest> puntos)
-    {
-      try
-      {
-        if (!ModelState.IsValid)
-          return BadRequest(ModelState);
-
-        if (puntos == null || !puntos.Any())
-          return BadRequest(new { message = "Debe incluir al menos un punto de interés" });
-
-        int userId = User.ObtenerUserId();
-
-        var (creados, errorMsg) = await _rutaRepo.CrearPuntosInteresMultiplesAsync(idEvento, puntos, userId);
-
-        if (creados == 0 && errorMsg != null)
-          return BadRequest(new { message = errorMsg });
-
-        return Ok(new
+        return StatusCode(201, new
         {
-          message = $"{creados} puntos de interés creados correctamente",
-          totalCreados = creados
+          message = "Punto de interés creado correctamente",
+          puntoInteres = new
+          {
+            idPuntoInteres = punto.IdPuntoInteres,
+            tipo = punto.Tipo,
+            nombre = punto.Nombre,
+            latitud = punto.Latitud,
+            longitud = punto.Longitud
+          }
         });
       }
       catch (Exception ex)
       {
-        return StatusCode(500, new { message = "Error al crear puntos de interés", error = ex.Message });
-      }
-    }
-
-    /// Actualiza un punto de interes existente
-    [Authorize(Roles="organizador")]
-    [HttpPut("PuntosInteres/{idPunto}")]
-    public async Task<IActionResult> ActualizarPuntoInteres(
-      int idEvento, int idPunto, [FromBody] ActualizarPuntoInteresRequest request)
-    {
-      try
-      {
-        if (!ModelState.IsValid)
-          return BadRequest(ModelState);
-
-        int userId = User.ObtenerUserId();
-
-        var (exito, errorMsg) = await _rutaRepo.ActualizarPuntoInteresAsync(idPunto, request, userId);
-
-        if (!exito)
-          return BadRequest(new { message = errorMsg });
-
-        return Ok(new { message = "Punto de interés actualizado correctamente" });
-      }
-      catch (Exception ex)
-      {
-        return StatusCode(500, new { message = "Error al actualizar el punto de interés", error = ex.Message });
+        return StatusCode(500, new { message = "Error al crear el punto de interés", error = ex.Message });
       }
     }
 
@@ -295,27 +163,6 @@ namespace RunnConnectAPI.Controllers
       }
     }
 
-    /// Elimina todos los puntos de interes de un evento
-    [Authorize(Roles="organizador")]
-    [HttpDelete("PuntosInteres")]
-    public async Task<IActionResult> EliminarTodosPuntosInteres(int idEvento)
-    {
-      try
-      {
-        int userId = User.ObtenerUserId();
-
-        var (exito, errorMsg) = await _rutaRepo.EliminarTodosPuntosInteresAsync(idEvento, userId);
-
-        if (!exito)
-          return BadRequest(new { message = errorMsg });
-
-        return Ok(new { message = "Todos los puntos de interés eliminados correctamente" });
-      }
-      catch (Exception ex)
-      {
-        return StatusCode(500, new { message = "Error al eliminar puntos de interés", error = ex.Message });
-      }
-    }
 
 
   }

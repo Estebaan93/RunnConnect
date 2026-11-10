@@ -55,7 +55,7 @@ namespace RunnConnectAPI.Services
             Body = cuerpo
           },
 
-          // Configuración específica para Android: Canal y Prioridad Alta para despertar el SO
+          // Configuracion especifica para Android: Canal y Prioridad Alta para despertar el SO
           Android = new AndroidConfig()
           {
             Priority = Priority.High,

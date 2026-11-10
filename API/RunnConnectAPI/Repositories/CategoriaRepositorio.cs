@@ -50,26 +50,7 @@ namespace RunnConnectAPI.Repositories
     }
 
 
-    // Verifica si existe una categoria con el mismo nombre en el evento
-    public async Task<bool> ExisteNombreEnEventoAsync(int idEvento, string nombre, int? excluirIdCategoria = null)
-    {
-      var query = _context.CategoriasEvento
-          .Where(c => c.IdEvento == idEvento && c.Nombre.ToLower() == nombre.ToLower().Trim());
 
-      // Si estamos actualizando, excluir la categoria actual
-      if (excluirIdCategoria.HasValue)
-        query = query.Where(c => c.IdCategoria != excluirIdCategoria.Value);
-
-      return await query.AnyAsync();
-    }
-
-
-    // Cuenta las categorias de un evento
-    public async Task<int> ContarPorEventoAsync(int idEvento)
-    {
-      return await _context.CategoriasEvento
-          .CountAsync(c => c.IdEvento == idEvento);
-    }
 
 
 
@@ -88,20 +69,6 @@ namespace RunnConnectAPI.Repositories
     }
 
 
-    // Crea multiples categorias para un evento (usado al crear evento con categorias)
-    public async Task<List<CategoriaEvento>> CrearVariasAsync(List<CategoriaEvento> categorias)
-    {
-      foreach (var categoria in categorias)
-      {
-        categoria.Nombre = categoria.Nombre.Trim();
-        categoria.Genero = categoria.Genero.ToUpper().Trim();
-      }
-
-      _context.CategoriasEvento.AddRange(categorias);
-      await _context.SaveChangesAsync();
-
-      return categorias;
-    }
 
 
     // Actualiza una categoria existente
@@ -158,29 +125,6 @@ namespace RunnConnectAPI.Repositories
     }
 
 
-    // Valida que la edad minima sea menor o igual a la maxima
-    public bool ValidarRangoEdades(int edadMinima, int edadMaxima)
-    {
-      return edadMinima <= edadMaxima;
-    }
-
-    // Valida que el cupo de la categoria no exceda el cupo total del evento
-    public async Task<bool> ValidarCupoContraEventoAsync(int idEvento, int? cupoCategoria)
-    {
-      if (!cupoCategoria.HasValue)
-        return true; // Sin límite de cupo
-
-      var evento = await _context.Eventos.FindAsync(idEvento);
-
-      if (evento == null)
-        return false;
-
-      // Si el evento no tiene límite, cualquier cupo de categoria es valido
-      if (!evento.CupoTotal.HasValue)
-        return true;
-
-      return cupoCategoria.Value <= evento.CupoTotal.Value;
-    }
 
 
 
