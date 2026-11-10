@@ -11,7 +11,7 @@ import retrofit2.converter.gson.GsonConverterFactory;
 public class ApiClient {
   private static final String BASE_URL="http://10.0.2.2:5213/api/"; //para el emulador y no localhost genera conficto con el mismo emulador
   private static final String BASE_URLTrabajoI="http://192.168.4.103:5213/api/";
-  private static final String BASE_URL_NUBEGOOGLE = "https://messaging-collectables-upcoming-aside.trycloudflare.com/api/";
+  private static final String BASE_URL_NUBEGOOGLE = "https://readers-shared-scoop-collar.trycloudflare.com/api/";
   private static final String BASE_URL_RAILWAY= "https://runnconnect-production.up.railway.app/api/";
   private static ApiService service;
 
@@ -24,7 +24,7 @@ public class ApiClient {
 
       // Construir Retrofit
       Retrofit retrofit = new Retrofit.Builder()
-              .baseUrl(BASE_URL)
+              .baseUrl(BASE_URL_NUBEGOOGLE)
               .addConverterFactory(GsonConverterFactory.create(gson)) // Para convertir JSON a Objetos
               // .addConverterFactory(ScalarsConverterFactory.create()) // Descomentar si alguna vez necesitas recibir Strings puros
               .build();
