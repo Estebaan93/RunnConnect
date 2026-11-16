@@ -84,7 +84,8 @@ public class MapaEditorViewModel extends AndroidViewModel {
   private final MutableLiveData<Integer> idPuntoAEliminar = new MutableLiveData<>();
   private final MutableLiveData<Boolean> mostrarConfirmacionEliminarSignal = new MutableLiveData<>();
 
-  private boolean datosCargados = false;
+  // No se usa en entorno controlado (sin rotacion ni minimizacion de pantalla)
+  // private boolean datosCargados = false;
   private boolean modoPuntosInteres = false;
 
   // Mapeo interno: Indices del Spinner -> Strings de la API
@@ -138,8 +139,9 @@ public class MapaEditorViewModel extends AndroidViewModel {
 
   // --- LOGICA DE NEGOCIO ---
   public void onMapReady(int idEvento, String estadoEvento) {
-    if (datosCargados) return;
-    datosCargados = true;
+    // No se requiere control de doble carga: la vista no se recrea por rotacion/minimizacion ni navega hacia adelante
+    // if (datosCargados) return;
+    // datosCargados = true;
     
     isSoloLecturaInterno = "finalizado".equalsIgnoreCase(estadoEvento) || "cancelado".equalsIgnoreCase(estadoEvento);
     visibilidadEdicion.setValue(isSoloLecturaInterno ? View.GONE : View.VISIBLE);

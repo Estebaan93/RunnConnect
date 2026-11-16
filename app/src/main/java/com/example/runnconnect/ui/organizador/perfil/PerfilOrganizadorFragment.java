@@ -235,9 +235,13 @@ public class PerfilOrganizadorFragment extends Fragment {
     Dialog dialog = new Dialog(requireContext());
     dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
     dialog.setContentView(zoomBinding.getRoot());
-    if (dialog.getWindow() != null)
+    if (dialog.getWindow() != null) {
+      dialog.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
       dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+    }
+    zoomBinding.tvTituloComprobante.setVisibility(View.GONE);
     Glide.with(this).load(url).into(zoomBinding.ivZoom);
+    zoomBinding.btnCerrarImagen.setOnClickListener(v -> dialog.dismiss());
     dialog.show();
   }
 

@@ -270,7 +270,7 @@ public class CrearEventoViewModel extends AndroidViewModel {
 
 
   // LOGICA DE VALIDACION Y GUARDADO
-  public void guardarEvento(String tituloIn, String descripcionIn, String lugarIn, String datosPagoIn, String cupoIn,String tipoEventoIn) {
+  public void guardarEvento(String tituloIn, String descripcionIn, String lugarIn, String datosPagoIn, String cupoIn, String tipoEventoIn) {
 
     // 1. Limpiar errores previos (Solo los del evento)
     limpiarMensaje();

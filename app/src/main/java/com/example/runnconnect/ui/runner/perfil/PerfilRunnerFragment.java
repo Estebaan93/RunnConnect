@@ -25,7 +25,6 @@ import android.view.Window;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
-import android.widget.ImageView;
 
 import android.app.DatePickerDialog;
 
@@ -34,6 +33,7 @@ import java.util.List;
 
 import com.bumptech.glide.Glide;
 import com.example.runnconnect.R;
+import com.example.runnconnect.databinding.DialogVerImagenBinding;
 import com.example.runnconnect.databinding.FragmentPerfilRunnerBinding;
 import com.example.runnconnect.utils.LocalidadesHelper;
 
@@ -353,12 +353,17 @@ public class PerfilRunnerFragment extends Fragment {
   }
 
   private void mostrarDialogoZoom(String url) {
-    Dialog dialog = new Dialog(getContext());
+    DialogVerImagenBinding zoomBinding = DialogVerImagenBinding.inflate(getLayoutInflater());
+    Dialog dialog = new Dialog(requireContext());
     dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
-    dialog.setContentView(R.layout.dialog_ver_imagen);
-    if (dialog.getWindow() != null)
+    dialog.setContentView(zoomBinding.getRoot());
+    if (dialog.getWindow() != null) {
+      dialog.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
       dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
-    Glide.with(this).load(url).into((ImageView) dialog.findViewById(R.id.ivZoom));
+    }
+    zoomBinding.tvTituloComprobante.setVisibility(View.GONE);
+    Glide.with(this).load(url).into(zoomBinding.ivZoom);
+    zoomBinding.btnCerrarImagen.setOnClickListener(v -> dialog.dismiss());
     dialog.show();
   }
 

@@ -151,10 +151,10 @@ public class CrearEventoFragment extends Fragment {
 
     viewModel.getNavegarMapaSignal().observe(getViewLifecycleOwner(), idEvento -> {
       if (idEvento != null) {
-        Bundle args = new Bundle();
-        args.putInt("idEvento", idEvento);
+        Bundle bundle = new Bundle();
+        bundle.putInt("idEvento", idEvento);
         try {
-          Navigation.findNavController(requireView()).navigate(R.id.action_crear_a_mapaEditor, args);
+          Navigation.findNavController(requireView()).navigate(R.id.action_crear_a_mapaEditor, bundle);
         } catch (Exception ignored) {}
         viewModel.resetNavegacion();
       }
@@ -174,7 +174,7 @@ public class CrearEventoFragment extends Fragment {
       );
     });
 
-    // --- BOTON FINAL (GUARDAR TODeO) ---
+    //BOTON FINAL (GUARDAR TODeO)
     binding.btnContinuarMapa.setOnClickListener(v -> {
       // Obtenemos el valor del Spinner GLOBAL
       String tipoSeleccionado = binding.spTipoEventoGlobal.getSelectedItem().toString();
