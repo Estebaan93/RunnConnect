@@ -78,7 +78,7 @@ public class MainActivity extends AppCompatActivity {
       //}
     });
 
-    // Sincronización en tiempo real: al llegar un push con la app abierta, actualiza el contador
+    // Sincronizacion en tiempo real: al llegar un push con la app abierta, actualiza el contador
     SincronizarNotificacion.getEventoNuevaNotificacion().observe(this, timestamp -> {
       NavController nc = Navigation.findNavController(this, R.id.nav_host_fragment_content_main);
       if (nc.getCurrentDestination() != null && nc.getCurrentDestination().getId() == R.id.nav_notificaciones) {
@@ -88,7 +88,7 @@ public class MainActivity extends AppCompatActivity {
       }
     });
 
-    // Sincronización en tiempo real: al actualizar foto o perfil, actualiza el header del drawer
+    // Sincronizacion en tiempo real: al actualizar foto o perfil, actualiza el header del drawer
     SincronizarPerfil.getEventoPerfilActualizado().observe(this, timestamp -> {
       viewModel.recargarDatosSesion();
     });
