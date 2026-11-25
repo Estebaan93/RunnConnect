@@ -28,6 +28,7 @@ import com.example.runnconnect.R;
 import com.example.runnconnect.data.response.CategoriaResponse;
 import com.example.runnconnect.data.response.InscriptoEventoResponse;
 import com.example.runnconnect.databinding.FragmentDetalleEventoBinding;
+import com.example.runnconnect.utils.DialogBajaHelper;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -39,6 +40,7 @@ public class DetalleEventoFragment extends Fragment {
 
   private CategoriasInfoAdapter categoriasInfoAdapter;
   private RunnerSimpleAdapter runnersAdapterDialog;
+  private final DialogBajaHelper dialogBajaHelper = new DialogBajaHelper();
 
   private int idEvento = 0;
 
@@ -168,15 +170,19 @@ public class DetalleEventoFragment extends Fragment {
     /*Revisar*/
     viewModel.getTextoConfirmacionBaja().observe(getViewLifecycleOwner(), texto -> {
       if (texto != null) {
-        new AlertDialog.Builder(requireContext())
-          .setTitle("Dar de baja")
-          .setMessage(texto)
-          .setPositiveButton("Sí", (d, w) -> viewModel.confirmarBajaRunnerPendiente())
-          .setNegativeButton("No", (d, w) -> viewModel.limpiarConfirmacionBaja())
-          .setOnCancelListener(d -> viewModel.limpiarConfirmacionBaja())
-          .show();
+        dialogBajaHelper.mostrar(
+          requireContext(),
+          getLayoutInflater(),
+          "Dar de baja",
+          texto,
+          motivo -> viewModel.confirmarBajaRunnerPendiente(motivo),
+          () -> viewModel.limpiarConfirmacionBaja()
+        );
       }
     });
+    viewModel.getErrorMotivoBajaTexto().observe(getViewLifecycleOwner(), dialogBajaHelper::setErrorTexto);
+    viewModel.getErrorMotivoBajaVisibilidad().observe(getViewLifecycleOwner(), dialogBajaHelper::setErrorVisibilidad);
+    viewModel.getCerrarDialogoBajaSignal().observe(getViewLifecycleOwner(), dialogBajaHelper::cerrarSi);
 
     viewModel.getUiVisibilidadEstado().observe(getViewLifecycleOwner(), binding.cambiarEstadoEvento::setVisibility);
     
@@ -292,6 +298,7 @@ public class DetalleEventoFragment extends Fragment {
   @Override
   public void onDestroyView() {
     super.onDestroyView();
+    dialogBajaHelper.dismiss();
     binding = null;
   }
 }

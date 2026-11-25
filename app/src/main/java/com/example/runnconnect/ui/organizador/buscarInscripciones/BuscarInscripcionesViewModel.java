@@ -11,6 +11,7 @@ import com.example.runnconnect.data.conexion.ApiService;
 import com.example.runnconnect.data.preferencias.SessionManager;
 import com.example.runnconnect.data.request.MotivoBajaRequest;
 import com.example.runnconnect.data.response.BusquedaInscripcionResponse;
+import com.example.runnconnect.utils.DialogBajaHelper;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -43,6 +44,10 @@ public class BuscarInscripcionesViewModel extends AndroidViewModel {
   private final MutableLiveData<Integer> feedbackDialogColor = new MutableLiveData<>(Color.BLACK);
   private final MutableLiveData<Boolean> btnBajaHabilitado = new MutableLiveData<>(true);
   private final MutableLiveData<String> uiMostrarComprobanteUrl = new MutableLiveData<>();
+  private final MutableLiveData<String> abrirDialogoBajaMensaje = new MutableLiveData<>();
+  private final MutableLiveData<String> errorMotivoBajaTexto = new MutableLiveData<>("");
+  private final MutableLiveData<Integer> errorMotivoBajaVisibilidad = new MutableLiveData<>(View.GONE);
+  private final MutableLiveData<Boolean> cerrarDialogoBajaSignal = new MutableLiveData<>(false);
   
   private List<BusquedaItemUiModel> listaMaestra = new ArrayList<>();
   private String filtroEstado = "Todos";
@@ -66,6 +71,10 @@ public class BuscarInscripcionesViewModel extends AndroidViewModel {
   public LiveData<Integer> getFeedbackDialogColor() { return feedbackDialogColor; }
   public LiveData<Boolean> getBtnBajaHabilitado() { return btnBajaHabilitado; }
   public LiveData<String> getUiMostrarComprobanteUrl() { return uiMostrarComprobanteUrl; }
+  public LiveData<String> getAbrirDialogoBajaMensaje() { return abrirDialogoBajaMensaje; }
+  public LiveData<String> getErrorMotivoBajaTexto() { return errorMotivoBajaTexto; }
+  public LiveData<Integer> getErrorMotivoBajaVisibilidad() { return errorMotivoBajaVisibilidad; }
+  public LiveData<Boolean> getCerrarDialogoBajaSignal() { return cerrarDialogoBajaSignal; }
 
   public void onTextoBuscadorCambiado(String texto) {
     if (texto == null || texto.trim().isEmpty()) {
@@ -93,8 +102,7 @@ public class BuscarInscripcionesViewModel extends AndroidViewModel {
         if (filtroEstado.equals("Pendientes")) estadoBuscado = "pendiente";
         if (filtroEstado.equals("Cancelados")) estadoBuscado = "cancelado";
         if (filtroEstado.equals("Rechazados")) estadoBuscado = "rechazado";
-        if (filtroEstado.equals("Reembolsados")) estadoBuscado = "reembolsado";
-        
+
         if (item.original.getEstadoPago().equalsIgnoreCase(estadoBuscado)) {
           filtrada.add(item);
         }
@@ -207,19 +215,17 @@ public class BuscarInscripcionesViewModel extends AndroidViewModel {
     boolean eventoCerrado = "finalizado".equalsIgnoreCase(estadoDelEvento) || "cancelado".equalsIgnoreCase(estadoDelEvento);
 
     String estadoPago = item.getEstadoPago();
-    boolean yaEstaDeBaja = estadoPago != null && (
-        "cancelado".equalsIgnoreCase(estadoPago) ||
-        "cancelada".equalsIgnoreCase(estadoPago) ||
-        "baja".equalsIgnoreCase(estadoPago) ||
-        "reembolsado".equalsIgnoreCase(estadoPago) ||
-        "rechazado".equalsIgnoreCase(estadoPago)
-    );
+    boolean yaEstaDeBaja = DialogBajaHelper.esEstadoTerminal(estadoPago);
     boolean puedeDarDeBaja = !eventoCerrado && !yaEstaDeBaja;
     int visibilidadBaja = puedeDarDeBaja ? View.VISIBLE : View.GONE;
 
     String comprobanteUrl = item.getComprobantePagoURL();
     boolean tieneComprobante = comprobanteUrl != null && !comprobanteUrl.trim().isEmpty();
     int visibilidadComprobante = tieneComprobante ? View.VISIBLE : View.GONE;
+
+    boolean mostrarMotivo = DialogBajaHelper.debeMostrarMotivo(estadoPago, item.getObservacion());
+    String motivoBajaTexto = DialogBajaHelper.formatearMotivo(estadoPago, item.getObservacion());
+    int motivoBajaVisibilidad = mostrarMotivo ? View.VISIBLE : View.GONE;
 
     // Reset feedback states for the new dialog
     feedbackDialogMensaje.setValue("");
@@ -229,15 +235,36 @@ public class BuscarInscripcionesViewModel extends AndroidViewModel {
     detalleUiState.setValue(new DetalleUiState(
         itemUi.idInscripcion, nombre, dniSexo, localidad, email, telefono, 
         emergencia, telEmergencia, eventoCatTalle, visibilidadBaja,
-        visibilidadComprobante, comprobanteUrl
+        visibilidadComprobante, comprobanteUrl, motivoBajaTexto, motivoBajaVisibilidad
     ));
   }
 
-  public void confirmarBaja(int idInscripcion, String nombreRunner, String terminoActual) {
+  public void solicitarBajaCorredor() {
+    DetalleUiState state = detalleUiState.getValue();
+    if (state == null) return;
+    errorMotivoBajaTexto.setValue("");
+    errorMotivoBajaVisibilidad.setValue(View.GONE);
+    cerrarDialogoBajaSignal.setValue(false);
+    abrirDialogoBajaMensaje.setValue("¿Estás seguro de dar de baja a " + state.nombre + "?");
+  }
+
+  public void resetAbrirDialogoBaja() {
+    abrirDialogoBajaMensaje.setValue(null);
+  }
+
+  public void confirmarBaja(int idInscripcion, String terminoActual, String motivo) {
+    if (motivo == null || motivo.trim().isEmpty()) {
+      errorMotivoBajaTexto.setValue("Debe ingresar el motivo de la baja");
+      errorMotivoBajaVisibilidad.setValue(View.VISIBLE);
+      return;
+    }
+    errorMotivoBajaVisibilidad.setValue(View.GONE);
+    cerrarDialogoBajaSignal.setValue(true);
+
     btnBajaHabilitado.setValue(false);
     String token = sessionManager.leerToken();
     if (token != null) {
-      MotivoBajaRequest request = new MotivoBajaRequest("Cancelado desde Búsqueda");
+      MotivoBajaRequest request = new MotivoBajaRequest(motivo.trim());
       apiService.darDeBajaRunner("Bearer " + token, idInscripcion, request).enqueue(new Callback<okhttp3.ResponseBody>() {
         @Override
         public void onResponse(Call<okhttp3.ResponseBody> call, Response<okhttp3.ResponseBody> response) {
@@ -340,8 +367,10 @@ public class BuscarInscripcionesViewModel extends AndroidViewModel {
     public final int btnBajaVisibilidad;
     public final int btnVerComprobanteVisibilidad;
     public final String comprobanteUrl;
+    public final String motivoBajaTexto;
+    public final int motivoBajaVisibilidad;
 
-    public DetalleUiState(int idInscripcion, String nombre, String dniSexo, String localidad, String email, String telefono, String emergencia, String telEmergencia, String eventoCatTalle, int btnBajaVisibilidad, int btnVerComprobanteVisibilidad, String comprobanteUrl) {
+    public DetalleUiState(int idInscripcion, String nombre, String dniSexo, String localidad, String email, String telefono, String emergencia, String telEmergencia, String eventoCatTalle, int btnBajaVisibilidad, int btnVerComprobanteVisibilidad, String comprobanteUrl, String motivoBajaTexto, int motivoBajaVisibilidad) {
       this.idInscripcion = idInscripcion;
       this.nombre = nombre;
       this.dniSexo = dniSexo;
@@ -354,6 +383,8 @@ public class BuscarInscripcionesViewModel extends AndroidViewModel {
       this.btnBajaVisibilidad = btnBajaVisibilidad;
       this.btnVerComprobanteVisibilidad = btnVerComprobanteVisibilidad;
       this.comprobanteUrl = comprobanteUrl;
+      this.motivoBajaTexto = motivoBajaTexto;
+      this.motivoBajaVisibilidad = motivoBajaVisibilidad;
     }
   }
 }

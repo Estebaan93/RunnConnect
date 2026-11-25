@@ -9,6 +9,7 @@ public class InscriptoEventoResponse {
   private String estadoEvento;
   private String talleRemera;
   private String comprobantePagoURL; // Puede venir null
+  private String observacion;
   private String nombreCategoria;
   private int idCategoria;
   private RunnerInscriptoInfo runner;
@@ -17,6 +18,7 @@ public class InscriptoEventoResponse {
   public int getIdInscripcion() { return idInscripcion; }
   public String getEstadoPago() { return estadoPago; }
   public String getComprobantePagoURL() { return comprobantePagoURL; }
+  public String getObservacion() { return observacion; }
   public String getNombreCategoria() { return nombreCategoria; }
   public String getEstadoEvento() { return estadoEvento; }
   public int getIdCategoria() { return idCategoria; }

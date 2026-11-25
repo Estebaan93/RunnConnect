@@ -18,6 +18,7 @@ import com.example.runnconnect.data.conexion.ApiService;
 import com.example.runnconnect.data.fcm.FcmTopicManager;
 import com.example.runnconnect.data.preferencias.SessionManager;
 import com.example.runnconnect.data.response.MisInscripcionesResponse;
+import com.example.runnconnect.utils.DialogBajaHelper;
 
 import org.json.JSONObject;
 
@@ -217,13 +218,17 @@ public class MisInscripcionesViewModel extends AndroidViewModel {
           colorTexto = Color.parseColor("#C62828");
           colorFondo = Color.parseColor("#FFEBEE");
           observacionVisibilidad = View.VISIBLE;
-          String obs = item.getObservacion();
-          observacionTexto = "Motivo de rechazo: " + (obs != null && !obs.trim().isEmpty() ? obs : "Comprobante rechazado");
+          String obsRechazo = DialogBajaHelper.formatearMotivo(estado, item.getObservacion());
+          observacionTexto = !obsRechazo.isEmpty() ? obsRechazo : "Motivo: Comprobante rechazado";
           break;
         case "cancelado":
           estadoTexto = "CANCELADO";
           colorTexto = Color.parseColor("#616161");
           colorFondo = Color.parseColor("#F5F5F5");
+          if (DialogBajaHelper.debeMostrarMotivo(estado, item.getObservacion())) {
+            observacionVisibilidad = View.VISIBLE;
+            observacionTexto = DialogBajaHelper.formatearMotivo(estado, item.getObservacion());
+          }
           break;
         default:
           estadoTexto = estado.toUpperCase();

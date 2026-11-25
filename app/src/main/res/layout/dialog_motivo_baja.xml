@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="24dp"
+    android:background="@android:color/white">
+
+  <TextView
+      android:id="@+id/tvTituloBaja"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:text="Confirmar baja"
+      android:textColor="@android:color/black"
+      android:textSize="18sp"
+      android:textStyle="bold"
+      android:layout_marginBottom="8dp" />
+
+  <TextView
+      android:id="@+id/tvMensajeBajaConfirmacion"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:textSize="14sp"
+      android:textColor="#424242"
+      android:layout_marginBottom="12dp" />
+
+  <EditText
+      android:id="@+id/etMotivoBaja"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:hint="Motivo de la baja (obligatorio)"
+      android:inputType="textCapSentences|textMultiLine"
+      android:minLines="2"
+      android:maxLines="4"
+      android:maxLength="250"
+      android:gravity="top|start"
+      android:textSize="14sp" />
+
+  <TextView
+      android:id="@+id/tvErrorMotivoBaja"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:layout_marginTop="6dp"
+      android:textColor="#D32F2F"
+      android:textSize="13sp"
+      android:textStyle="bold"
+      android:visibility="gone" />
+
+  <LinearLayout
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:orientation="horizontal"
+      android:gravity="end"
+      android:layout_marginTop="16dp">
+
+    <Button
+        android:id="@+id/btnCancelarBaja"
+        style="@style/Widget.MaterialComponents.Button.TextButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Cancelar" />
+
+    <Button
+        android:id="@+id/btnConfirmarBaja"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:text="Confirmar baja"
+        android:backgroundTint="#D32F2F"
+        android:textColor="@android:color/white" />
+  </LinearLayout>
+
+</LinearLayout>

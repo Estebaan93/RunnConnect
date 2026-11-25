@@ -22,12 +22,14 @@ import com.example.runnconnect.databinding.DialogDetalleRunnerBinding;
 import com.example.runnconnect.databinding.DialogValidarPagoBinding;
 import com.example.runnconnect.databinding.DialogVerImagenBinding;
 import com.example.runnconnect.databinding.FragmentGestionInscriptosBinding;
+import com.example.runnconnect.utils.DialogBajaHelper;
 
 public class GestionInscriptosFragment extends Fragment {
 
   private FragmentGestionInscriptosBinding binding;
   private GestionInscriptosViewModel viewModel;
   private InscriptosAdapter adapter;
+  private final DialogBajaHelper dialogBajaHelper = new DialogBajaHelper();
   private int idEvento = 0;
   private String estadoEvento = "";
 
@@ -52,7 +54,8 @@ public class GestionInscriptosFragment extends Fragment {
   private void setupListeners() {
     binding.chipProcesando.setOnClickListener(v -> viewModel.cambiarFiltro("procesando"));
     binding.chipPagado.setOnClickListener(v -> viewModel.cambiarFiltro("pagado"));
-    binding.chipPendiente.setOnClickListener(v -> viewModel.cambiarFiltro("pendiente"));
+    // Deshabilitado: chipPendiente fue comentado en el XML porque en Pagos solo se gestionan pagos enviados y confirmados
+    // binding.chipPendiente.setOnClickListener(v -> viewModel.cambiarFiltro("pendiente"));
   }
 
   private void setupObservers() {
@@ -99,6 +102,9 @@ public class GestionInscriptosFragment extends Fragment {
     });
 
     viewModel.getUiMostrarComprobanteUrl().observe(getViewLifecycleOwner(), this::mostrarDialogoComprobante);
+    viewModel.getErrorMotivoBajaTexto().observe(getViewLifecycleOwner(), dialogBajaHelper::setErrorTexto);
+    viewModel.getErrorMotivoBajaVisibilidad().observe(getViewLifecycleOwner(), dialogBajaHelper::setErrorVisibilidad);
+    viewModel.getCerrarDialogoBajaSignal().observe(getViewLifecycleOwner(), dialogBajaHelper::cerrarSi);
   }
 
   private void setupRecyclerView() {
@@ -138,6 +144,10 @@ public class GestionInscriptosFragment extends Fragment {
     detalleBinding.tvTelEmergencia.setText(r.getTelEmergenciaFormateado());
     detalleBinding.tvCategoriaTalle.setText(item.getCategoriaTalleFormateado());
 
+    detalleBinding.tvMotivoBaja.setText(viewModel.getMotivoFichaTexto().getValue());
+    Integer motivoVis = viewModel.getMotivoFichaVisibilidad().getValue();
+    detalleBinding.tvMotivoBaja.setVisibility(motivoVis != null ? motivoVis : View.GONE);
+
     // Visibilidad y accion del comprobante delegada al ViewModel
     detalleBinding.btnVerComprobante.setVisibility(View.VISIBLE);
     detalleBinding.btnVerComprobante.setOnClickListener(v -> viewModel.onVerComprobanteClicked());
@@ -173,14 +183,15 @@ public class GestionInscriptosFragment extends Fragment {
   }
 
   private void mostrarDialogoConfirmacionBaja(InscriptoEventoResponse item) {
-    new androidx.appcompat.app.AlertDialog.Builder(requireContext())
-      .setTitle("Confirmar baja")
-      .setMessage("¿Estás seguro de que deseas eliminar la inscripción de este corredor?")
-      .setPositiveButton("Sí", (d, w) -> {
-        viewModel.darDeBajaRunner(item.getIdInscripcion());
-      })
-      .setNegativeButton("No", null)
-      .show();
+    String nombre = item.getRunner() != null ? item.getRunner().getNombreCompleto() : "este corredor";
+    dialogBajaHelper.mostrar(
+      requireContext(),
+      getLayoutInflater(),
+      "Confirmar baja",
+      "¿Estás seguro de dar de baja la inscripción de " + nombre + "?",
+      motivo -> viewModel.confirmarBajaConMotivo(item.getIdInscripcion(), motivo),
+      null
+    );
   }
 
   private void mostrarDialogoValidacion(InscriptoEventoResponse item) {
@@ -221,6 +232,7 @@ public class GestionInscriptosFragment extends Fragment {
   @Override
   public void onDestroyView() {
     super.onDestroyView();
+    dialogBajaHelper.dismiss();
     binding = null;
   }
 }

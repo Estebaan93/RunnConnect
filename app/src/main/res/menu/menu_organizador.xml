@@ -13,7 +13,7 @@
     <item
         android:id="@+id/nav_mis_eventos"
         android:icon="@drawable/calendar"
-        android:title="Mis Eventos Creados" />
+        android:title="Mis Eventos" />
     <item
         android:id="@+id/nav_crear_evento"
         android:icon="@drawable/writing"
@@ -21,13 +21,13 @@
     <item
         android:id="@+id/nav_perfil_organizador"
         android:icon="@drawable/user"
-        android:title="Mi Perfil Comercial" />
+        android:title="Mi Perfil" />
   </group>
 
     <item
     android:id="@+id/nav_buscar_inscripciones"
     android:icon="@drawable/loupe"
-    android:title="Estado Inscripciones" />
+    android:title="Inscripciones" />
 
   <item android:title="Cuenta">
     <menu>

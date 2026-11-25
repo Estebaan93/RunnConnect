@@ -186,10 +186,10 @@ namespace RunnConnectAPI.Repositories
             break;
 
         case "rechazado":
-            // En rechazado, el motivo del organizador
-            inscripcion.Observacion = !string.IsNullOrEmpty(motivoOrganizador) 
-                ? $"Pago rechazado. Motivo: {motivoOrganizador}" 
-                : "Pago rechazado por el organizador (Sin motivo especificado).";
+            // En rechazado guardamos solo el motivo puro (o texto por defecto generado en la API)
+            inscripcion.Observacion = !string.IsNullOrWhiteSpace(motivoOrganizador)
+                ? motivoOrganizador.Trim()
+                : "Comprobante rechazado";
             break;
 
         case "procesando":
@@ -386,9 +386,9 @@ namespace RunnConnectAPI.Repositories
       if (inscripcion == null)
         throw new KeyNotFoundException("Inscripción no encontrada");
 
-      // Si ya esta cancelada, no hacemos nada o lanzamos error (opcional)
-      if (inscripcion.EstadoPago == "cancelado")
-        throw new ArgumentException("La inscripción ya se encuentra cancelada.");
+      // No se puede dar de baja una inscripcion ya cancelada, rechazada o reembolsada
+      if (inscripcion.EstadoPago == "cancelado" || inscripcion.EstadoPago == "rechazado" || inscripcion.EstadoPago == "reembolsado")
+        throw new ArgumentException($"No se puede dar de baja una inscripción en estado {inscripcion.EstadoPago}.");
 
       // FORZAMOS el estado a cancelado directamente
       // NO llamamos a ValidarTransicionEstado() porque es una accion administrativa

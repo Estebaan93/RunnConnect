@@ -22,6 +22,7 @@ import com.example.runnconnect.R;
 import com.example.runnconnect.databinding.DialogDetalleRunnerBinding;
 import com.example.runnconnect.databinding.DialogVerImagenBinding;
 import com.example.runnconnect.databinding.FragmentBuscarInscripcionesBinding;
+import com.example.runnconnect.utils.DialogBajaHelper;
 
 import java.util.ArrayList;
 
@@ -33,6 +34,7 @@ public class BuscarInscripcionesFragment extends Fragment {
 
   private Dialog dialogDetalleActual;
   private DialogDetalleRunnerBinding dialogDetalleBinding;
+  private final DialogBajaHelper dialogBajaHelper = new DialogBajaHelper();
 
   @Nullable
   @Override
@@ -86,7 +88,9 @@ public class BuscarInscripcionesFragment extends Fragment {
       dialogDetalleBinding.tvTelefono.setText(state.telefono);
       dialogDetalleBinding.tvContactoEmergencia.setText(state.emergencia);
       dialogDetalleBinding.tvTelEmergencia.setText(state.telEmergencia);
-      
+      dialogDetalleBinding.tvMotivoBaja.setText(state.motivoBajaTexto);
+      dialogDetalleBinding.tvMotivoBaja.setVisibility(state.motivoBajaVisibilidad);
+
       dialogDetalleBinding.btnDarDeBaja.setVisibility(state.btnBajaVisibilidad);
       dialogDetalleBinding.btnVerComprobante.setVisibility(state.btnVerComprobanteVisibilidad);
       
@@ -99,6 +103,30 @@ public class BuscarInscripcionesFragment extends Fragment {
     mViewModel.getFeedbackDialogVisibilidad().observe(getViewLifecycleOwner(), dialogDetalleBinding.tvMensajeBaja::setVisibility);
     mViewModel.getFeedbackDialogColor().observe(getViewLifecycleOwner(), dialogDetalleBinding.tvMensajeBaja::setTextColor);
     mViewModel.getBtnBajaHabilitado().observe(getViewLifecycleOwner(), dialogDetalleBinding.btnDarDeBaja::setEnabled);
+
+    mViewModel.getAbrirDialogoBajaMensaje().observe(getViewLifecycleOwner(), mensaje -> {
+      if (mensaje != null) {
+        mViewModel.resetAbrirDialogoBaja();
+        BuscarInscripcionesViewModel.DetalleUiState state = mViewModel.getDetalleUiState().getValue();
+        if (state != null) {
+          dialogBajaHelper.mostrar(
+            requireContext(),
+            getLayoutInflater(),
+            "Confirmar baja",
+            mensaje,
+            motivo -> mViewModel.confirmarBaja(
+              state.idInscripcion,
+              binding.searchViewBusqueda.getQuery().toString(),
+              motivo
+            ),
+            null
+          );
+        }
+      }
+    });
+    mViewModel.getErrorMotivoBajaTexto().observe(getViewLifecycleOwner(), dialogBajaHelper::setErrorTexto);
+    mViewModel.getErrorMotivoBajaVisibilidad().observe(getViewLifecycleOwner(), dialogBajaHelper::setErrorVisibilidad);
+    mViewModel.getCerrarDialogoBajaSignal().observe(getViewLifecycleOwner(), dialogBajaHelper::cerrarSi);
   }
 
   private void setupSearchView() {
@@ -142,20 +170,7 @@ public class BuscarInscripcionesFragment extends Fragment {
 
     dialogDetalleActual.setOnDismissListener(dialog -> mViewModel.limpiarDetalle());
 
-    dialogDetalleBinding.btnDarDeBaja.setOnClickListener(v -> {
-      BuscarInscripcionesViewModel.DetalleUiState state = mViewModel.getDetalleUiState().getValue();
-      if (state != null) {
-        new androidx.appcompat.app.AlertDialog.Builder(requireContext())
-          .setTitle("Confirmar baja")
-          .setMessage("¿Estás seguro de eliminar a " + state.nombre + "?")
-          .setPositiveButton("Sí, eliminar", (d, w) -> {
-            String textoBusqueda = binding.searchViewBusqueda.getQuery().toString();
-            mViewModel.confirmarBaja(state.idInscripcion, state.nombre, textoBusqueda);
-          })
-          .setNegativeButton("Cancelar", null)
-          .show();
-      }
-    });
+    dialogDetalleBinding.btnDarDeBaja.setOnClickListener(v -> mViewModel.solicitarBajaCorredor());
   }
 
   private void mostrarDialogoComprobante(String url) {
@@ -178,6 +193,7 @@ public class BuscarInscripcionesFragment extends Fragment {
   @Override
   public void onDestroyView() {
     super.onDestroyView();
+    dialogBajaHelper.dismiss();
     dialogDetalleBinding = null;
     dialogDetalleActual = null;
     binding = null;

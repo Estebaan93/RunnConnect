@@ -528,11 +528,9 @@ public class DetalleEventoRunnerViewModel extends AndroidViewModel {
 
     // 6. Cumple todos los requisitos:
     if (esCategoriaRechazada) {
-      String obs = inscripcionActual.getObservacion();
-      String motivo = (obs != null && !obs.trim().isEmpty()) ? ": " + obs : "";
       return new CategoriaCompatibilidadUI(
           idCat, nombre, costo, cupos, requisitos,
-          "Comprobante rechazado" + motivo + ". Vuelve a inscribirte para generar un nuevo pago.",
+          "Comprobante rechazado. Vuelve a inscribirte para generar un nuevo pago.",
           Color.parseColor("#C62828"),
           "VOLVER A INSCRIBIRSE",
           true,

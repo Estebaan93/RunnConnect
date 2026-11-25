@@ -18,6 +18,9 @@ import com.example.runnconnect.data.request.MotivoBajaRequest;
 import com.example.runnconnect.data.request.CambiarEstadoPagoRequest;
 import com.example.runnconnect.data.response.InscriptoEventoResponse;
 import com.example.runnconnect.data.response.ListaInscriptosResponse;
+import com.example.runnconnect.utils.DialogBajaHelper;
+
+import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -83,6 +86,11 @@ public class GestionInscriptosViewModel extends AndroidViewModel {
   private final MutableLiveData<InscriptoEventoResponse> datosConfirmacionBaja = new MutableLiveData<>();
   private final MutableLiveData<Boolean> mostrarConfirmacionBajaSignal = new MutableLiveData<>();
   private final MutableLiveData<String> uiMostrarComprobanteUrl = new MutableLiveData<>();
+  private final MutableLiveData<String> errorMotivoBajaTexto = new MutableLiveData<>("");
+  private final MutableLiveData<Integer> errorMotivoBajaVisibilidad = new MutableLiveData<>(View.GONE);
+  private final MutableLiveData<Boolean> cerrarDialogoBajaSignal = new MutableLiveData<>(false);
+  private final MutableLiveData<String> motivoFichaTexto = new MutableLiveData<>("");
+  private final MutableLiveData<Integer> motivoFichaVisibilidad = new MutableLiveData<>(View.GONE);
 
   // Estado interno y paginación
   private int idEventoActual = 0;
@@ -118,6 +126,11 @@ public class GestionInscriptosViewModel extends AndroidViewModel {
   public LiveData<InscriptoEventoResponse> getDatosConfirmacionBaja() { return datosConfirmacionBaja; }
   public LiveData<Boolean> getMostrarConfirmacionBajaSignal() { return mostrarConfirmacionBajaSignal; }
   public LiveData<String> getUiMostrarComprobanteUrl() { return uiMostrarComprobanteUrl; }
+  public LiveData<String> getErrorMotivoBajaTexto() { return errorMotivoBajaTexto; }
+  public LiveData<Integer> getErrorMotivoBajaVisibilidad() { return errorMotivoBajaVisibilidad; }
+  public LiveData<Boolean> getCerrarDialogoBajaSignal() { return cerrarDialogoBajaSignal; }
+  public LiveData<String> getMotivoFichaTexto() { return motivoFichaTexto; }
+  public LiveData<Integer> getMotivoFichaVisibilidad() { return motivoFichaVisibilidad; }
 
   // --- CONSUMO DE ORDENES (Resets para evitar eventos fantasma) ---
   public void limpiarMensajes() {
@@ -191,7 +204,11 @@ public class GestionInscriptosViewModel extends AndroidViewModel {
         public void onResponse(Call<InscriptoEventoResponse> call, Response<InscriptoEventoResponse> response) {
           isLoading.setValue(false);
           if (response.isSuccessful() && response.body() != null) {
-            datosDetalle.setValue(response.body());
+            InscriptoEventoResponse detalle = response.body();
+            boolean mostrarMotivo = DialogBajaHelper.debeMostrarMotivo(detalle.getEstadoPago(), detalle.getObservacion());
+            motivoFichaTexto.setValue(DialogBajaHelper.formatearMotivo(detalle.getEstadoPago(), detalle.getObservacion()));
+            motivoFichaVisibilidad.setValue(mostrarMotivo ? View.VISIBLE : View.GONE);
+            datosDetalle.setValue(detalle);
             mostrarDetalleSignal.setValue(true);
           } else {
             mostrarErrorGlobal("Error al obtener ficha del corredor (" + response.code() + ")");
@@ -212,8 +229,22 @@ public class GestionInscriptosViewModel extends AndroidViewModel {
 
   public void intentarDarDeBajaRunner(InscriptoEventoResponse item) {
     if (item == null) return;
+    errorMotivoBajaTexto.setValue("");
+    errorMotivoBajaVisibilidad.setValue(View.GONE);
+    cerrarDialogoBajaSignal.setValue(false);
     datosConfirmacionBaja.setValue(item);
     mostrarConfirmacionBajaSignal.setValue(true);
+  }
+
+  public void confirmarBajaConMotivo(int idInscripcion, String motivo) {
+    if (motivo == null || motivo.trim().isEmpty()) {
+      errorMotivoBajaTexto.setValue("Debe ingresar el motivo de la baja");
+      errorMotivoBajaVisibilidad.setValue(View.VISIBLE);
+      return;
+    }
+    errorMotivoBajaVisibilidad.setValue(View.GONE);
+    cerrarDialogoBajaSignal.setValue(true);
+    darDeBajaRunner(idInscripcion, motivo.trim());
   }
 
   public void onVerComprobanteClicked() {
@@ -232,9 +263,9 @@ public class GestionInscriptosViewModel extends AndroidViewModel {
     ejecutarCambioEstado(idInscripcion, "pagado", "Pago confirmado por organizador");
   }
 
-  // Logica encapsulada: Rechazar
+  // Logica encapsulada: Rechazar (el motivo por defecto lo genera la API)
   public void rechazarPago(int idInscripcion) {
-    ejecutarCambioEstado(idInscripcion, "rechazado", "Comprobante inválido o ilegible");
+    ejecutarCambioEstado(idInscripcion, "rechazado", null);
   }
 
   // --- PRIVADO: API ---
@@ -249,7 +280,17 @@ public class GestionInscriptosViewModel extends AndroidViewModel {
         public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
           isLoading.setValue(false);
           if (response.isSuccessful()) {
-            mostrarExitoGlobal("pagado".equals(nuevoEstado) ? "Pago Aprobado" : "Pago Rechazado");
+            String msg = "pagado".equals(nuevoEstado) ? "Pago Aprobado" : "Comprobante rechazado";
+            try {
+              if (response.body() != null) {
+                JSONObject json = new JSONObject(response.body().string());
+                String obs = json.optString("observacion", "");
+                if (!obs.trim().isEmpty()) {
+                  msg = obs.trim();
+                }
+              }
+            } catch (Exception ignored) {}
+            mostrarExitoGlobal(msg);
             cargarPagina(1, false); // Recargar primera página
           } else {
             mostrarErrorGlobal("Error al procesar: " + response.code());
@@ -335,11 +376,8 @@ public class GestionInscriptosViewModel extends AndroidViewModel {
   }
 
   //Dar de baja
-  public void darDeBajaRunner(int idInscripcion) {
+  public void darDeBajaRunner(int idInscripcion, String motivo) {
     isLoading.setValue(true);
-
-    //motivo generico
-    String motivo = "Baja solicitada por el organizador en gestion de inscripciones";
 
     //lamamos al repo
     String token = sessionManager.leerToken();

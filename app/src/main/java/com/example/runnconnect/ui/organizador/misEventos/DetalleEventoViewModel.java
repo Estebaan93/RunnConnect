@@ -81,6 +81,9 @@ public class DetalleEventoViewModel extends AndroidViewModel {
 
   // Estado para la confirmación de baja
   private final MutableLiveData<String> textoConfirmacionBaja = new MutableLiveData<>();
+  private final MutableLiveData<String> errorMotivoBajaTexto = new MutableLiveData<>("");
+  private final MutableLiveData<Integer> errorMotivoBajaVisibilidad = new MutableLiveData<>(View.GONE);
+  private final MutableLiveData<Boolean> cerrarDialogoBajaSignal = new MutableLiveData<>(false);
   private InscriptoEventoResponse runnerBajaPendiente = null;
   private int idCatBajaPendiente = 0;
 
@@ -184,6 +187,18 @@ public class DetalleEventoViewModel extends AndroidViewModel {
 
   public LiveData<String> getTextoConfirmacionBaja() {
     return textoConfirmacionBaja;
+  }
+
+  public LiveData<String> getErrorMotivoBajaTexto() {
+    return errorMotivoBajaTexto;
+  }
+
+  public LiveData<Integer> getErrorMotivoBajaVisibilidad() {
+    return errorMotivoBajaVisibilidad;
+  }
+
+  public LiveData<Boolean> getCerrarDialogoBajaSignal() {
+    return cerrarDialogoBajaSignal;
   }
 
   public LiveData<List<CategoriaResponse>> getCategoriasPendientesCarga() {
@@ -320,13 +335,23 @@ public class DetalleEventoViewModel extends AndroidViewModel {
     if (runner != null && runner.getRunner() != null) {
       this.runnerBajaPendiente = runner;
       this.idCatBajaPendiente = idCat;
+      errorMotivoBajaTexto.setValue("");
+      errorMotivoBajaVisibilidad.setValue(View.GONE);
+      cerrarDialogoBajaSignal.setValue(false);
       textoConfirmacionBaja.setValue("¿Confirmar baja de " + runner.getRunner().getNombre() + "?");
     }
   }
 
-  public void confirmarBajaRunnerPendiente() {
+  public void confirmarBajaRunnerPendiente(String motivo) {
+    if (motivo == null || motivo.trim().isEmpty()) {
+      errorMotivoBajaTexto.setValue("Debe ingresar el motivo de la baja");
+      errorMotivoBajaVisibilidad.setValue(View.VISIBLE);
+      return;
+    }
+    errorMotivoBajaVisibilidad.setValue(View.GONE);
+    cerrarDialogoBajaSignal.setValue(true);
     if (runnerBajaPendiente != null && categoriaSeleccionada != null) {
-      darDeBajaRunner(runnerBajaPendiente.getIdInscripcion(), "Baja organizador", categoriaSeleccionada.getIdEvento(), idCatBajaPendiente);
+      darDeBajaRunner(runnerBajaPendiente.getIdInscripcion(), motivo.trim(), categoriaSeleccionada.getIdEvento(), idCatBajaPendiente);
     }
     limpiarConfirmacionBaja();
   }

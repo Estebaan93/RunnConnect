@@ -9,6 +9,7 @@ public class BusquedaInscripcionResponse {
   private String estadoEvento;
   private String talleRemera;
   private String comprobantePagoURL;
+  private String observacion;
   private int idEvento;
   private String nombreEvento;
   private String nombreCategoria;
@@ -24,6 +25,7 @@ public class BusquedaInscripcionResponse {
   public String getEstadoEvento() {return estadoEvento; }
   public String getTalleRemera() { return talleRemera; }
   public String getComprobantePagoURL() { return comprobantePagoURL; }
+  public String getObservacion() { return observacion; }
   public String getNombreCategoria() { return nombreCategoria; }
 
   public RunnerSimpleInfo getRunner() { return runner; }

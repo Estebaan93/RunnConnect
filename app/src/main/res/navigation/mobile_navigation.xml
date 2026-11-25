@@ -75,7 +75,7 @@
   <fragment
       android:id="@+id/nav_perfil_organizador"
       android:name="com.example.runnconnect.ui.organizador.perfil.PerfilOrganizadorFragment"
-      android:label="Perfil Comercial"
+      android:label="Perfil"
       tools:layout="@layout/fragment_perfil_organizador" />
 
   <fragment

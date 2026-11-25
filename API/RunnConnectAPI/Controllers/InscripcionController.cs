@@ -120,17 +120,17 @@ namespace RunnConnectAPI.Controllers
 
         var inscripcionCreada = await _inscripcionRepositorio.CrearAsync(inscripcion);
 
-        // Notificar al organizador del evento sobre la nueva inscripcion
-        var inscripcionCompleta = await _inscripcionRepositorio.ObtenerPorIdAsync(inscripcionCreada.IdInscripcion);
-        string nombreRunner = inscripcionCompleta?.Usuario?.Nombre ?? "Un corredor";
+        /* Notificacion deshabilitada al registrar inscripcion en estado "pendiente" (aun no subio comprobante ni ocupa cupo)
+         var inscripcionCompleta = await _inscripcionRepositorio.ObtenerPorIdAsync(inscripcionCreada.IdInscripcion);
+         string nombreRunner = inscripcionCompleta?.Usuario?.Nombre ?? "Un corredor";
 
-        await _notificacionRepositorio.CrearNotificacionSistemaAsync(
-            evento.IdEvento,
-            request.IdCategoria,
-            evento.IdOrganizador,
-            "Nueva Inscripción Registrada",
-            $"{nombreRunner} se ha inscripto en la categoría '{categoria.Nombre}' de tu evento '{evento.Nombre}'.",
-            evento.Estado);
+         await _notificacionRepositorio.CrearNotificacionSistemaAsync(
+             evento.IdEvento,
+             request.IdCategoria,
+             evento.IdOrganizador,
+             "Nueva Inscripción Registrada",
+             $"{nombreRunner} se ha inscripto en la categoría '{categoria.Nombre}' de tu evento '{evento.Nombre}'.",
+             evento.Estado);*/
 
         return CreatedAtAction(
             nameof(ObtenerInscripcion),
@@ -183,6 +183,7 @@ namespace RunnConnectAPI.Controllers
           TalleRemera = i.TalleRemera,
           AceptoDeslinde = i.AceptoDeslinde,
           ComprobantePagoURL = i.ComprobantePagoURL,
+          Observacion = i.Observacion,
           Evento = i.Categoria?.Evento != null ? new EventoInscripcionInfo
           {
             IdEvento = i.Categoria.Evento.IdEvento,
@@ -244,6 +245,7 @@ namespace RunnConnectAPI.Controllers
           TalleRemera = inscripcion.TalleRemera,
           AceptoDeslinde = inscripcion.AceptoDeslinde,
           ComprobantePagoURL = inscripcion.ComprobantePagoURL,
+          Observacion = inscripcion.Observacion,
           Evento = inscripcion.Categoria?.Evento != null ? new EventoInscripcionInfo
           {
             IdEvento = inscripcion.Categoria.Evento.IdEvento,
@@ -349,7 +351,7 @@ namespace RunnConnectAPI.Controllers
 
         if (inscripcion.EstadoPago != "pendiente")
           return BadRequest(new { message = "Solo se puede subir comprobante para inscripciones pendientes" });
-        
+
 
         var extensionesPermitidas = new[] { ".jpg", ".jpeg", ".png", ".pdf" };
         var extension = Path.GetExtension(comprobante.FileName).ToLower();
@@ -542,19 +544,17 @@ namespace RunnConnectAPI.Controllers
 
         string estadoFinal = request.NuevoEstado.ToLower();
 
-        //si rechaza obliga a poner un motivo
-        if(estadoFinal=="rechazado" && string.IsNullOrWhiteSpace(request.Motivo))
-        {
-          return BadRequest(new { message = "Debe colocar el motivo del rechazo del pago" });
-        }
+        string? motivoEfectivo = estadoFinal == "rechazado" && string.IsNullOrWhiteSpace(request.Motivo)
+          ? "Comprobante rechazado"
+          : request.Motivo?.Trim();
 
         // El repositorio validara si 'pagado' o 'rechazado'
-        await _inscripcionRepositorio.CambiarEstadoPagoAsync(id, estadoFinal, request.Motivo);
+        await _inscripcionRepositorio.CambiarEstadoPagoAsync(id, estadoFinal, motivoEfectivo);
 
         //crear las noti para el runner
         string tituloNotif= estadoFinal =="pagado" ? "¡Pago Confirmado!" : "Pago de Inscripción Rechazado";
         string mensajeNotif= estadoFinal== "pagado"
-          ? $"Tu pago para el evento '{inscripcion.Categoria.Evento.Nombre}' ha sido aprobado." : $"Tu comprobante fue rechazado. Motivo: {request.Motivo}";
+          ? $"Tu pago para el evento '{inscripcion.Categoria.Evento.Nombre}' ha sido aprobado." : $"Tu comprobante fue rechazado. Motivo: {motivoEfectivo}";
 
         /*var notificacion = new NotificacionEvento
         {
@@ -585,7 +585,7 @@ namespace RunnConnectAPI.Controllers
           idInscripcion = id,
           estadoAnterior,
           estadoNuevo = estadoFinal,
-          observacion = request.Motivo ?? "Pago impactao correctamente"
+          observacion = motivoEfectivo ?? "Pago impactado correctamente"
         });
       }
       catch (InvalidOperationException ex)
@@ -674,9 +674,10 @@ namespace RunnConnectAPI.Controllers
         if (inscripcion.Categoria?.Evento?.IdOrganizador != userId)
           return Forbid();
 
-        string motivoTexto = string.IsNullOrWhiteSpace(request?.Motivo)
-            ? "Sin motivo especificado"
-            : request.Motivo.Trim();
+        if (string.IsNullOrWhiteSpace(request?.Motivo))
+          return BadRequest(new { message = "Debe ingresar el motivo de la baja" });
+
+        string motivoTexto = request.Motivo.Trim();
 
         // Forzar cambio de estado a cancelado y persistir motivo en observacion
         await _inscripcionRepositorio.DarBajaPorOrganizadorAsync(id, motivoTexto);
@@ -741,6 +742,7 @@ namespace RunnConnectAPI.Controllers
           TalleRemera = i.TalleRemera,
           ComprobantePagoURL = !string.IsNullOrEmpty(i.ComprobantePagoURL)
             ? _fileService.ObtenerUrlCompleta(i.ComprobantePagoURL, Request) : null,
+          Observacion = i.Observacion,
 
           Runner = new RunnerSimpleDto
           {
@@ -765,6 +767,6 @@ namespace RunnConnectAPI.Controllers
       }
     }
 
-    
+
   }
 }
