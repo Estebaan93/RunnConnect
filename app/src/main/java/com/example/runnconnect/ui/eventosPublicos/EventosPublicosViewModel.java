@@ -13,7 +13,6 @@ import androidx.lifecycle.Observer;
 
 import com.example.runnconnect.data.conexion.ApiClient;
 import com.example.runnconnect.data.conexion.ApiService;
-import com.example.runnconnect.data.preferencias.SessionManager;
 import com.example.runnconnect.data.response.EventoResumenResponse;
 import com.example.runnconnect.data.response.EventosPaginadosResponse;
 

@@ -5,7 +5,19 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fitsSystemWindows="true"
-    android:background="#F5F5F5">
+    android:background="@color/black">
+
+  <ImageView
+      android:id="@+id/ivFondoEventosPublicos"
+      android:layout_width="0dp"
+      android:layout_height="0dp"
+      android:scaleType="centerCrop"
+      android:src="@drawable/login_proximo_eventos"
+      android:contentDescription="@null"
+      app:layout_constraintTop_toTopOf="parent"
+      app:layout_constraintBottom_toBottomOf="parent"
+      app:layout_constraintStart_toStartOf="parent"
+      app:layout_constraintEnd_toEndOf="parent" />
 
   <androidx.recyclerview.widget.RecyclerView
       android:id="@+id/recyclerEventos"
@@ -30,7 +42,14 @@
       android:id="@+id/tvVacio"
       android:layout_width="wrap_content"
       android:layout_height="wrap_content"
+      android:layout_marginHorizontal="24dp"
+      android:background="#E6FFFFFF"
+      android:gravity="center"
+      android:paddingHorizontal="20dp"
+      android:paddingVertical="14dp"
       android:text="No hay eventos disponibles por el momento."
+      android:textColor="@color/black"
+      android:textStyle="bold"
       android:visibility="gone"
       app:layout_constraintBottom_toBottomOf="parent"
       app:layout_constraintEnd_toEndOf="parent"
@@ -42,6 +61,8 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="32dp"
+        android:background="#E6FFFFFF"
+        android:padding="16dp"
         android:textAlignment="center"
         android:textColor="#D32F2F"
         android:textStyle="bold"

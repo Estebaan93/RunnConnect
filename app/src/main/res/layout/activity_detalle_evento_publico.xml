@@ -17,12 +17,16 @@
         android:layout_height="wrap_content"
         android:paddingBottom="100dp">
 
-      <View
+      <ImageView
           android:id="@+id/viewHeaderBg"
-          android:layout_width="match_parent"
-          android:layout_height="80dp"
-          android:background="@color/purple_700"
-          app:layout_constraintTop_toTopOf="parent" />
+          android:layout_width="0dp"
+          android:layout_height="60dp"
+          android:scaleType="centerCrop"
+          android:src="@drawable/detalle_even_publico_barra"
+          android:contentDescription="@null"
+          app:layout_constraintTop_toTopOf="parent"
+          app:layout_constraintStart_toStartOf="parent"
+          app:layout_constraintEnd_toEndOf="parent" />
 
       <TextView
           android:id="@+id/tvTituloDetalle"

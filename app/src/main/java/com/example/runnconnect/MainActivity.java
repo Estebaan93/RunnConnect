@@ -102,6 +102,7 @@ public class MainActivity extends AppCompatActivity {
       R.id.nav_mis_eventos,
       R.id.nav_crear_evento,
       R.id.nav_perfil,
+      R.id.nav_terminos_condiciones,
       R.id.nav_perfil_organizador,
       R.id.nav_buscar_inscripciones,
       R.id.nav_cerrar_sesion)

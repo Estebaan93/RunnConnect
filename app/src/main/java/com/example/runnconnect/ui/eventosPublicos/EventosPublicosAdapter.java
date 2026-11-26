@@ -7,6 +7,7 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.runnconnect.R;
+import com.example.runnconnect.data.model.ClimaInfo;
 import com.example.runnconnect.data.response.CategoriaResponse;
 import com.example.runnconnect.data.response.EventoResumenResponse;
 import com.example.runnconnect.databinding.ItemEventoPublicoBinding;
@@ -29,7 +30,7 @@ public class EventosPublicosAdapter extends RecyclerView.Adapter<EventosPublicos
   }
 
   public void setLista(List<EventoResumenResponse> nuevaLista) {
-    this.lista = nuevaLista;
+    this.lista = nuevaLista != null ? nuevaLista : new ArrayList<>();
     notifyDataSetChanged();
   }
 
@@ -60,7 +61,7 @@ public class EventosPublicosAdapter extends RecyclerView.Adapter<EventosPublicos
 
       binding.tvNombreEvento.setText(item.getNombre());
       binding.tvFecha.setText(com.example.runnconnect.utils.FechaUtils.formatearFechaHora(item.getFechaHora()));
-
+      binding.tvClima.setText(ClimaInfo.fromJson(item.getUrlPronosticoClima()).getTextoTemperatura());
       binding.tvLugar.setText(item.getLugar());
       binding.tvOrganizador.setText("Org: " + item.getNombreOrganizador());
 

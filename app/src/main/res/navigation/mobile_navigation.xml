@@ -73,6 +73,12 @@
       tools:layout="@layout/fragment_perfil_runner"/>
 
   <fragment
+      android:id="@+id/nav_terminos_condiciones"
+      android:name="com.example.runnconnect.ui.runner.terminos.TerminosCondicionesFragment"
+      android:label="Deslinde de Responsabilidades"
+      tools:layout="@layout/fragment_terminos_condiciones" />
+
+  <fragment
       android:id="@+id/nav_perfil_organizador"
       android:name="com.example.runnconnect.ui.organizador.perfil.PerfilOrganizadorFragment"
       android:label="Perfil"
