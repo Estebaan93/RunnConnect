@@ -3,12 +3,26 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="@color/black">
+
+  <ImageView
+      android:id="@+id/ivFondoInicio"
+      android:layout_width="0dp"
+      android:layout_height="0dp"
+      android:scaleType="centerCrop"
+      android:src="@drawable/inicio_feed"
+      android:contentDescription="@null"
+      app:layout_constraintTop_toTopOf="parent"
+      app:layout_constraintBottom_toBottomOf="parent"
+      app:layout_constraintStart_toStartOf="parent"
+      app:layout_constraintEnd_toEndOf="parent" />
 
   <androidx.recyclerview.widget.RecyclerView
       android:id="@+id/rvNoticias"
       android:layout_width="match_parent"
       android:layout_height="match_parent"
+      android:clipToPadding="false"
       android:padding="4dp"
       app:layout_constraintTop_toTopOf="parent"
       app:layout_constraintBottom_toBottomOf="parent" />
@@ -26,7 +40,14 @@
       android:id="@+id/tvEstado"
       android:layout_width="wrap_content"
       android:layout_height="wrap_content"
+      android:layout_marginHorizontal="24dp"
+      android:background="#E6FFFFFF"
+      android:gravity="center"
+      android:paddingHorizontal="20dp"
+      android:paddingVertical="14dp"
       android:text="No hay noticias disponibles"
+      android:textColor="@color/black"
+      android:textStyle="bold"
       android:visibility="gone"
       app:layout_constraintTop_toTopOf="parent"
       app:layout_constraintBottom_toBottomOf="parent"
@@ -35,10 +56,15 @@
 
     <TextView
         android:id="@+id/tvErrorLoad"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:layout_marginHorizontal="32dp"
+        android:background="#E6FFFFFF"
+        android:padding="16dp"
+        android:textAlignment="center"
         android:visibility="gone"
-        android:textColor="@android:color/holo_red_dark"
+        android:textColor="#D32F2F"
+        android:textStyle="bold"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"

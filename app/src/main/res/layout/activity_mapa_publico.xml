@@ -21,6 +21,7 @@
         android:layout_marginEnd="8dp"
         android:src="@android:drawable/ic_menu_mapmode"
         app:backgroundTint="#FFFFFF"
+        app:tint="@color/black"
         app:fabSize="mini"
         app:layout_constraintTop_toTopOf="@id/map"
         app:layout_constraintEnd_toEndOf="@id/map" />

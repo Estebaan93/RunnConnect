@@ -92,8 +92,9 @@
               android:layout_marginTop="6dp"
               android:drawablePadding="8dp"
               android:text="Lugar: ---"
+              android:textColor="#474747"
               android:textSize="15sp"
-              android:textColor="#424242"
+              android:textStyle="bold"
               app:drawableStartCompat="@android:drawable/ic_menu_mylocation" />
 
           <TextView
@@ -114,8 +115,9 @@
               android:layout_marginTop="6dp"
               android:drawablePadding="8dp"
               android:text="Cupos disponibles: ---"
-              android:textSize="14sp"
-              android:textColor="#616161"
+              android:textColor="#474747"
+              android:textSize="15sp"
+              android:textStyle="bold"
               app:drawableStartCompat="@android:drawable/ic_menu_myplaces" />
 
           <!-- Botón Ver Recorrido en Mapa -->

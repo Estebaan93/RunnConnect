@@ -99,6 +99,7 @@
       android:layout_marginEnd="8dp"
       android:src="@android:drawable/ic_menu_mapmode"
       app:backgroundTint="#FFFFFF"
+      app:tint="@color/black"
       app:fabSize="mini"
       app:layout_constraintTop_toBottomOf="@id/cardDistancia"
       app:layout_constraintEnd_toEndOf="parent" />
@@ -110,6 +111,7 @@
       android:layout_margin="16dp"
       android:src="@android:drawable/ic_menu_revert"
       app:backgroundTint="#FFFFFF"
+      app:tint="@color/black"
       app:layout_constraintBottom_toBottomOf="parent"
       app:layout_constraintStart_toStartOf="parent" />
 
