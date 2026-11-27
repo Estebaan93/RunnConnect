@@ -35,6 +35,7 @@ public class DetalleEventoPublicoViewModel extends AndroidViewModel {
   private final MutableLiveData<String> nombre = new MutableLiveData<>();
   private final MutableLiveData<String> fechaHora = new MutableLiveData<>();
   private final MutableLiveData<String> lugar = new MutableLiveData<>();
+  private final MutableLiveData<String> tipoEvento = new MutableLiveData<>();
   private final MutableLiveData<String> descripcion = new MutableLiveData<>();
   private final MutableLiveData<String> estado = new MutableLiveData<>();
   private final MutableLiveData<String> cupos = new MutableLiveData<>();
@@ -56,6 +57,7 @@ public class DetalleEventoPublicoViewModel extends AndroidViewModel {
   public LiveData<String> getNombre() { return nombre; }
   public LiveData<String> getFechaHora() { return fechaHora; }
   public LiveData<String> getLugar() { return lugar; }
+  public LiveData<String> getTipoEvento() { return tipoEvento; }
   public LiveData<String> getDescripcion() { return descripcion; }
   public LiveData<String> getEstado() { return estado; }
   public LiveData<String> getCupos() { return cupos; }
@@ -86,6 +88,7 @@ public class DetalleEventoPublicoViewModel extends AndroidViewModel {
           nombre.setValue(e.getNombre());
           fechaHora.setValue("Fecha: " + com.example.runnconnect.utils.FechaUtils.formatearFechaHora(e.getFechaHora()));
           lugar.setValue("Lugar: " + e.getLugar());
+          tipoEvento.setValue("Tipo: " + e.getTipoEvento());
           descripcion.setValue(e.getDescripcion());
           estado.setValue("Estado: " + (e.getEstado() != null ? e.getEstado().toUpperCase() : ""));
           int disponibles = e.getCuposDisponibles();

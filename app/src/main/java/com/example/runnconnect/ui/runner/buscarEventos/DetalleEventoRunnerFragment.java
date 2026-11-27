@@ -102,6 +102,7 @@ public class DetalleEventoRunnerFragment extends Fragment {
     viewModel.getUiEstado().observe(getViewLifecycleOwner(), binding.tvEstadoDetalle::setText);
     viewModel.getUiFecha().observe(getViewLifecycleOwner(), binding.tvFechaDetalle::setText);
     viewModel.getUiLugar().observe(getViewLifecycleOwner(), binding.tvLugarDetalle::setText);
+    viewModel.getUiTipoEvento().observe(getViewLifecycleOwner(), binding.tvTipoEventoDetalle::setText);
     viewModel.getUiCupos().observe(getViewLifecycleOwner(), binding.tvCuposDetalle::setText);
     viewModel.getUiDescripcion().observe(getViewLifecycleOwner(), binding.tvDescripcionDetalle::setText);
     viewModel.getUiOrganizador().observe(getViewLifecycleOwner(), binding.tvOrganizadorDetalle::setText);

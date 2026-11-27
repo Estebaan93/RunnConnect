@@ -464,6 +464,7 @@ namespace RunnConnectAPI.Controllers
           evento.UrlPronosticoClima = request.UrlPronosticoClima;
         }
         evento.DatosPago = request.DatosPago;
+        evento.TipoEvento = request.TipoEvento.ToLower().Trim();
 
         await _eventoRepositorio.ActualizarAsync(evento);
 
@@ -478,6 +479,7 @@ namespace RunnConnectAPI.Controllers
             Lugar = evento.Lugar,
             Estado = evento.Estado,
             CupoTotal = evento.CupoTotal,
+            TipoEvento = evento.TipoEvento,
             UrlPronosticoClima = evento.UrlPronosticoClima,
             NombreOrganizador = evento.Organizador?.Nombre ?? ""
           }

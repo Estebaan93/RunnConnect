@@ -54,6 +54,7 @@ public class DetalleEventoPublicoActivity extends AppCompatActivity {
     viewModel.getNombre().observe(this, binding.tvTituloDetalle::setText);
     viewModel.getFechaHora().observe(this, binding.tvFechaHora::setText);
     viewModel.getLugar().observe(this, binding.tvLugar::setText);
+    viewModel.getTipoEvento().observe(this, binding.tvTipoEvento::setText);
     viewModel.getDescripcion().observe(this, binding.tvDescripcion::setText);
     viewModel.getEstado().observe(this, binding.tvEstado::setText);
     viewModel.getCupos().observe(this, binding.tvCupos::setText);

@@ -17,13 +17,29 @@
         android:id="@+id/tvNombreEvento"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:layout_marginEnd="8dp"
         android:text="Nombre del Evento"
         android:textSize="18sp"
         android:textStyle="bold"
         android:textColor="@color/black"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"/>
+        app:layout_constraintEnd_toStartOf="@id/tvTipoEvento"/>
+
+    <TextView
+        android:id="@+id/tvTipoEvento"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Calle"
+        android:textSize="12sp"
+        android:textStyle="bold"
+        android:textColor="#37474F"
+        android:background="#EEEEEE"
+        android:paddingHorizontal="8dp"
+        android:paddingVertical="3dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@id/tvNombreEvento"
+        app:layout_constraintBaseline_toBaselineOf="@id/tvNombreEvento"/>
 
     <TextView
         android:id="@+id/tvFecha"

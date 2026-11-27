@@ -59,6 +59,7 @@ public class DetalleEventoRunnerViewModel extends AndroidViewModel {
   private final MutableLiveData<String> uiEstado = new MutableLiveData<>("");
   private final MutableLiveData<String> uiFecha = new MutableLiveData<>("");
   private final MutableLiveData<String> uiLugar = new MutableLiveData<>("");
+  private final MutableLiveData<String> uiTipoEvento = new MutableLiveData<>("");
   private final MutableLiveData<String> uiCupos = new MutableLiveData<>("");
   private final MutableLiveData<String> uiDescripcion = new MutableLiveData<>("");
   private final MutableLiveData<String> uiOrganizador = new MutableLiveData<>("");
@@ -101,6 +102,7 @@ public class DetalleEventoRunnerViewModel extends AndroidViewModel {
   public LiveData<String> getUiEstado() { return uiEstado; }
   public LiveData<String> getUiFecha() { return uiFecha; }
   public LiveData<String> getUiLugar() { return uiLugar; }
+  public LiveData<String> getUiTipoEvento() { return uiTipoEvento; }
   public LiveData<String> getUiCupos() { return uiCupos; }
   public LiveData<String> getUiDescripcion() { return uiDescripcion; }
   public LiveData<String> getUiOrganizador() { return uiOrganizador; }
@@ -243,6 +245,7 @@ public class DetalleEventoRunnerViewModel extends AndroidViewModel {
     String fecha = com.example.runnconnect.utils.FechaUtils.formatearFechaHora(eventoDetalle.getFechaHora());
     uiFecha.setValue("Fecha: " + fecha);
     uiLugar.setValue("Lugar: " + (eventoDetalle.getLugar() != null ? eventoDetalle.getLugar() : "-"));
+    uiTipoEvento.setValue("Tipo: " + eventoDetalle.getTipoEvento());
 
     int inscriptos = eventoDetalle.getInscriptosActuales();
     String cupoTot = eventoDetalle.getCupoTotal() != null ? String.valueOf(eventoDetalle.getCupoTotal()) : "Ilimitado";

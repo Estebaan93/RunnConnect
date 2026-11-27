@@ -8,18 +8,20 @@ public class ActualizarEventoRequest {
   private Integer cupoTotal;
   private String urlPronosticoClima;
   private String datosPago;
+  private String tipoEvento;
 
   // Constructor vacío
   public ActualizarEventoRequest() {}
 
   // Constructor completo (opcional)
-  public ActualizarEventoRequest(String nombre, String descripcion, String fechaHora, String lugar, Integer cupoTotal, String datosPago) {
+  public ActualizarEventoRequest(String nombre, String descripcion, String fechaHora, String lugar, Integer cupoTotal, String datosPago, String tipoEvento) {
     this.nombre = nombre;
     this.descripcion = descripcion;
     this.fechaHora = fechaHora;
     this.lugar = lugar;
     this.cupoTotal = cupoTotal;
     this.datosPago = datosPago;
+    this.tipoEvento = tipoEvento;
   }
 
   // Getters y Setters (Necesarios para que GSON convierta a JSON y para el ViewModel)
@@ -30,5 +32,6 @@ public class ActualizarEventoRequest {
   public void setCupoTotal(Integer cupoTotal) { this.cupoTotal = cupoTotal; }
   public void setUrlPronosticoClima(String urlPronosticoClima) { this.urlPronosticoClima = urlPronosticoClima; }
   public void setDatosPago(String datosPago) { this.datosPago = datosPago; }
+  public void setTipoEvento(String tipoEvento) { this.tipoEvento = tipoEvento; }
 }
 

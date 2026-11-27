@@ -8,10 +8,7 @@ import android.view.Window;
 
 import com.example.runnconnect.databinding.DialogMotivoBajaBinding;
 
-/**
- * Helper reutilizable para mostrar el dialogo de baja con motivo obligatorio.
- * Mantiene los Fragments pasivos delegando la validacion y errores al ViewModel.
- */
+/*Helper reutilizable para mostrar el dialogo de baja con motivo obligatorio.*/
 public class DialogBajaHelper {
 
   public interface OnConfirmarListener {

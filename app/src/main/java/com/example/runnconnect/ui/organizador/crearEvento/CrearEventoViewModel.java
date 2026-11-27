@@ -102,7 +102,7 @@ public class CrearEventoViewModel extends AndroidViewModel {
   private final MutableLiveData<Integer> categoriasVisibilidad = new MutableLiveData<>(View.GONE);
 
   // --- DATOS DE SELECTORES (Spinners) ---
-  private final MutableLiveData<List<String>> listaTiposEvento = new MutableLiveData<>(Arrays.asList( "Calle", "Trail", "Cross", "Aventura", "Obstáculos", "Correcaminata", "Kids", "Triatlón"));
+  private final MutableLiveData<List<String>> listaTiposEvento = new MutableLiveData<>(Arrays.asList("Calle", "Trail", "Cross", "Aventura", "Obstaculos", "Correcaminata", "Kids", "Triatlon"));
   private final MutableLiveData<List<String>> listaGeneros = new MutableLiveData<>(Arrays.asList("Mixto / General", "Femenino", "Masculino"));
 
 
@@ -322,6 +322,7 @@ public class CrearEventoViewModel extends AndroidViewModel {
       request.setLugar(lugarIn);
       request.setCupoTotal(cupoInt);
       request.setDatosPago(datosPagoIn);
+      request.setTipoEvento(tipoEventoIn.toLowerCase().trim());
 
       ejecutarActualizacion(request);
       return;
@@ -506,8 +507,14 @@ public class CrearEventoViewModel extends AndroidViewModel {
 
   private void mapearEventoAUI(EventoDetalleResponse evento) {
     if (evento.getTipoEvento() != null && listaTiposEvento.getValue() != null) {
-      int pos = listaTiposEvento.getValue().indexOf(evento.getTipoEvento());
-      if (pos >= 0) tipoEventoGlobalPosicion.setValue(pos);
+      String tipoBackend = evento.getTipoEvento().trim();
+      List<String> opciones = listaTiposEvento.getValue();
+      for (int i = 0; i < opciones.size(); i++) {
+        if (opciones.get(i).equalsIgnoreCase(tipoBackend)) {
+          tipoEventoGlobalPosicion.setValue(i);
+          break;
+        }
+      }
     }
     titulo.setValue(evento.getNombre());
     descripcion.setValue(evento.getDescripcion());

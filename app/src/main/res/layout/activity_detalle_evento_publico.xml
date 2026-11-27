@@ -75,6 +75,16 @@
               android:drawablePadding="8dp"
               app:drawableStartCompat="@android:drawable/ic_menu_mapmode"/>
 
+          <TextView
+              android:id="@+id/tvTipoEvento"
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content"
+              android:layout_marginTop="8dp"
+              android:text="Tipo: ---"
+              android:textSize="16sp"
+              android:drawablePadding="8dp"
+              app:drawableStartCompat="@android:drawable/ic_menu_directions"/>
+
           <Button
               android:id="@+id/btnVerMapa"
               style="@style/Widget.MaterialComponents.Button.OutlinedButton"

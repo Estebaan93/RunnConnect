@@ -97,6 +97,17 @@
               app:drawableStartCompat="@android:drawable/ic_menu_mylocation" />
 
           <TextView
+              android:id="@+id/tvTipoEventoDetalle"
+              android:layout_width="match_parent"
+              android:layout_height="wrap_content"
+              android:layout_marginTop="6dp"
+              android:drawablePadding="8dp"
+              android:text="Tipo: ---"
+              android:textSize="15sp"
+              android:textColor="#424242"
+              app:drawableStartCompat="@android:drawable/ic_menu_directions" />
+
+          <TextView
               android:id="@+id/tvCuposDetalle"
               android:layout_width="match_parent"
               android:layout_height="wrap_content"
